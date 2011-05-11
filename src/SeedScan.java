@@ -12,11 +12,17 @@ public class SeedScan
     {
         String tr1PathPattern = "/tr1/telemetry_days/${NETWORK}_${STATION}/%Y/%Y_%j";
         String xs0PathPattern = "/xs0/seed/${NETWORK}_${STATION}/%Y/%Y_%j_${NETWORK}_${STATION}";
+        String lockFile = "/qcwork/seedscan.lock";
+        String procName = "seedscan";
+
+        LockFile lock = new LockFile(lockFile, procName);
+        if (!lock.acquire()) {
+            System.out.println("Could not acquire lock.");
+            System.exit(1);
+        }
 
         int scanDepth = 2; // Number of days to look back.
         boolean scanXS0 = false;
-
-        GregorianCalendar timestamp = new GregorianCalendar();
 
         StationDatabase database = null;
         Station[] stations = null;
@@ -36,8 +42,10 @@ public class SeedScan
         // in order to preserve overall system memory resources.
 
         for (Station station: stations) {
-            Scanner scanner = new Scanner(database, station);
+            Scanner scanner = new Scanner(database, station, tr1PathPattern);
             scanner.scan();
         }
+
+        lock.release();
     }
 }
