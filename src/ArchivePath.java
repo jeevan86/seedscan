@@ -1,4 +1,6 @@
 import java.io.File;
+import java.util.Formatter;
+import java.util.GregorianCalendar;
 
 /**
  * 
@@ -9,13 +11,13 @@ public class ArchivePath
     private Station station = null;
     private Channel channel = null;
 
-    public SeedPath(GregorianCalendar timestamp, Station station)
+    public ArchivePath(GregorianCalendar timestamp, Station station)
     {
         this.timestamp = timestamp;
         this.station = station;
     }
 
-    public SeedPath(GregorianCalendar timestamp, Channel channel)
+    public ArchivePath(GregorianCalendar timestamp, Channel channel)
     {
         this.timestamp = timestamp;
         this.station = channel.getStation();
@@ -46,7 +48,7 @@ public class ArchivePath
             pattern = pattern.replace("${STATION}", station.getStation());
         }
         if (channel != null) {
-            if (station.getLocation() != null) {
+            if (channel.getLocation() != null) {
                 pattern = pattern.replace("${LOCATION}", channel.getLocation());
             }
             pattern = pattern.replace("${CHANNEL}", channel.getChannel());

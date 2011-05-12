@@ -1,7 +1,7 @@
 
 public class Channel
 {
-    private Station station  = "";
+    private Station station  = null;
     private String  location = "";
     private String  channel  = "";
 
@@ -14,7 +14,7 @@ public class Channel
 
     public void setStation(Station station) {
         if (station == null) {
-            throw new RuntimeError("station cannot be null");
+            throw new RuntimeException("station cannot be null");
         }
         this.station = station;
     }
@@ -22,7 +22,7 @@ public class Channel
     public void setLocation(String location) {
         if (location != null) {
             if (location.length() > 2) {
-                throw new RuntimeError("location name is too long");
+                throw new RuntimeException("location name is too long");
             }
             this.location = location;
         }
@@ -30,13 +30,13 @@ public class Channel
 
     public void setChannel(String channel) {
         if (channel == null) {
-            throw new RuntimeError("channel cannot be null");
+            throw new RuntimeException("channel cannot be null");
         }
         if (channel.length() < 1) {
-            throw new RuntimeError("channel name is too short");
+            throw new RuntimeException("channel name is too short");
         }
         if (channel.length() > 3) {
-            throw new RuntimeError("channel name is too long");
+            throw new RuntimeException("channel name is too long");
         }
         this.channel = channel;
     }

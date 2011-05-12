@@ -1,4 +1,5 @@
 import java.io.File;
+import java.io.IOException;
 import java.util.GregorianCalendar;
 
 /**
@@ -6,26 +7,33 @@ import java.util.GregorianCalendar;
  */
 public class SeedScan
 {
-    public void dayMilliseconds = 1000 * 60 * 60 * 24;
-
     public static void main(String[] args)
     {
-        String tr1PathPattern = "/tr1/telemetry_days/${NETWORK}_${STATION}/%Y/%Y_%j";
-        String xs0PathPattern = "/xs0/seed/${NETWORK}_${STATION}/%Y/%Y_%j_${NETWORK}_${STATION}";
+        String tr1PathPattern = "/tr1/telemetry_days/${NETWORK}_${STATION}/%1$tY/%1$tY_%1$tj";
+        String xs0PathPattern = "/xs0/seed/${NETWORK}_${STATION}/%1$tY/%1$tY_%1$tj_${NETWORK}_${STATION}";
         String lockFile = "/qcwork/seedscan.lock";
-        String procName = "seedscan";
 
-        LockFile lock = new LockFile(lockFile, procName);
+        LockFile lock = new LockFile(lockFile);
         if (!lock.acquire()) {
             System.out.println("Could not acquire lock.");
             System.exit(1);
         }
 
-        int scanDepth = 2; // Number of days to look back.
+        int startDepth = 1;
+        int scanDepth  = 2; // Number of days to look back.
         boolean scanXS0 = false;
 
         StationDatabase database = null;
-        Station[] stations = null;
+        //Station[] stations = null;
+
+        // TEST LIST (TODO: Remove once working)
+        Station[] stations = {
+            new Station("IU", "ANMO"),
+            new Station("IU", "COR"),
+            new Station("IU", "SJG"),
+            new Station("IU", "MA2"),
+            new Station("IU", "YSS")
+        };
 
         // Get a list of stations
         
@@ -44,8 +52,18 @@ public class SeedScan
         for (Station station: stations) {
             Scanner scanner = new Scanner(database, station, tr1PathPattern);
             scanner.scan();
+            if (scanXS0) {
+                scanner = new Scanner(database, station, tr1PathPattern);
+                scanner.scan();
+            }
         }
 
-        lock.release();
+        try {
+            lock.release();
+        } catch (IOException e) {
+            ;
+        } finally {
+            lock = null;
+        }
     }
 }

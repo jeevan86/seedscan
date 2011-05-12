@@ -10,24 +10,24 @@ public class Station
         setStation(station);
     }
 
-    public void setNetwork() {
+    public void setNetwork(String network) {
         if (network != null) {
             if (network.length() > 2) {
-                throw new RuntimeError("network name is too long");
+                throw new RuntimeException("network name is too long");
             }
             this.network = network;
         }
     }
 
-    public void setStation() {
+    public void setStation(String station) {
         if (station == null) {
-            throw new RuntimeError("station cannot be null");
+            throw new RuntimeException("station cannot be null");
         }
         if (station.length() < 1) {
-            throw new RuntimeError("station name is too short");
+            throw new RuntimeException("station name is too short");
         }
         if (station.length() > 5) {
-            throw new RuntimeError("station name is too long");
+            throw new RuntimeException("station name is too long");
         }
         this.station = station;
     }
