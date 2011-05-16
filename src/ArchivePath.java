@@ -53,6 +53,14 @@ public class ArchivePath
             }
             pattern = pattern.replace("${CHANNEL}", channel.getChannel());
         }
-        return String.format(pattern, timestamp);
+        pattern = pattern.replace("${YEAR}",   String.format("%$1tY"));
+        pattern = pattern.replace("${MONTH}",  String.format("%$1tm"));
+        pattern = pattern.replace("${DAY}",    String.format("%$1td"));
+        pattern = pattern.replace("${JDAY}",   String.format("%$1tj"));
+        pattern = pattern.replace("${HOUR}",   String.format("%$1tH"));
+        pattern = pattern.replace("${MINUTE}", String.format("%$1tM"));
+        pattern = pattern.replace("${SECOND}", String.format("%$1tS"));
+
+        return pattern;
     }
 }

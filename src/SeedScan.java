@@ -1,3 +1,4 @@
+import java.io.Console;
 import java.io.File;
 import java.io.IOException;
 import java.util.GregorianCalendar;
@@ -9,9 +10,67 @@ public class SeedScan
 {
     public static void main(String[] args)
     {
-        String tr1PathPattern = "/tr1/telemetry_days/${NETWORK}_${STATION}/%1$tY/%1$tY_%1$tj";
-        String xs0PathPattern = "/xs0/seed/${NETWORK}_${STATION}/%1$tY/%1$tY_%1$tj_${NETWORK}_${STATION}";
+        // TODO: Write a DTD (or XML schema) for the configuration
+        //
+        // Configuration:
+        //
+        // <seedscan>
+        //
+        //   <lock_file>/qcwork/seedscan/seedscan.lock</lock_file>
+        //
+        //   <log>
+        //     <directory>/qcwork/seedscan/logs</directory>
+        //     <prefix>seedscan.</prefix>
+        //     <postfix>.log</postfix>
+        //     <!--level>SEVERE</level-->
+        //     <!--level>WARNING</level-->
+        //     <level>INFO</level>
+        //     <!--level>DEBUG</level-->
+        //     <!--level>FINE</level-->
+        //     <!--level>FINER</level-->
+        //     <!--level>FINEST</level-->
+        //   </log>
+        //  
+        //   <database>
+        //     <url>jdbc:mysql://136.177.121.210:54321/seedscan"</url>
+        //     <username>seedscan_write</username>
+        //     <password>
+        //       <ciphertext>2f9cb9a02ee92a39</ciphertext>
+        //       <iv>952bf002cc030243</iv>
+        //     </password>
+        //   </database>
+        //
+        //   <scan id="1">
+        //     <path>/tr1/telemetry_days/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}</path>
+        //     <frequency>
+        //       <day value="-1"/>
+        //     </frequency>
+        //     <start_depth>1</start_depth>
+        //     <scan_depth>2</scan_depth>
+        //   </scan>
+        //  
+        //   <scan id="2">
+        //     <path>/xs0/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}</path>
+        //     <frequency>
+        //       <month value="-1">
+        //         <day value="1"/>
+        //       </month>
+        //     </frequency>
+        //     <start_depth>1</start_depth>
+        //     <scan_depth>2</scan_depth>
+        //   </scan>
+        //   
+        // </seedscan>
+
+        String tr1PathPattern = "/tr1/telemetry_days/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}";
+        String xs0PathPattern = "/xs0/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}";
         String lockFile = "/qcwork/seedscan.lock";
+
+        String url  = "jdbc:mysql://136.177.121.210:54321/seedscan";
+        //String url  = "jdbc:oracle://<server>:<port>/database";
+        String user = "seedscan_write";
+        Console cons = System.console();
+        char[] pass = cons.readPassword("Password for MySQL account '%s': ", user);
 
         LockFile lock = new LockFile(lockFile);
         if (!lock.acquire()) {
@@ -19,11 +78,11 @@ public class SeedScan
             System.exit(1);
         }
 
-        int startDepth = 1;
-        int scanDepth  = 2; // Number of days to look back.
+        int startDepth = 1; // Start this many days back.
+        int scanDepth  = 2; // Number of days to evaluate.
         boolean scanXS0 = false;
 
-        StationDatabase database = null;
+        StationDatabase database = new StationDatabase(url, user, pass);
         //Station[] stations = null;
 
         // TEST LIST (TODO: Remove once working)
@@ -64,6 +123,10 @@ public class SeedScan
             ;
         } finally {
             lock = null;
+        }
+
+        for (int i=0; i < pass.length; i++) {
+            pass[i] = ' ';
         }
     }
 }

@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    elementFormDefault="qualified"
+    xmlns="urn:nonstandard:test"
+    targetNamespace="urn:nonstandard:test">
+    <xsd:element name="seedscan" type="SeedScan" />
+
+    <xsd:complexType name="SeedScan">
+        <xsd:all>
+            <xsd:element name="lock_file" type="LockFile" minOccurs="1" maxOccurs="1">
+                <xsd:simpleType>
+                    <xsd:restriction base="xsd:string">
+                        <xsd:maxLength value="1024" />
+                    </xsd:restriction>
+                </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="log" type="Log" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="database" type="Database" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="scan" type="Scan" minOccurs="0" maxOccurs="unbounded" />
+        </xsd:all>
+    </xsd:complexType>
+
+    <xsd:complexType name="Log">
+        <xsd:all>
+            <xsd:element name="directory" type="Path" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="prefix" type="xsd:string" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="postfix" type="xsd:string" minOccurs="1" maxOccurs="1" />
+            <xsd:element name="level" type="LogLevel" minOccurs="1" maxOccurs="1" />
+        </xsd:all>
+    </xsd:complexType>
+
+    <xsd:complexType name="Database">
+        <xsd:element name="url" type="URL" minOccurs="1" maxOccurs="1"/>
+        <xsd:element name="username" minOccurs="0" maxOccurs="1">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:string">
+                    <xsd:maxLength value="256" />
+                </xsd:restriction>
+            </xsd:simpleType>
+        </xsd:element>
+        <xsd:element name="password" type="B64_AES_Encrypted" minOccurs="0" maxOccurs="1" />
+    </xsd:complexType>
+
+    <xsd:complexType name="Scan">
+    </xsd:complexType>
+
+    <xsd:complexType name="B64_AES_Encrypted">
+    </xsd:complexType>
+
+    <xsd:simpleType name="Path">
+        <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="1024" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="Path">
+        <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="1024" />
+        </xsd:restriction>
+    </xsd:complexType>
+</xsd:schema>
