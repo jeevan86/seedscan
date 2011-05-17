@@ -10,11 +10,10 @@ public class SeedScan
 {
     public static void main(String[] args)
     {
-        // TODO: Write a DTD (or XML schema) for the configuration
+        // Configuration (see SeedScanSchema.xsd):
         //
-        // Configuration:
-        //
-        // <seedscan>
+        // <?xml version="1.0"?
+        // <seedscan xmlns="config.seedscan.asl.cr.usgs.gov">
         //
         //   <lock_file>/qcwork/seedscan/seedscan.lock</lock_file>
         //
@@ -22,28 +21,27 @@ public class SeedScan
         //     <directory>/qcwork/seedscan/logs</directory>
         //     <prefix>seedscan.</prefix>
         //     <postfix>.log</postfix>
-        //     <!--level>SEVERE</level-->
-        //     <!--level>WARNING</level-->
         //     <level>INFO</level>
-        //     <!--level>DEBUG</level-->
-        //     <!--level>FINE</level-->
-        //     <!--level>FINER</level-->
-        //     <!--level>FINEST</level-->
         //   </log>
         //  
         //   <database>
         //     <url>jdbc:mysql://136.177.121.210:54321/seedscan"</url>
+        //     <!--url>jdbc:mysql://catbox2.cr.usgs.gov/seedscan"</url-->
         //     <username>seedscan_write</username>
         //     <password>
         //       <ciphertext>2f9cb9a02ee92a39</ciphertext>
         //       <iv>952bf002cc030243</iv>
+        //       <key>952bf002cc030243</key>
+        //       <key_iv>952bf002cc030243</key_iv>
         //     </password>
         //   </database>
         //
         //   <scan id="1">
         //     <path>/tr1/telemetry_days/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}</path>
         //     <frequency>
-        //       <day value="-1"/>
+        //       <days value="1">
+        //         <hour value="22"/>
+        //       </days>
         //     </frequency>
         //     <start_depth>1</start_depth>
         //     <scan_depth>2</scan_depth>
@@ -52,9 +50,15 @@ public class SeedScan
         //   <scan id="2">
         //     <path>/xs0/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}</path>
         //     <frequency>
-        //       <month value="-1">
-        //         <day value="1"/>
-        //       </month>
+        //       <years value="1">
+        //         <month value="12">
+        //           <day value="24">
+        //             <hour value="22">
+        //               <minute value="30">
+        //             </hour>
+        //           </day>
+        //         </month>
+        //       </years>
         //     </frequency>
         //     <start_depth>1</start_depth>
         //     <scan_depth>2</scan_depth>
