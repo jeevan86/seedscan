@@ -14,7 +14,7 @@
     <property name="doc" location="doc"/>
 
     <path id="compile.class.path">
-        <pathelement location="$(src)"/>
+        <pathelement location="${src}"/>
         <fileset dir="${libs}">
             <include name="**/*.jar"/>
         </fileset>
