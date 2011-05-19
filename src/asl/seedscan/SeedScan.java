@@ -1,3 +1,24 @@
+/*
+ * Copyright 2011, United States Geological Survey or
+ * third-party contributors as indicated by the @author tags.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
+ *
+ */
+
+package asl.seedscan;
+
 import java.io.Console;
 import java.io.File;
 import java.io.IOException;
@@ -61,7 +82,7 @@ public class SeedScan
         //       </years>
         //     </frequency>
         //     <start_depth>1</start_depth>
-        //     <scan_depth>2</scan_depth>
+        //     <scan_depth>-1</scan_depth>
         //   </scan>
         //   
         // </seedscan>
@@ -74,7 +95,7 @@ public class SeedScan
         //String url  = "jdbc:oracle://<server>:<port>/database";
         String user = "seedscan_write";
         Console cons = System.console();
-        char[] pass = cons.readPassword("Password for MySQL account '%s': ", user);
+        //char[] pass = cons.readPassword("Password for MySQL account '%s': ", user);
 
         LockFile lock = new LockFile(lockFile);
         if (!lock.acquire()) {
@@ -86,7 +107,8 @@ public class SeedScan
         int scanDepth  = 2; // Number of days to evaluate.
         boolean scanXS0 = false;
 
-        StationDatabase database = new StationDatabase(url, user, pass);
+        //StationDatabase database = new StationDatabase(url, user, pass);
+        StationDatabase database = null;
         //Station[] stations = null;
 
         // TEST LIST (TODO: Remove once working)
@@ -95,7 +117,8 @@ public class SeedScan
             new Station("IU", "COR"),
             new Station("IU", "SJG"),
             new Station("IU", "MA2"),
-            new Station("IU", "YSS")
+            new Station("IU", "YSS"),
+            new Station("IU", "CCM")
         };
 
         // Get a list of stations
@@ -129,8 +152,10 @@ public class SeedScan
             lock = null;
         }
 
+        /*
         for (int i=0; i < pass.length; i++) {
             pass[i] = ' ';
         }
+        */
     }
 }

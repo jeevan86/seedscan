@@ -9,6 +9,9 @@
     <property name="libs" location="libs"/>
     <property name="resources" location="resources"/>
     <property name="target" location="seedscan.jar"/>
+    <property name="doc_src" location="src"/>
+    <property name="doc_packages" value="asl.seedscan"/>
+    <property name="doc" location="doc"/>
 
     <path id="compile.class.path">
         <pathelement location="$(src)"/>
@@ -30,6 +33,12 @@
         <mkdir dir="${build_resources}"/>
     </target>
 
+<!--INIT_DOC-->
+    <target name="init_doc">
+        <tstamp/>
+        <mkdir dir="${doc}"/>
+    </target>
+	
 <!--COMPILE-->
     <target name="compile" depends="init" description="Compile the source">
         <javac srcdir="${src}" destdir="${build}" 
@@ -61,14 +70,21 @@
             description="generate the distribution" >
         <jar jarfile="${target}" basedir="${build}">
             <manifest>
-                <attribute name="Main-Class" value="SeedScan"/>
+                <attribute name="Main-Class" value="asl.seedscan.SeedScan"/>
             </manifest>
         </jar>
     </target>
 
+<!--DOC-->
+    <target name="doc" depends="init_doc"
+            description="generate the javadoc documentation" >
+        <javadoc sourcepath="${doc_src}" destdir="${doc}" packagenames="${doc_packages}" />
+    </target>
+	
 <!--CLEAN-->
     <target name="clean" description="clean up" >
         <delete dir="${build}"/>
         <delete file="${target}"/>
+    	<delete dir="${doc}"/>
     </target>
 </project>
