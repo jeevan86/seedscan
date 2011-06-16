@@ -19,9 +19,12 @@
 
 package asl.seedscan;
 
+
 import java.io.Console;
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.GregorianCalendar;
 
 /**
@@ -29,7 +32,10 @@ import java.util.GregorianCalendar;
  */
 public class SeedScan
 {
-    public static void main(String[] args)
+	private final static String allchanURLstr = "http://wwwasl/uptime/honeywell/gsn_allchan.txt";
+	private static URL allchanURL;
+
+	public static void main(String args[])
     {
         // Configuration (see SeedScanSchema.xsd):
         //
@@ -111,6 +117,25 @@ public class SeedScan
         StationDatabase database = null;
         //Station[] stations = null;
 
+        // Get the list of active channels from a web page where they are currently maintained.
+		try 
+		{
+			allchanURL = new URL(allchanURLstr);
+		} catch (MalformedURLException e1) 
+		{
+			System.err.println("Exception opening URL %s.");
+			e1.printStackTrace();
+			allchanURL = null;
+		}
+		if (allchanURL == null)
+		{
+			System.err.printf("Unable to open resource %s, aborting!\n", 
+					allchanURLstr);
+			System.exit(1);
+		}
+		
+		System.out.printf("We seem to have found %s\n", allchanURLstr);
+
         // TEST LIST (TODO: Remove once working)
         Station[] stations = {
             new Station("IU", "ANMO"),
@@ -157,5 +182,5 @@ public class SeedScan
             pass[i] = ' ';
         }
         */
-    }
-}
+    } // main()
+} // class SeedScan
