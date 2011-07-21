@@ -28,7 +28,7 @@ import java.util.logging.Logger;
 public class Scanner
 implements Runnable
 {
-    public static final Logger logger = Logger.getLogger("Scanner");
+    private static final Logger logger = Logger.getLogger("Scanner");
     public long dayMilliseconds = 1000 * 60 * 60 * 24;
 
     public Station station;

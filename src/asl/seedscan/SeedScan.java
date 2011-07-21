@@ -53,7 +53,7 @@ public class SeedScan
         //  
         //   <database>
         //     <url>jdbc:mysql://136.177.121.210:54321/seedscan"</url>
-        //     <!--url>jdbc:mysql://catbox2.cr.usgs.gov/seedscan"</url-->
+        //     <!--url>jdbc:mysql://catbox2.cr.usgs.gov/stations"</url-->
         //     <username>seedscan_write</username>
         //     <password>
         //       <ciphertext>2f9cb9a02ee92a39</ciphertext>
@@ -64,7 +64,7 @@ public class SeedScan
         //   </database>
         //
         //   <scan id="1">
-        //     <path>/tr1/telemetry_days/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}</path>
+        //     <path>/xs0/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}</path>
         //     <frequency>
         //       <days value="1">
         //         <hour value="22"/>
@@ -95,6 +95,7 @@ public class SeedScan
 
         String tr1PathPattern = "/tr1/telemetry_days/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}";
         String xs0PathPattern = "/xs0/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}";
+        String xs1PathPattern = "/xs1/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}";
         String lockFile = "/qcwork/seedscan.lock";
 
         String url  = "jdbc:mysql://136.177.121.210:54321/seedscan";
@@ -130,7 +131,7 @@ public class SeedScan
 		if (allchanURL == null)
 		{
 			System.err.printf("Unable to open resource %s, aborting!\n", 
-					allchanURLstr);
+					          allchanURLstr);
 			System.exit(1);
 		}
 		
