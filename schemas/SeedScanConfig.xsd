@@ -1,4 +1,4 @@
-<?xml version="1.0"? encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema 
         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
         xmlns:cfg="config.seedscan.asl.cr.usgs.gov"
@@ -8,29 +8,36 @@
         attributeFormDefault="qualified">
 
     <!-- root -->
-    <xsd:element name="seedscan"    type="cfg:seedscan_T" />
+    <xsd:element name="seedscan"    type="cfg:seedscan_T"/>
     <!-- primary elements -->
     <xsd:element name="lock_file"   type="xsd:string" />
     <xsd:element name="log"         type="cfg:log_T" />
     <xsd:element name="database"    type="cfg:database_T" />
-    <xsd:element name="scan"        type="cfg:scan_T" />
+    <xsd:element name="scans"       type="cfg:scans_T" />
     <!-- sub elements -->
+    <xsd:element name="scan"        type="cfg:scan_T" />
     <xsd:element name="directory"   type="xsd:string" />
     <xsd:element name="prefix"      type="xsd:string" />
     <xsd:element name="postfix"     type="xsd:string" />
     <xsd:element name="level"       type="cfg:log_level_T" />
-    <xsd:element name="url"         type="cfg:url_T" />
+    <xsd:element name="url"         type="xsd:anyURI" />
     <xsd:element name="username"    type="xsd:string" />
     <xsd:element name="password"    type="cfg:password_T" />
-    <xsd:element name="ciphertext"  type="cfg:b64_aes_key_string_T" />
-    <xsd:element name="iv"          type="cfg:b64_aes_iv_T" />
-    <xsd:element name="key"         type="cfg:b64_aes_pass_string_T" />
-    <xsd:element name="key_iv"      type="cfg:b64_aes_iv_T" />
+    <xsd:element name="ciphertext"  type="xsd:base64Binary" />
+    <xsd:element name="iv"          type="xsd:base64Binary" />
+    <xsd:element name="key"         type="xsd:base64Binary" />
+    <xsd:element name="key_iv"      type="xsd:base64Binary" />
     <xsd:element name="path"        type="xsd:string" />
     <xsd:element name="frequency"   type="cfg:frequency_T" />
     <xsd:element name="start_depth" type="xsd:nonNegativeInteger" />
     <xsd:element name="scan_depth"  type="xsd:integer" />
+    <xsd:element name="network_subset"  type="xsd:string" />
+    <xsd:element name="station_subset"  type="xsd:string" />
+    <xsd:element name="location_subset" type="xsd:string" />
+    <xsd:element name="channel_subset"  type="xsd:string" />
+    <xsd:element name="operations"  type="cfg:operations_T" />
     <xsd:element name="operation"   type="cfg:operation_T" />
+    <!-- scheduling elements -->
     <xsd:element name="year"        type="cfg:year_T" />
     <xsd:element name="years"       type="cfg:year_T" />
     <xsd:element name="month"       type="cfg:month_T" />
@@ -43,22 +50,24 @@
     <xsd:element name="hours"       type="cfg:hour_T" />
     <xsd:element name="minute"      type="cfg:minute_T" />
     <xsd:element name="minutes"     type="cfg:minute_T" />
+    <!-- operation elements -->
+    <xsd:element name="calibration" type="cfg:opCalibration_T" />
 
     <xsd:complexType name="seedscan_T">
         <xsd:all>
-            <xsd:element ref="cfg:lock_file" />
-            <xsd:element ref="cfg:log" />
-            <xsd:element ref="cfg:database" />
-            <xsd:element ref="cfg:scan" maxOccurs="unbounded" />
+            <xsd:element ref="cfg:lock_file"    minOccurs="1" maxOccurs="1"/>
+            <xsd:element ref="cfg:log"          minOccurs="1" maxOccurs="1"/>
+            <xsd:element ref="cfg:database"     minOccurs="1" maxOccurs="1"/>
+            <xsd:element ref="cfg:scans"        minOccurs="1" maxOccurs="1"/>
         </xsd:all>
     </xsd:complexType>
 
     <xsd:complexType name="log_T">
         <xsd:all>
-            <xsd:element ref="cfg:directory" />
-            <xsd:element ref="cfg:prefix" />
-            <xsd:element ref="cfg:postfix" />
-            <xsd:element ref="cfg:level" />
+            <xsd:element ref="cfg:directory"   minOccurs="1" maxOccurs="1"/>
+            <xsd:element ref="cfg:prefix"      minOccurs="1" maxOccurs="1"/>
+            <xsd:element ref="cfg:postfix"     minOccurs="1" maxOccurs="1"/>
+            <xsd:element ref="cfg:level"       minOccurs="1" maxOccurs="1"/>
         </xsd:all>
     </xsd:complexType>
 
@@ -79,13 +88,31 @@
         </xsd:all>
     </xsd:complexType>
 
+    <xsd:complexType name="operations_T">
+        <xsd:choice minOccurs="1" maxOccurs="unbounded">
+            <xsd:element ref="cfg:operation" />
+        </xsd:choice>
+    </xsd:complexType>
+
+    <xsd:complexType name="scans_T">
+        <xsd:choice minOccurs="1" maxOccurs="unbounded">
+            <xsd:element ref="cfg:scan"/>
+        </xsd:choice>
+    </xsd:complexType>
+
     <xsd:complexType name="scan_T">
         <xsd:all>
-            <xsd:element ref="cfg:path" />
-            <xsd:element ref="cfg:frequency" />
-            <xsd:element ref="cfg:start_depth" />
-            <xsd:element ref="cfg:scan_depth" />
+            <xsd:element ref="cfg:path"             minOccurs="1" maxOccurs="1"/>
+            <xsd:element ref="cfg:frequency"        minOccurs="1" maxOccurs="1"/>
+            <xsd:element ref="cfg:start_depth"      minOccurs="1" maxOccurs="1"/>
+            <xsd:element ref="cfg:scan_depth"       minOccurs="1" maxOccurs="1"/>
+            <xsd:element ref="cfg:station_subset"   minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="cfg:network_subset"   minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="cfg:location_subset"  minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="cfg:channel_subset"   minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="cfg:operations"       minOccurs="1" maxOccurs="1"/>
         </xsd:all>
+        <xsd:attribute name="id" use="required" type="xsd:nonNegativeInteger"/>
     </xsd:complexType>
 
     <xsd:simpleType name="log_level_T">
@@ -100,8 +127,19 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <xsd:complexType name="operation_T">
+        <xsd:all>
+            <xsd:element ref="cfg:calibration" />
+        </xsd:all>
+    </xsd:complexType>
+
+<!-- Operations -->
+    <xsd:complexType name="opCalibration_T">
+    </xsd:complexType>
+
+<!-- Frequency of Scans -->
     <xsd:complexType name="frequency_T">
-        <xsd:choice minOccurs="0">
+        <xsd:choice minOccurs="0" maxOccurs="1">
             <xsd:element ref="cfg:year" />
             <xsd:element ref="cfg:years" />
             <xsd:element ref="cfg:month" />
@@ -118,7 +156,7 @@
     </xsd:complexType>
 
     <xsd:complexType name="year_T">
-        <xsd:choice minOccurs="0">
+        <xsd:choice minOccurs="0" maxOccurs="1">
             <xsd:element ref="cfg:month" />
             <xsd:element ref="cfg:months" />
             <xsd:element ref="cfg:week" />
@@ -130,11 +168,11 @@
             <xsd:element ref="cfg:minute" />
             <xsd:element ref="cfg:minutes" />
         </xsd:choice>
-        <xsd:attribute name="value" user="xsd:required" type="xsd:nonNegativeInteger"/>
+        <xsd:attribute name="value" use="required" type="xsd:nonNegativeInteger"/>
     </xsd:complexType>
 
     <xsd:complexType name="month_T">
-        <xsd:choice minOccurs="0">
+        <xsd:choice minOccurs="0" maxOccurs="1">
             <xsd:element ref="cfg:week" />
             <xsd:element ref="cfg:weeks" />
             <xsd:element ref="cfg:day" />
@@ -144,11 +182,11 @@
             <xsd:element ref="cfg:minute" />
             <xsd:element ref="cfg:minutes" />
         </xsd:choice>
-        <xsd:attribute name="value" user="xsd:required" type="xsd:nonNegativeInteger"/>
+        <xsd:attribute name="value" use="required" type="xsd:nonNegativeInteger"/>
     </xsd:complexType>
 
     <xsd:complexType name="week_T">
-        <xsd:choice minOccurs="0">
+        <xsd:choice minOccurs="0" maxOccurs="1">
             <xsd:element ref="cfg:day" />
             <xsd:element ref="cfg:days" />
             <xsd:element ref="cfg:hour" />
@@ -156,29 +194,29 @@
             <xsd:element ref="cfg:minute" />
             <xsd:element ref="cfg:minutes" />
         </xsd:choice>
-        <xsd:attribute name="value" user="xsd:required" type="xsd:nonNegativeInteger"/>
+        <xsd:attribute name="value" use="required" type="xsd:nonNegativeInteger"/>
     </xsd:complexType>
 
     <xsd:complexType name="day_T">
-        <xsd:choice minOccurs="0">
+        <xsd:choice minOccurs="0" maxOccurs="1">
             <xsd:element ref="cfg:hour" />
             <xsd:element ref="cfg:hours" />
             <xsd:element ref="cfg:minute" />
             <xsd:element ref="cfg:minutes" />
         </xsd:choice>
-        <xsd:attribute name="value" user="xsd:required" type="xsd:nonNegativeInteger"/>
+        <xsd:attribute name="value" use="required" type="xsd:nonNegativeInteger"/>
     </xsd:complexType>
 
     <xsd:complexType name="hour_T">
-        <xsd:choice minOccurs="0">
+        <xsd:choice minOccurs="0" maxOccurs="1">
             <xsd:element ref="cfg:minute" />
             <xsd:element ref="cfg:minutes" />
         </xsd:choice>
-        <xsd:attribute name="value" user="xsd:required" type="xsd:nonNegativeInteger"/>
+        <xsd:attribute name="value" use="required" type="xsd:nonNegativeInteger"/>
     </xsd:complexType>
 
     <xsd:complexType name="minute_T">
-        <xsd:attribute name="value" user="xsd:required" type="xsd:nonNegativeInteger"/>
+        <xsd:attribute name="value" use="required" type="xsd:nonNegativeInteger"/>
     </xsd:complexType>
 
 </xsd:schema>

@@ -32,10 +32,10 @@ import java.util.GregorianCalendar;
  */
 public class SeedScan
 {
-	private final static String allchanURLstr = "http://wwwasl/uptime/honeywell/gsn_allchan.txt";
-	private static URL allchanURL;
+    private final static String allchanURLstr = "http://wwwasl/uptime/honeywell/gsn_allchan.txt";
+    private static URL allchanURL;
 
-	public static void main(String args[])
+    public static void main(String args[])
     {
         // Configuration (see SeedScanSchema.xsd):
         //
@@ -104,6 +104,12 @@ public class SeedScan
         Console cons = System.console();
         //char[] pass = cons.readPassword("Password for MySQL account '%s': ", user);
 
+        File schemaFile = new File("schemas/SeedScanConfig.xsd");
+        File configFile = new File("config.xml");
+
+        Config config = new Config(schemaFile);
+        config.loadConfig(configFile);
+
         LockFile lock = new LockFile(lockFile);
         if (!lock.acquire()) {
             System.out.println("Could not acquire lock.");
@@ -119,25 +125,25 @@ public class SeedScan
         //Station[] stations = null;
 
         // Get the list of active channels from a web page where they are currently maintained.
-		try 
-		{
-			allchanURL = new URL(allchanURLstr);
-		} catch (MalformedURLException e1) 
-		{
-			System.err.println("Exception opening URL %s.");
-			e1.printStackTrace();
-			allchanURL = null;
-		}
-		if (allchanURL == null)
-		{
-			System.err.printf("Unable to open resource %s, aborting!\n", 
-					          allchanURLstr);
-			System.exit(1);
-		}
-		
-		System.out.printf("We seem to have found %s\n", allchanURLstr);
+        try 
+        {
+            allchanURL = new URL(allchanURLstr);
+        } catch (MalformedURLException e1) 
+        {
+            System.err.println("Exception opening URL %s.");
+            e1.printStackTrace();
+            allchanURL = null;
+        }
+        if (allchanURL == null)
+        {
+            System.err.printf("Unable to open resource %s, aborting!\n", 
+                    allchanURLstr);
+            System.exit(1);
+        }
 
-        // TEST LIST (TODO: Remove once working)
+        System.out.printf("We seem to have found %s\n", allchanURLstr);
+
+        // TEST LIST (TODO: Remove once configurations are working)
         Station[] stations = {
             new Station("IU", "ANMO"),
             new Station("IU", "COR"),
@@ -148,7 +154,7 @@ public class SeedScan
         };
 
         // Get a list of stations
-        
+
         // Get a list of files  (do we want channels too?)
 
         // For each day ((yesterday - scanDepth) to yesterday)
@@ -179,9 +185,9 @@ public class SeedScan
         }
 
         /*
-        for (int i=0; i < pass.length; i++) {
-            pass[i] = ' ';
-        }
-        */
+           for (int i=0; i < pass.length; i++) {
+           pass[i] = ' ';
+           }
+         */
     } // main()
 } // class SeedScan
