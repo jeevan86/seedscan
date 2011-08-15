@@ -27,6 +27,7 @@ import javax.xml.XMLConstants;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
@@ -101,6 +102,18 @@ public class Config
 
     public void loadConfig(File configFile)
     {
+        Validator validator = schema.newValidator();
+        try {
+            validator.validate(new StreamSource(configFile));
+            logger.info("Configuration file passed validation.");
+        } catch (SAXException e) {
+            logger.severe("Configuration file did not pass validation.\n Details: " +e);
+            throw new RuntimeException("Configuration file failed validation.");
+        } catch (IOException e) {
+            logger.severe("Failed to read configuration from file '" +configFile+ "'.\n Details: " +e);
+            throw new RuntimeException("Could not read configuration file.");
+        }
+
         try {
             parser.parse(configFile, handler);
             dom = handler.getDocument();

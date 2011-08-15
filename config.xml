@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<cfg:seedscan xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://wwwasl.cr.usgs.gov SeedScanConfig.xsd"
+              xmlns:cfg="config.seedscan.asl.cr.usgs.gov">
+
+    <cfg:lock_file>/qcwork/seedscan/seedscan.lock</cfg:lock_file>
+ 
+    <cfg:log>
+        <cfg:directory>/qcwork/seedscan/logs</cfg:directory>
+        <cfg:prefix>seedscan.</cfg:prefix>
+        <cfg:postfix>.log</cfg:postfix>
+        <cfg:level>DEBUG</cfg:level>
+    </cfg:log>
+  
+    <cfg:database>
+        <cfg:url>jdbc:mysql://136.177.121.210:54321/seedscan</cfg:url>
+        <!--cfg:url>jdbc:mysql://catbox2.cr.usgs.gov/stations</cfg:url-->
+        <cfg:username>seedscan_write</cfg:username>
+        <cfg:password>
+            <cfg:ciphertext>2f9cb9a02ee92a39</cfg:ciphertext>
+            <cfg:iv>952bf002cc030243</cfg:iv>
+            <cfg:key>952bf002cc030243</cfg:key>
+            <cfg:key_iv>952bf002cc030243</cfg:key_iv>
+        </cfg:password>
+    </cfg:database>
+ 
+    <cfg:scans>
+        <cfg:scan cfg:id="1">
+            <cfg:path>/xs0/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}</cfg:path>
+            <cfg:frequency>
+                <cfg:days cfg:value="1">
+                    <cfg:hour cfg:value="22"/>
+                </cfg:days>
+            </cfg:frequency>
+            <cfg:start_depth>1</cfg:start_depth>
+            <cfg:scan_depth>2</cfg:scan_depth>
+            <cfg:operations>
+                <cfg:operation>
+                    <cfg:calibration/>
+                </cfg:operation>
+            </cfg:operations>
+        </cfg:scan>
+     
+        <cfg:scan cfg:id="2">
+            <cfg:path>/xs0/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}</cfg:path>
+            <cfg:frequency>
+                <cfg:years cfg:value="1">
+                    <cfg:month cfg:value="12">
+                        <cfg:day cfg:value="24">
+                            <cfg:hour cfg:value="22">
+                                <cfg:minute cfg:value="30"/>
+                            </cfg:hour>
+                        </cfg:day>
+                    </cfg:month>
+                </cfg:years>
+            </cfg:frequency>
+            <cfg:start_depth>1</cfg:start_depth>
+            <cfg:scan_depth>-1</cfg:scan_depth>
+            <cfg:operations>
+                <cfg:operation>
+                    <cfg:calibration/>
+                </cfg:operation>
+            </cfg:operations>
+        </cfg:scan>
+    </cfg:scans>
+    
+</cfg:seedscan>
