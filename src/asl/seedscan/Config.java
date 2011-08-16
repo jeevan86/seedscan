@@ -19,10 +19,12 @@
 
 package asl.seedscan;
 
-import java.util.List;
-import java.util.logging.Logger;
 import java.io.File;
 import java.io.IOException;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.logging.Logger;
+
 import javax.xml.XMLConstants;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -31,7 +33,10 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
-import org.xml.sax.SAXException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
 import org.jdom.Document;
 import org.jdom.Element;
@@ -39,6 +44,9 @@ import org.jdom.Text;
 import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 import org.jdom.input.SAXHandler;
+import org.xml.sax.SAXException;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Document;
 
 /**
  * 
@@ -50,44 +58,51 @@ public class Config
     private SAXParserFactory saxFactory = null;
     private SchemaFactory schemaFactory = null;
 
-    private SAXParser  parser     = null;
-    private SAXHandler handler    = null;
-    private Schema     schema     = null;
-    private Validator  validator  = null;
-    private Document   dom        = null;
-    private boolean    ready      = false;
+    private SAXParser   parser      = null;
+    private SAXHandler  handler     = null;
+    private Schema      schema      = null;
+    private Validator   validator   = null;
+    private Document    dom         = null;
+    private XPath       xpath       = null;
+    private boolean     validate    = false;
+
+    private boolean     ready       = false;
+
+    private Hashtable<String,Object> configuration = null;
 
     public Config()
     {
-        saxFactory = SAXParserFactory.newInstance();
-        handler = new SAXHandler();
-        saxFactory.setValidating(false);
-        try {
-            parser = saxFactory.newSAXParser();
-        } catch (ParserConfigurationException e) {
-            logger.severe("Invalid configuration for SAX parser.\n  Details: " +e);
-            throw new RuntimeException("Invalid configuration for SAX parser.");
-        } catch (SAXException e) {
-            logger.severe("Could not assemble SAX parser.\n  Details: " +e);
-            throw new RuntimeException("Could not assemble SAX parser.");
-        }
+        _construct(null);
     }
 
     public Config(File schemaFile)
     {
+        _construct(schemaFile);
+    }
+
+    private void _construct(File schemaFile)
+    {
+        configuration = new Hashtable<String,Object>(32, (float)0.75);
         saxFactory = SAXParserFactory.newInstance();
-        schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
         handler = new SAXHandler();
 
-        try {
-            schema = schemaFactory.newSchema(schemaFile);
-        } catch (SAXException e) {
-            logger.severe("Could not read validation file '" +schemaFile+ "'.\n  Details: " +e);
-            throw new RuntimeException("Could not read validation file.");
+        if (schemaFile != null) {
+            schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+            try {
+                schema = schemaFactory.newSchema(schemaFile);
+            } catch (SAXException e) {
+                logger.severe("Could not read validation file '" +schemaFile+ "'.\n  Details: " +e);
+                throw new RuntimeException("Could not read validation file.");
+            }
+            saxFactory.setSchema(schema);
+            saxFactory.setNamespaceAware(true);
+            saxFactory.setValidating(true);
+            validate = true;
         }
-        saxFactory.setSchema(schema);
-        saxFactory.setNamespaceAware(true);
-        saxFactory.setValidating(true);
+        else {
+            saxFactory.setValidating(false);
+            validate = false;
+        }
 
         try {
             parser = saxFactory.newSAXParser();
@@ -116,63 +131,76 @@ public class Config
 
         try {
             parser.parse(configFile, handler);
-            dom = handler.getDocument();
         } catch (SAXException e) {
-            logger.severe("Could not assemble DOM from config file '" +configFile+ "'.\n  Details: " +e);
-            return;
+            logger.severe("Could not assemble DOM from config file '" +configFile+ "'.\n Details: " +e);
+            throw new RuntimeException("Could not assemble configuration from file.");
         } catch (IOException e) {
-            logger.severe("Could not read config file '" +configFile+ "'");
-            return;
+            logger.severe("Could not read config file '" +configFile+ "'.\n Details:" +e);
+            throw new RuntimeException("Could not read configuration file.");
         }
-        parseConfig();
+
+        dom = handler.getDocument();
+        xpath = XPathFactory.newInstance().newXPath();
+
+        try {
+            parseConfig();
+        } catch (XPathExpressionException e) {
+            logger.severe("XPath expression error!\n Details: " +e);
+            e.printStackTrace();
+            throw new RuntimeException("XPath expression error.");
+        }
         ready = true;
     }
 
     private void parseConfig()
+      throws javax.xml.xpath.XPathExpressionException
     {
-        Element core = (Element)dom.getContent().get(0);
-        System.out.println("" + core);
-        List elements = core.getContent();
-        int numElements = elements.size();
-        System.out.println("" + elements);
-        for (int i = 0; i < numElements; i++) {
-            Object obj = elements.get(i);
-            if (!(obj instanceof Element)) {
-                logger.info("Skipping Text");
+     // Parse Lock File Config
+        System.err.printf("Parsing lockfile.\n");
+        configuration.put("lockfile",   xpath.evaluate("/seedscan/lockfile/text()", dom));
+
+     // Parse Log Config
+        System.err.printf("Parsing log.\n");
+        configuration.put("log-level",      xpath.evaluate("/seedscan/log/level/text()", dom));
+        configuration.put("log-directory",  xpath.evaluate("/seedscan/log/directory/text()", dom));
+        configuration.put("log-prefix",     xpath.evaluate("/seedscan/log/prefix/text()", dom));
+        configuration.put("log-postfix",    xpath.evaluate("/seedscan/log/postfix/text()", dom));
+
+     // Parse Database Config
+        System.err.printf("Parsing database.\n");
+        configuration.put("database-url",       xpath.evaluate("/seedscan/database/url/text()", dom));
+        configuration.put("database-username",  xpath.evaluate("/seedscan/database/username/text()", dom));
+        configuration.put("database-password",  xpath.evaluate("/seedscan/database/password/text()", dom));
+
+     // Parse Scans
+        System.err.printf("Parsing scans.\n");
+        int id;
+        String key;
+        Object scan;
+        NodeList scans = (NodeList)xpath.evaluate("/seedscan/scans/scan", dom, XPathConstants.NODESET);
+        if ((scans == null) || (scans.getLength() < 1)) {
+            logger.warning("No scans in configuration.");
+            return;
+        }
+        int scanCount = scans.getLength();
+        for (int j=0; j < scanCount; j++) {
+            scan = scans.item(j);
+            id = Integer.parseInt(xpath.evaluate("./@id", scan));
+            key = "scan-" + id;
+            configuration.put(key+ "-path", xpath.evaluate("./path/text()", scan));
+            configuration.put(key+ "-start_depth", xpath.evaluate("./start_depth/text()", scan));
+            configuration.put(key+ "-scan_depth",  xpath.evaluate("./scan_depth/text()", scan));
+
+            NodeList ops = (NodeList)xpath.evaluate("./operations/operation", scan, XPathConstants.NODESET);
+            int opCount = ops.getLength();
+            if ((ops == null) || (ops.getLength() < 1)) {
+                logger.warning("No operations found in scan " +id+".");
                 continue;
             }
-            Element element = (Element)obj;
-            String name = element.getName();
-            logger.info("Parsing element '" +name+ "'");
-            if (name.equals("lock_file")) {
-                parseLock(element);
-            } 
-            else if (name.equals("log")) {
-                parseLog(element);
-            }
-            else if (name.equals("database")) {
-                parseDatabase(element);
-            }
-            else if (name.equals("scan")) {
-                parseScans(element);
+            for (int i=1; i <= opCount; i++) {
+                configuration.put(key+ "-op-" +i,  xpath.evaluate("./*[0]/name()", scan));
             }
         }
-    }
-
-    private void parseLock(Element el)
-    {
-    }
-
-    private void parseLog(Element el)
-    {
-    }
-
-    private void parseDatabase(Element el)
-    {
-    }
-
-    private void parseScans(Element el)
-    {
     }
 
 }

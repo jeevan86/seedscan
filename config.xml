@@ -3,7 +3,7 @@
               xsi:schemaLocation="http://wwwasl.cr.usgs.gov SeedScanConfig.xsd"
               xmlns:cfg="config.seedscan.asl.cr.usgs.gov">
 
-    <cfg:lock_file>/qcwork/seedscan/seedscan.lock</cfg:lock_file>
+    <cfg:lockfile>/qcwork/seedscan/seedscan.lock</cfg:lockfile>
  
     <cfg:log>
         <cfg:directory>/qcwork/seedscan/logs</cfg:directory>

@@ -10,7 +10,7 @@
     <!-- root -->
     <xsd:element name="seedscan"    type="cfg:seedscan_T"/>
     <!-- primary elements -->
-    <xsd:element name="lock_file"   type="xsd:string" />
+    <xsd:element name="lockfile"   type="xsd:string" />
     <xsd:element name="log"         type="cfg:log_T" />
     <xsd:element name="database"    type="cfg:database_T" />
     <xsd:element name="scans"       type="cfg:scans_T" />
@@ -55,7 +55,7 @@
 
     <xsd:complexType name="seedscan_T">
         <xsd:all>
-            <xsd:element ref="cfg:lock_file"    minOccurs="1" maxOccurs="1"/>
+            <xsd:element ref="cfg:lockfile"     minOccurs="1" maxOccurs="1"/>
             <xsd:element ref="cfg:log"          minOccurs="1" maxOccurs="1"/>
             <xsd:element ref="cfg:database"     minOccurs="1" maxOccurs="1"/>
             <xsd:element ref="cfg:scans"        minOccurs="1" maxOccurs="1"/>

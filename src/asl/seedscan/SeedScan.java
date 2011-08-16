@@ -19,13 +19,17 @@
 
 package asl.seedscan;
 
-
 import java.io.Console;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.GregorianCalendar;
+
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionGroup;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.PosixParser;
 
 /**
  * 
@@ -37,75 +41,36 @@ public class SeedScan
 
     public static void main(String args[])
     {
-        // Configuration (see SeedScanSchema.xsd):
-        //
-        // <?xml version="1.0"?
-        // <seedscan xmlns="config.seedscan.asl.cr.usgs.gov">
-        //
-        //   <lock_file>/qcwork/seedscan/seedscan.lock</lock_file>
-        //
-        //   <log>
-        //     <directory>/qcwork/seedscan/logs</directory>
-        //     <prefix>seedscan.</prefix>
-        //     <postfix>.log</postfix>
-        //     <level>INFO</level>
-        //   </log>
-        //  
-        //   <database>
-        //     <url>jdbc:mysql://136.177.121.210:54321/seedscan"</url>
-        //     <!--url>jdbc:mysql://catbox2.cr.usgs.gov/stations"</url-->
-        //     <username>seedscan_write</username>
-        //     <password>
-        //       <ciphertext>2f9cb9a02ee92a39</ciphertext>
-        //       <iv>952bf002cc030243</iv>
-        //       <key>952bf002cc030243</key>
-        //       <key_iv>952bf002cc030243</key_iv>
-        //     </password>
-        //   </database>
-        //
-        //   <scan id="1">
-        //     <path>/xs0/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}</path>
-        //     <frequency>
-        //       <days value="1">
-        //         <hour value="22"/>
-        //       </days>
-        //     </frequency>
-        //     <start_depth>1</start_depth>
-        //     <scan_depth>2</scan_depth>
-        //   </scan>
-        //  
-        //   <scan id="2">
-        //     <path>/xs0/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}</path>
-        //     <frequency>
-        //       <years value="1">
-        //         <month value="12">
-        //           <day value="24">
-        //             <hour value="22">
-        //               <minute value="30">
-        //             </hour>
-        //           </day>
-        //         </month>
-        //       </years>
-        //     </frequency>
-        //     <start_depth>1</start_depth>
-        //     <scan_depth>-1</scan_depth>
-        //   </scan>
-        //   
-        // </seedscan>
+     // === Command Line Parsing ===
+        Options options = new Options();
+        Option opConfigFile = new Option("c", "config-file", true, 
+                            "The config file to use for seedscan. XML format according to SeedScanConfig.xsd.");  
+        Option opNoConfig   = new Option("C", "no-config", false,
+                            "Do not use a custom configuration, instead run with default values");
+        Option opSchemaFile = new Option("s", "schema-file", true, 
+                            "The schame file which should be used to verify the config file format. ");  
 
+        OptionGroup ogConfig = new OptionGroup();
+        ogConfig.addOption(opConfigFile);
+        ogConfig.addOption(opNoConfig);
+
+        options.addOptionGroup(ogConfig);
+        options.addOption(opSchemaFile);
+
+     // === Default Patterns ===
         String tr1PathPattern = "/tr1/telemetry_days/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}";
         String xs0PathPattern = "/xs0/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}";
         String xs1PathPattern = "/xs1/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}";
         String lockFile = "/qcwork/seedscan.lock";
 
-        String url  = "jdbc:mysql://136.177.121.210:54321/seedscan";
         //String url  = "jdbc:oracle://<server>:<port>/database";
+        String url  = "jdbc:mysql://136.177.121.210:54321/seedscan";
         String user = "seedscan_write";
-        Console cons = System.console();
+        //Console cons = System.console();
         //char[] pass = cons.readPassword("Password for MySQL account '%s': ", user);
 
-        File schemaFile = new File("schemas/SeedScanConfig.xsd");
         File configFile = new File("config.xml");
+        File schemaFile = new File("schemas/SeedScanConfig.xsd");
 
         Config config = new Config(schemaFile);
         config.loadConfig(configFile);
