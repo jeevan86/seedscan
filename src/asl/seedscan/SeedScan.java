@@ -25,7 +25,9 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.GregorianCalendar;
+import java.util.Iterator;
 
+import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
@@ -41,6 +43,10 @@ public class SeedScan
 
     public static void main(String args[])
     {
+        boolean parseConfig = true;
+        File configFile = new File("config.xml");
+        File schemaFile = new File("schemas/SeedScanConfig.xsd");
+
      // === Command Line Parsing ===
         Options options = new Options();
         Option opConfigFile = new Option("c", "config-file", true, 
@@ -54,32 +60,67 @@ public class SeedScan
         ogConfig.addOption(opConfigFile);
         ogConfig.addOption(opNoConfig);
 
+        OptionGroup ogSchema = new OptionGroup();
+        ogConfig.addOption(opSchemaFile);
+        ogConfig.addOption(opNoConfig);
+
         options.addOptionGroup(ogConfig);
-        options.addOption(opSchemaFile);
+        options.addOptionGroup(ogSchema);
+
+        PosixParser optParser = new PosixParser();
+        CommandLine cmdLine = null;
+        try {
+            cmdLine = optParser.parse(options, args, true);
+        } catch (org.apache.commons.cli.ParseException e) {
+            System.err.println("Error while parsing command-line arguments.");
+            System.exit(1);
+        }
+
+        Option opt;
+        Iterator iter = cmdLine.iterator();
+        while (iter.hasNext()) {
+            opt = (Option)iter.next();
+            if (opt.getOpt().equals("c")) {
+                configFile = new File(opt.getValue());
+            }
+            else if (opt.getOpt().equals("C")) {
+                parseConfig = false;
+            }
+            else if (opt.getOpt().equals("s")) {
+                schemaFile = new File(opt.getValue());
+            }
+        }
 
      // === Default Patterns ===
         String tr1PathPattern = "/tr1/telemetry_days/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}";
         String xs0PathPattern = "/xs0/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}";
         String xs1PathPattern = "/xs1/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}";
         String lockFile = "/qcwork/seedscan.lock";
-
-        //String url  = "jdbc:oracle://<server>:<port>/database";
         String url  = "jdbc:mysql://136.177.121.210:54321/seedscan";
         String user = "seedscan_write";
+        String pass = "";
+
+        //String url  = "jdbc:oracle://<server>:<port>/database";
         //Console cons = System.console();
         //char[] pass = cons.readPassword("Password for MySQL account '%s': ", user);
 
-        File configFile = new File("config.xml");
-        File schemaFile = new File("schemas/SeedScanConfig.xsd");
 
-        Config config = new Config(schemaFile);
-        config.loadConfig(configFile);
+        if (parseConfig) {
+            Config config = new Config(schemaFile);
+            config.loadConfig(configFile);
+        }
 
         LockFile lock = new LockFile(lockFile);
         if (!lock.acquire()) {
             System.out.println("Could not acquire lock.");
             System.exit(1);
         }
+
+        // TODO: State Tracking in the Database
+        // - Record scan started in database.
+        // - Track our progress as we go so a new process can pick up where
+        //   we left off if our process dies.
+        // - Mark when each date-station-channel-operation is complete
 
         int startDepth = 1; // Start this many days back.
         int scanDepth  = 2; // Number of days to evaluate.
@@ -93,16 +134,15 @@ public class SeedScan
         try 
         {
             allchanURL = new URL(allchanURLstr);
-        } catch (MalformedURLException e1) 
-        {
+        } catch (MalformedURLException e1) {
             System.err.println("Exception opening URL %s.");
             e1.printStackTrace();
             allchanURL = null;
         }
+
         if (allchanURL == null)
         {
-            System.err.printf("Unable to open resource %s, aborting!\n", 
-                    allchanURLstr);
+            System.err.printf("Unable to open resource %s, aborting!\n", allchanURLstr);
             System.exit(1);
         }
 
@@ -111,11 +151,13 @@ public class SeedScan
         // TEST LIST (TODO: Remove once configurations are working)
         Station[] stations = {
             new Station("IU", "ANMO"),
+            new Station("IU", "CCM"),
             new Station("IU", "COR"),
-            new Station("IU", "SJG"),
+            new Station("IU", "HKT"),
             new Station("IU", "MA2"),
+            new Station("IU", "MAJO"),
+            new Station("IU", "SJG"),
             new Station("IU", "YSS"),
-            new Station("IU", "CCM")
         };
 
         // Get a list of stations

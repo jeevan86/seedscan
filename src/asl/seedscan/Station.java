@@ -22,8 +22,8 @@ package asl.seedscan;
 
 public class Station
 {
-    private String network;
-    private String station;
+    private String network = null;
+    private String station = null;
 
     public Station(String network, String station)
     {
@@ -36,7 +36,12 @@ public class Station
             if (network.length() > 2) {
                 throw new RuntimeException("network name is too long");
             }
-            this.network = network;
+            else if (network.length() == 0) {
+                this.network = null;
+            } 
+            else {
+                this.network = network;
+            }
         }
     }
 
