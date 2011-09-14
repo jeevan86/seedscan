@@ -45,8 +45,10 @@ def stacksize(since=0.0):
 reg_station = re.compile("^[A-Za-z0-9]{2}_[A-Za-z0-9]{2,5}$")
 
 class DB(object):
-    def __init__(self):
+    def __init__(self, file=None):
         self.data = {}
+        if self.file is not None:
+            self.db = StationDatabase(file)
 
     def add(self, network, station, location, channel, year, jday, category, key, value):
         if network == None:
@@ -54,6 +56,8 @@ class DB(object):
         if location == None:
             network = ""
         populate(self.data, (network, station, location, channel, year, jday, category, key, value))
+        if self.db:
+            self.db.
 
 def populate(db, chain):
     if len(chain) < 2:

@@ -8,17 +8,18 @@ try:
 except ImportError, e:
     from pysqlite2 import dbapi2 as sqlite
 
-class StationDatabase(Database):
-    def __init__(self):
+class MetricDatabase(Database):
+    def __init__(self, insert_cascade=True):
         Database.__init__(self)
 
+  # === INSERT Queries ===
     def add_station(self, station):
-        query = """INSERT INTO Station(network,name) VALUES(?,?)"""
+        query = """INSERT OR IGNORE INTO Station(network,name) VALUES(?,?)"""
         self.insert(query, station.get_info())
 
     def add_sensor(self, sensor):
         query = """
-            INSERT INTO Sensor(station_id,location) 
+            INSERT OR IGNORE INTO Sensor(station_id,location) 
             VALUES(
                 (SELECT (Station.id) 
                  FROM Station 
@@ -30,7 +31,7 @@ class StationDatabase(Database):
 
     def add_channel(self, channel):
         query = """
-            INSERT INTO Channel(sensor_id, name)
+            INSERT OR IGNORE INTO Channel(sensor_id,name,derived)
             VALUES (
                 (SELECT (Sensor.id)
                  FROM Station INNER JOIN Sensor
@@ -38,30 +39,20 @@ class StationDatabase(Database):
                  WHERE Station.network = ? AND
                        Station.name = ? AND
                        Sensor.location = ?),
+                ?,
                 ?
             )
         """
-        self.insert(query, channel.get_info())
-
-    def add_derived_channel(self, channel):
-        query = """
-            INSERT INTO DerivedChannel(sensor_id, name)
-            VALUES (
-                (SELECT (Sensor.id)
-                 FROM Station INNER JOIN Sensor
-                 ON Station.id = Sensor.station_id
-                 WHERE Station.network = ? AND
-                       Station.name = ? AND
-                       Sensor.location = ?),
-                ?
-            )
-        """
-        self.insert(query, channel.get_info())
+        args = list(channel.get_info())
+        args.extend(channel.get_derived())
+        args = tuple(args)
+        self.insert(query, args)
 
     def add_metric(self, metric):
         query,data = metric.get_insert_query()
         self.insert(query, data)
 
+  # === SELECT Queries ===
     def assemble_where(self, parts):
         result = ""
         data = []
@@ -122,22 +113,7 @@ class StationDatabase(Database):
         return self.select(query, where_data)
 
     def get_channels(self, columns=None, network=None, station=None, location=None, channel=None, limit=-1):
-        return self._get_channels("Channel",
-                                  columns,
-                                  network, station,
-                                  location, channel,
-                                  limit)
-
-    def get_derived_channels(self, columns=None, network=None, station=None, location=None, channel=None, limit=-1):
-        return self._get_channels("DerivedChannel",
-                                  columns,
-                                  network, station,
-                                  location, channel,
-                                  limit)
-
-    def _get_channels(self, table, columns=None, network=None, station=None, location=None, channel=None, limit=-1):
         info = {}
-        info['table'] = table
         info['columns'] = "*"
         if columns is not None:
             info['columns'] = ",".join(columns)
@@ -146,92 +122,49 @@ class StationDatabase(Database):
         info['where'],info['data'] = self.assemble_where([("Station.network", network),
                                                           ("Station.name",    station),
                                                           ("Sensor.location", location),
-                                                          ("%(table)s.name" % info, channel)])
+                                                          ("Channel.name" % info, channel)])
 
         query = """
         SELECT %(columns)s
-        FROM %(table)s
-        WHERE %(table)s.id IN (
-            SELECT (%(table)s.id) 
-            FROM %(table)s 
+        FROM Channel
+        WHERE Channel.id IN (
+            SELECT (Channel.id) 
+            FROM Channel 
             INNER JOIN Sensor
-                ON Sensor.id = %(table)s.sensor_id
+                ON Sensor.id = Channel.sensor_id
             INNER JOIN Station
-                ON Station.id = Sensor.station.id
+                ON Station.id = Sensor.station_id
             %(where)s
             %(limit)s
         ) 
         """ % info
         return self.select(query, info['data'])
 
-    def get_performance_metrics(self, columns=None, network=None, station=None, location=None, channel=None, year=None, month=None, day=None, limit=-1):
-        return self._get_metrics(self, 
-                                 "PerformanceMetrics",
-                                 "Channel",
-                                 "channel_id",
-                                 network, station,
-                                 location, channel,
-                                 year, month, day,
-                                 limit)
-        
-    def get_noise_metrics(self, columns=None, network=None, station=None, location=None, channel=None, year=None, month=None, day=None, limit=-1):
-        return self._get_metrics(self, 
-                                 "NoiseMetrics",
-                                 "Channel",
-                                 "channel_id",
-                                 network, station,
-                                 location, channel,
-                                 year, month, day,
-                                 limit)
-        
-    def get_calibration_metrics(self, columns=None, network=None, station=None, location=None, channel=None, year=None, month=None, day=None, limit=-1):
-        return self._get_metrics(self, 
-                                 "CalibrationMetrics",
-                                 "Channel",
-                                 "channel_id",
-                                 network, station,
-                                 location, channel,
-                                 year, month, day,
-                                 limit)
-        
-    def get_sensor_comparison(self, columns=None, network=None, station=None, location=None, channel=None, year=None, month=None, day=None, limit=-1):
-        return self._get_metrics(self, 
-                                 "SensorComparison",
-                                 "DerivedChannel",
-                                 "derived_channel_id",
-                                 network, station,
-                                 location, channel,
-                                 year, month, day,
-                                 limit)
-        
-    def _get_metrics(self, metric_table, channel_table, channel_id, columns=None, network=None, station=None, location=None, channel=None, year=None, month=None, day=None, limit=-1):
+    def get_metrics(self, columns=None, network=None, station=None, location=None, channel=None, year=None, month=None, day=None, limit=-1):
         info = {}
-        info['metric-table'] = metric_table
-        info['channel-table'] = channel_table
-        info['channel-id'] = channel_id
         info['columns'] = "*"
         if columns is not None:
             info['columns'] = ",".join(columns)
 
         info['limit'] = self.assemble_limit(limit)
-        info['where'],info['data'] = self.assemble_where([("Station.network", network),
-                                                          ("Station.name",    station),
-                                                          ("Sensor.location", location),
-                                                          ("%s.name"  % info['channel-table'], channel),
-                                                          ("%s.year"  % info['metric-table'],  year),
-                                                          ("%s.month" % info['metric-table'],  month),
-                                                          ("%s.day"   % info['metric-table'],  day)])
+        info['where'],info['data'] = self.assemble_where([("Station.network",   network),
+                                                          ("Station.name",      station),
+                                                          ("Sensor.location",   location),
+                                                          ("Channel.name",      channel),
+                                                          ("Metrics.year",      year),
+                                                          ("Metrics.month",     month),
+                                                          ("Metrics.day",       day)])
 
         query = """
         SELECT %(columns)s
-        FROM %(metric-table)s
-        WHERE %(metric-table)s.id IN (
-            SELECT (%(metric-table)s.id) 
-            FROM %(metric-table)s 
-            INNER JOIN %(channel-table)s
-                ON %(channel-table).id = %(metric-table)s.%(channel-id)s
+        FROM Metrics
+        WHERE Metrics.id IN (
+            SELECT (Metrics.id
+            FROM Metrics
+            INNER JOIN Channel
+                ON Channel.id = Metrics.channel_id
             INNER JOIN Sensor
-                ON Sensor.id = %(channel-table)s.sensor_id
+                ON Sensor.id = Channel.sensor_id
             INNER JOIN Station
                 ON Station.id = Sensor.station.id
             %(where)s
@@ -291,15 +224,22 @@ def SensorInfo(StationInfo):
         return (self.get_network(), self.get_station(), self.get_location())
 
 def ChannelInfo(SensorInfo):
-    def __init__(self, network, station, location, channel):
+    def __init__(self, network, station, location, channel, derived=False):
         SensorInfo.__init__(network, station, location)
         self.set_channel(channel)
+        self.derived = derived
 
     def set_channel(self, channel):
         self._set_value('channel', channel)
 
+    def set_derived(self, derived):
+        self._set_value('derived', derived)
+
     def get_channel(self):
         self._get_value('channel')
+
+    def get_derived(self):
+        self._get_value('derived')
 
     def get_info(self):
         return (self.get_network(), self.get_station(),
@@ -329,24 +269,30 @@ def Metric(object):
     def set_day(self, day):
         self.add_value("day", day)
 
+    def set_key(self, key):
+        self.add_value("key", key)
+
+    def set_value(self, value):
+        self.add_value("value", value)
+
     def add_value(self, name, value):
         self.data[name] = value
 
     def get_insert_query(self):
         columns = sorted(self.data.keys())
-        field_str = ", ".join(columns)
-        value_str = ",".join(islice(cycle("?")
-        if self.context.__class__.__name__ == "StationInfo":
+        field_str = ",".join(columns)
+        value_str = ",".join(islice(cycle("?"),len(columns)))
+        #if self.context.__class__.__name__ == "StationInfo":
         query = """
-            INSERT INTO %s(channel_id, %s)
+            INSERT OR IGNORE INTO Metrics(channel_id,%s)
             VALUES (
                 (SELECT (Channel.id) 
                  FROM Channel INNER JOIN Station 
                  ON Channel.station_id = Station.id
                  WHERE Station.network = ? AND Station.name = ? AND
                        Channel.location = ? AND Channel.name = ?),
-                %)
-        """ % (self.table, field_str, value_str, len(columns)))
+                %s)
+        """ % (field_str, value_str)
         return (query,self.get_args(columns))
 
     def get_args(self, columns=None):
@@ -386,7 +332,7 @@ def Metric(object):
 
         query = """
             SELECT %s 
-            FROM %s
+            FROM Metrics
             WHERE channel_id IN (
                 SELECT Channel.id 
                 FROM Channel INNER JOIN Station
@@ -397,28 +343,8 @@ def Metric(object):
             %s
             %s
             %s
-        """ % (field_str, self.table, year_str, month_str, day_str, limit_str)
+            %s
+        """ % (field_str, year_str, month_str, day_str, limit_str)
 
         return query,args
-
-def PerformanceMetrics(Metric):
-    def __init__(self, channel, metrics):
-        Metric.__init__(self, channel)
-        for key,value in metrics.items():
-            self.add_value(key, value)
-
-def Noise(Metric):
-    def __init__(self, channel, noise):
-        Metric.__init__(self, channel)
-        self.add_value("noise", noise)
-
-def Calibration(Metric):
-    def __init__(self, channel, cal_time):
-        Metric.__init__(self, channel)
-        self.add_value("cal_time", cal_time)
-
-def SensorComparison(Metric):
-    def __init__(self, station, coherences, power_differences):
-        Metric.__init__(self, station)
-        self.add_value("cal_time", cal_time)
 
