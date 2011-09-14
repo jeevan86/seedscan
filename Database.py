@@ -6,9 +6,11 @@ except ImportError, e:
     from pysqlite2 import dbapi2 as sqlite
 
 class Database:
-    def __init__(self):
+    def __init__(self, file=None):
         self.db = None
         self.cur = None
+        if file:
+            self.select_database(file)
 
     def __del__(self):
         self.close()
@@ -17,7 +19,7 @@ class Database:
     def select_database(self, file):
         self.close()
         self.db = sqlite.connect(file)
-        sef.cur = self.db.cursor()
+        self.cur = self.db.cursor()
 
     def close(self):
         if self.cur:
@@ -37,17 +39,20 @@ class Database:
         self.execute(query, data)
         return self.cur.fetchall()
 
-    def insert(self, query, data=None):
+    def insert(self, query, data=None, commit=True):
         self.execute(query, data)
-        self.db.commit()
+        if commit:
+            self.db.commit()
 
-    def insert_many(self, query, list):
-        self.cur.executemany(query, self._iterator())
-        self.db.commit()
+    def insert_many(self, query, iterator, commit=True):
+        self.cur.executemany(query, iterator)
+        if commit:
+            self.db.commit()
 
-    def delete(self, query):
+    def delete(self, query, commit=True):
         self.cur.execute(query)
-        self.db.commit()
+        if commit:
+            self.db.commit()
 
     def interrupt(self):
         self.db.interrupt()
@@ -55,12 +60,10 @@ class Database:
     def run_script(self, script):
         return self.cur.executescript(script)
 
-# ===== Private Methods ==========================
-    def _iterator(self):
-        if self.foreign_iterator:
-            for items in self.foreign_iterator():
-                    yield items
+    def commit(self):
+        self.db.commit()
 
+# ===== Private Methods ==========================
     def _hash(self, text):
         sha_obj = hashlib.sha1()
         sha_obj.update(text)
