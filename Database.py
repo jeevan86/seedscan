@@ -36,11 +36,17 @@ class Database:
             self.cur.execute(query)
 
     def select(self, query, data=None):
-        self.execute(query, data)
+        if data is not None:
+            self.cur.execute(query, data)
+        else:
+            self.cur.execute(query)
         return self.cur.fetchall()
 
     def insert(self, query, data=None, commit=True):
-        self.execute(query, data)
+        if data is not None:
+            self.cur.execute(query, data)
+        else:
+            self.cur.execute(query)
         if commit:
             self.db.commit()
 

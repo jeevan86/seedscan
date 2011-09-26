@@ -9,7 +9,7 @@ import time
 
 import MetricDatabase
 
-## {{{ http://code.activestate.com/recipes/286222/ (r1)
+## {{{ Memory Tools: http://code.activestate.com/recipes/286222/ (r1)
 
 _proc_status = '/proc/%d/status' % os.getpid()
 _scale = {
@@ -42,7 +42,6 @@ def resident(since=0.0):
 def stacksize(since=0.0):
     return _VmB('VmStk:') - since
 ## end of http://code.activestate.com/recipes/286222/ }}}
-
 
 reg_station = re.compile("^[A-Za-z0-9]{2}_[A-Za-z0-9]{2,5}$")
 
@@ -85,7 +84,7 @@ class DB(object):
                                     for ct,d in sorted(cts.items()):
                                         for k,v in sorted(d.items()):
                                             y,m,d = j_to_md(y,j)
-                                            metrics.append((n,s,l,c,y,m,d,ct+'-'+k,v))
+                                            metrics.append((n,s,l,c,y,m,d,ct,k,v))
 
         print "Done. Took %f seconds (%f seconds so far)" % (time.time() - ps, time.time() - start)
 
@@ -205,6 +204,59 @@ def process_path(path, database, start_time=-1, end_time=-1, net=None, st=None):
                     database.add(network, station, location, channel, year, jday, "SOH", "gap-count", gaps, channel_derived=0)
                     database.add(network, station, location, channel, year, jday, "SOH", "reversals", revs, channel_derived=0)
                     database.add(network, station, location, channel, year, jday, "SOH", "availability", avail, channel_derived=0)
+
+def cals(path, database, start=None, end=None, net=None, st=None):
+    if start and (len(start) == 3):
+        year,_,_,_,_,_,_,jday,_ = time.strptime("%04d-%02d-%2d 12:00:00" % start, "%Y-%m-%d %H:%M:%S")
+        start = year,jday
+    if end and (len(end) == 3):
+        year,_,_,_,_,_,_,jday,_ = time.strptime("%04d-%02d-%2d 12:00:00" % end, "%Y-%m-%d %H:%M:%S")
+        end = year,jday
+
+    regex = re.compile("\d{4}_\d{3}_\w{2}[.]csv")
+    for name in sorted(os.listdir(path)):
+        if not regex.match(name):
+            continue
+
+        file = path + "/" + name
+        print "Processing file '%s'" % file
+        fh = open(file, 'r')
+        first = True
+        line_no = 0
+        for line in fh:
+            line_no += 1
+            parts = map(lambda l: l.strip(), line.strip().strip(",").split(","))
+            if first:
+                keys = parts[7:]
+                first = False
+            else:
+                network,station,location,channel,year,jday,sensor = parts[:7]
+                if (year == "NO") or (jday == "CAL"):
+                    print "No cal for", network, station, location, channel
+                    continue
+                if net and (net != network):
+                    continue
+                if st and (st != station):
+                    continue
+                year,jday = tuple(map(int,(year,jday)))
+
+                check_date = tuple(map(int, (year,jday)))
+                if (start is not None) and (check_date < start):
+                    continue
+                if (end is not None) and (check_date > end):
+                    continue
+
+                values = parts[7:]
+
+                for (key,value) in zip(keys,values):
+                    if value.lower() == "nan":
+                        continue
+                    range = key
+                    value = float(value)
+                    category = "calibration"
+
+                    print network, station, location, channel, year, jday, category, range, value
+                    database.add(network, station, location, channel, year, jday, category, range, value, channel_derived=0)
 
 def noise(path, database, start=None, end=None, net=None, st=None):
     if start and (len(start) == 3):
@@ -350,12 +402,17 @@ def main():
     #start = (2011,8,1)
     #end   = (2011,8,1)
 
-    database = DB("/qcwork/dqresults/metrics.db")
-    availability("/xs0/seed", database, start=start, end=end, net=network, st=station)
+    database = DB("/dataq/metrics/metrics.db")
+
+    start_time = time.time()
+    # XXX: Re-enable these to scan availability, etc.
+    #availability("/xs0/seed", database, start=start, end=end, net=network, st=station)
     #availability("/xs1/seed", database, start=start, end=end, net=network, st=station)
-    sensor_compare("/qcwork/dqresults/sencomp", database, start=start, end=end, net=network, st=station)
-    noise("/qcwork/dqresults/noise", database, start=start, end=end, net=network, st=station)
+    #sensor_compare("/qcwork/dqresults/sencomp", database, start=start, end=end, net=network, st=station)
+    #noise("/qcwork/dqresults/noise", database, start=start, end=end, net=network, st=station)
+    cals("/qcwork/dqresults/caldev", database, net=network, st=station)
     database.commit()
+    end_time = time.time()
 
     #for network,stations in sorted(database.data.items()):
     #    for station,locations in sorted(stations.items()):
@@ -374,6 +431,8 @@ def main():
     print "Stack Size:", stacksize()
     print "Memory:    ", memory()
     print "Resident:  ", resident()
+    print
+    print "Total Time:", end_time - start_time, "seconds"
 
 if __name__ == '__main__':
     try:

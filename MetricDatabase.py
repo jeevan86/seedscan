@@ -36,7 +36,7 @@ inserts = {
             )
         """,
         "Metrics" : """
-            INSERT OR REPLACE INTO Metrics(channel_id,year,month,day,key,value)
+            INSERT OR IGNORE INTO Metrics(channel_id,year,month,day,category,key,value)
             VALUES (
                 (SELECT (Channel.id) 
                  FROM Channel 
@@ -48,6 +48,7 @@ inserts = {
                        Station.name = ? AND
                        Sensor.location = ? AND 
                        Channel.name = ?),
+                ?,
                 ?,
                 ?,
                 ?,
@@ -96,8 +97,8 @@ class MetricDatabase(Database):
     def add_channels(self, iterator):
         self.insert_many(inserts["Channel"], iterator)
 
-    def add_metric(self, network, station, location, channel, year, month, day, key, value):
-        self.insert(inserts["Metrics"], (network,station,location,channel,year,month,day,key,value))
+    def add_metric(self, network, station, location, channel, year, month, day, category, key, value):
+        self.insert(inserts["Metrics"], (network,station,location,channel,year,month,day,category,key,value))
 
     def add_metrics(self, iterator):
         self.insert_many(inserts["Metrics"], iterator)
@@ -111,14 +112,15 @@ class MetricDatabase(Database):
 
   # === SELECT Queries ===
     def assemble_where(self, parts):
+        results = []
         result = ""
         data = []
         for column,value in parts:
             if value is not None:
-                result += " %s = ?" % column
+                results.append(" %s = ?" % column)
                 data.append(value)
-        if len(result):
-            result = "WHERE" + result
+        if len(results):
+            result = "WHERE" + " AND".join(results)
         return result,data
             
     def assemble_limit(self, limit):
@@ -157,20 +159,17 @@ class MetricDatabase(Database):
 
         query = """
         SELECT %s
-        FROM Sensor
-        WHERE Sensor.id IN (
-            SELECT (Sensor.id) 
-            FROM Sensor 
-            INNER JOIN Station
-                ON Station.id = Sensor.station.id
-            %s
-            %s
-        ) 
+        FROM Sensor 
+        INNER JOIN Station
+            ON Station.id = Sensor.station.id
+        %s
+        %s
         """ % (column_str, where_str, limit_str)
         return self.select(query, where_data)
 
     def get_channels(self, columns=None, network=None, station=None, location=None, channel=None, limit=-1):
         info = {}
+        info['data'] = None
         info['columns'] = "*"
         if columns is not None:
             info['columns'] = ",".join(columns)
@@ -183,22 +182,19 @@ class MetricDatabase(Database):
 
         query = """
         SELECT %(columns)s
-        FROM Channel
-        WHERE Channel.id IN (
-            SELECT (Channel.id) 
-            FROM Channel 
-            INNER JOIN Sensor
-                ON Sensor.id = Channel.sensor_id
-            INNER JOIN Station
-                ON Station.id = Sensor.station_id
-            %(where)s
-            %(limit)s
-        ) 
+        FROM Channel 
+        INNER JOIN Sensor
+            ON Sensor.id = Channel.sensor_id
+        INNER JOIN Station
+            ON Station.id = Sensor.station_id
+        %(where)s
+        %(limit)s
         """ % info
         return self.select(query, info['data'])
 
-    def get_metrics(self, columns=None, network=None, station=None, location=None, channel=None, year=None, month=None, day=None, limit=-1):
+    def get_metrics(self, columns=None, network=None, station=None, location=None, channel=None, year=None, month=None, day=None, category=None, limit=-1):
         info = {}
+        info['data'] = None
         info['columns'] = "*"
         if columns is not None:
             info['columns'] = ",".join(columns)
@@ -210,24 +206,22 @@ class MetricDatabase(Database):
                                                           ("Channel.name",      channel),
                                                           ("Metrics.year",      year),
                                                           ("Metrics.month",     month),
-                                                          ("Metrics.day",       day)])
+                                                          ("Metrics.day",       day),
+                                                          ("Metrics.category",  category)])
 
         query = """
         SELECT %(columns)s
         FROM Metrics
-        WHERE Metrics.id IN (
-            SELECT (Metrics.id
-            FROM Metrics
-            INNER JOIN Channel
-                ON Channel.id = Metrics.channel_id
-            INNER JOIN Sensor
-                ON Sensor.id = Channel.sensor_id
-            INNER JOIN Station
-                ON Station.id = Sensor.station_id
-            %(where)s
-            %(limit)s
-        ) 
+        INNER JOIN Channel
+            ON Channel.id = Metrics.channel_id
+        INNER JOIN Sensor
+            ON Sensor.id = Channel.sensor_id
+        INNER JOIN Station
+            ON Station.id = Sensor.station_id
+        %(where)s
+        %(limit)s
         """ % info
+        print query
         return self.select(query, info['data'])
 
     def get_metadata(self, columns=None, network=None, station=None, location=None, channel=None, start=None, end=None, limit=-1):
@@ -319,9 +313,10 @@ CREATE TABLE IF NOT EXISTS Metrics (
     year INTEGER NOT NULL,
     month INTEGER,
     day INTEGER,
+    category TEXT,
     key TEXT NOT NULL,
     value TEXT NOT NULL,
-    UNIQUE (channel_id, year, month, day, key)
+    UNIQUE (channel_id, year, month, day, category, key)
 );
         """
         self.cur.executescript(script)
