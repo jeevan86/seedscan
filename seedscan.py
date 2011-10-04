@@ -241,12 +241,18 @@ def quality_matrix(database, network, station, year, jday, check_base):
             _,avail,tq_ave,gaps,amp_sat,charge,time_err = parts
             location,channel = parts[0].split('/')
 
-            database.add_metric(network, station, location, channel, year, jday, "SOH", "availability", avail, channel_derived=0)
-            database.add_metric(network, station, location, channel, year, jday, "SOH", "timing-quality", tq_ave, channel_derived=0)
-            database.add_metric(network, station, location, channel, year, jday, "SOH", "gap-count", gaps, channel_derived=0)
-            database.add_metric(network, station, location, channel, year, jday, "SOH", "amp-sat", amp_sat, channel_derived=0)
-            database.add_metric(network, station, location, channel, year, jday, "SOH", "charge", charge, channel_derived=0)
-            database.add_metric(network, station, location, channel, year, jday, "SOH", "timing-error", time_err, channel_derived=0)
+            if avail.lower() != 'n/a':
+                database.add_metric(network, station, location, channel, year, jday, "SOH", "availability", avail, channel_derived=0)
+            if tq_ave.lower() != 'n/a':
+                database.add_metric(network, station, location, channel, year, jday, "SOH", "timing-quality", tq_ave, channel_derived=0)
+            if gaps.lower() != 'n/a':
+                database.add_metric(network, station, location, channel, year, jday, "SOH", "gap-count", gaps, channel_derived=0)
+            if amp_sat.lower() != 'n/a':
+                database.add_metric(network, station, location, channel, year, jday, "SOH", "amp-sat", amp_sat, channel_derived=0)
+            if charge.lower() != 'n/a':
+                database.add_metric(network, station, location, channel, year, jday, "SOH", "charge", charge, channel_derived=0)
+            if time_err.lower() != 'n/a':
+                database.add_metric(network, station, location, channel, year, jday, "SOH", "timing-error", time_err, channel_derived=0)
     else:
         print "Could not find file '%s'" % qm_file
 
