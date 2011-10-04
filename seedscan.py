@@ -51,65 +51,90 @@ class DB(object):
         self.db = None
         if file is not None:
             self.db = MetricDatabase.MetricDatabase(file)
-            self.db.init()
+        self.db.init()
 
-    def add(self, network, station, location, channel, year, jday, category, key, value, channel_derived):
+    def add_metric(self, network, station, location, channel, year, jday, category, key, value, channel_derived):
         if network == None:
             network = ""
         if location == None:
-            network = ""
+            location = ""
         populate(self.data, (network, station, location, (channel,channel_derived), year, jday, category, key, value))
+
+    def add_calibration(self, network, station, location, channel, year, jday, cal_year, cal_jday, key, value, channel_derived):
+        if network == None:
+            network = ""
+        if location == None:
+            location = ""
+        populate(self.data, (network, station, location, (channel,channel_derived), year, jday, "calibration", cal_year, cal_jday, key, value))
 
     def commit(self):
         start = time.time()
         print "Starting commit..."
-        stations = []
-        sensors  = []
-        channels = []
-        metrics  = []
+        d_stations = []
+        d_sensors  = []
+        d_channels = []
+        d_metrics  = []
+        d_calibrations = []
 
         print "Re-formatting data...",
         sys.stdout.flush()
         ps = time.time()
         if self.db:
-            for n,ss in sorted(self.data.items()):
-                for s,ls in sorted(ss.items()):
-                    stations.append((n,s))
-                    for l,cs in sorted(ls.items()):
-                        sensors.append((n,s,l))
-                        for c,(ys,dr) in sorted(cs.items()):
-                            channels.append((n,s,l,c,dr))
-                            for y,js in sorted(ys.items()):
-                                for j,cts in sorted(js.items()):
-                                    for ct,d in sorted(cts.items()):
-                                        for k,v in sorted(d.items()):
-                                            y,m,d = j_to_md(y,j)
-                                            metrics.append((n,s,l,c,y,m,d,ct,k,v))
+            for network,stations in sorted(self.data.items()):
+                for station,locations in sorted(stations.items()):
+                    d_stations.append((network,station))
+                    for location,channels in sorted(locations.items()):
+                        d_sensors.append((network,station,location))
+                        for channel,(years,derived) in sorted(channels.items()):
+                            d_channels.append((network,station,location,channel,derived))
+                            for year,jdays in sorted(years.items()):
+                                for jday,categories in sorted(jdays.items()):
+                                    for category,data in sorted(categories.items()):
+                                        if category == "calibration":
+                                            for cyear,cjdays in sorted(data.items()):
+                                                for cjday,cals in sorted(cjdays.items()):
+                                                    for key,value in sorted(cals.items()):
+                                                        y,m,d = j_to_md(year,jday)
+                                                        dt = "%04d-%02d-%02d" % (y,m,d)
+                                                        cy,cm,cd = j_to_md(cyear,cjday)
+                                                        cdt = "%04d-%02d-%02d" % (cy,cm,cd)
+                                                        d_calibrations.append((network,station,location,channel,y,m,d,dt,cy,cm,cd,cdt,key,value))
+                                        else:
+                                            for key,value in sorted(data.items()):
+                                                y,m,d = j_to_md(year,jday)
+                                                dt = "%04d-%02d-%02d" % (y,m,d)
+                                                d_metrics.append((network,station,location,channel,y,m,d,dt,category,key,value))
 
         print "Done. Took %f seconds (%f seconds so far)" % (time.time() - ps, time.time() - start)
 
         print "Adding stations...",
         sys.stdout.flush()
         ps = time.time()
-        self.db.add_stations(stations)
+        self.db.add_stations(d_stations)
         print "Done. Took %f seconds (%f seconds so far)" % (time.time() - ps, time.time() - start)
 
         print "Adding sensors...",
         sys.stdout.flush()
         ps = time.time()
-        self.db.add_sensors(sensors)
+        self.db.add_sensors(d_sensors)
         print "Done. Took %f seconds (%f seconds so far)" % (time.time() - ps, time.time() - start)
 
         print "Adding channels...",
         sys.stdout.flush()
         ps = time.time()
-        self.db.add_channels(channels)
+        self.db.add_channels(d_channels)
         print "Done. Took %f seconds (%f seconds so far)" % (time.time() - ps, time.time() - start)
 
         print "Adding metrics...",
         sys.stdout.flush()
         ps = time.time()
-        self.db.add_metrics(metrics)
+        self.db.add_metrics(d_metrics)
+        print "Done. Took %f seconds (%f seconds so far)" % (time.time() - ps, time.time() - start)
+
+        print "Adding calibrations...",
+        sys.stdout.flush()
+        ps = time.time()
+        self.db.add_calibrations(d_calibrations)
         print "Done. Took %f seconds (%f seconds so far)" % (time.time() - ps, time.time() - start)
 
         print "Commit complete. (took %f seconds)" % (time.time() - start,)
@@ -145,7 +170,8 @@ def populate(db, chain):
         db[key] = rest[0]
 
 
-def availability(path, database, start=None, end=None, net=None, st=None):
+
+def gen_soh(path, database, parser, start=None, end=None, net=None, st=None):
     start_time = -1
     end_time = -1
     if start:
@@ -159,9 +185,9 @@ def availability(path, database, start=None, end=None, net=None, st=None):
         elif len(end) == 3:
             end_time = calendar.timegm(time.strptime("%04d-%02d-%2d 22:00:00" % end, "%Y-%m-%d %H:%M:%S"))
 
-    process_path(path, database, start_time, end_time, net, st)
+    process_path(path, database, parser, start_time, end_time, net, st)
 
-def process_path(path, database, start_time=-1, end_time=-1, net=None, st=None):
+def process_path(path, database, parser, start_time=-1, end_time=-1, net=None, st=None):
     for station_dir in sorted(os.listdir(path)):
         if not reg_station.match(station_dir):
             continue
@@ -186,24 +212,60 @@ def process_path(path, database, start_time=-1, end_time=-1, net=None, st=None):
 
         check_time = start
         while check_time < end:
-            check_dir = time.strftime("%s/%%Y/%%Y_%%j_%s_%s" % (station_path, network, station), time.gmtime(check_time))
+            check_base = time.strftime("%s/%%Y/%%Y_%%j_%s_%s" % (station_path, network, station), time.gmtime(check_time))
             year,_,_,_,_,_,_,jday,_ = time.gmtime(check_time)
             check_time += 86400
-            #print "checking directory '%s'" % check_dir
-            avail_file = check_dir + "/data_avail.txt"
-            if os.path.exists(avail_file):
-                fh = open(avail_file, 'r')
-                start = 2
-                for line in fh:
-                    if start > 0:
-                        start -= 1
-                        continue
+            parser(database, network, station, year, jday, check_base)
 
-                    location,channel,rate,gaps,revs,_,_,_,avail = line.split()
-                    database.add(network, station, location, channel, year, jday, "SOH", "sample-rate", rate, channel_derived=0)
-                    database.add(network, station, location, channel, year, jday, "SOH", "gap-count", gaps, channel_derived=0)
-                    database.add(network, station, location, channel, year, jday, "SOH", "reversals", revs, channel_derived=0)
-                    database.add(network, station, location, channel, year, jday, "SOH", "availability", avail, channel_derived=0)
+def quality_matrix(database, network, station, year, jday, check_base):
+    qm_file = check_base + "_qm.txt"
+    if os.path.exists(qm_file):
+        fh = open(qm_file, 'r')
+        ready = False
+        for line in fh:
+            if line.strip().startswith("Channel"):
+                ready = True
+                continue
+            if not ready:
+                continue
+            if line.strip() == "":
+                continue
+            if line.strip().startswith("Sensor"):
+                continue
+            if line.strip().startswith("---"):
+                continue
+            parts = map(lambda s: s.strip(), line.strip().split())
+            if len(parts) != 7:
+                continue
+
+            _,avail,tq_ave,gaps,amp_sat,charge,time_err = parts
+            location,channel = parts[0].split('/')
+
+            database.add_metric(network, station, location, channel, year, jday, "SOH", "availability", avail, channel_derived=0)
+            database.add_metric(network, station, location, channel, year, jday, "SOH", "timing-quality", tq_ave, channel_derived=0)
+            database.add_metric(network, station, location, channel, year, jday, "SOH", "gap-count", gaps, channel_derived=0)
+            database.add_metric(network, station, location, channel, year, jday, "SOH", "amp-sat", amp_sat, channel_derived=0)
+            database.add_metric(network, station, location, channel, year, jday, "SOH", "charge", charge, channel_derived=0)
+            database.add_metric(network, station, location, channel, year, jday, "SOH", "timing-error", time_err, channel_derived=0)
+    else:
+        print "Could not find file '%s'" % qm_file
+
+
+def availability(database, network, station, year, jday, check_base):
+    avail_file = check_base + "/data_avail.txt"
+    if os.path.exists(avail_file):
+        fh = open(avail_file, 'r')
+        for line in fh:
+            if line.strip().startswith("Data"):
+                continue
+            if line.strip().startswith("Loc"):
+                continue
+
+            location,channel,rate,gaps,revs,_,_,_,avail = line.split()
+            #database.add_metric(network, station, location, channel, year, jday, "SOH", "availability", avail, channel_derived=0)
+            #database.add_metric(network, station, location, channel, year, jday, "SOH", "gap-count", gaps, channel_derived=0)
+            database.add_metric(network, station, location, channel, year, jday, "SOH", "sample-rate", rate, channel_derived=0)
+            database.add_metric(network, station, location, channel, year, jday, "SOH", "reversals", revs, channel_derived=0)
 
 def cals(path, database, start=None, end=None, net=None, st=None):
     if start and (len(start) == 3):
@@ -216,6 +278,17 @@ def cals(path, database, start=None, end=None, net=None, st=None):
     regex = re.compile("\d{4}_\d{3}_\w{2}[.]csv")
     for name in sorted(os.listdir(path)):
         if not regex.match(name):
+            print "bad file name"
+            continue
+        year,jday,_ = name[:-4].split('_')
+        year,jday = map(int, (year,jday))
+
+        check_date = tuple(map(int, (year,jday)))
+        if check_date < start:
+            print "bad start date"
+            continue
+        if check_date > end:
+            print "bad end date"
             continue
 
         file = path + "/" + name
@@ -230,33 +303,25 @@ def cals(path, database, start=None, end=None, net=None, st=None):
                 keys = parts[7:]
                 first = False
             else:
-                network,station,location,channel,year,jday,sensor = parts[:7]
-                if (year == "NO") or (jday == "CAL"):
+                network,station,location,channel,cal_year,cal_jday,sensor = parts[:7]
+                if (cal_year == "NO") or (cal_jday == "CAL"):
                     print "No cal for", network, station, location, channel
                     continue
                 if net and (net != network):
                     continue
                 if st and (st != station):
                     continue
-                year,jday = tuple(map(int,(year,jday)))
 
-                check_date = tuple(map(int, (year,jday)))
-                if (start is not None) and (check_date < start):
-                    continue
-                if (end is not None) and (check_date > end):
-                    continue
-
+                cal_year,cal_jday = tuple(map(int,(cal_year,cal_jday)))
                 values = parts[7:]
-
                 for (key,value) in zip(keys,values):
                     if value.lower() == "nan":
                         continue
-                    range = key
                     value = float(value)
-                    category = "calibration"
 
-                    print network, station, location, channel, year, jday, category, range, value
-                    database.add(network, station, location, channel, year, jday, category, range, value, channel_derived=0)
+                    #print network, station, location, channel, year, jday, "calibration", key, value
+                    key = ('-').join(key.split()).lower()
+                    database.add_calibration(network, station, location, channel, year, jday, cal_year, cal_jday, key, value, channel_derived=0)
 
 def noise(path, database, start=None, end=None, net=None, st=None):
     if start and (len(start) == 3):
@@ -270,10 +335,8 @@ def noise(path, database, start=None, end=None, net=None, st=None):
     for name in sorted(os.listdir(path)):
         if not regex.match(name):
             continue
-        year,jday,network = name[:-4].split('_')
+        year,jday,_ = name[:-4].split('_')
         year,jday = map(int,(year,jday))
-        if net and (net != network):
-            continue
 
         check_date = tuple(map(int, (year,jday)))
         if check_date < start:
@@ -284,32 +347,24 @@ def noise(path, database, start=None, end=None, net=None, st=None):
         file = path + "/" + name
         print "Processing file '%s'" % file
         fh = open(file, 'r')
-        first = True
         for line in fh:
             parts = map(lambda l: l.strip(), line.strip().strip(",").split(","))
-            if first:
-                keys = parts[1:]
-                first = False
+            network,station,location,channel,category,key,value = parts
+            if value.lower() == "nan":
+                continue
+            if net and (net != network):
+                continue
+            if st and (st != station):
+                continue
+
+            if category == "Pm":
+                category = "noise"
             else:
-                station = parts[0]
-                if st and (st != station):
-                    continue
-
-                values = parts[1:]
-
-                for (key,value) in zip(keys,values):
-                    if value.lower() == "nan":
-                        continue
-                    value = float(value)
-                    chan_info,range = map(lambda p: p.strip(), key.split(':'))
-                    range = "-".join(range.split())
-                    cat,channel,location = chan_info.split()
-                    if cat == "Pm":
-                        category = "noise"
-                    else:
-                        continue
-                    
-                    database.add(network, station, location, channel, year, jday, category, range, value, channel_derived=1)
+                continue
+                
+            key = ('-').join(key.split()).lower()
+            value = float(value)
+            database.add_metric(network, station, location, channel, year, jday, category, key, value, channel_derived=1)
 
 def sensor_compare(path, database, start=None, end=None, net=None, st=None):
     if start and (len(start) == 3):
@@ -323,11 +378,8 @@ def sensor_compare(path, database, start=None, end=None, net=None, st=None):
     for name in sorted(os.listdir(path)):
         if not regex.match(name):
             continue
-        year,jday,network = name[:-4].split('_')
+        year,jday,_ = name[:-4].split('_')
         year,jday = map(int, (year,jday))
-        if net and (net != network):
-            continue
-
         check_date = tuple(map(int, (year,jday)))
         if check_date < start:
             continue
@@ -337,44 +389,25 @@ def sensor_compare(path, database, start=None, end=None, net=None, st=None):
         file = path + "/" + name
         print "Processing file '%s'" % file
         fh = open(file, 'r')
-        first = True
         for line in fh:
             parts = map(lambda l: l.strip(), line.strip().strip(",").split(","))
-            if first:
-                keys = parts[1:]
-                first = False
+            network,station,location,channel,category,key,value = parts
+            if value.lower() == "nan":
+                continue
+            if net and (net != network):
+                continue
+            if st and (st != station):
+                continue
+            if category == "Co":
+                category = "coherence"
+            elif category == "Pd":
+                category = "power-difference"
             else:
-                station = parts[0]
-                if st and (st != station):
-                    continue
+                continue
 
-                values = parts[1:]
-
-                for (key,value) in zip(keys,values):
-                    if value.lower() == "nan":
-                        continue
-                    value = float(value)
-                    chan_info,range = map(lambda p: p.strip(), key.split(':'))
-                    range = "-".join(range.split())
-                    cat,channel = chan_info.split()
-                    #cat,channel,sens = chan_info.split()
-                    #loc_a,loc_b = sens.split('-')
-                    #chan_a = "%s-%s" % (loc_a,chan)
-                    #chan_b = "%s-%s" % (loc_b,chan)
-                    #a_value = value
-                    #b_value = value
-                    if cat == "Co":
-                        category = "coherence"
-                    elif cat == "Pd":
-                        category = "power-difference"
-                        #b_value = -value
-                    else:
-                        continue
-
-                    database.add(network, station, "", channel, year, jday, category, range, value, channel_derived=1)
-                    #database.add(network, station, loc_a, channel, year, jday, category, range, (chan_b, a_value))
-                    #database.add(network, station, loc_b, channel, year, jday, category, range, (chan_a, b_value))
-
+            key = ('-').join(key.split()).lower()
+            value = float(value)
+            database.add_metric(network, station, location, channel, year, jday, category, key, value, channel_derived=1)
 
 #   <network> : {
 #       <station> : {
@@ -406,11 +439,12 @@ def main():
 
     start_time = time.time()
     # XXX: Re-enable these to scan availability, etc.
-    #availability("/xs0/seed", database, start=start, end=end, net=network, st=station)
-    #availability("/xs1/seed", database, start=start, end=end, net=network, st=station)
+    #gen_soh("/xs0/seed", database, availability, start=start, end=end, net=network, st=station)
+    #gen_soh("/xs1/seed", database, availability, start=start, end=end, net=network, st=station)
+    #gen_soh("/r02/projects/AVAIL/", database, quality_matrix, start=start, end=end, net=network, st=station)
     #sensor_compare("/qcwork/dqresults/sencomp", database, start=start, end=end, net=network, st=station)
     #noise("/qcwork/dqresults/noise", database, start=start, end=end, net=network, st=station)
-    cals("/qcwork/dqresults/caldev", database, net=network, st=station)
+    #cals("/qcwork/dqresults/caldev", database, start=start, end=end, net=network, st=station)
     database.commit()
     end_time = time.time()
 

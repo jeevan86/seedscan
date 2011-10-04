@@ -36,7 +36,7 @@ inserts = {
             )
         """,
         "Metrics" : """
-            INSERT OR IGNORE INTO Metrics(channel_id,year,month,day,category,key,value)
+            INSERT OR IGNORE INTO Metrics(channel_id,year,month,day,date,category,key,value)
             VALUES (
                 (SELECT (Channel.id) 
                  FROM Channel 
@@ -51,7 +51,32 @@ inserts = {
                 ?,
                 ?,
                 ?,
+                julianday(?),
                 ?,
+                ?,
+                ?)
+        """,
+        "Calibrations" : """
+            INSERT OR IGNORE INTO Calibrations(channel_id,year,month,day,date,cal_year,cal_month,cal_day,cal_date,key,value)
+            VALUES (
+                (SELECT (Channel.id) 
+                 FROM Channel 
+                 INNER JOIN Sensor 
+                    ON Sensor.id = Channel.sensor_id
+                 INNER JOIN Station
+                    ON Station.id = Sensor.station_id
+                 WHERE Station.network = ? AND 
+                       Station.name = ? AND
+                       Sensor.location = ? AND 
+                       Channel.name = ?),
+                ?,
+                ?,
+                ?,
+                julianday(?),
+                ?,
+                ?,
+                ?,
+                julianday(?),
                 ?,
                 ?)
         """,
@@ -97,11 +122,17 @@ class MetricDatabase(Database):
     def add_channels(self, iterator):
         self.insert_many(inserts["Channel"], iterator)
 
-    def add_metric(self, network, station, location, channel, year, month, day, category, key, value):
-        self.insert(inserts["Metrics"], (network,station,location,channel,year,month,day,category,key,value))
+    def add_metric(self, network, station, location, channel, year, month, day, date, category, key, value):
+        self.insert(inserts["Metrics"], (network,station,location,channel,year,month,day,date,category,key,value))
 
     def add_metrics(self, iterator):
         self.insert_many(inserts["Metrics"], iterator)
+
+    def add_calibration(self, network, station, location, channel, year, month, day, date, cal_year, cal_month, cal_day, cal_date, key, value):
+        self.insert(inserts["Calibrations"], (network,station,location,channel,year,month,day,date,cal_year,cal_month,cal_day,cal_date,key_value))
+
+    def add_calibrations(self, iterator):
+        self.insert_many(inserts["Calibrations"], iterator)
 
     def add_metadata(self, network, station, location, channel, epoch, info, raw):
         self.insert(inserts["Metadata"], (network,station,location,channel,epoch,info,raw))
@@ -311,12 +342,29 @@ CREATE TABLE IF NOT EXISTS Metrics (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     channel_id INTEGER NOT NULL REFERENCES Channel (id) ON DELETE CASCADE,
     year INTEGER NOT NULL,
-    month INTEGER,
-    day INTEGER,
+    month INTEGER NOT NULL,
+    day INTEGER NOT NULL,
+    date REAL NOT NULL,
     category TEXT,
     key TEXT NOT NULL,
     value TEXT NOT NULL,
     UNIQUE (channel_id, year, month, day, category, key)
+);
+
+CREATE TABLE IF NOT EXISTS Calibrations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    channel_id INTEGER NOT NULL REFERENCES Channel (id) ON DELETE CASCADE,
+    year INTEGER NOT NULL,
+    month INTEGER NOT NULL,
+    day INTEGER NOT NULL,
+    date REAL NOT NULL,
+    cal_year INTEGER NOT NULL,
+    cal_month INTEGER NOT NULL,
+    cal_day INTEGER NOT NULL,
+    cal_date REAL NOT NULL,
+    key TEXT NOT NULL,
+    value TEXT NOT NULL,
+    UNIQUE (channel_id, year, month, day, cal_year, cal_month, cal_day, key)
 );
         """
         self.cur.executescript(script)
