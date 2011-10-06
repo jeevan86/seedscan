@@ -435,7 +435,7 @@ def main():
     network = None
     station = None
     start = (2011,8,1)
-    end   = (2011,8,31)
+    end   = (2011,9,30)
     #network = "IU"
     #station = "ANMO"
     #start = (2011,8,1)
@@ -445,12 +445,12 @@ def main():
 
     start_time = time.time()
     # XXX: Re-enable these to scan availability, etc.
-    #gen_soh("/xs0/seed", database, availability, start=start, end=end, net=network, st=station)
-    #gen_soh("/xs1/seed", database, availability, start=start, end=end, net=network, st=station)
-    #gen_soh("/r02/projects/AVAIL/", database, quality_matrix, start=start, end=end, net=network, st=station)
-    #sensor_compare("/qcwork/dqresults/sencomp", database, start=start, end=end, net=network, st=station)
-    #noise("/qcwork/dqresults/noise", database, start=start, end=end, net=network, st=station)
-    #cals("/qcwork/dqresults/caldev", database, start=start, end=end, net=network, st=station)
+    gen_soh("/xs0/seed", database, availability, start=start, end=end, net=network, st=station)
+    gen_soh("/xs1/seed", database, availability, start=start, end=end, net=network, st=station)
+    gen_soh("/r02/projects/AVAIL/", database, quality_matrix, start=start, end=end, net=network, st=station)
+    sensor_compare("/qcwork/dqresults/sencomp", database, start=start, end=end, net=network, st=station)
+    noise("/qcwork/dqresults/noise", database, start=start, end=end, net=network, st=station)
+    cals("/qcwork/dqresults/caldev", database, start=start, end=end, net=network, st=station)
     database.commit()
     end_time = time.time()
 
