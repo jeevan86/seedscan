@@ -434,8 +434,8 @@ def sensor_compare(path, database, start=None, end=None, net=None, st=None):
 def main():
     network = None
     station = None
-    start = (2011,8,1)
-    end   = (2011,9,30)
+    start = (2011,10,1)
+    end   = (2011,10,31)
     #network = "IU"
     #station = "ANMO"
     #start = (2011,8,1)

@@ -19,14 +19,19 @@
 
 package asl.seedscan;
 
+import asl.seedreader.FallOffQueue;
+import asl.seedreader.SeedReadProgress;
+import asl.seedreader.SeedSplitter;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.Runnable;
 import java.util.GregorianCalendar;
 import java.util.logging.Logger;
+import java.util.concurrent.BlockingQueue;
 
 public class Scanner
-implements Runnable
+    implements Runnable
 {
     private static final Logger logger = Logger.getLogger("Scanner");
     public long dayMilliseconds = 1000 * 60 * 60 * 24;
@@ -37,10 +42,16 @@ implements Runnable
     public int scanDepth  = 2;
     public int startDepth = 1;
 
-    public Scanner(StationDatabase database, Station station, String pathPattern) {
+    private FallOffQueue<SeedReadProgress> progressQueue;
+
+    public Scanner(StationDatabase database,
+                   Station station,
+                   String pathPattern)
+    {
         this.station  = station;
         this.database = database;
         this.pathPattern = pathPattern;
+        this.progressQueue = new FallOffQueue<SeedReadProgress>(8);
     }
 
     public void setScanDepth(int scanDepth) {
@@ -75,14 +86,20 @@ implements Runnable
             }
 
             File[] files = dir.listFiles();
-            int seedCount = 0;
+            int seedCount = files.length;
+
+            logger.info(dir.getPath() + " contains " +seedCount+ " files.");
+            progressQueue.clear();
+            SeedSplitter splitter = new SeedSplitter(files, progressQueue);
+            splitter.doInBackground();
+            /*
             for (File file: files) {
                 if (file.getName().endsWith(".seed")) {
                     seedCount++;
                     logger.fine("Processing file '" +file.getPath()+ "'.");
                 }
             }
-            logger.info(dir.getPath() + " contains " +seedCount+ " MiniSEED files.");
+            */
         }
     }
 }

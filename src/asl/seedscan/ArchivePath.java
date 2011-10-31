@@ -22,6 +22,7 @@ package asl.seedscan;
 import java.io.File;
 import java.util.Formatter;
 import java.util.GregorianCalendar;
+import java.util.logging.Logger;
 
 /**
  * 

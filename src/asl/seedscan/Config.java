@@ -139,27 +139,27 @@ public class Config
     private void parseConfig()
       throws javax.xml.xpath.XPathExpressionException
     {
-        System.out.println("Document: " + doc);
+        logger.info("Document: " + doc);
 
      // Parse Lock File Config
-        System.out.println("Parsing lockfile.");
+        logger.info("Parsing lockfile.");
         configuration.put("lockfile",   xpath.evaluate("/seedscan/lockfile/text()", doc));
 
      // Parse Log Config
-        System.out.println("Parsing log.");
+        logger.info("Parsing log.");
         configuration.put("log-level",      xpath.evaluate("/seedscan/log/level/text()", doc));
         configuration.put("log-directory",  xpath.evaluate("/seedscan/log/directory/text()", doc));
         configuration.put("log-prefix",     xpath.evaluate("/seedscan/log/prefix/text()", doc));
         configuration.put("log-postfix",    xpath.evaluate("/seedscan/log/postfix/text()", doc));
 
      // Parse Database Config
-        System.out.println("Parsing database.");
+        logger.info("Parsing database.");
         configuration.put("database-url",       xpath.evaluate("/seedscan/database/url/text()", doc));
         configuration.put("database-username",  xpath.evaluate("/seedscan/database/username/text()", doc));
         configuration.put("database-password",  xpath.evaluate("/seedscan/database/password/text()", doc));
 
      // Parse Scans
-        System.out.println("Parsing scans.");
+        logger.info("Parsing scans.");
         int id;
         String key;
         Object scan;
@@ -188,7 +188,7 @@ public class Config
                 }
             }
         }
-        System.out.println("Configuration: " + configuration);
+        logger.info("Configuration: " + configuration);
     }
 
 }

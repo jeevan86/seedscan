@@ -26,6 +26,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.GregorianCalendar;
 import java.util.Iterator;
+import java.util.logging.Logger;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -38,6 +39,7 @@ import org.apache.commons.cli.PosixParser;
  */
 public class SeedScan
 {
+    private static final Logger logger = Logger.getLogger("SeedScan");
     private final static String allchanURLstr = "http://wwwasl/uptime/honeywell/gsn_allchan.txt";
     private static URL allchanURL;
 
@@ -72,7 +74,7 @@ public class SeedScan
         try {
             cmdLine = optParser.parse(options, args, true);
         } catch (org.apache.commons.cli.ParseException e) {
-            System.err.println("Error while parsing command-line arguments.");
+            logger.severe("Error while parsing command-line arguments.");
             System.exit(1);
         }
 
@@ -112,7 +114,7 @@ public class SeedScan
 
         LockFile lock = new LockFile(lockFile);
         if (!lock.acquire()) {
-            System.out.println("Could not acquire lock.");
+            logger.severe("Could not acquire lock.");
             System.exit(1);
         }
 
@@ -135,18 +137,18 @@ public class SeedScan
         {
             allchanURL = new URL(allchanURLstr);
         } catch (MalformedURLException e1) {
-            System.err.println("Exception opening URL %s.");
+            logger.warning("Exception opening URL %s.");
             e1.printStackTrace();
             allchanURL = null;
         }
 
         if (allchanURL == null)
         {
-            System.err.printf("Unable to open resource %s, aborting!\n", allchanURLstr);
+            logger.severe("Unable to open resource " +allchanURLstr+ ", aborting!\n");
             System.exit(1);
         }
 
-        System.out.printf("We seem to have found %s\n", allchanURLstr);
+        logger.info("We seem to have found " +allchanURLstr+ "\n");
 
         // TEST LIST (TODO: Remove once configurations are working)
         Station[] stations = {
