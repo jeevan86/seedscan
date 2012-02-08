@@ -434,8 +434,8 @@ def sensor_compare(path, database, start=None, end=None, net=None, st=None):
 def main():
     network = None
     station = None
-    start = (2011,10,1)
-    end   = (2011,10,31)
+    start = (2012,1,1)
+    end   = (2012,1,31)
     #network = "IU"
     #station = "ANMO"
     #start = (2011,8,1)
@@ -444,7 +444,6 @@ def main():
     database = DB("/dataq/metrics/metrics.db")
 
     start_time = time.time()
-    # XXX: Re-enable these to scan availability, etc.
     gen_soh("/xs0/seed", database, availability, start=start, end=end, net=network, st=station)
     gen_soh("/xs1/seed", database, availability, start=start, end=end, net=network, st=station)
     gen_soh("/r02/projects/AVAIL/", database, quality_matrix, start=start, end=end, net=network, st=station)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011, United States Geological Survey or
+ * Copyright 2012, United States Geological Survey or
  * third-party contributors as indicated by the @author tags.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -17,11 +17,10 @@
  *
  */
 
-package asl.seedscan;
+package asl.seedscan.config;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -45,9 +44,9 @@ import org.w3c.dom.Document;
 /**
  * 
  */
-public class Config
+public class Reader
 {
-    private static final Logger logger = Logger.getLogger("Config");
+    private static final Logger logger = Logger.getLogger("Reader");
 
     DocumentBuilderFactory  domFactory    = null;
     private SchemaFactory   schemaFactory = null;
@@ -61,21 +60,20 @@ public class Config
     private boolean validate = false;
     private boolean ready    = false;
 
-    private Hashtable<String,Object> configuration = null;
+    private Configuration configuration = null;
 
-    public Config()
+    public Reader()
     {
         _construct(null);
     }
 
-    public Config(File schemaFile)
+    public Reader(File schemaFile)
     {
         _construct(schemaFile);
     }
 
     private void _construct(File schemaFile)
     {
-        configuration = new Hashtable<String,Object>(32, (float)0.75);
         xpath         = XPathFactory.newInstance().newXPath();
         domFactory    = DocumentBuilderFactory.newInstance();
         domFactory.setNamespaceAware(true);
@@ -99,8 +97,15 @@ public class Config
         }
     }
 
-    public void loadConfig(File configFile)
+    public Configuration getConfiguration()
     {
+        return configuration;
+    }
+
+    public void loadConfiguration(File configFile)
+    {
+        configuration = new Configuration();
+
         if (validate) {
             Validator validator = schema.newValidator();
             try {
