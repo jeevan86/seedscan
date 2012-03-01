@@ -4,10 +4,8 @@
     </description>
     <property name="src" location="src"/>
     <property name="build" location="build"/>
-    <property name="build_resources" location="build/resources"/>
     <property name="build_libs" location="build/libs"/>
     <property name="libs" location="libs"/>
-    <property name="resources" location="resources"/>
     <property name="target" location="seedscan.jar"/>
     <property name="doc_src" location="src"/>
     <property name="doc_packages" value="asl.seedscan"/>
@@ -30,7 +28,6 @@
     <target name="init">
         <tstamp/>
         <mkdir dir="${build}"/>
-        <mkdir dir="${build_resources}"/>
     </target>
 
 <!--INIT_DOC-->
@@ -47,14 +44,6 @@
         </javac>
     </target>
 
-<!--DATA-->
-    <target name="data" depends="init" description="Add resource files">
-        <copy todir="${build_resources}">
-            <fileset dir="${resources}">
-            </fileset>
-        </copy>
-    </target>
-
 <!--LIBRARIES-->
     <target name="libraries" depends="init" description="Add libraries">
         <unjar dest="${build}">
@@ -66,7 +55,7 @@
     </target>
 
 <!--JAR-->
-    <target name="jar" depends="compile, data, libraries"
+    <target name="jar" depends="compile, libraries"
             description="generate the distribution" >
         <jar jarfile="${target}" basedir="${build}">
             <manifest>
