@@ -19,6 +19,7 @@
 
 package asl.seedscan.config;
 
+import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.logging.Logger;
 
@@ -29,20 +30,39 @@ public class Configuration
 {
     private static final Logger logger = Logger.getLogger("Configuration");
 
-    private Hashtable<String,Object> configuration = null;
+    private Hashtable<String,String> configuration = null;
 
     public Configuration()
     {
-        configuration = new Hashtable<String,Object>(32, (float)0.75);
+        configuration = new Hashtable<String,String>(32, (float)0.75);
     }
 
-    public void put(String key, Object value)
+    public void put(String key, String value)
     {
         configuration.put(key, value);
     }
 
-    public Object get(String key)
+    public String get(String key)
     {
         return configuration.get(key);
+    }
+
+    public String get(String key, String defaultValue)
+    {
+        String value = defaultValue;
+        if (configuration.containsKey(key)) {
+            value = configuration.get(key);
+        }
+        return value;
+    }
+
+    public String remove(String key)
+    {
+        return configuration.remove(key);
+    }
+
+    public Enumeration<String> getKeys()
+    {
+        return configuration.keys();
     }
 }

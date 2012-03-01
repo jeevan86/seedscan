@@ -24,9 +24,14 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Enumeration;
 import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.logging.Logger;
+import java.util.logging.Level;
+
+import asl.seedscan.config.Configuration;
+import asl.seedscan.config.ConfigReader;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -39,7 +44,7 @@ import org.apache.commons.cli.PosixParser;
  */
 public class SeedScan
 {
-    private static final Logger logger = Logger.getLogger("SeedScan");
+    private static final Logger logger = Logger.getLogger("asl.seedscan.SeedScan");
     private final static String allchanURLstr = "http://wwwasl/uptime/honeywell/gsn_allchan.txt";
     private static URL allchanURL;
 
@@ -108,8 +113,16 @@ public class SeedScan
 
 
         if (parseConfig) {
-            Config config = new Config(schemaFile);
-            config.loadConfig(configFile);
+            ConfigReader configReader = new ConfigReader(schemaFile);
+            configReader.loadConfiguration(configFile);
+            Configuration config = configReader.getConfiguration();
+
+            Enumeration<String> keys = config.getKeys();
+            while (keys.hasMoreElements()) {
+                String key = keys.nextElement();
+                String value = config.get(key);
+                System.out.printf("%s : %s\n", key, value);
+            }
         }
 
         LockFile lock = new LockFile(lockFile);

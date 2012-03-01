@@ -44,9 +44,9 @@ import org.w3c.dom.Document;
 /**
  * 
  */
-public class Reader
+public class ConfigWriter
 {
-    private static final Logger logger = Logger.getLogger("Reader");
+    private static final Logger logger = Logger.getLogger("ConfigWriter");
 
     DocumentBuilderFactory  domFactory    = null;
     private SchemaFactory   schemaFactory = null;
@@ -62,18 +62,24 @@ public class Reader
 
     private Configuration configuration = null;
 
-    public Reader()
+    public ConfigWriter()
     {
         _construct(null);
     }
 
-    public Reader(File schemaFile)
+    public ConfigWriter(File schemaFile)
     {
         _construct(schemaFile);
     }
 
+    public void setConfiguration(Configuration configuration)
+    {
+        this.configuration = configuration;
+    }
+
     private void _construct(File schemaFile)
     {
+        configuration = new Configuration();
         xpath         = XPathFactory.newInstance().newXPath();
         domFactory    = DocumentBuilderFactory.newInstance();
         domFactory.setNamespaceAware(true);
@@ -97,15 +103,8 @@ public class Reader
         }
     }
 
-    public Configuration getConfiguration()
+    public void saveConfiguration(File configFile)
     {
-        return configuration;
-    }
-
-    public void loadConfiguration(File configFile)
-    {
-        configuration = new Configuration();
-
         if (validate) {
             Validator validator = schema.newValidator();
             try {

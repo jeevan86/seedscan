@@ -30,7 +30,7 @@ import java.util.logging.Logger;
 
 public class StationDatabase
 {
-    public static final Logger logger = Logger.getLogger("StationDatabase");
+    public static final Logger logger = Logger.getLogger("asl.seedscan.StationDatabase");
 
     private Connection connection = null;
 

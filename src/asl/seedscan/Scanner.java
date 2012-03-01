@@ -33,7 +33,7 @@ import java.util.concurrent.BlockingQueue;
 public class Scanner
     implements Runnable
 {
-    private static final Logger logger = Logger.getLogger("Scanner");
+    private static final Logger logger = Logger.getLogger("asl.seedscan.Scanner");
     public long dayMilliseconds = 1000 * 60 * 60 * 24;
 
     public Station station;
@@ -88,10 +88,14 @@ public class Scanner
             File[] files = dir.listFiles();
             int seedCount = files.length;
 
+            Hashtable<String,ArrayList<DataSet>> table = null;
             logger.info(dir.getPath() + " contains " +seedCount+ " files.");
             progressQueue.clear();
             SeedSplitter splitter = new SeedSplitter(files, progressQueue);
-            splitter.doInBackground();
+            Hashtable<String,ArrayList<DataSet>> table = splitter.doInBackground();
+
+            // TODO: List Contents
+
             /*
             for (File file: files) {
                 if (file.getName().endsWith(".seed")) {

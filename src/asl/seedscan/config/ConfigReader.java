@@ -44,9 +44,9 @@ import org.w3c.dom.Document;
 /**
  * 
  */
-public class Writer
+public class ConfigReader
 {
-    private static final Logger logger = Logger.getLogger("Writer");
+    private static final Logger logger = Logger.getLogger("ConfigReader");
 
     DocumentBuilderFactory  domFactory    = null;
     private SchemaFactory   schemaFactory = null;
@@ -62,24 +62,18 @@ public class Writer
 
     private Configuration configuration = null;
 
-    public Writer()
+    public ConfigReader()
     {
         _construct(null);
     }
 
-    public Writer(File schemaFile)
+    public ConfigReader(File schemaFile)
     {
         _construct(schemaFile);
     }
 
-    public void setConfiguration(Configuration configuration)
-    {
-        this.configuration = configuration;
-    }
-
     private void _construct(File schemaFile)
     {
-        configuration = new Configuration();
         xpath         = XPathFactory.newInstance().newXPath();
         domFactory    = DocumentBuilderFactory.newInstance();
         domFactory.setNamespaceAware(true);
@@ -103,8 +97,15 @@ public class Writer
         }
     }
 
-    public void saveConfiguration(File configFile)
+    public Configuration getConfiguration()
     {
+        return configuration;
+    }
+
+    public void loadConfiguration(File configFile)
+    {
+        configuration = new Configuration();
+
         if (validate) {
             Validator validator = schema.newValidator();
             try {
@@ -147,7 +148,7 @@ public class Writer
 
      // Parse Lock File Config
         logger.info("Parsing lockfile.");
-        configuration.put("lockfile",   xpath.evaluate("/seedscan/lockfile/text()", doc));
+        configuration.put("lockfile",   (String)xpath.evaluate("/seedscan/lockfile/text()", doc));
 
      // Parse Log Config
         logger.info("Parsing log.");
