@@ -19,6 +19,7 @@
 
 package asl.seedscan;
 
+import asl.seedreader.DataSet;
 import asl.seedreader.FallOffQueue;
 import asl.seedreader.SeedReadProgress;
 import asl.seedreader.SeedSplitter;
@@ -26,7 +27,9 @@ import asl.seedreader.SeedSplitter;
 import java.io.File;
 import java.io.IOException;
 import java.lang.Runnable;
+import java.util.ArrayList;
 import java.util.GregorianCalendar;
+import java.util.Hashtable;
 import java.util.logging.Logger;
 import java.util.concurrent.BlockingQueue;
 
@@ -92,7 +95,7 @@ public class Scanner
             logger.info(dir.getPath() + " contains " +seedCount+ " files.");
             progressQueue.clear();
             SeedSplitter splitter = new SeedSplitter(files, progressQueue);
-            Hashtable<String,ArrayList<DataSet>> table = splitter.doInBackground();
+            table = splitter.doInBackground();
 
             // TODO: List Contents
 

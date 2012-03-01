@@ -27,6 +27,8 @@ import java.net.URL;
 import java.util.Enumeration;
 import java.util.GregorianCalendar;
 import java.util.Iterator;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
@@ -47,9 +49,30 @@ public class SeedScan
     private static final Logger logger = Logger.getLogger("asl.seedscan.SeedScan");
     private final static String allchanURLstr = "http://wwwasl/uptime/honeywell/gsn_allchan.txt";
     private static URL allchanURL;
+    private static Handler consoleHandler;
+
+    public static void findConsoleHandler()
+    {
+        Logger topLogger = Logger.getLogger("");
+        for (Handler handler: topLogger.getHandlers()) {
+            if (handler instanceof ConsoleHandler) {
+                consoleHandler = handler;
+                break;
+            }
+        }
+        if (consoleHandler == null) {
+            consoleHandler = new ConsoleHandler();
+            topLogger.addHandler(consoleHandler);
+        }
+    }
 
     public static void main(String args[])
     {
+        findConsoleHandler();
+        consoleHandler.setLevel(Level.FINEST);
+        Logger.getLogger("asl.seedscan").setLevel(Level.FINEST);
+        Logger.getLogger("asl.seedreader").setLevel(Level.FINE);
+
         boolean parseConfig = true;
         File configFile = new File("config.xml");
         File schemaFile = new File("schemas/SeedScanConfig.xsd");
@@ -162,10 +185,14 @@ public class SeedScan
         }
 
         logger.info("We seem to have found " +allchanURLstr+ "\n");
+        logger.fine("Testing Logger Level FINE");
+        logger.finer("Testing Logger Level FINER");
+        logger.finest("Testing Logger Level FINEST");
 
         // TEST LIST (TODO: Remove once configurations are working)
         Station[] stations = {
             new Station("IU", "ANMO"),
+            /*
             new Station("IU", "CCM"),
             new Station("IU", "COR"),
             new Station("IU", "HKT"),
@@ -173,6 +200,7 @@ public class SeedScan
             new Station("IU", "MAJO"),
             new Station("IU", "SJG"),
             new Station("IU", "YSS"),
+            */
         };
 
         // Get a list of stations
