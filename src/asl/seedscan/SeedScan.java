@@ -125,7 +125,7 @@ public class SeedScan
         String tr1PathPattern = "/tr1/telemetry_days/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}";
         String xs0PathPattern = "/xs0/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}";
         String xs1PathPattern = "/xs1/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}";
-        String lockFile = "/qcwork/seedscan.lock";
+        String lockFile = "seedscan.lock";
         String url  = "jdbc:mysql://136.177.121.210:54321/seedscan";
         String user = "seedscan_write";
         String pass = "";
