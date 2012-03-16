@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import calendar
 import os
+import pprint
 import re
 import resource
 import shutil
@@ -8,40 +9,7 @@ import sys
 import time
 
 import MetricDatabase
-
-## {{{ Memory Tools: http://code.activestate.com/recipes/286222/ (r1)
-
-_proc_status = '/proc/%d/status' % os.getpid()
-_scale = {
-    'kB': 1024.0,
-    'KB': 1024.0,
-    'mB': 1024.0*1024.0,
-    'MB': 1024.0*1024.0,
-}
-
-def _VmB(VmKey):
-    global _proc_status, _scale
-    try:
-        t = open(_proc_status)
-        v = t.read()
-        t.close()
-    except:
-        return 0.0
-    i = v.index(VmKey)
-    v = v[i:].split(None, 3)  # whitespace
-    if len(v) < 3:
-        return 0.0
-    return float(v[1]) * _scale[v[2]]
-
-def memory(since=0.0):
-    return _VmB('VmSize:') - since
-
-def resident(since=0.0):
-    return _VmB('VmRSS:') - since
-
-def stacksize(since=0.0):
-    return _VmB('VmStk:') - since
-## end of http://code.activestate.com/recipes/286222/ }}}
+import Memory
 
 reg_station = re.compile("^[A-Za-z0-9]{2}_[A-Za-z0-9]{2,5}$")
 
@@ -284,7 +252,7 @@ def cals(path, database, start=None, end=None, net=None, st=None):
     regex = re.compile("\d{4}_\d{3}_\w{2}[.]csv")
     for name in sorted(os.listdir(path)):
         if not regex.match(name):
-            print "bad file name"
+            print "bad file name '%s'" % name
             continue
         year,jday,_ = name[:-4].split('_')
         year,jday = map(int, (year,jday))
@@ -434,12 +402,13 @@ def sensor_compare(path, database, start=None, end=None, net=None, st=None):
 def main():
     network = None
     station = None
-    start = (2012,1,1)
-    end   = (2012,1,31)
+    start = (2012,2,1)
+    end   = (2012,2,29)
     #network = "IU"
     #station = "ANMO"
     #start = (2011,8,1)
     #end   = (2011,8,1)
+    network = "II"
 
     database = DB("/dataq/metrics/metrics.db")
 
@@ -467,9 +436,9 @@ def main():
     #                                print "%s_%s %s-%s%s %s,%s %s: %s = %s" % (network, station, location, channel, derived_str, str(year), str(jday), category, key, str(value))
     
     time.sleep(1.0)
-    print "Stack Size:", stacksize()
-    print "Memory:    ", memory()
-    print "Resident:  ", resident()
+    mem = Memory.Memory()
+    print "Memory:    ",; pprint.pprint(mem.memory())
+    print "Resident:  ",; pprint.pprint(mem.resident())
     print
     print "Total Time:", end_time - start_time, "seconds"
 
