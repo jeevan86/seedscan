@@ -405,10 +405,9 @@ def main():
     start = (2012,2,1)
     end   = (2012,2,29)
     #network = "IU"
-    #station = "ANMO"
-    #start = (2011,8,1)
-    #end   = (2011,8,1)
-    network = "II"
+    #station = "COR"
+    #start = (2012,2,1)
+    #end   = (2012,2,29)
 
     database = DB("/dataq/metrics/metrics.db")
 
