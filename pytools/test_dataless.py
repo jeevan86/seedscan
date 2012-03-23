@@ -19,6 +19,7 @@ def pretty_int(value):
 
 #engine = Dataless.Dataless("/qcwork/datalessSTUFF/littlesdataless") # EVERYTHING!
 engine = Dataless.Dataless("/qcwork/datalessSTUFF/littlesANMO") # just ANMO
+#engine = Dataless.Dataless("/qcwork/datalessSTUFF/RESP.IU.ANMO.00.LHZ") # just ANMO responses
 
 start_time = time.time()
 try:
