@@ -17,16 +17,20 @@ def pretty_float(value, precision=1):
 def pretty_int(value):
     return locale.format("%d", int(value), grouping=True)
 
-#engine = Dataless.Dataless("/qcwork/datalessSTUFF/littlesdataless") # EVERYTHING!
-engine = Dataless.Dataless("/qcwork/datalessSTUFF/littlesANMO") # just ANMO
-#engine = Dataless.Dataless("/qcwork/datalessSTUFF/RESP.IU.ANMO.00.LHZ") # just ANMO responses
+def get_file_lines(file):
+    return open(file, 'r').readlines()
+
+file = "/qcwork/datalessSTUFF/littlesdataless" # EVERYTHING!
+file = "/qcwork/datalessSTUFF/littlesANMO" # just ANMO
+file = "/qcwork/datalessSTUFF/RESP.IU.ANMO.00.LHZ" # just ANMO responses
+engine = Dataless.Dataless(get_file_lines(file))
 
 start_time = time.time()
 try:
     engine.process()
 except Exception, e:
     print "Caught an Exception at:"
-    print "  file '%s'" % engine.dataless_file
+    print "  file '%s'" % file
     print "  %d lines skipped" % engine.skipped
     print "  on line %d of %d" % (engine.count, engine.total)
     print "    [%s]" % engine.line

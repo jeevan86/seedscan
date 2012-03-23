@@ -1,4 +1,3 @@
-import pprint
 import string
 
 # TODO: Revamp how we parse the Dataless text file
@@ -15,6 +14,60 @@ import string
 # We need to assemle a Map of rules for how to parse various types, and 
 # aslo contain descriptions of relationships.
 #
+
+"""
+Dataless.map {
+    'volume-info' : Blockette (10),
+    'stations' :
+    {
+        'NN_SSSS' :
+        {
+            'comments' :
+            {
+                'YYYY,DDD,HH:MM:SS' : Blockette (51),
+                ...
+            },
+            'epochs' :
+            {
+                'YYYY,DDD,HH:MM:SS' : Blockette (50),
+                ...
+            },
+            'channels' :
+            {
+                'LL-CCC' :
+                {
+                    'comments' :
+                    {
+                        'YYYY,DDD,HH:MM:SS' : Blockette (59),
+                        ...
+                    }
+                    'epochs' :
+                    {
+                        'YYYY,DDD,HH:MM:SS' :
+                        {
+                            'format' : Blockette (30),
+                            'info' : Blockette (52),
+                            'misc' : [Blockette, Blockette, ...] (ALL-OTHER-BLOCKETTES),
+                            'stages' :
+                            {
+                                <INT-STAGE-INDEX> :
+                                {
+                                    <INT-BLOCKETTE-NUMBER> : Blockette (53-58,61),
+                                    ...
+                                }
+                                ...
+                            }
+                        }
+                        ...
+                    },
+                },
+                ...
+            },
+        },
+        ...
+    },
+}
+"""
 
 stages = {
     53 : 4,
@@ -87,7 +140,7 @@ class Blockette:
                 }
         return True
 
-    def get_values(self, *args):
+    def get_values_complex(self, *args):
         results = []
         for field in args:
             if not self.fields.has_key(field):
@@ -98,6 +151,16 @@ class Blockette:
                 results.append(values[0])
             else:
                 results.append(values)
+        return tuple(results)
+
+    def get_values(self, *args):
+        results = []
+        for field in args:
+            if not self.fields.has_key(field):
+                values = (None,)
+            else:
+                values = self.fields[field]['values']
+            results.append(values)
         return tuple(results)
 
     def get_field(self, arg):
@@ -113,14 +176,21 @@ class Blockette:
         return tuple(results)
 
 class Dataless: 
-    def __init__(self, dataless_file):
-        self.dataless_file = dataless_file
-        self.raw_dataless = None
+    def __init__(self, raw_dataless, progress_callback=None, cancel_callback=None):
+        self.raw_dataless = raw_dataless
         self.blockettes = None
         self.map = {
             'volume-info' : None,
             'stations' : {},
         }
+
+        self.progress_callback = self._print_progress
+        if callable(progress_callback):
+            self.progress_callback = progress_callback
+
+        self.cancel_callback = self._cancel_stub
+        if callable(cancel_callback):
+            self.cancel_callback = cancel_callback
 
         self.total = 0
         self.count = 0
@@ -129,11 +199,17 @@ class Dataless:
         self.last_percent = 0.0
         self.line = ""
 
+    def _cancel_stub(self):
+        pass
+
+    def _print_progress(self, *args):
+        print "%0.2f%% (%d/%d - %d lines skipped)" % (self.percent, self.count, self.total, self.skipped)
+
     def process(self):
-        self._read_dataless()
         self._parse_dataless()
         self._assemble_data()
 
+        pretty(self.map, indent=2)
         #print "Parsed out %d blockettes" % len(self.blockettes)
         #self.counts = {}
         #for blockette in self.blockettes:
@@ -155,14 +231,6 @@ class Dataless:
         #for num in sorted(self.counts.keys()):
         #   print "% 3d: %d" % (num, self.counts[num])
 
-        pprint.pprint(self.map)
-
-    def _read_dataless(self):
-        self.stage = "Reading Dataless"
-        fh = open(self.dataless_file, 'r')
-        self.raw_dataless = fh.readlines()
-        fh.close()
-
     def _parse_dataless(self):
         if self.raw_dataless is None:
             return
@@ -178,13 +246,15 @@ class Dataless:
 
         blockettes = {}
         for line in self.raw_dataless:
+            # Check for a cancel request
+            self.cancel_callback()
 
             # Track our progress
             self.count += 1
             self.percent = float(int(float(self.count) / float(self.total) * 100.0))
             if self.percent > self.last_percent:
                 self.last_percent = self.percent
-                print "%0.2f%% (%d/%d - %d lines skipped)" % (self.percent, self.count, self.total, self.skipped)
+                self.progress_callback(self.stage, self.count, self.total)
 
             line = line.strip()
             self.line = line
@@ -245,7 +315,7 @@ class Dataless:
             self.percent = float(int(float(self.count) / float(self.total) * 100.0))
             if self.percent > self.last_percent:
                 self.last_percent = self.percent
-                print "%0.2f%% (%d/%d)" % (self.percent, self.count, self.total)
+                self.progress_callback(self.stage, self.count, self.total)
 
             number = blockette.number
 
@@ -262,7 +332,7 @@ class Dataless:
 
           # Station Epochs
             elif number == 50:
-                key = "%s_%s" % blockette.get_values(16,3)
+                key = "%s_%s" % blockette.get_values_complex(16,3)
                 if not stations.has_key(key):
                     stations[key] = {
                         'comments' : {},
@@ -271,26 +341,26 @@ class Dataless:
                     }
                 station = stations[key]
                 try:
-                    epoch_key = epoch_string(parse_epoch(blockette.get_values(13)[0]))
+                    epoch_key = epoch_string(parse_epoch(blockette.get_values_complex(13)[0]))
                     station['epochs'][epoch_key] = blockette
                 except AttributeError:
                     pass
 
           # Station Comments
             elif number == 51:
-                epoch_key = epoch_string(parse_epoch(blockette.get_values(3)[0]))
+                epoch_key = epoch_string(parse_epoch(blockette.get_values_complex(3)[0]))
                 station['comments'][epoch_key] = blockette
 
           # Channel Epochs
             elif number == 52:
-                key = "%s-%s" % blockette.get_values(3,4)
+                key = "%s-%s" % blockette.get_values_complex(3,4)
                 if not station['channels'].has_key(key):
                     station['channels'][key] = {
                         'comments' : {},
                         'epochs' : {},
                     }
                 channel = station['channels'][key]
-                epoch_key = epoch_string(parse_epoch(blockette.get_values(22)[0]))
+                epoch_key = epoch_string(parse_epoch(blockette.get_values_complex(22)[0]))
                 channel['epochs'][epoch_key] = {
                     'info' : blockette,
                     'format' : None,
@@ -305,12 +375,12 @@ class Dataless:
 
           # Channel Comments
             elif number == 59:
-                epoch_key = epoch_string(parse_epoch(blockette.get_values(3)[0]))
+                epoch_key = epoch_string(parse_epoch(blockette.get_values_complex(3)[0]))
                 channel['comments'][epoch_key] = blockette
 
           # Channel Stages
             elif stages.has_key(number):
-                stage_key = blockette.get_values(stages[number])[0]
+                stage_key = int(blockette.get_values_complex(stages[number])[0])
                 if not epoch['stages'].has_key(stage_key):
                     epoch['stages'][stage_key] = {}
                 epoch['stages'][stage_key][blockette.number] = blockette
@@ -319,4 +389,30 @@ class Dataless:
             else:
                 epoch['misc'].append(blockette)
 
+def pretty(target, indent=4, level=1, pad=True, pre="", post=""):
+    s_pad = indent * (level-1) * ' '
+    v_pad = indent * level * ' '
+    if type(target) == dict:
+        t_pad = s_pad
+        if not pad: t_pad = ''
+        print "%s%s{" % (pre,t_pad)
+        for key,value in target.items():
+            if type(key) == str:
+                key = "'%s'" % key
+            print "%s%s:" % (v_pad,key),
+            pretty(value, indent=indent, level=level+1, pad=False, post=',')
+        print "%s}%s" % (s_pad,post)
+    elif type(target) in (list,tuple):
+        t_pad = s_pad
+        if not pad: t_pad = ''
+        print "%s%s[" % (pre,t_pad)
+        for value in target:
+            pretty(value, indent=indent, level=level+1, post=',')
+        print "%s]%s" % (s_pad,post)
+    else:
+        if type(target) == str:
+            target = "'%s'" % target
+        t_pad = v_pad
+        if not pad: t_pad = ''
+        print "%s%s%s%s" % (t_pad, pre, target, post)
 
