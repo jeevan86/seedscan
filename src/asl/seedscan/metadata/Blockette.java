@@ -23,14 +23,14 @@ import java.util.Hashtable;
 public class Blockette
 {
     private int number;
-    private Hashtable<String, Field> fields;
+    private Hashtable<Integer, Field> fields;
 
     private int lastStartID = 0;
 
     public Blockette(int number)
     {
         this.number = number;
-        fields = new Hashtable<String, Field>();
+        fields = new Hashtable<Integer, Field>();
     }
 
     public int getNumber()
@@ -38,17 +38,19 @@ public class Blockette
         return number;
     }
 
-    public boolean addFieldData(String id, String data)
+    public boolean addFieldData(String fieldIdentifier, String data)
+    throws FieldIdentifierException
     {
-        String[] range = id.split("-");
+        String[] range = fieldIdentifier.split("-");
         if (range.length < 1) {
-            return false;
+            //throw new FieldIdentifierException("Invalid field identifier '" +fieldIdentifier+ "'"); 
+            throw new FieldIdentifierException(); 
         }
 
         int start = Integer.parseInt(range[0]);
         String description = "";
 
-        // The following determines if the field id is out of order.
+        // The following determines if the field identifier is out of order.
         // We also use this to determine if a new Blockette was encountered
         // while parsing.
         // 
@@ -61,20 +63,29 @@ public class Blockette
             return false;
         }
 
-        // 
-        int end = start;
+        Field field;
+        int id = start;
         lastStartID = start;
+        // We are dealing with multiple field identifiers
         if (range.length > 1) {
-            end = Integer.parseInt(range[1]);
+            int end = Integer.parseInt(range[1]);
             String[] dataItems = data.split("\\s");
-            int index = dataItems.length - (end - start);
-            for (; index < dataItems.length; index++) {
-                ;
+            int index = dataItems.length - (end - start + 1);
+            for (; index <= dataItems.length; index++) {
+                if (!fields.containsKey(id)) {
+                    field = new Field(id, description);
+                    fields.put(id, field);
+                }
+                else {
+                    field = fields.get(id);
+                }
+                field.addValue(dataItems[index]);
+                id++;
             }
         }
-        // We are only dealing with a single ID
+        // We are only dealing with a single field identifier
         else {
-            String[] parts = data.split("\\s");
+            String[] parts = data.split(":", 1);
             String value;
             if (parts.length > 1) {
                 description = parts[0];
@@ -83,6 +94,15 @@ public class Blockette
             else {
                 value = parts[0];
             }
+
+            if (!fields.containsKey(id)) {
+                field = new Field(id, description);
+                fields.put(id, field);
+            }
+            else {
+                field = fields.get(id);
+            }
+            field.addValue(value);
         }
 
         return true;

@@ -23,7 +23,7 @@ package asl.seedscan.metadata;
  * parsing the output of `evalresp -s`
  * 
  *
- * SeedVolume
+ * Dataless
  *  |
  *   - volumeInfo (Blockette)
  *  |
@@ -78,21 +78,22 @@ package asl.seedscan.metadata;
  *
  */
 
-public class Dataless
-{
-    private SeedVolume volume;
-    private boolean ready;
+import java.util.Hashtable;
 
-    public Dataless()
+public class SeedVolume
+{
+    private Blockette volumeInfo;
+    private Hashtable<String, StationData> stations;
+
+    public SeedVolume(Blockette volumeInfo)
     {
-        ready = false;
+        this.volumeInfo = volumeInfo;
+        this.stations = new Hashtable<String, StationData>();
     }
 
-    public void parseVolume(String volumeURI)
+    public void addStation(String stationID, StationData data)
     {
-        // Parsing Logic
-
-        ready = true;
+        stations.put(stationID, data);
     }
 }
 
