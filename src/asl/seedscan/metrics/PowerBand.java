@@ -18,25 +18,15 @@
  */
 package asl.seedscan.metrics;
 
-import asl.seedreader.DataSet;
-import asl.metadata.StationData;
-
-import java.util.ArrayList;
-import java.util.Hashtable;
-
-public class MetricData
+public abstract class PowerBand
 {
-    private Hashtable<String, ArrayList<DataSet>> data;
-    private Hashtable<String, StationData> metadata;
-    private Hashtable<String, String> synthetics;
+    private double low;
+    private double high;
 
-    public MetricData(Hashtable<String, ArrayList<DataSet>> data, 
-                      Hashtable<String, StationData> metadata,
-                      Hashtable<String, String> synthetics)
+    public PowerBand(double low, double high)
     {
-        this.data = data;
-        this.metadata = metadata;
-        this.synthetics = synthetics;
+        this.low = low;
+        this.high = high;
     }
 }
 

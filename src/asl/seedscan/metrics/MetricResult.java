@@ -24,19 +24,23 @@ import asl.metadata.StationData;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
-public class MetricData
+public class MetricResult
 {
-    private Hashtable<String, ArrayList<DataSet>> data;
-    private Hashtable<String, StationData> metadata;
-    private Hashtable<String, String> synthetics;
+    private Hashtable<String, String> map;
 
-    public MetricData(Hashtable<String, ArrayList<DataSet>> data, 
-                      Hashtable<String, StationData> metadata,
-                      Hashtable<String, String> synthetics)
+    public MetricResult()
     {
-        this.data = data;
-        this.metadata = metadata;
-        this.synthetics = synthetics;
+        this.map = new Hashtable<String, String>();
+    }
+
+    public void addResult(String id, String value)
+    {
+        map.put(id, value);
+    }
+
+    public String getResult(String id)
+    {
+        return map.get(id);
     }
 }
 

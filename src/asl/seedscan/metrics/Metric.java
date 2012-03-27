@@ -18,19 +18,21 @@
  */
 package asl.seedscan.metrics;
 
-import asl.seedreader.DataSet;
-import asl.metadata.StationData;
-
-import java.util.ArrayList;
-import java.util.Hashtable;
-
 public abstract class Metric
 {
     protected MetricData data;
+    protected MetricResult result;
 
     public Metric(MetricData data)
     {
         this.data = data;
+    }
+
+    public abstract void process();
+
+    public MetricResult getResult()
+    {
+        return result;
     }
 }
 
