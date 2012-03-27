@@ -16,11 +16,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
  *
  */
-package asl.seedscan.metadata;
+package asl.seedscan.metrics;
 
-public class DuplicateFieldException
-extends Exception
+import asl.seedreader.DataSet;
+import asl.metadata.StationData;
+
+import java.util.ArrayList;
+import java.util.Hashtable;
+
+public abstract class Metric
 {
-    ;
+    protected MetricData data;
+
+    public Metric(MetricData data)
+    {
+        this.data = data;
+    }
 }
 

@@ -16,30 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
  *
  */
-package asl.seedscan.metadata;
+package asl.metadata;
 
-import java.util.Calendar;
-import java.util.Hashtable;
-
-public class ChannelData
+public class DuplicateFieldException
+extends Exception
 {
-    private Hashtable<Calendar, Blockette> comments;
-    private Hashtable<Calendar, EpochData> epochs;
-
-    public ChannelData()
-    {
-        comments = new Hashtable<Calendar, Blockette>();
-        epochs = new Hashtable<Calendar, EpochData>();
-    }
-
-    public void addComment(Calendar timestamp, Blockette blockette)
-    {
-        comments.put(timestamp, blockette);
-    }
-
-    public void addEpoch(Calendar timestamp, EpochData data)
-    {
-        epochs.put(timestamp, data);
-    }
+    ;
 }
 

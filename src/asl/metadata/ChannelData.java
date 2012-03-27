@@ -16,25 +16,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
  *
  */
-package asl.seedscan.metadata;
+package asl.metadata;
 
-import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Hashtable;
 
-public class StageData
+public class ChannelData
 {
-    private int stageID;
-    private Hashtable<Integer, Blockette> data;
+    private Hashtable<Calendar, Blockette> comments;
+    private Hashtable<Calendar, EpochData> epochs;
 
-    public StageData(int stageID)
+    public ChannelData()
     {
-        this.stageID = stageID;
-        data = new Hashtable<Integer, Blockette>();
+        comments = new Hashtable<Calendar, Blockette>();
+        epochs = new Hashtable<Calendar, EpochData>();
     }
 
-    public void addBlockette(Blockette blockette)
+    public void addComment(Calendar timestamp, Blockette blockette)
     {
-        data.put(blockette.getNumber(), blockette);
+        comments.put(timestamp, blockette);
+    }
+
+    public void addEpoch(Calendar timestamp, EpochData data)
+    {
+        epochs.put(timestamp, data);
     }
 }
 

@@ -16,11 +16,34 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
  *
  */
-package asl.seedscan.metadata;
+package asl.metadata;
 
-public class FieldIdentifierException
-extends Exception
+import java.util.ArrayList;
+import java.util.Hashtable;
+
+public class EpochData
 {
-    ;
+    private Blockette format;
+    private Blockette info;
+    private ArrayList<Blockette> misc;
+    private Hashtable<Integer, StageData> stages;
+
+    public EpochData(Blockette format, Blockette info)
+    {
+        this.format = format;
+        this.info = info;
+        misc = new ArrayList<Blockette>();
+        stages =  new Hashtable<Integer, StageData>();
+    }
+
+    public void addMiscBlockette(Blockette blockette)
+    {
+        misc.add(blockette);
+    }
+    
+    public void addStage(Integer stageID, StageData data)
+    {
+        stages.put(stageID, data);
+    }
 }
 

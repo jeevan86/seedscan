@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
  *
  */
-package asl.seedscan.metadata;
+package asl.metadata;
 
 /* 
  * Follwing is a depiction of the structure generated as a result of 
