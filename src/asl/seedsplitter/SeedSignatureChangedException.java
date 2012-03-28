@@ -16,24 +16,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
  *
  */
-package asl.worker;
+package asl.seedsplitter;
 
-import java.util.logging.Logger;
-
-public class ProgressTracker
+/**
+ * @author Joel D. Edwards <jdedwards@usgs.gov>
+ *
+ */
+public class SeedSignatureChangedException
+extends Exception
 {
-    private static final Logger logger = Logger.getLogger("asl.worker.ProgressTracker");
+    public static final long serialVersionUID = 1L;
 
-    private boolean cancelled = false;
-
-    public boolean isCancelled()
-    {
-        return cancelled;
+    public SeedSignatureChangedException() {
+        super();
     }
 
-    public void cancel()
-    {
-        cancelled = true;
+    public SeedSignatureChangedException(String message) {
+        super(message);
     }
 }
 

@@ -19,10 +19,10 @@
 
 package asl.seedscan;
 
-import asl.seedreader.DataSet;
-import asl.seedreader.FallOffQueue;
-import asl.seedreader.SeedReadProgress;
-import asl.seedreader.SeedSplitter;
+import asl.concurrent.FallOffQueue;
+import asl.seedsplitter.DataSet;
+import asl.seedsplitter.SeedSplitProgress;
+import asl.seedsplitter.SeedSplitter;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,7 +45,7 @@ public class Scanner
     public int scanDepth  = 2;
     public int startDepth = 1;
 
-    private FallOffQueue<SeedReadProgress> progressQueue;
+    private FallOffQueue<SeedSplitProgress> progressQueue;
 
     public Scanner(StationDatabase database,
                    Station station,
@@ -54,7 +54,7 @@ public class Scanner
         this.station  = station;
         this.database = database;
         this.pathPattern = pathPattern;
-        this.progressQueue = new FallOffQueue<SeedReadProgress>(8);
+        this.progressQueue = new FallOffQueue<SeedSplitProgress>(8);
     }
 
     public void setScanDepth(int scanDepth) {

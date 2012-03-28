@@ -72,7 +72,7 @@ public class SeedScan
         findConsoleHandler();
         consoleHandler.setLevel(Level.FINEST);
         Logger.getLogger("asl.seedscan").setLevel(Level.FINEST);
-        Logger.getLogger("asl.seedreader").setLevel(Level.FINE);
+        Logger.getLogger("asl.seedsplitter").setLevel(Level.FINE);
 
         boolean parseConfig = true;
         File configFile = new File("config.xml");

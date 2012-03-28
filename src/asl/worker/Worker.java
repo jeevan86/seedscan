@@ -16,8 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
  *
  */
-
-package asl.threading;
+package asl.worker;
 
 /**
  * @author Joel D. Edwards <jdedwards@usgs.gov>
@@ -26,7 +25,8 @@ package asl.threading;
  * to its internal progress methods via implementations of the specified
  * methods.
  */
-public interface Worker {
+public interface Worker 
+{
 	/**
 	 * Sets the progress percent of this Worker.
 	 * 
