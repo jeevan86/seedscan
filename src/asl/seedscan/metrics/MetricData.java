@@ -18,8 +18,8 @@
  */
 package asl.seedscan.metrics;
 
-import asl.seedreader.DataSet;
 import asl.metadata.StationData;
+import asl.seedsplitter.DataSet;
 
 import java.util.ArrayList;
 import java.util.Hashtable;

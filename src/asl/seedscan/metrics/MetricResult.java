@@ -18,7 +18,7 @@
  */
 package asl.seedscan.metrics;
 
-import asl.seedreader.DataSet;
+import asl.seedsplitter.DataSet;
 import asl.metadata.StationData;
 
 import java.util.ArrayList;

@@ -78,7 +78,6 @@ package asl.metadata;
  *
  */
 
-import asl.worker.ProgressTracker;
 import asl.worker.CancelledException;
 
 import java.util.ArrayList;
@@ -104,12 +103,11 @@ public class Dataless
     private double comments;
     private String stage;
     private String line;
+    
+    private boolean cancelRequested = false;
 
-    private ProgressTracker progress;
-
-    public Dataless(Collection<String> rawDataless, ProgressTracker progress)
+    public Dataless(Collection<String> rawDataless)
     {
-        this.progress = progress;
         this.rawDataless = rawDataless;
         complete = false;
     }
@@ -136,6 +134,8 @@ public class Dataless
             logger.warning("Invalid timestamp format.");
         } catch (WrongBlocketteException exception) {
             logger.warning("Wrong blockettte.");
+        } catch (CancelledException exception) {
+            failed = false;
         }
 
         if (failed) {
@@ -143,10 +143,20 @@ public class Dataless
         }
     }
 
+    public void cancel()
+    {
+        cancelRequested = true;
+    }
+
+    public boolean cancelled()
+    {
+        return cancelRequested;
+    }
+
     private void checkCancel()
     throws CancelledException
     {
-        if (progress.isCancelled()) {
+        if (cancelled()) {
             throw new CancelledException();
         }
     }
