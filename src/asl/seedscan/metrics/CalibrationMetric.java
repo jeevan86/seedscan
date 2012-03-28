@@ -18,9 +18,13 @@
  */
 package asl.seedscan.metrics;
 
+import java.util.logging.Logger;
+
 public class CalibrationMetric
 extends Metric
 {
+    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.CalibrationMetric");
+
     public CalibrationMetric(MetricData data)
     {
         super(data);

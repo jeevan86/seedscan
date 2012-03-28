@@ -18,9 +18,13 @@
  */
 package asl.seedscan.metrics;
 
+import java.util.logging.Logger;
+
 public class CoherencePBM
 extends PowerBandMetric
 {
+    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.CoherencePBM");
+
     public CoherencePBM(MetricData data, PowerBand powerBand)
     {
         super(data, powerBand);

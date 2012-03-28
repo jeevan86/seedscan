@@ -18,8 +18,12 @@
  */
 package asl.seedscan.metrics;
 
+import java.util.logging.Logger;
+
 public abstract class PowerBand
 {
+    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.CoherencePBM");
+
     private double low;
     private double high;
 

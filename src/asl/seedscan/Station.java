@@ -19,9 +19,12 @@
 
 package asl.seedscan;
 
+import java.util.logging.Logger;
 
 public class Station
 {
+    private static final Logger logger = Logger.getLogger("asl.seedscan.Station");
+
     private String network = null;
     private String station = null;
 

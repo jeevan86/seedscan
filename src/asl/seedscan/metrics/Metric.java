@@ -18,8 +18,12 @@
  */
 package asl.seedscan.metrics;
 
+import java.util.logging.Logger;
+
 public abstract class Metric
 {
+    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.Metric");
+
     protected MetricData data;
     protected MetricResult result;
 

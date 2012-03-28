@@ -28,9 +28,12 @@ import java.lang.management.RuntimeMXBean;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.util.logging.Logger;
 
 public class LockFile
 {
+    private static final Logger logger = Logger.getLogger("asl.seedscan.LockFile");
+
     private File        file;
     private FileChannel channel;
     private FileLock    lock;

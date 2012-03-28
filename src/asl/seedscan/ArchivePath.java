@@ -29,6 +29,8 @@ import java.util.logging.Logger;
  */
 public class ArchivePath
 {
+    private static final Logger logger = Logger.getLogger("asl.seedscan.ArchivePath");
+
     private GregorianCalendar timestamp;
     private Station station = null;
     private Channel channel = null;

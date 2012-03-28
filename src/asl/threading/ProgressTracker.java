@@ -18,8 +18,12 @@
  */
 package asl.worker;
 
+import java.util.logging.Logger;
+
 public class ProgressTracker
 {
+    private static final Logger logger = Logger.getLogger("asl.seedscan.SeedScan");
+
     private boolean cancelled = false;
 
     public boolean isCancelled()

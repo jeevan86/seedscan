@@ -23,9 +23,12 @@ import asl.metadata.StationData;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.logging.Logger;
 
 public class MetricResult
 {
+    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.MetricResult");
+
     private Hashtable<String, String> map;
 
     public MetricResult()
