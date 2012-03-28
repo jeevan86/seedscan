@@ -29,7 +29,7 @@ import javax.crypto.spec.SecretKeySpec;
 public class EncryptedPassword
 implements Password
 {
-    private static final Logger logger = Logger.getLogger("EncryptedPassword");
+    private static final Logger logger = Logger.getLogger("asl.seedscan.config.EncryptedPassword");
 
     private String cipherText = null;
     private IvParameterSpec iv = null;

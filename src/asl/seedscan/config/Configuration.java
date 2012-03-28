@@ -28,7 +28,7 @@ import java.util.logging.Logger;
  */
 public class Configuration
 {
-    private static final Logger logger = Logger.getLogger("Configuration");
+    private static final Logger logger = Logger.getLogger("asl.seedscan.config.Configuration");
 
     private Hashtable<String,String> configuration = null;
 

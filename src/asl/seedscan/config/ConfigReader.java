@@ -46,7 +46,7 @@ import org.w3c.dom.Document;
  */
 public class ConfigReader
 {
-    private static final Logger logger = Logger.getLogger("ConfigReader");
+    private static final Logger logger = Logger.getLogger("asl.seedscan.config.ConfigReader");
 
     DocumentBuilderFactory  domFactory    = null;
     private SchemaFactory   schemaFactory = null;

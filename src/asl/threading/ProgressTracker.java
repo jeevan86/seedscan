@@ -22,7 +22,7 @@ import java.util.logging.Logger;
 
 public class ProgressTracker
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.SeedScan");
+    private static final Logger logger = Logger.getLogger("asl.worker.ProgressTracker");
 
     private boolean cancelled = false;
 

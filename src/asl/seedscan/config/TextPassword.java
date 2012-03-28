@@ -24,7 +24,7 @@ import java.util.logging.Logger;
 public class TextPassword
 implements Password
 {
-    private static final Logger logger = Logger.getLogger("TextPassword");
+    private static final Logger logger = Logger.getLogger("asl.seedscan.config.TextPassword");
 
     private String password = null;
 
