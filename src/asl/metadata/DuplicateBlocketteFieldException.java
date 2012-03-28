@@ -21,6 +21,11 @@ package asl.metadata;
 public class DuplicateBlocketteFieldException
 extends Exception
 {
+    public DuplicateBlocketteFieldException()
+    {
+        super();
+    }
+
     public DuplicateBlocketteFieldException(String message)
     {
         super(message);
