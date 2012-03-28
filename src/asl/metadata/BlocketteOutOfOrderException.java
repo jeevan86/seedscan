@@ -18,10 +18,15 @@
  */
 package asl.metadata;
 
-public class FieldIdentifierException
+public class BlocketteOutOfOrderException
 extends Exception
 {
-    public FieldIdentifierException(String message)
+    public BlocketteOutOfOrderException()
+    {
+        super();
+    }
+
+    public BlocketteOutOfOrderException(String message)
     {
         super(message);
     }

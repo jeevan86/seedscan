@@ -18,10 +18,10 @@
  */
 package asl.metadata;
 
-public class FieldIdentifierException
+public class DuplicateBlocketteFieldException
 extends Exception
 {
-    public FieldIdentifierException(String message)
+    public DuplicateBlocketteFieldException(String message)
     {
         super(message);
     }

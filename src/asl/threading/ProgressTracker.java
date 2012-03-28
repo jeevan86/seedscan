@@ -16,14 +16,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
  *
  */
-package asl.metadata;
+package asl.worker;
 
-public class FieldIdentifierException
-extends Exception
+public class ProgressTracker
 {
-    public FieldIdentifierException(String message)
+    private boolean cancelled = false;
+
+    public boolean isCancelled()
     {
-        super(message);
+        return cancelled;
+    }
+
+    public void cancel()
+    {
+        cancelled = true;
     }
 }
 

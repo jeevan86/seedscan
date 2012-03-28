@@ -20,13 +20,24 @@ package asl.metadata;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.logging.Logger;
 
 public class EpochData
 {
-    private Blockette format;
-    private Blockette info;
+    private static final Logger logger = Logger.getLogger("asl.metadata.EpochData");
+
+    private Blockette format = null;
+    private Blockette info = null;
     private ArrayList<Blockette> misc;
     private Hashtable<Integer, StageData> stages;
+
+    // Constructors
+    public EpochData(Blockette info)
+    {
+        this.info = info;
+        misc = new ArrayList<Blockette>();
+        stages =  new Hashtable<Integer, StageData>();
+    }
 
     public EpochData(Blockette format, Blockette info)
     {
@@ -36,14 +47,53 @@ public class EpochData
         stages =  new Hashtable<Integer, StageData>();
     }
 
+    // Info
+    public void setInfo(Blockette info)
+    {
+        this.info = info;
+    }
+
+    public Blockette getInfo()
+    {
+        return info;
+    }
+
+    // Format
+    public void setFormat(Blockette format)
+    {
+        this.format = format;
+    }
+
+    public Blockette getFormat()
+    {
+        return format;
+    }
+
+    // Misc Blockettes
     public void addMiscBlockette(Blockette blockette)
     {
         misc.add(blockette);
     }
+
+    public ArrayList<Blockette> getMiscBlockettes()
+    {
+        return misc;
+    }
     
+    // Stages
     public void addStage(Integer stageID, StageData data)
     {
         stages.put(stageID, data);
+    }
+
+    public boolean hasStage(Integer stageID)
+    {
+        return stages.containsKey(stageID);
+    }
+
+    public StageData getStage(Integer stageID)
+    {
+        return stages.get(stageID);
     }
 }
 

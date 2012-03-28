@@ -20,26 +20,80 @@ package asl.metadata;
 
 import java.util.Calendar;
 import java.util.Hashtable;
+import java.util.logging.Logger;
 
 public class ChannelData
 {
+    private static final Logger logger = Logger.getLogger("asl.metadata.ChannelData");
+
+    public static final int CHANNEL_EPOCH_INFO_BLOCKETTE_NUMBER = 52;
+    public static final int CHANNEL_COMMENT_BLOCKETTE_NUMBER = 59;
+
     private Hashtable<Calendar, Blockette> comments;
     private Hashtable<Calendar, EpochData> epochs;
 
+    // Constructor(s)
     public ChannelData()
     {
         comments = new Hashtable<Calendar, Blockette>();
         epochs = new Hashtable<Calendar, EpochData>();
     }
 
-    public void addComment(Calendar timestamp, Blockette blockette)
+    // Comments
+    public Calendar addComment(Blockette blockette)
+    throws MissingBlocketteDataException,
+           TimestampFormatException,
+           WrongBlocketteException
     {
+        if (blockette.getNumber() != CHANNEL_COMMENT_BLOCKETTE_NUMBER) {
+            throw new WrongBlocketteException();
+        }
+        String timestampString = blockette.getFieldValue(3, 0);
+        if (timestampString == null) {
+            throw new MissingBlocketteDataException();
+        }
+        Calendar timestamp = BlocketteTimestamp.parseTimestamp(timestampString);
         comments.put(timestamp, blockette);
+        return timestamp;
     }
 
-    public void addEpoch(Calendar timestamp, EpochData data)
+    public boolean hasComment(Calendar timestamp)
     {
+        return comments.containsKey(timestamp);
+    }
+    
+    public Blockette getComment(Calendar timestamp)
+    {
+        return comments.get(timestamp);
+    }
+
+    // Epochs
+    public Calendar addEpoch(Blockette blockette)
+    throws MissingBlocketteDataException,
+           TimestampFormatException,
+           WrongBlocketteException
+    {
+        if (blockette.getNumber() != CHANNEL_EPOCH_INFO_BLOCKETTE_NUMBER) {
+            throw new WrongBlocketteException();
+        }
+        String timestampString = blockette.getFieldValue(3, 0);
+        if (timestampString == null) {
+            throw new MissingBlocketteDataException();
+        }
+        Calendar timestamp = BlocketteTimestamp.parseTimestamp(timestampString);
+        EpochData data = new EpochData(blockette);
         epochs.put(timestamp, data);
+        return timestamp;
+    }
+
+    public boolean hasEpoch(Calendar timestamp)
+    {
+        return epochs.containsKey(timestamp);
+    }
+
+    public EpochData getEpoch(Calendar timestamp)
+    {
+        return epochs.get(timestamp);
     }
 }
 

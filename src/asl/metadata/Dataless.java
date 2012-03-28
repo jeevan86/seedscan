@@ -78,21 +78,269 @@ package asl.metadata;
  *
  */
 
+import asl.worker.ProgressTracker;
+import asl.worker.CancelledException;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Hashtable;
+import java.util.logging.Logger;
+
 public class Dataless
 {
-    private SeedVolume volume;
-    private boolean ready;
+    private static final Logger logger = Logger.getLogger("asl.metadata.Dataless");
 
-    public Dataless()
+    private SeedVolume volume;
+    private Collection<String> rawDataless;
+    private ArrayList<Blockette> blockettes;
+    private boolean complete;
+
+    private double percent;
+    private double lastPercent;
+    private double count;
+    private double total;
+    private double skipped;
+    private double comments;
+    private String stage;
+    private String line;
+
+    private ProgressTracker progress;
+
+    public Dataless(Collection<String> rawDataless, ProgressTracker progress)
     {
-        ready = false;
+        this.progress = progress;
+        this.rawDataless = rawDataless;
+        complete = false;
     }
 
-    public void parseVolume(String volumeURI)
+    public void processVolume(String networkMask, String stationMask)
+    throws CancelledException,
+           DatalessParseException
     {
-        // Parsing Logic
+        boolean failed = true;
+        try {
+            parse();
+            assemble();
+            complete = true;
+            failed = false;
+        } catch (BlocketteFieldIdentifierFormatException exception) {
+            logger.warning("Malformed blocketted field identifier.");
+        } catch (BlocketteOutOfOrderException exception) {
+            logger.warning("Out of order blockette.");
+        } catch (DuplicateBlocketteException exception) {
+            logger.warning("Unexpected duplicate blockette.");
+        } catch (MissingBlocketteDataException exception) {
+            logger.warning("Blockette is missing requird data.");
+        } catch (TimestampFormatException exception) {
+            logger.warning("Invalid timestamp format.");
+        } catch (WrongBlocketteException exception) {
+            logger.warning("Wrong blockettte.");
+        }
 
-        ready = true;
+        if (failed) {
+            throw new DatalessParseException();
+        }
+    }
+
+    private void checkCancel()
+    throws CancelledException
+    {
+        if (progress.isCancelled()) {
+            throw new CancelledException();
+        }
+    }
+
+    private void parse()
+    throws BlocketteFieldIdentifierFormatException,
+           CancelledException
+    {
+        if (rawDataless == null) {
+            return;
+        }
+
+        blockettes = new ArrayList<Blockette>();
+        Hashtable<Integer, Blockette> blocketteMap = new Hashtable<Integer, Blockette>();
+
+        total = rawDataless.size();
+        count = 0.0;
+        skipped = 0.0;
+        comments = 0.0;
+        percent = 0.0;
+        lastPercent = 0.0;
+        stage = "Parsing Dataless";
+
+        for (String line: rawDataless) {
+            checkCancel();
+
+            count++;
+            percent = Math.floor(count / total * 100.0);
+            if (percent > lastPercent) {
+                lastPercent = percent;
+                // TODO: call to update progress
+                //   progress(stage, count, total)
+            }
+
+            line = line.trim();
+            this.line = line;
+
+            // assume we are going to skip this line
+            skipped++;
+
+            if (line == "") {
+                continue;
+            }
+            if (line.startsWith("#")) {
+                comments++;
+                continue;
+            }
+            if (!line.startsWith("B")) {
+                continue;
+            }
+
+            // we are not skipping this line, so revert the increment
+            skipped--;
+
+            String[] lineParts = line.split("\\s", 1);
+            String[] keyParts = lineParts[0].substring(1).split("F", 1);
+            int blocketteNumber = Integer.parseInt(keyParts[0]);
+            String fieldIdentifier = keyParts[1];
+            String lineData = lineParts[1];
+
+            Blockette blockette;
+            // If the blockette does not exists, or the attempt to add field data
+            // reported that this should be part of a new blockette, we create
+            // a new blockette, and add this data to it instead.
+            if ((!blocketteMap.containsKey(blocketteNumber)) ||
+                (!blocketteMap.get(blocketteNumber).addFieldData(fieldIdentifier, lineData)))
+            {
+                blockette = new Blockette(blocketteNumber);
+                blocketteMap.put(blocketteNumber, blockette);
+                blockettes.add(blockette);
+                blockette.addFieldData(fieldIdentifier, lineData);
+            }
+        }
+    }
+
+    private void assemble()
+    throws BlocketteFieldIdentifierFormatException,
+           BlocketteOutOfOrderException,
+           CancelledException,
+           DuplicateBlocketteException,
+           MissingBlocketteDataException,
+           TimestampFormatException,
+           WrongBlocketteException
+    {
+        if (blockettes == null) {
+            return;
+        }
+
+        total = blockettes.size();
+        count = 0.0;
+        skipped = 0.0;
+        comments = 0.0;
+        percent = 0.0;
+        lastPercent = 0.0;
+        stage = "Assembling Data";
+
+        volume = new SeedVolume();
+        StationData station = null;
+        ChannelData channel = null;
+        EpochData epoch = null;
+        
+        for (Blockette blockette: blockettes)
+        {
+            checkCancel();
+
+            count++;
+            percent = Math.floor(count / total * 100.0);
+            if (percent > lastPercent) {
+                lastPercent = percent;
+                // TODO: call to update progress
+                //   progress(stage, count, total)
+            }
+
+            int blocketteNumber = blockette.getNumber();
+
+            switch (blocketteNumber) {
+                case 10:
+                    if (volume != null) {
+                        throw new DuplicateBlocketteException();
+                    }
+                    volume = new SeedVolume(blockette);
+                    break;
+                case 11:
+                    if (volume == null) {
+                        throw new BlocketteOutOfOrderException();
+                    }
+                    volume.addStationLocator(blockette);
+                    break;
+                case 50:
+                    if (volume == null) {
+                        throw new BlocketteOutOfOrderException();
+                    }
+                    String stationKey = blockette.getFieldValue(16,0)+ "_" +blockette.getFieldValue(3,0);
+                    if (!volume.hasStation(stationKey)) {
+                        volume.addStation(stationKey, new StationData());
+                    }
+                    station = volume.getStation(stationKey);
+                    station.addEpoch(blockette);
+                    break;
+                case 51:
+                    if (station == null) {
+                        throw new BlocketteOutOfOrderException();
+                    }
+                    station.addComment(blockette);
+                    break;
+                case 52:
+                    if (station == null) {
+                        throw new BlocketteOutOfOrderException();
+                    }
+                    String channelKey = blockette.getFieldValue(3,0)+ "-" +blockette.getFieldValue(4,0);
+                    if (!station.hasChannel(channelKey)) {
+                        station.addChannel(channelKey, new ChannelData());
+                    }
+                    channel = station.getChannel(channelKey);
+                    Calendar epochKey = channel.addEpoch(blockette);
+                    epoch = channel.getEpoch(epochKey);
+                    break;
+                case 30:
+                    if (epoch == null) {
+                        throw new BlocketteOutOfOrderException();
+                    }
+                    epoch.setFormat(blockette);
+                    break;
+                case 59:
+                    if (channel == null) {
+                        throw new BlocketteOutOfOrderException();
+                    }
+                    channel.addComment(blockette);
+                    break;
+                case 53:
+                case 54:
+                case 55:
+                case 56:
+                case 57:
+                case 58:
+                case 61:
+                    if (epoch == null) {
+                        throw new BlocketteOutOfOrderException();
+                    }
+                    int stageKey = Integer.parseInt(blockette.getFieldValue(3, 0));
+                    if (!epoch.hasStage(stageKey)) {
+                        epoch.addStage(stageKey, new StageData(stageKey));
+                    }
+                    StageData stage = epoch.getStage(stageKey);
+                    stage.addBlockette(blockette);
+                    break;
+                default:
+                    if (epoch == null) {
+                        throw new BlocketteOutOfOrderException();
+                    }
+                    epoch.addMiscBlockette(blockette);
+                    break;
+            }
+        }
     }
 }
 

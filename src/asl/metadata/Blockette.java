@@ -18,10 +18,14 @@
  */
 package asl.metadata;
 
+import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.logging.Logger;
 
 public class Blockette
 {
+    private static final Logger logger = Logger.getLogger("asl.metadata.Blockette");
+
     private int number;
     private Hashtable<Integer, Field> fields;
 
@@ -39,12 +43,12 @@ public class Blockette
     }
 
     public boolean addFieldData(String fieldIdentifier, String data)
-    throws FieldIdentifierException
+    throws BlocketteFieldIdentifierFormatException
     {
         String[] range = fieldIdentifier.split("-");
         if (range.length < 1) {
-            //throw new FieldIdentifierException("Invalid field identifier '" +fieldIdentifier+ "'"); 
-            throw new FieldIdentifierException(); 
+            //throw new BlocketteFieldIdentifierFormatException("Invalid field identifier '" +fieldIdentifier+ "'"); 
+            throw new BlocketteFieldIdentifierFormatException(); 
         }
 
         int start = Integer.parseInt(range[0]);
@@ -79,7 +83,8 @@ public class Blockette
                 else {
                     field = fields.get(id);
                 }
-                field.addValue(dataItems[index]);
+                String value = dataItems[index].trim();
+                field.addValue(value);
                 id++;
             }
         }
@@ -88,11 +93,11 @@ public class Blockette
             String[] parts = data.split(":", 1);
             String value;
             if (parts.length > 1) {
-                description = parts[0];
-                value = parts[1];
+                description = parts[0].trim();
+                value = parts[1].trim();
             }
             else {
-                value = parts[0];
+                value = parts[0].trim();
             }
 
             if (!fields.containsKey(id)) {
@@ -108,5 +113,22 @@ public class Blockette
         return true;
     }
 
+    public String getFieldValue(int fieldID, int valueIndex)
+    {
+        String value = null;
+        if (fields.containsKey(fieldID)) {
+            value = fields.get(fieldID).getValue(valueIndex);
+        }
+        return value;
+    }
+
+    public ArrayList<String> getFieldValues(int fieldID)
+    {
+        ArrayList<String> values = null;
+        if (fields.containsKey(fieldID)) {
+            values = fields.get(fieldID).getValues();
+        }
+        return values;
+    }
 }
 

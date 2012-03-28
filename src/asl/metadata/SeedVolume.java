@@ -18,82 +18,64 @@
  */
 package asl.metadata;
 
-/* 
- * Follwing is a depiction of the structure generated as a result of 
- * parsing the output of `evalresp -s`
- * 
- *
- * Dataless
- *  |
- *   - volumeInfo (Blockette)
- *  |
- *   - stations (Hashtable<String, StationData>)
- *      |
- *       - 'NN_SSSS' (String)
- *          :
- *         data (StationData)
- *          |
- *           - comments (Hashtable<Calendar, Blockette>)
- *              |
- *               - timestamp (Calendar)
- *                  :
- *                 comment (Blockette)
- *          | 
- *           - epochs (Hashtable<Calendar, Blockette>)
- *              |
- *               - timestamp (Calendar)
- *                  :
- *                 epoch (Blockette)
- *          | 
- *           - channels (Hashtable<String, StationData>)
- *              |
- *               - 'LL-CCC' (String)
- *                  :
- *                 data (ChannelData)
- *                      |
- *                       - comments (Hashtable<Calendar, Blockette>)
- *                          |
- *                           - timestamp (Calendar)
- *                              :
- *                             comment (Blockette)
- *                      |
- *                       - epochs (Hashtable<Calendar, EpochData>)
- *                          |
- *                           - timestamp (Calendar)
- *                              :
- *                             epoch (EpochData)
- *                              |
- *                               - format (Blockette)
- *                              |
- *                               - info (Blockette)
- *                              |
- *                               - misc (ArrayList<Blockette>)
- *                              |
- *                               - format (Hashtable<Integer, StageData>)
- *                                  |
- *                                   - stageIndex (Integer)
- *                                      :
- *                                     data (StageData)
- *
- *
- */
-
+import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.logging.Logger;
 
 public class SeedVolume
 {
-    private Blockette volumeInfo;
+    private static final Logger logger = Logger.getLogger("asl.metadata.SeedVolume");
+
+    private Blockette volumeInfo = null;
+    private ArrayList<Blockette> stationLocators;
     private Hashtable<String, StationData> stations;
+
+    public SeedVolume()
+    {
+        stations = new Hashtable<String, StationData>();
+        stationLocators = new ArrayList<Blockette>();
+    }
 
     public SeedVolume(Blockette volumeInfo)
     {
         this.volumeInfo = volumeInfo;
-        this.stations = new Hashtable<String, StationData>();
+        stations = new Hashtable<String, StationData>();
+        stationLocators = new ArrayList<Blockette>();
     }
 
     public void addStation(String stationID, StationData data)
     {
         stations.put(stationID, data);
+    }
+
+    public boolean hasStation(String stationID)
+    {
+        return stations.containsKey(stationID);
+    }
+
+    public StationData getStation(String stationID)
+    {
+        return stations.get(stationID);
+    }
+
+    public void setVolumeInfo(Blockette volumeInfo)
+    {
+        this.volumeInfo = volumeInfo;
+    }
+
+    public Blockette getVolumeInfo()
+    {
+        return this.volumeInfo;
+    }
+
+    public void addStationLocator(Blockette stationLocator)
+    {
+        stationLocators.add(stationLocator);
+    }
+
+    public ArrayList<Blockette> getStationLocators()
+    {
+        return stationLocators;
     }
 }
 

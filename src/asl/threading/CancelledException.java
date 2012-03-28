@@ -16,11 +16,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
  *
  */
-package asl.metadata;
+package asl.worker;
 
-public class DuplicateFieldException
+public class CancelledException
 extends Exception
 {
-    ;
+    public CancelledException()
+    {
+        super();
+    }
+
+    public CancelledException(String message)
+    {
+        super(message);
+    }
 }
 

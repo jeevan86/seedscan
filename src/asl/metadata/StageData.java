@@ -20,21 +20,48 @@ package asl.metadata;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.logging.Logger;
 
 public class StageData
 {
-    private int stageID;
-    private Hashtable<Integer, Blockette> data;
+    private static final Logger logger = Logger.getLogger("asl.metadata.StageData");
 
+    private int stageID;
+    private Hashtable<Integer, Blockette> blockettes;
+
+    // Constructor(s)
     public StageData(int stageID)
     {
         this.stageID = stageID;
-        data = new Hashtable<Integer, Blockette>();
+        blockettes = new Hashtable<Integer, Blockette>();
     }
 
-    public void addBlockette(Blockette blockette)
+    // stageID
+    public int getStageID()
     {
-        data.put(blockette.getNumber(), blockette);
+        return stageID;
+    }
+
+    // blockettes
+    public int addBlockette(Blockette blockette)
+    throws DuplicateBlocketteException
+    {
+        int blocketteNumber = blockette.getNumber();
+        if (blockettes.containsKey(blocketteNumber)) {
+            throw new DuplicateBlocketteException();
+        }
+        blockettes.put(blocketteNumber, blockette);
+        return blocketteNumber;
+    }
+
+    public boolean hasBlockette(int blocketteNumber)
+    {
+        return blockettes.containsKey(blocketteNumber);
+    }
+
+    public Blockette getBlockette(int blocketteNumber)
+    {
+        return blockettes.get(blocketteNumber);
     }
 }
 

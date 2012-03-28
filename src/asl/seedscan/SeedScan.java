@@ -47,6 +47,7 @@ import org.apache.commons.cli.PosixParser;
 public class SeedScan
 {
     private static final Logger logger = Logger.getLogger("asl.seedscan.SeedScan");
+
     private final static String allchanURLstr = "http://wwwasl/uptime/honeywell/gsn_allchan.txt";
     private static URL allchanURL;
     private static Handler consoleHandler;

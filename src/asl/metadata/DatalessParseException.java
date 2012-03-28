@@ -18,10 +18,15 @@
  */
 package asl.metadata;
 
-public class FieldIdentifierException
+public class DatalessParseException
 extends Exception
 {
-    public FieldIdentifierException(String message)
+    public DatalessParseException()
+    {
+        super();
+    }
+
+    public DatalessParseException(String message)
     {
         super(message);
     }

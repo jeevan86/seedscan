@@ -19,10 +19,17 @@
 package asl.metadata;
 
 import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.Hashtable;
+import java.util.logging.Logger;
 
 public class StationData
 {
+    private static final Logger logger = Logger.getLogger("asl.metadata.StationData");
+
+    public static final int STATION_EPOCH_BLOCKETTE_NUMBER = 50;
+    public static final int STATION_COMMENT_BLOCKETTE_NUMBER = 51;
+
     private Hashtable<Calendar, Blockette> comments;
     private Hashtable<Calendar, Blockette> epochs;
     private Hashtable<String, ChannelData> channels;
@@ -34,19 +41,53 @@ public class StationData
         channels = new Hashtable<String, ChannelData>();
     }
 
-    public void addComment(Calendar timestamp, Blockette blockette)
+    public Calendar addComment(Blockette blockette)
+    throws TimestampFormatException,
+           WrongBlocketteException,
+           MissingBlocketteDataException
     {
+        if (blockette.getNumber() != STATION_COMMENT_BLOCKETTE_NUMBER) {
+            throw new WrongBlocketteException();
+        }
+        String timestampString = blockette.getFieldValue(3, 0);
+        if (timestampString == null) {
+            throw new MissingBlocketteDataException();
+        }
+        Calendar timestamp = BlocketteTimestamp.parseTimestamp(timestampString);
         comments.put(timestamp, blockette);
+        return timestamp;
     }
 
-    public void addEpoch(Calendar timestamp, Blockette blockette)
+    public Calendar addEpoch(Blockette blockette)
+    throws TimestampFormatException,
+           WrongBlocketteException,
+           MissingBlocketteDataException
     {
+        if (blockette.getNumber() != STATION_EPOCH_BLOCKETTE_NUMBER) {
+            throw new WrongBlocketteException();
+        }
+        String timestampString = blockette.getFieldValue(13, 0);
+        if (timestampString == null) {
+            throw new MissingBlocketteDataException();
+        }
+        Calendar timestamp = BlocketteTimestamp.parseTimestamp(timestampString);
         epochs.put(timestamp, blockette);
+        return timestamp;
     }
 
     public void addChannel(String channelID, ChannelData data)
     {
         channels.put(channelID, data);
+    }
+
+    public boolean hasChannel(String channelID)
+    {
+        return channels.containsKey(channelID);
+    }
+
+    public ChannelData getChannel(String channelID)
+    {
+        return channels.get(channelID);
     }
 }
 

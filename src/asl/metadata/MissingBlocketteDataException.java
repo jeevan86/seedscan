@@ -18,10 +18,15 @@
  */
 package asl.metadata;
 
-public class FieldIdentifierException
+public class MissingBlocketteDataException
 extends Exception
 {
-    public FieldIdentifierException(String message)
+    public MissingBlocketteDataException()
+    {
+        super();
+    }
+
+    public MissingBlocketteDataException(String message)
     {
         super(message);
     }

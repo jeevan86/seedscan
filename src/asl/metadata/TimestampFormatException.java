@@ -18,10 +18,15 @@
  */
 package asl.metadata;
 
-public class FieldIdentifierException
+public class TimestampFormatException
 extends Exception
 {
-    public FieldIdentifierException(String message)
+    public TimestampFormatException()
+    {
+        super();
+    }
+
+    public TimestampFormatException(String message)
     {
         super(message);
     }
