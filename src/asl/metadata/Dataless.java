@@ -27,6 +27,8 @@ package asl.metadata;
  *  |
  *   - volumeInfo (Blockette)
  *  |
+ *   - stationLocators (ArrayList<Blockette>)
+ *  |
  *   - stations (Hashtable<String, StationData>)
  *      |
  *       - 'NN_SSSS' (String)
@@ -289,11 +291,13 @@ public class Dataless
                     if (volume == null) {
                         throw new BlocketteOutOfOrderException();
                     }
-                    String stationKey = blockette.getFieldValue(16,0)+ "_" +blockette.getFieldValue(3,0);
+                    StationKey stationKey = new StationKey(blockette);
                     if (!volume.hasStation(stationKey)) {
-                        volume.addStation(stationKey, new StationData());
+                        station = new StationData(stationKey.getNetwork(), stationKey.getName());
+                        volume.addStation(stationKey, station);
+                    } else {
+                        station = volume.getStation(stationKey);
                     }
-                    station = volume.getStation(stationKey);
                     station.addEpoch(blockette);
                     break;
                 case 51:
@@ -306,11 +310,13 @@ public class Dataless
                     if (station == null) {
                         throw new BlocketteOutOfOrderException();
                     }
-                    String channelKey = blockette.getFieldValue(3,0)+ "-" +blockette.getFieldValue(4,0);
+                    ChannelKey channelKey = new ChannelKey(blockette);
                     if (!station.hasChannel(channelKey)) {
-                        station.addChannel(channelKey, new ChannelData());
+                        channel = new ChannelData(channelKey.getLocation(), channelKey.getName());
+                        station.addChannel(channelKey, channel);
+                    } else {
+                        channel = station.getChannel(channelKey);
                     }
-                    channel = station.getChannel(channelKey);
                     Calendar epochKey = channel.addEpoch(blockette);
                     epoch = channel.getEpoch(epochKey);
                     break;

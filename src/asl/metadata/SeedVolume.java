@@ -28,36 +28,39 @@ public class SeedVolume
 
     private Blockette volumeInfo = null;
     private ArrayList<Blockette> stationLocators;
-    private Hashtable<String, StationData> stations;
+    private Hashtable<StationKey, StationData> stations;
 
+    // constructor(s)
     public SeedVolume()
     {
-        stations = new Hashtable<String, StationData>();
+        stations = new Hashtable<StationKey, StationData>();
         stationLocators = new ArrayList<Blockette>();
     }
 
     public SeedVolume(Blockette volumeInfo)
     {
         this.volumeInfo = volumeInfo;
-        stations = new Hashtable<String, StationData>();
+        stations = new Hashtable<StationKey, StationData>();
         stationLocators = new ArrayList<Blockette>();
     }
 
-    public void addStation(String stationID, StationData data)
+    // stations
+    public void addStation(StationKey key, StationData data)
     {
-        stations.put(stationID, data);
+        stations.put(key, data);
     }
 
-    public boolean hasStation(String stationID)
+    public boolean hasStation(StationKey key)
     {
-        return stations.containsKey(stationID);
+        return stations.containsKey(key);
     }
 
-    public StationData getStation(String stationID)
+    public StationData getStation(StationKey key)
     {
-        return stations.get(stationID);
+        return stations.get(key);
     }
 
+    // volume info
     public void setVolumeInfo(Blockette volumeInfo)
     {
         this.volumeInfo = volumeInfo;
@@ -68,6 +71,7 @@ public class SeedVolume
         return this.volumeInfo;
     }
 
+    // station locators (list of stations in seed volume)
     public void addStationLocator(Blockette stationLocator)
     {
         stationLocators.add(stationLocator);

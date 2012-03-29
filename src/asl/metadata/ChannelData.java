@@ -31,15 +31,28 @@ public class ChannelData
 
     private Hashtable<Calendar, Blockette> comments;
     private Hashtable<Calendar, EpochData> epochs;
+    private String location = null;
+    private String name = null;
 
-    // Constructor(s)
-    public ChannelData()
+    // constructor(s)
+    public ChannelData(String location, String name)
     {
         comments = new Hashtable<Calendar, Blockette>();
         epochs = new Hashtable<Calendar, EpochData>();
     }
 
-    // Comments
+    // identifiers
+    public String getLocation()
+    {
+        return location;
+    }
+
+    public String getName()
+    {
+        return name;
+    }
+
+    // comments
     public Calendar addComment(Blockette blockette)
     throws MissingBlocketteDataException,
            TimestampFormatException,
@@ -67,7 +80,7 @@ public class ChannelData
         return comments.get(timestamp);
     }
 
-    // Epochs
+    // epochs
     public Calendar addEpoch(Blockette blockette)
     throws MissingBlocketteDataException,
            TimestampFormatException,

@@ -32,15 +32,30 @@ public class StationData
 
     private Hashtable<Calendar, Blockette> comments;
     private Hashtable<Calendar, Blockette> epochs;
-    private Hashtable<String, ChannelData> channels;
+    private Hashtable<ChannelKey, ChannelData> channels;
+    private String network = null;
+    private String name = null;
 
-    public StationData()
+    // Constructor(s)
+    public StationData(String network, String name)
     {
         comments = new Hashtable<Calendar, Blockette>();
         epochs = new Hashtable<Calendar, Blockette>();
-        channels = new Hashtable<String, ChannelData>();
+        channels = new Hashtable<ChannelKey, ChannelData>();
     }
 
+    // identifiers
+    public String getNetwork()
+    {
+        return network;
+    }
+
+    public String getName()
+    {
+        return name;
+    }
+
+    // comments
     public Calendar addComment(Blockette blockette)
     throws TimestampFormatException,
            WrongBlocketteException,
@@ -58,6 +73,17 @@ public class StationData
         return timestamp;
     }
 
+    public boolean hasComment(Calendar timestamp)
+    {
+        return comments.containsKey(timestamp);
+    }
+
+    public Blockette getComment(Calendar timestamp)
+    {
+        return comments.get(timestamp);
+    }
+
+    // epochs
     public Calendar addEpoch(Blockette blockette)
     throws TimestampFormatException,
            WrongBlocketteException,
@@ -75,19 +101,31 @@ public class StationData
         return timestamp;
     }
 
-    public void addChannel(String channelID, ChannelData data)
+    public boolean hasEpoch(Calendar timestamp)
     {
-        channels.put(channelID, data);
+        return epochs.containsKey(timestamp);
     }
 
-    public boolean hasChannel(String channelID)
+    public Blockette getEpoch(Calendar timestamp)
     {
-        return channels.containsKey(channelID);
+        return epochs.get(timestamp);
     }
 
-    public ChannelData getChannel(String channelID)
+
+    // channels
+    public void addChannel(ChannelKey key, ChannelData data)
     {
-        return channels.get(channelID);
+        channels.put(key, data);
+    }
+
+    public boolean hasChannel(ChannelKey key)
+    {
+        return channels.containsKey(key);
+    }
+
+    public ChannelData getChannel(ChannelKey key)
+    {
+        return channels.get(key);
     }
 }
 
