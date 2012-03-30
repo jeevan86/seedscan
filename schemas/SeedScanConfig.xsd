@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema 
         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-        xmlns:cfg="config.seedscan.asl.cr.usgs.gov"
-        targetNamespace="config.seedscan.asl.cr.usgs.gov"
-        cfg:schemaLocation="http://wwwasl.cr.usgs.gov SeedScanConfig.xsd"
+        xmlns:cfg="config.seedscan.asl"
+        targetNamespace="config.seedscan.asl"
+        cfg:schemaLocation="https://aslweb.cr.usgs.gov SeedScanConfig.xsd"
         elementFormDefault="qualified"
         attributeFormDefault="qualified">
 

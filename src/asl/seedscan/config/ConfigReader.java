@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
  *
  */
-
 package asl.seedscan.config;
 
 import java.io.File;
@@ -74,8 +73,9 @@ public class ConfigReader
 
     private void _construct(File schemaFile)
     {
-        xpath         = XPathFactory.newInstance().newXPath();
-        domFactory    = DocumentBuilderFactory.newInstance();
+        xpath = XPathFactory.newInstance().newXPath();
+        xpath.setNamespaceContext(new ConfigNamespaceContext());
+        domFactory = DocumentBuilderFactory.newInstance();
         domFactory.setNamespaceAware(true);
 
         if (schemaFile != null) {
@@ -147,24 +147,24 @@ public class ConfigReader
         logger.info("Document: " + doc);
 
      // Parse Lock File Config
-        logger.info("Parsing lockfile.");
-        configuration.put("lockfile",   (String)xpath.evaluate("/seedscan/lockfile/text()", doc));
+        logger.fine("Parsing lockfile.");
+        configuration.put("lockfile",   xpath.evaluate("//seedscan/lockfile/text()", doc));
 
      // Parse Log Config
-        logger.info("Parsing log.");
-        configuration.put("log-level",      xpath.evaluate("/seedscan/log/level/text()", doc));
-        configuration.put("log-directory",  xpath.evaluate("/seedscan/log/directory/text()", doc));
-        configuration.put("log-prefix",     xpath.evaluate("/seedscan/log/prefix/text()", doc));
-        configuration.put("log-postfix",    xpath.evaluate("/seedscan/log/postfix/text()", doc));
+        logger.fine("Parsing log.");
+        configuration.put("log-level",      xpath.evaluate("//seedscan/log/level/text()", doc));
+        configuration.put("log-directory",  xpath.evaluate("//seedscan/log/directory/text()", doc));
+        configuration.put("log-prefix",     xpath.evaluate("//seedscan/log/prefix/text()", doc));
+        configuration.put("log-postfix",    xpath.evaluate("//seedscan/log/postfix/text()", doc));
 
      // Parse Database Config
-        logger.info("Parsing database.");
-        configuration.put("database-url",       xpath.evaluate("/seedscan/database/url/text()", doc));
-        configuration.put("database-username",  xpath.evaluate("/seedscan/database/username/text()", doc));
-        configuration.put("database-password",  xpath.evaluate("/seedscan/database/password/text()", doc));
+        logger.fine("Parsing database.");
+        configuration.put("database-url",       xpath.evaluate("//seedscan/database/url/text()", doc));
+        configuration.put("database-username",  xpath.evaluate("//seedscan/database/username/text()", doc));
+        configuration.put("database-password",  xpath.evaluate("//seedscan/database/password/text()", doc));
 
      // Parse Scans
-        logger.info("Parsing scans.");
+        logger.fine("Parsing scans.");
         int id;
         String key;
         Object scan;
@@ -193,7 +193,7 @@ public class ConfigReader
                 }
             }
         }
-        logger.info("Configuration: " + configuration);
+        logger.fine("Configuration: " + configuration);
     }
 
 }

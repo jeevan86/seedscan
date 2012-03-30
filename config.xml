@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <cfg:seedscan xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xsi:schemaLocation="http://wwwasl.cr.usgs.gov SeedScanConfig.xsd"
-              xmlns:cfg="config.seedscan.asl.cr.usgs.gov">
+              xsi:schemaLocation="https://aslweb.cr.usgs.gov SeedScanConfig.xsd"
+              xmlns:cfg="config.seedscan.asl">
 
     <cfg:lockfile>/qcwork/seedscan/seedscan.lock</cfg:lockfile>
  

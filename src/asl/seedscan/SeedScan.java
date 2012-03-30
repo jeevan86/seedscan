@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
  *
  */
-
 package asl.seedscan;
 
 import java.io.Console;
@@ -72,7 +71,7 @@ public class SeedScan
         findConsoleHandler();
         consoleHandler.setLevel(Level.FINEST);
         Logger.getLogger("asl.seedscan").setLevel(Level.FINEST);
-        Logger.getLogger("asl.seedsplitter").setLevel(Level.FINE);
+        //Logger.getLogger("asl.seedsplitter").setLevel(Level.FINE);
 
         boolean parseConfig = true;
         File configFile = new File("config.xml");
