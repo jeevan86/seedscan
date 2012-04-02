@@ -38,7 +38,7 @@ implements NamespaceContext
 
         addPair("xml", XMLConstants.XML_NS_URI);
         addPair("cfg", "config.seedscan.asl");
-        addPair("", "config.seedscan.asl");
+        //addPair("", "config.seedscan.asl");
     }
 
     private void addPair(String prefix, String namespace)

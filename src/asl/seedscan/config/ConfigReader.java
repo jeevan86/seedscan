@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.logging.Logger;
 
-import javax.xml.XMLConstants;
+import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -31,6 +31,7 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
+import javax.xml.XMLConstants;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
@@ -148,20 +149,23 @@ public class ConfigReader
 
      // Parse Lock File Config
         logger.fine("Parsing lockfile.");
-        configuration.put("lockfile",   xpath.evaluate("//seedscan/lockfile/text()", doc));
+        configuration.put("lockfile",   xpath.evaluate("//cfg:seedscan/cfg:lockfile/text()", doc));
 
      // Parse Log Config
         logger.fine("Parsing log.");
-        configuration.put("log-level",      xpath.evaluate("//seedscan/log/level/text()", doc));
-        configuration.put("log-directory",  xpath.evaluate("//seedscan/log/directory/text()", doc));
-        configuration.put("log-prefix",     xpath.evaluate("//seedscan/log/prefix/text()", doc));
-        configuration.put("log-postfix",    xpath.evaluate("//seedscan/log/postfix/text()", doc));
+        configuration.put("log-level",      xpath.evaluate("//cfg:seedscan/cfg:log/cfg:level/text()", doc));
+        configuration.put("log-directory",  xpath.evaluate("//cfg:seedscan/cfg:log/cfg:directory/text()", doc));
+        configuration.put("log-prefix",     xpath.evaluate("//cfg:seedscan/cfg:log/cfg:prefix/text()", doc));
+        configuration.put("log-postfix",    xpath.evaluate("//cfg:seedscan/cfg:log/cfg:postfix/text()", doc));
 
      // Parse Database Config
         logger.fine("Parsing database.");
-        configuration.put("database-url",       xpath.evaluate("//seedscan/database/url/text()", doc));
-        configuration.put("database-username",  xpath.evaluate("//seedscan/database/username/text()", doc));
-        configuration.put("database-password",  xpath.evaluate("//seedscan/database/password/text()", doc));
+        configuration.put("database-url",       xpath.evaluate("//cfg:seedscan/cfg:database/cfg:url/text()", doc));
+        configuration.put("database-username",  xpath.evaluate("//cfg:seedscan/cfg:database/cfg:username/text()", doc));
+        configuration.put("database-password-ciphertext",  xpath.evaluate("//cfg:seedscan/cfg:database/cfg:password/cfg:ciphertext/text()", doc));
+        configuration.put("database-password-iv",  xpath.evaluate("//cfg:seedscan/cfg:database/cfg:password/cfg:iv/text()", doc));
+        configuration.put("database-password-key",  xpath.evaluate("//cfg:seedscan/cfg:database/cfg:password/cfg:key/text()", doc));
+        configuration.put("database-password-key_iv",  xpath.evaluate("//cfg:seedscan/cfg:database/cfg:password/cfg:key_iv/text()", doc));
 
      // Parse Scans
         logger.fine("Parsing scans.");

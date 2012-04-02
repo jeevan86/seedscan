@@ -99,14 +99,14 @@ public class Scanner
 
             // TODO: List Contents
 
-            /*
+            //*
             for (File file: files) {
                 if (file.getName().endsWith(".seed")) {
                     seedCount++;
                     logger.fine("Processing file '" +file.getPath()+ "'.");
                 }
             }
-            */
+            // */
         }
     }
 }

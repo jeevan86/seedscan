@@ -23,13 +23,17 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Collections;
 import java.util.Enumeration;
+import java.util.Formatter;
 import java.util.GregorianCalendar;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
-import java.util.logging.Logger;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import asl.seedscan.config.Configuration;
 import asl.seedscan.config.ConfigReader;
@@ -71,7 +75,8 @@ public class SeedScan
         findConsoleHandler();
         consoleHandler.setLevel(Level.FINEST);
         Logger.getLogger("asl.seedscan").setLevel(Level.FINEST);
-        //Logger.getLogger("asl.seedsplitter").setLevel(Level.FINE);
+        Logger.getLogger("asl.seedscan.Scanner").setLevel(Level.INFO);
+        Logger.getLogger("asl.seedsplitter").setLevel(Level.INFO);
 
         boolean parseConfig = true;
         File configFile = new File("config.xml");
@@ -134,17 +139,24 @@ public class SeedScan
         //Console cons = System.console();
         //char[] pass = cons.readPassword("Password for MySQL account '%s': ", user);
 
-
+        Formatter formatter = new Formatter(new StringBuilder(), Locale.US);
         if (parseConfig) {
             ConfigReader configReader = new ConfigReader(schemaFile);
             configReader.loadConfiguration(configFile);
             Configuration config = configReader.getConfiguration();
 
-            Enumeration<String> keys = config.getKeys();
-            while (keys.hasMoreElements()) {
-                String key = keys.nextElement();
+            int maxKey = 0;
+            List<String> keys = Collections.list(config.getKeys());
+            Collections.sort(keys);
+            for (String key: keys) {
+                if (key.length() > maxKey) {
+                    maxKey = key.length();
+                }
+            }
+            String format = formatter.format(" %%1$%ds : %%2$s\n", maxKey).toString();
+            for (String key: keys) {
                 String value = config.get(key);
-                System.out.printf("%s : %s\n", key, value);
+                System.out.printf(format, key, value);
             }
         }
 
