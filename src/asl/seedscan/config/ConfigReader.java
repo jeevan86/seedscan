@@ -145,14 +145,14 @@ public class ConfigReader
     private void parseConfig()
       throws javax.xml.xpath.XPathExpressionException
     {
-        logger.info("Document: " + doc);
+        logger.info("Parsing the configuration file");
+        logger.fine("Document: " + doc);
 
-     // Parse Lock File Config
+        // Lock File
         logger.fine("Parsing lockfile.");
         configuration.put("lockfile",   xpath.evaluate("//cfg:seedscan/cfg:lockfile/text()", doc));
 
-     // Parse Log Config
-        logger.fine("Parsing log.");
+        // Parse Log Config
         configuration.put("log-level",      xpath.evaluate("//cfg:seedscan/cfg:log/cfg:level/text()", doc));
         configuration.put("log-directory",  xpath.evaluate("//cfg:seedscan/cfg:log/cfg:directory/text()", doc));
         configuration.put("log-prefix",     xpath.evaluate("//cfg:seedscan/cfg:log/cfg:prefix/text()", doc));
@@ -162,10 +162,12 @@ public class ConfigReader
         logger.fine("Parsing database.");
         configuration.put("database-url",       xpath.evaluate("//cfg:seedscan/cfg:database/cfg:url/text()", doc));
         configuration.put("database-username",  xpath.evaluate("//cfg:seedscan/cfg:database/cfg:username/text()", doc));
-        configuration.put("database-password-ciphertext",  xpath.evaluate("//cfg:seedscan/cfg:database/cfg:password/cfg:ciphertext/text()", doc));
-        configuration.put("database-password-iv",  xpath.evaluate("//cfg:seedscan/cfg:database/cfg:password/cfg:iv/text()", doc));
+        configuration.put("database-password-key-iv",  xpath.evaluate("//cfg:seedscan/cfg:database/cfg:password/cfg:key_iv/text()", doc));
         configuration.put("database-password-key",  xpath.evaluate("//cfg:seedscan/cfg:database/cfg:password/cfg:key/text()", doc));
-        configuration.put("database-password-key_iv",  xpath.evaluate("//cfg:seedscan/cfg:database/cfg:password/cfg:key_iv/text()", doc));
+        configuration.put("database-password-key-hmac",  xpath.evaluate("//cfg:seedscan/cfg:database/cfg:password/cfg:key_hmac/text()", doc));
+        configuration.put("database-password-iv",  xpath.evaluate("//cfg:seedscan/cfg:database/cfg:password/cfg:iv/text()", doc));
+        configuration.put("database-password",  xpath.evaluate("//cfg:seedscan/cfg:database/cfg:password/cfg:ciphertext/text()", doc));
+        configuration.put("database-password-hmac",  xpath.evaluate("//cfg:seedscan/cfg:database/cfg:password/cfg:hmac/text()", doc));
 
      // Parse Scans
         logger.fine("Parsing scans.");

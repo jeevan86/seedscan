@@ -3,10 +3,12 @@
               xsi:schemaLocation="https://aslweb.cr.usgs.gov SeedScanConfig.xsd"
               xmlns:cfg="config.seedscan.asl">
 
-    <cfg:lockfile>/qcwork/seedscan/seedscan.lock</cfg:lockfile>
+    <!--cfg:lockfile>/qcwork/seedscan/seedscan.lock</cfg:lockfile-->
+    <cfg:lockfile>seedscan.lock</cfg:lockfile>
  
     <cfg:log>
-        <cfg:directory>/qcwork/seedscan/logs</cfg:directory>
+        <!--cfg:directory>/qcwork/seedscan/logs</cfg:directory-->
+        <cfg:directory>logs</cfg:directory>
         <cfg:prefix>seedscan.</cfg:prefix>
         <cfg:postfix>.log</cfg:postfix>
         <cfg:level>DEBUG</cfg:level>
@@ -17,10 +19,12 @@
         <cfg:username>seedscan_write</cfg:username>
         <!--cfg:url>jdbc:mysql://catbox2.cr.usgs.gov/stations</cfg:url-->
         <cfg:password>
+            <cfg:key_iv>952bf002cc030243952bf002cc030243</cfg:key_iv>
+            <cfg:key>952bf002cc030243952bf002cc030243952bf002cc030243952bf002cc030243</cfg:key>
+            <cfg:key_hmac>952bf002cc030243952bf002cc030243952bf002cc030243952bf002cc030243</cfg:key_hmac>
+            <cfg:iv>952bf002cc030243952bf002cc030243</cfg:iv>
             <cfg:ciphertext>2f9cb9a02ee92a39</cfg:ciphertext>
-            <cfg:iv>952bf002cc030243</cfg:iv>
-            <cfg:key>952bf002cc030243</cfg:key>
-            <cfg:key_iv>952bf002cc030243</cfg:key_iv>
+            <cfg:hmac>952bf002cc030243952bf002cc030243952bf002cc030243952bf002cc030243</cfg:hmac>
         </cfg:password>
     </cfg:database>
  

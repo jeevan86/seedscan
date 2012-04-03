@@ -23,10 +23,12 @@
     <xsd:element name="url"         type="xsd:anyURI" />
     <xsd:element name="username"    type="xsd:string" />
     <xsd:element name="password"    type="cfg:password_T" />
-    <xsd:element name="ciphertext"  type="xsd:base64Binary" />
-    <xsd:element name="iv"          type="xsd:base64Binary" />
-    <xsd:element name="key"         type="xsd:base64Binary" />
-    <xsd:element name="key_iv"      type="xsd:base64Binary" />
+    <xsd:element name="key_iv"      type="cfg:iv_T" />
+    <xsd:element name="key"         type="cfg:key_T" />
+    <xsd:element name="key_hmac"    type="cfg:hmac_T" />
+    <xsd:element name="iv"          type="cfg:iv_T" />
+    <xsd:element name="ciphertext"  type="xsd:hexBinary" />
+    <xsd:element name="hmac"        type="cfg:hmac_T" />
     <xsd:element name="path"        type="xsd:string" />
     <xsd:element name="frequency"   type="cfg:frequency_T" />
     <xsd:element name="start_depth" type="xsd:nonNegativeInteger" />
@@ -81,12 +83,32 @@
 
     <xsd:complexType name="password_T">
         <xsd:all>
-            <xsd:element ref="cfg:ciphertext" />
-            <xsd:element ref="cfg:iv" />
-            <xsd:element ref="cfg:key" />
             <xsd:element ref="cfg:key_iv" />
+            <xsd:element ref="cfg:key" />
+            <xsd:element ref="cfg:key_hmac" />
+            <xsd:element ref="cfg:iv" />
+            <xsd:element ref="cfg:ciphertext" />
+            <xsd:element ref="cfg:hmac" />
         </xsd:all>
     </xsd:complexType>
+
+    <xsd:simpleType name="iv_T">
+        <xsd:restriction base="xsd:hexBinary">
+            <xsd:length value="16"/> <!-- length in bytes, not ASCII characters -->
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="key_T">
+        <xsd:restriction base="xsd:hexBinary">
+            <xsd:length value="32"/> <!-- length in bytes, not ASCII characters -->
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="hmac_T">
+        <xsd:restriction base="xsd:hexBinary">
+            <xsd:length value="32"/> <!-- length in bytes, not ASCII characters -->
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="operations_T">
         <xsd:choice minOccurs="1" maxOccurs="unbounded">
