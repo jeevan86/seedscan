@@ -10,8 +10,8 @@
         <!--cfg:directory>/qcwork/seedscan/logs</cfg:directory-->
         <cfg:directory>logs</cfg:directory>
         <cfg:prefix>seedscan.</cfg:prefix>
-        <cfg:postfix>.log</cfg:postfix>
-        <cfg:level>DEBUG</cfg:level>
+        <cfg:suffix>.log</cfg:suffix>
+        <cfg:level>INFO</cfg:level>
     </cfg:log>
   
     <cfg:database>
@@ -27,7 +27,7 @@
             <cfg:hmac>952bf002cc030243952bf002cc030243952bf002cc030243952bf002cc030243</cfg:hmac>
         </cfg:password>
     </cfg:database>
- 
+
     <cfg:scans>
         <cfg:scan cfg:id="1">
             <cfg:path>/xs0/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}</cfg:path>
@@ -59,7 +59,7 @@
                 </cfg:years>
             </cfg:frequency>
             <cfg:start_depth>1</cfg:start_depth>
-            <cfg:scan_depth>-1</cfg:scan_depth>
+            <cfg:scan_depth>366</cfg:scan_depth>
             <cfg:operations>
                 <cfg:operation>
                     <cfg:calibration/>

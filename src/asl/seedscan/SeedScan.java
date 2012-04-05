@@ -78,26 +78,23 @@ public class SeedScan
         Logger.getLogger("asl.seedscan.Scanner").setLevel(Level.INFO);
         Logger.getLogger("asl.seedsplitter").setLevel(Level.INFO);
 
-        boolean parseConfig = true;
+        // Default locations of config and schema files
         File configFile = new File("config.xml");
         File schemaFile = new File("schemas/SeedScanConfig.xsd");
+        boolean parseConfig = true;
 
      // === Command Line Parsing ===
         Options options = new Options();
         Option opConfigFile = new Option("c", "config-file", true, 
-                            "The config file to use for seedscan. XML format according to SeedScanConfig.xsd.");  
-        Option opNoConfig   = new Option("C", "no-config", false,
-                            "Do not use a custom configuration, instead run with default values");
+                            "The config file to use for seedscan. XML format according to SeedScanConfig.xsd.");
         Option opSchemaFile = new Option("s", "schema-file", true, 
                             "The schame file which should be used to verify the config file format. ");  
 
         OptionGroup ogConfig = new OptionGroup();
         ogConfig.addOption(opConfigFile);
-        ogConfig.addOption(opNoConfig);
 
         OptionGroup ogSchema = new OptionGroup();
         ogConfig.addOption(opSchemaFile);
-        ogConfig.addOption(opNoConfig);
 
         options.addOptionGroup(ogConfig);
         options.addOptionGroup(ogSchema);
@@ -118,9 +115,6 @@ public class SeedScan
             if (opt.getOpt().equals("c")) {
                 configFile = new File(opt.getValue());
             }
-            else if (opt.getOpt().equals("C")) {
-                parseConfig = false;
-            }
             else if (opt.getOpt().equals("s")) {
                 schemaFile = new File(opt.getValue());
             }
@@ -128,43 +122,58 @@ public class SeedScan
 
      // === Default Patterns ===
         String tr1PathPattern = "/tr1/telemetry_days/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}";
-        String xs0PathPattern = "/xs0/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}";
-        String xs1PathPattern = "/xs1/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}";
-        String lockFile = "seedscan.lock";
-        String url  = "jdbc:mysql://136.177.121.210:54321/seedscan";
-        String user = "seedscan_write";
-        String pass = "";
+        //String xs0PathPattern = "/xs0/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}";
+        //String xs1PathPattern = "/xs1/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}";
+        //String lockFilePath = "seedscan.lock";
+        //String url  = "jdbc:mysql://136.177.121.210:54321/seedscan";
+        //String user = "seedscan_write";
+        //String pass = "";
 
         //String url  = "jdbc:oracle://<server>:<port>/database";
         //Console cons = System.console();
-        //char[] pass = cons.readPassword("Password for MySQL account '%s': ", user);
+        //char[] pass = cons.readPassword("SeedScan Unlock Password: ");
 
+        ConfigReader configReader = new ConfigReader(schemaFile);
+        configReader.loadConfiguration(configFile);
+        Configuration configuration = configReader.getConfiguration();
+
+     // Print out configuration file contents
         Formatter formatter = new Formatter(new StringBuilder(), Locale.US);
-        if (parseConfig) {
-            ConfigReader configReader = new ConfigReader(schemaFile);
-            configReader.loadConfiguration(configFile);
-            Configuration config = configReader.getConfiguration();
-
-            int maxKey = 0;
-            List<String> keys = Collections.list(config.getKeys());
-            Collections.sort(keys);
-            for (String key: keys) {
-                if (key.length() > maxKey) {
-                    maxKey = key.length();
-                }
-            }
-            String format = formatter.format(" %%1$%ds : %%2$s\n", maxKey).toString();
-            for (String key: keys) {
-                String value = config.get(key);
-                System.out.printf(format, key, value);
+        int maxKey = 0;
+        List<String> keys = Collections.list(configuration.getKeys());
+        Collections.sort(keys);
+        for (String key: keys) {
+            if (key.length() > maxKey) {
+                maxKey = key.length();
             }
         }
+        String format = formatter.format(" %%1$%ds : %%2$s\n", maxKey).toString();
+        for (String key: keys) {
+            String value = configuration.get(key);
+            System.out.printf(format, key, value);
+        }
 
-        LockFile lock = new LockFile(lockFile);
+        // Set the lock file from the configuration
+        String lockFilePath = configuration.get("lockfile");
+        LockFile lock = new LockFile(lockFilePath);
         if (!lock.acquire()) {
             logger.severe("Could not acquire lock.");
             System.exit(1);
         }
+        
+        // TODO: Locate scans in config file
+
+
+        // Set the log file from the configuration
+        LogFileHandler logFile = new LogFileHandler();
+        try {
+            logFile.setFromConfiguration(configuration);
+        } catch (BadLogConfigurationException exception) {
+            logger.severe("Could not open the log file '" +logFile.getLogFileName()+ "'.");
+            System.exit(1);
+        }
+        logger.addHandler(logFile);
+        //Logger.getGlobal().addHandler(logFile); XXX: Java 7+
 
         // TODO: State Tracking in the Database
         // - Record scan started in database.

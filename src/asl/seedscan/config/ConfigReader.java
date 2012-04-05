@@ -156,7 +156,7 @@ public class ConfigReader
         configuration.put("log-level",      xpath.evaluate("//cfg:seedscan/cfg:log/cfg:level/text()", doc));
         configuration.put("log-directory",  xpath.evaluate("//cfg:seedscan/cfg:log/cfg:directory/text()", doc));
         configuration.put("log-prefix",     xpath.evaluate("//cfg:seedscan/cfg:log/cfg:prefix/text()", doc));
-        configuration.put("log-postfix",    xpath.evaluate("//cfg:seedscan/cfg:log/cfg:postfix/text()", doc));
+        configuration.put("log-suffix",    xpath.evaluate("//cfg:seedscan/cfg:log/cfg:suffix/text()", doc));
 
      // Parse Database Config
         logger.fine("Parsing database.");
