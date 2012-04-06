@@ -10,7 +10,7 @@
     <!-- root -->
     <xsd:element name="seedscan"    type="cfg:seedscan_T"/>
     <!-- primary elements -->
-    <xsd:element name="lockfile"   type="xsd:string" />
+    <xsd:element name="lockfile"    type="xsd:string" />
     <xsd:element name="log"         type="cfg:log_T" />
     <xsd:element name="database"    type="cfg:database_T" />
     <xsd:element name="scans"       type="cfg:scans_T" />
@@ -19,13 +19,13 @@
     <xsd:element name="directory"   type="xsd:string" />
     <xsd:element name="prefix"      type="xsd:string" />
     <xsd:element name="suffix"      type="xsd:string" />
+    <xsd:element name="levels"      type="cfg:log_levels_T" />
     <xsd:element name="level"       type="cfg:log_level_T" />
     <xsd:element name="url"         type="xsd:anyURI" />
     <xsd:element name="username"    type="xsd:string" />
     <xsd:element name="password"    type="cfg:password_T" />
-    <xsd:element name="key_iv"      type="cfg:iv_T" />
-    <xsd:element name="key"         type="cfg:key_T" />
-    <xsd:element name="key_hmac"    type="cfg:hmac_T" />
+    <xsd:element name="encrypted"   type="cfg:encrypted_T" />
+    <xsd:element name="plain"       type="xsd:string" />
     <xsd:element name="iv"          type="cfg:iv_T" />
     <xsd:element name="ciphertext"  type="xsd:hexBinary" />
     <xsd:element name="hmac"        type="cfg:hmac_T" />
@@ -69,7 +69,7 @@
             <xsd:element ref="cfg:directory"   minOccurs="1" maxOccurs="1"/>
             <xsd:element ref="cfg:prefix"      minOccurs="1" maxOccurs="1"/>
             <xsd:element ref="cfg:suffix"      minOccurs="1" maxOccurs="1"/>
-            <xsd:element ref="cfg:level"       minOccurs="1" maxOccurs="1"/>
+            <xsd:element ref="cfg:levels"      minOccurs="1" maxOccurs="1"/>
         </xsd:all>
     </xsd:complexType>
 
@@ -77,15 +77,19 @@
         <xsd:all>
             <xsd:element ref="cfg:url" />
             <xsd:element ref="cfg:username" />
-            <xsd:element ref="cfg:password" minOccurs="0" />
+            <xsd:element ref="cfg:password" />
         </xsd:all>
     </xsd:complexType>
 
     <xsd:complexType name="password_T">
+        <xsd:choice minOccurs="1" maxOccurs="1">
+            <xsd:element ref="cfg:encrypted" />
+            <xsd:element ref="cfg:plain" />
+        </xsd:choice>
+    </xsd:complexType>
+
+    <xsd:complexType name="encrypted_T">
         <xsd:all>
-            <xsd:element ref="cfg:key_iv" />
-            <xsd:element ref="cfg:key" />
-            <xsd:element ref="cfg:key_hmac" />
             <xsd:element ref="cfg:iv" />
             <xsd:element ref="cfg:ciphertext" />
             <xsd:element ref="cfg:hmac" />
@@ -98,15 +102,9 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:simpleType name="key_T">
-        <xsd:restriction base="xsd:hexBinary">
-            <xsd:length value="32"/> <!-- length in bytes, not ASCII characters -->
-        </xsd:restriction>
-    </xsd:simpleType>
-
     <xsd:simpleType name="hmac_T">
         <xsd:restriction base="xsd:hexBinary">
-            <xsd:length value="32"/> <!-- length in bytes, not ASCII characters -->
+            <xsd:length value="16"/> <!-- length in bytes, not ASCII characters -->
         </xsd:restriction>
     </xsd:simpleType>
 
@@ -134,10 +132,24 @@
             <xsd:element ref="cfg:channel_subset"   minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="cfg:operations"       minOccurs="1" maxOccurs="1"/>
         </xsd:all>
-        <xsd:attribute name="id" use="required" type="xsd:nonNegativeInteger"/>
+        <xsd:attribute name="id" use="required" type="xsd:nonNegativeInteger" />
     </xsd:complexType>
 
-    <xsd:simpleType name="log_level_T">
+    <xsd:complexType name="log_levels_T">
+        <xsd:choice minOccurs="0" maxOccurs="unbounded">
+            <xsd:element ref="cfg:level" />
+        </xsd:choice>
+    </xsd:complexType>
+
+    <xsd:complexType name="log_level_T">
+        <xsd:simpleContent>
+            <xsd:extension base="cfg:log_level_enum_T">
+                <xsd:attribute name="name" use="required" type="xsd:string" />
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:simpleType name="log_level_enum_T">
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="OFF" />
             <xsd:enumeration value="SEVERE" />

@@ -9,22 +9,28 @@
     <cfg:log>
         <!--cfg:directory>/qcwork/seedscan/logs</cfg:directory-->
         <cfg:directory>logs</cfg:directory>
-        <cfg:prefix>seedscan.</cfg:prefix>
+        <cfg:prefix>seedscan-</cfg:prefix>
         <cfg:suffix>.log</cfg:suffix>
-        <cfg:level>INFO</cfg:level>
+        <cfg:levels>
+            <!-- OFF, SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST, ALL -->
+            <cfg:level cfg:name="CONSOLE">FINEST</cfg:level>
+            <cfg:level cfg:name="GLOBAL">FINEST</cfg:level>
+            <cfg:level cfg:name="asl.seedscan.Scanner">INFO</cfg:level>
+            <cfg:level cfg:name="asl.seedsplitter">INFO</cfg:level>
+        </cfg:levels>
     </cfg:log>
   
     <cfg:database>
+        <!--cfg:url>jdbc:mysql://catbox2.cr.usgs.gov/stations</cfg:url-->
         <cfg:url>jdbc:mysql://136.177.121.210:54321/seedscan</cfg:url>
         <cfg:username>seedscan_write</cfg:username>
-        <!--cfg:url>jdbc:mysql://catbox2.cr.usgs.gov/stations</cfg:url-->
         <cfg:password>
-            <cfg:key_iv>952bf002cc030243952bf002cc030243</cfg:key_iv>
-            <cfg:key>952bf002cc030243952bf002cc030243952bf002cc030243952bf002cc030243</cfg:key>
-            <cfg:key_hmac>952bf002cc030243952bf002cc030243952bf002cc030243952bf002cc030243</cfg:key_hmac>
-            <cfg:iv>952bf002cc030243952bf002cc030243</cfg:iv>
-            <cfg:ciphertext>2f9cb9a02ee92a39</cfg:ciphertext>
-            <cfg:hmac>952bf002cc030243952bf002cc030243952bf002cc030243952bf002cc030243</cfg:hmac>
+            <cfg:plain>S33dSc@nWr1t3r!</cfg:plain>
+            <!--cfg:encrypted>
+                <cfg:iv>952bf002cc030243952bf002cc030243</cfg:iv>
+                <cfg:ciphertext>2f9cb9a02ee92a392f9cb9a02ee92a39</cfg:ciphertext>
+                <cfg:hmac>952bf002cc030243952bf002cc030243</cfg:hmac>
+            <cfg:encrypted-->
         </cfg:password>
     </cfg:database>
 
