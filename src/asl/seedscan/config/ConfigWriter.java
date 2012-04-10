@@ -105,6 +105,14 @@ public class ConfigWriter
 
     public void saveConfiguration(File configFile)
     {
+        try {
+            populateConfig();
+        } catch (XPathExpressionException e) {
+            logger.severe("XPath expression error!\n Details: " +e);
+            e.printStackTrace();
+            throw new RuntimeException("XPath expression error.");
+        }
+
         if (validate) {
             Validator validator = schema.newValidator();
             try {
@@ -130,69 +138,14 @@ public class ConfigWriter
             throw new RuntimeException("Could not read configuration file.");
         }
 
-        try {
-            parseConfig();
-        } catch (XPathExpressionException e) {
-            logger.severe("XPath expression error!\n Details: " +e);
-            e.printStackTrace();
-            throw new RuntimeException("XPath expression error.");
-        }
         ready = true;
     }
 
-    private void parseConfig()
+    private void populateConfig()
       throws javax.xml.xpath.XPathExpressionException
     {
-        logger.info("Document: " + doc);
-
-     // Parse Lock File Config
-        logger.info("Parsing lockfile.");
-        configuration.put("lockfile",   xpath.evaluate("/seedscan/lockfile/text()", doc));
-
-     // Parse Log Config
-        logger.info("Parsing log.");
-        configuration.put("log-level",      xpath.evaluate("/seedscan/log/level/text()", doc));
-        configuration.put("log-directory",  xpath.evaluate("/seedscan/log/directory/text()", doc));
-        configuration.put("log-prefix",     xpath.evaluate("/seedscan/log/prefix/text()", doc));
-        configuration.put("log-postfix",    xpath.evaluate("/seedscan/log/postfix/text()", doc));
-
-     // Parse Database Config
-        logger.info("Parsing database.");
-        configuration.put("database-url",       xpath.evaluate("/seedscan/database/url/text()", doc));
-        configuration.put("database-username",  xpath.evaluate("/seedscan/database/username/text()", doc));
-        configuration.put("database-password",  xpath.evaluate("/seedscan/database/password/text()", doc));
-
-     // Parse Scans
-        logger.info("Parsing scans.");
-        int id;
-        String key;
-        Object scan;
-        NodeList scans = (NodeList)xpath.evaluate("/seedscan/scans/scan", doc, XPathConstants.NODESET);
-        if ((scans == null) || (scans.getLength() < 1)) {
-            logger.warning("No scans in configuration.");
-        } 
-        else {
-            int scanCount = scans.getLength();
-            for (int j=0; j < scanCount; j++) {
-                scan = scans.item(j);
-                id = Integer.parseInt(xpath.evaluate("./@id", scan));
-                key = "scan-" + id;
-                configuration.put(key+ "-path", xpath.evaluate("./path/text()", scan));
-                configuration.put(key+ "-start_depth", xpath.evaluate("./start_depth/text()", scan));
-                configuration.put(key+ "-scan_depth",  xpath.evaluate("./scan_depth/text()", scan));
-
-                NodeList ops = (NodeList)xpath.evaluate("./operations/operation", scan, XPathConstants.NODESET);
-                int opCount = ops.getLength();
-                if ((ops == null) || (ops.getLength() < 1)) {
-                    logger.warning("No operations found in scan " +id+".");
-                    continue;
-                }
-                for (int i=1; i <= opCount; i++) {
-                    configuration.put(key+ "-op-" +i,  xpath.evaluate("./*[0]/name()", scan));
-                }
-            }
-        }
-        logger.info("Configuration: " + configuration);
+        //TODO: complete
+        ;
     }
 
 }

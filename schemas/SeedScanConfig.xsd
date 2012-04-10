@@ -26,6 +26,7 @@
     <xsd:element name="password"    type="cfg:password_T" />
     <xsd:element name="encrypted"   type="cfg:encrypted_T" />
     <xsd:element name="plain"       type="xsd:string" />
+    <xsd:element name="salt"        type="cfg:salt_T" />
     <xsd:element name="iv"          type="cfg:iv_T" />
     <xsd:element name="ciphertext"  type="xsd:hexBinary" />
     <xsd:element name="hmac"        type="cfg:hmac_T" />
@@ -90,11 +91,18 @@
 
     <xsd:complexType name="encrypted_T">
         <xsd:all>
+            <xsd:element ref="cfg:salt" />
             <xsd:element ref="cfg:iv" />
             <xsd:element ref="cfg:ciphertext" />
             <xsd:element ref="cfg:hmac" />
         </xsd:all>
     </xsd:complexType>
+
+    <xsd:simpleType name="salt_T">
+        <xsd:restriction base="xsd:hexBinary">
+            <xsd:length value="8"/> <!-- length in bytes, not ASCII characters -->
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:simpleType name="iv_T">
         <xsd:restriction base="xsd:hexBinary">

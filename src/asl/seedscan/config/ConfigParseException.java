@@ -16,19 +16,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
  *
  */
-package asl.seedscan;
+package asl.seedscan.config;
 
-public class BadLogConfigurationException
+public class ConfigParseException
 extends Exception
 {
-    public BadLogConfigurationException()
+    public ConfigParseException()
     {
         super();
     }
 
-    public BadLogConfigurationException(String message)
+    public ConfigParseException(String message)
     {
         super(message);
     }
 }
-

@@ -16,11 +16,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
  *
  */
-
 package asl.seedscan.config;
 
-public interface Password
+public class EncryptionException
+extends Exception
 {
-    public boolean setPassword(String password);
-    public String getPassword();
+    public EncryptionException()
+    {
+        super();
+    }
+
+    public EncryptionException(String message)
+    {
+        super(message);
+    }
 }

@@ -21,69 +21,60 @@ package asl.seedscan.config;
 
 import java.util.logging.Logger;
 
-import javax.crypto.Cipher;
-import javax.crypto.Mac;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
+import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
 
 public class EncryptedPassword
+extends Encrypted
 implements Password
 {
     private static final Logger logger = Logger.getLogger("asl.seedscan.config.EncryptedPassword");
 
-    private String cipherText = null;
-    private IvParameterSpec iv = null;
-    private SecretKeySpec key = null;
-
-    public EncryptedPassword(IvParameterSpec iv,
-                             SecretKeySpec key)
+ // constructor(s)
+    public EncryptedPassword(byte[] key)
     {
-        this.iv = iv;
-        this.key = key;
+        super(key);
     }
 
-    private String encryptPassword(String password)
+    public EncryptedPassword(byte[] iv,
+                             byte[] cipherText,
+                             byte[] hmac)
     {
-        String cipherText = "";
-        // TODO: Encrypt text
-        return cipherText;
+        super(iv, cipherText, hmac);
     }
 
-    private String decryptPassword(String cipherText)
+ // password (implements methods from interface Password)
+    public boolean setPassword(String password)
     {
-        String password = "";
-        // TODO: Decrypt text
-        return password;
-    }
-
-    private Mac generateHMAC(String password)
-    {
-        Mac hmac = null;
-        // TODO: generate password HMAC
-        return hmac;
-
-    }
-
-    public void setCiphertext(String cipherText)
-    {
-        this.cipherText = cipherText;
-    }
-
-    public void setPassword(String password)
-    {
-        encryptPassword(password);
+        boolean result;
+        try {
+            result = encrypt(password);
+        } catch (EncryptionException e) {
+            result = false;
+        }
+        return result;
     }
 
     public String getPassword()
     {
-        if (cipherText == null) {
-            return null;
+        String passwordString;
+        try {
+            passwordString = decrypt();
+        } catch (EncryptionException e) {
+            passwordString = null;
         }
-        return decryptPassword(cipherText);
+        return passwordString;
     }
 
-    public String getCiphertext()
+    public String toString()
     {
-        return cipherText;
+        String hmacHex;
+        byte[] hmac = getHMAC();
+        if (hmac == null) {
+            hmacHex = "NULL";
+        }
+        else {
+            hmacHex = (new HexBinaryAdapter()).marshal(hmac);
+        }
+        return new String("EncryptedPassword: hmac["+hmacHex+"]");
     }
 }

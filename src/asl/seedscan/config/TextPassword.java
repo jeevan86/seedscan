@@ -28,16 +28,24 @@ implements Password
 
     private String password = null;
 
-    public TextPassword()
-    {;}
-
-    public void setPassword(String password)
+    public TextPassword(String password)
     {
         this.password = password;
+    }
+
+    public boolean setPassword(String password)
+    {
+        this.password = password;
+        return (password == null) ? false : true;
     }
 
     public String getPassword()
     {
         return password;
+    }
+
+    public String toString()
+    {
+        return new String("TextPassword: *** [" +password.length()+ "]");
     }
 }

@@ -35,14 +35,14 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import asl.seedscan.config.Configuration;
-import asl.seedscan.config.ConfigReader;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
+
+import asl.seedscan.config.Configuration;
+import asl.seedscan.config.ConfigReader;
 
 /**
  * 
@@ -51,39 +51,43 @@ public class SeedScan
 {
     private static final Logger logger = Logger.getLogger("asl.seedscan.SeedScan");
 
-    private final static String allchanURLstr = "http://wwwasl/uptime/honeywell/gsn_allchan.txt";
+    private static final String allchanURLstr = "http://wwwasl/uptime/honeywell/gsn_allchan.txt";
     private static URL allchanURL;
     private static Handler consoleHandler;
 
     public static void findConsoleHandler()
     {
-        Logger topLogger = Logger.getLogger("");
-        for (Handler handler: topLogger.getHandlers()) {
+     // Locate the global logger's ConsoleHandler if it exists
+        Logger globalLogger = Logger.getLogger("");
+        for (Handler handler: globalLogger.getHandlers()) {
             if (handler instanceof ConsoleHandler) {
                 consoleHandler = handler;
                 break;
             }
         }
+
+     // Ensure the global logger has an attached ConsoleHandler
+     // creating one for it if necessary
         if (consoleHandler == null) {
             consoleHandler = new ConsoleHandler();
-            topLogger.addHandler(consoleHandler);
+            globalLogger.addHandler(consoleHandler);
         }
     }
 
     public static void main(String args[])
     {
         findConsoleHandler();
-        consoleHandler.setLevel(Level.FINEST);
+        consoleHandler.setLevel(Level.ALL);
+        Logger.getLogger("").setLevel(Level.ALL);
         Logger.getLogger("asl.seedscan").setLevel(Level.FINEST);
-        Logger.getLogger("asl.seedscan.Scanner").setLevel(Level.INFO);
-        Logger.getLogger("asl.seedsplitter").setLevel(Level.INFO);
+        Logger.getLogger("asl.seedscan.config").setLevel(Level.FINEST);
 
-        // Default locations of config and schema files
+     // Default locations of config and schema files
         File configFile = new File("config.xml");
         File schemaFile = new File("schemas/SeedScanConfig.xsd");
         boolean parseConfig = true;
 
-     // === Command Line Parsing ===
+// ==== Command Line Parsing ====
         Options options = new Options();
         Option opConfigFile = new Option("c", "config-file", true, 
                             "The config file to use for seedscan. XML format according to SeedScanConfig.xsd.");
@@ -120,7 +124,7 @@ public class SeedScan
             }
         }
 
-     // === Default Patterns ===
+// ==== Default Patterns ====
         String tr1PathPattern = "/tr1/telemetry_days/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}";
         //String xs0PathPattern = "/xs0/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}";
         //String xs1PathPattern = "/xs1/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}";
@@ -137,53 +141,47 @@ public class SeedScan
         configReader.loadConfiguration(configFile);
         Configuration configuration = configReader.getConfiguration();
 
+// ==== Configuration Read and Parse Actions ====
      // Print out configuration file contents
         Formatter formatter = new Formatter(new StringBuilder(), Locale.US);
-        int maxKey = 0;
-        List<String> keys = Collections.list(configuration.getKeys());
-        Collections.sort(keys);
-        for (String key: keys) {
-            if (key.length() > maxKey) {
-                maxKey = key.length();
-            }
-        }
-        String format = formatter.format(" %%1$%ds : %%2$s\n", maxKey).toString();
-        for (String key: keys) {
-            String value = configuration.get(key);
-            System.out.printf(format, key, value);
-        }
 
-        // Set the lock file from the configuration
-        String lockFilePath = configuration.get("lockfile");
-        LockFile lock = new LockFile(lockFilePath);
+        // TODO: print out the configuration
+        //String format = formatter.format(" %%1$%ds : %%2$s\n", maxKey).toString();
+        //System.out.printf("");
+
+     // Set the lock file from the configuration
+        LockFile lock = new LockFile(configuration.getLockFile());
         if (!lock.acquire()) {
             logger.severe("Could not acquire lock.");
             System.exit(1);
         }
         
+     // Set the log file from the configuration
+        LogFileHandler logFile = new LogFileHandler(configuration.getLogConfig());
+        logFile.setLevel(Level.ALL);
+        Logger.getLogger("").addHandler(logFile);
+
+     // Set logger levels from configuration
+        //Logger.getLogger("asl.seedscan").setLevel(Level.FINEST);
+        //Logger.getLogger("asl.seedscan.Scanner").setLevel(Level.INFO);
+        //Logger.getLogger("asl.seedsplitter").setLevel(Level.INFO);
+
+
         // TODO: Locate scans in config file
 
 
-        // Set the log file from the configuration
-        LogFileHandler logFile = new LogFileHandler();
-        try {
-            logFile.setFromConfiguration(configuration);
-        } catch (BadLogConfigurationException exception) {
-            logger.severe("Could not open the log file '" +logFile.getLogFileName()+ "'.");
-            System.exit(1);
-        }
-        logger.addHandler(logFile);
-        //Logger.getGlobal().addHandler(logFile); XXX: Java 7+
 
+
+        int startDepth = 1; // Start this many days back.
+        int scanDepth  = 2; // Number of days to evaluate.
+        boolean scanXS0 = false;
+
+// ==== Establish Database Connection ====
         // TODO: State Tracking in the Database
         // - Record scan started in database.
         // - Track our progress as we go so a new process can pick up where
         //   we left off if our process dies.
         // - Mark when each date-station-channel-operation is complete
-
-        int startDepth = 1; // Start this many days back.
-        int scanDepth  = 2; // Number of days to evaluate.
-        boolean scanXS0 = false;
 
         //StationDatabase database = new StationDatabase(url, user, pass);
         StationDatabase database = null;
@@ -238,6 +236,7 @@ public class SeedScan
         // If we need to push all of it at once, do these in sequence
         // in order to preserve overall system memory resources.
 
+// ==== Perform Scans ====
         for (Station station: stations) {
             Scanner scanner = new Scanner(database, station, tr1PathPattern);
             scanner.scan();

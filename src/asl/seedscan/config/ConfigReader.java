@@ -19,9 +19,11 @@
 package asl.seedscan.config;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.logging.Level;
 
 import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
 import javax.xml.parsers.ParserConfigurationException;
@@ -38,8 +40,14 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import org.xml.sax.SAXException;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Document;
+
+import asl.seedscan.scan.Scan;
+import asl.seedscan.scan.ScanOperation;
+import asl.seedscan.scan.ScanFrequency;
 
 /**
  * 
@@ -60,8 +68,9 @@ public class ConfigReader
     private boolean validate = false;
     private boolean ready    = false;
 
-    private Configuration configuration = null;
+    private Configuration config = null;
 
+ // constructor(s)
     public ConfigReader()
     {
         _construct(null);
@@ -100,12 +109,13 @@ public class ConfigReader
 
     public Configuration getConfiguration()
     {
-        return configuration;
+        return config;
     }
 
+ // read and validate the configuration
     public void loadConfiguration(File configFile)
     {
-        configuration = new Configuration();
+        config = new Configuration();
 
         if (validate) {
             Validator validator = schema.newValidator();
@@ -138,68 +148,128 @@ public class ConfigReader
             logger.severe("XPath expression error!\n Details: " +e);
             e.printStackTrace();
             throw new RuntimeException("XPath expression error.");
+        } catch (FileNotFoundException e) {
+            logger.severe("Configuration error!\n Details: " +e);
+            e.printStackTrace();
+            throw new RuntimeException("Configuration error.");
+        } catch (IOException e) {
+            logger.severe("Configuration error!\n Details: " +e);
+            e.printStackTrace();
+            throw new RuntimeException("Configuration error.");
         }
         ready = true;
     }
 
+ // parse the configuration
     private void parseConfig()
-      throws javax.xml.xpath.XPathExpressionException
+      throws FileNotFoundException,
+             IOException,
+             XPathExpressionException
+    {
+        parseConfig(null);
+    }
+
+    private void parseConfig(String configPassword)
+      throws FileNotFoundException,
+             IOException,
+             XPathExpressionException
     {
         logger.info("Parsing the configuration file");
         logger.fine("Document: " + doc);
 
         // Lock File
         logger.fine("Parsing lockfile.");
-        configuration.put("lockfile",   xpath.evaluate("//cfg:seedscan/cfg:lockfile/text()", doc));
+        config.setLockFile(xpath.evaluate("//cfg:seedscan/cfg:lockfile/text()", doc));
 
         // Parse Log Config
-        configuration.put("log-level",      xpath.evaluate("//cfg:seedscan/cfg:log/cfg:level/text()", doc));
-        configuration.put("log-directory",  xpath.evaluate("//cfg:seedscan/cfg:log/cfg:directory/text()", doc));
-        configuration.put("log-prefix",     xpath.evaluate("//cfg:seedscan/cfg:log/cfg:prefix/text()", doc));
-        configuration.put("log-suffix",    xpath.evaluate("//cfg:seedscan/cfg:log/cfg:suffix/text()", doc));
+        LogConfig logConfig = new LogConfig();
+        //config.put("log-levels",      xpath.evaluate("//cfg:seedscan/cfg:log/cfg:level/text()", doc));
+
+        String pathLog = "//cfg:seedscan/cfg:log";
+        logConfig.setDirectory(xpath.evaluate(pathLog+"/cfg:directory/text()", doc));
+        logConfig.setPrefix(   xpath.evaluate(pathLog+"/cfg:prefix/text()", doc));
+        logConfig.setSuffix(   xpath.evaluate(pathLog+"/cfg:suffix/text()", doc));
+
+        NodeList nodes = (NodeList)xpath.evaluate(pathLog+"/cfg:levels/cfg:level",
+                                                  doc, XPathConstants.NODESET);
+        for (int i = 0; i < nodes.getLength(); i++)
+        {
+            Node node = nodes.item(i);
+            NamedNodeMap attribs = node.getAttributes();
+            Node nameAttrib = attribs.getNamedItem("cfg:name");
+            String name = nameAttrib.getNodeValue();
+            String level = node.getTextContent();
+            logConfig.setLevel(name, Level.parse(level));
+            logger.fine("Log context '" +name+ "' set to level " +level);
+        }
 
      // Parse Database Config
+        DatabaseConfig dbConfig = new DatabaseConfig();
+        Password password;
         logger.fine("Parsing database.");
-        configuration.put("database-url",       xpath.evaluate("//cfg:seedscan/cfg:database/cfg:url/text()", doc));
-        configuration.put("database-username",  xpath.evaluate("//cfg:seedscan/cfg:database/cfg:username/text()", doc));
-        configuration.put("database-password-key-iv",  xpath.evaluate("//cfg:seedscan/cfg:database/cfg:password/cfg:key_iv/text()", doc));
-        configuration.put("database-password-key",  xpath.evaluate("//cfg:seedscan/cfg:database/cfg:password/cfg:key/text()", doc));
-        configuration.put("database-password-key-hmac",  xpath.evaluate("//cfg:seedscan/cfg:database/cfg:password/cfg:key_hmac/text()", doc));
-        configuration.put("database-password-iv",  xpath.evaluate("//cfg:seedscan/cfg:database/cfg:password/cfg:iv/text()", doc));
-        configuration.put("database-password",  xpath.evaluate("//cfg:seedscan/cfg:database/cfg:password/cfg:ciphertext/text()", doc));
-        configuration.put("database-password-hmac",  xpath.evaluate("//cfg:seedscan/cfg:database/cfg:password/cfg:hmac/text()", doc));
+        String pathDB = "//cfg:seedscan/cfg:database";
+        dbConfig.setURI(     xpath.evaluate(pathDB+"/cfg:uri/text()", doc));
+        dbConfig.setUsername(xpath.evaluate(pathDB+"/cfg:username/text()", doc));
+        String pathPass = pathDB + "/cfg:password";
+        nodes = (NodeList)xpath.evaluate(pathPass+"/cfg:plain",
+                                         doc, XPathConstants.NODESET);
+        if (nodes.getLength() > 0) {
+            String text = xpath.evaluate(pathPass+"/cfg:plain/text()", doc);
+            password = (Password)(new TextPassword(text));
+        } else {
+            HexBinaryAdapter hexbin = new HexBinaryAdapter();
+            String pathEnc = pathPass + "/cfg:encrypted";
+            String salt        = xpath.evaluate(pathEnc+"/cfg:salt/text()", doc);
+            String iv          = xpath.evaluate(pathEnc+"/cfg:iv/text()", doc);
+            String cipherText  = xpath.evaluate(pathEnc+"/cfg:ciphertext/text()", doc);
+            String hmac        = xpath.evaluate(pathEnc+"/cfg:hmac/text()", doc);
+            EncryptedPassword cryptPass = new EncryptedPassword(hexbin.unmarshal(iv),
+                                                                hexbin.unmarshal(cipherText),
+                                                                hexbin.unmarshal(hmac));
+            PassKey passKey = new PassKey(configPassword, 16, hexbin.unmarshal(salt));
+            cryptPass.setKey(passKey.getKey());
+            password = (Password)cryptPass;
+        }
+        dbConfig.setPassword(password);
 
      // Parse Scans
         logger.fine("Parsing scans.");
         int id;
         String key;
-        Object scan;
-        NodeList scans = (NodeList)xpath.evaluate("/seedscan/scans/scan", doc, XPathConstants.NODESET);
+        NodeList scans = (NodeList)xpath.evaluate("//cfg:seedscan/cfg:scans/cfg:scan",
+                                                  doc, XPathConstants.NODESET);
         if ((scans == null) || (scans.getLength() < 1)) {
             logger.warning("No scans in configuration.");
         } 
         else {
             int scanCount = scans.getLength();
-            for (int j=0; j < scanCount; j++) {
-                scan = scans.item(j);
-                id = Integer.parseInt(xpath.evaluate("./@id", scan));
-                key = "scan-" + id;
-                configuration.put(key+ "-path", xpath.evaluate("./path/text()", scan));
-                configuration.put(key+ "-start_depth", xpath.evaluate("./start_depth/text()", scan));
-                configuration.put(key+ "-scan_depth",  xpath.evaluate("./scan_depth/text()", scan));
+            for (int i=0; i < scanCount; i++) {
+                Node node = scans.item(i);
+                Scan scan = new Scan();
+
+                scan.setPathPattern(xpath.evaluate("./path/text()", scan));
+                scan.setStartDepth(Integer.parseInt(xpath.evaluate("./start_depth/text()", scan)));
+                scan.setScanDepth(Integer.parseInt(xpath.evaluate("./scan_depth/text()", scan)));
+
+                ScanFrequency frequency = new ScanFrequency();
+                // TODO: parse frequency
+                scan.setScanFrequency(frequency);
 
                 NodeList ops = (NodeList)xpath.evaluate("./operations/operation", scan, XPathConstants.NODESET);
                 int opCount = ops.getLength();
-                if ((ops == null) || (ops.getLength() < 1)) {
-                    logger.warning("No operations found in scan " +id+".");
-                    continue;
+                if ((ops == null) || (opCount < 1)) {
+                    logger.warning("No operations found in scan " +i+ ".");
+                } else {
+                    for (int j=1; j <= opCount; j++) {
+                        ScanOperation operation = new ScanOperation();
+                        scan.addOperation(operation);
+                    }
                 }
-                for (int i=1; i <= opCount; i++) {
-                    configuration.put(key+ "-op-" +i,  xpath.evaluate("./*[0]/name()", scan));
-                }
+
+                config.addScan(scan);
             }
         }
-        logger.fine("Configuration: " + configuration);
+        logger.fine("Configuration: " + config);
     }
 
 }

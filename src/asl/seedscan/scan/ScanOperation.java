@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
  *
  */
-package asl.seedscan;
+package asl.seedscan.scan;
 
 public class ScanOperation
 {

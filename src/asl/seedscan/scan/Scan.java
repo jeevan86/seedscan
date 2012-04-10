@@ -16,20 +16,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
  *
  */
-package asl.seedscan;
+package asl.seedscan.scan;
 
 import java.util.ArrayList;
 
 public class Scan
 {
     private String pathPattern;
-    private ScanFrequency scanFrequency;
-    private ArrayList<ScanOperation> scanOperations;
+    private ScanFrequency frequency;
+    private ArrayList<ScanOperation> operations;
     private int startDepth;
     private int scanDepth;
 
     public Scan()
     {
+        operations = new ArrayList<ScanOperation>();
     }
 
  // path pattern
@@ -44,25 +45,42 @@ public class Scan
     }
 
  // scan frequency
-    public void setScanFrequency(ScanFrequency scanFrequency)
+    public void setScanFrequency(ScanFrequency frequency)
     {
-        this.scanFrequency = scanFrequency;
+        this.frequency = frequency;
     }
 
     public ScanFrequency getScanFrequency()
     {
-        return scanFrequency;
+        return frequency;
     }
 
- // scan operations
-    public void setScanOperations(ArrayList<ScanOperation> scanOperations)
+ // operations
+    public void addOperation(ScanOperation operation)
     {
-        this.scanOperations = scanOperations;
+        operations.add(operation);
     }
 
-    public ArrayList<ScanOperation> getScanOperations()
+    public ScanOperation getOperation(int index)
+    throws IndexOutOfBoundsException
     {
-        return scanOperations;
+        return operations.get(index);
+    }
+
+    public ArrayList<ScanOperation> getOperations()
+    {
+        return operations;
+    }
+
+    public boolean removeOperation(ScanOperation operation)
+    {
+        return operations.remove(operation);
+    }
+
+    public ScanOperation removeOperations(int index)
+    throws IndexOutOfBoundsException
+    {
+        return operations.remove(index);
     }
 
  // start depth

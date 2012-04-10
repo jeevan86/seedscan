@@ -16,53 +16,116 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
  *
  */
-
 package asl.seedscan.config;
 
-import java.util.Enumeration;
-import java.util.Hashtable;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.logging.Logger;
 
-/**
- * 
- */
+import asl.seedscan.scan.Scan;
+
 public class Configuration
 {
     private static final Logger logger = Logger.getLogger("asl.seedscan.config.Configuration");
 
-    private Hashtable<String,String> configuration = null;
+    private File lockFile = null;
+    private LogConfig logConfig = null;
+    private DatabaseConfig dbConfig = null; 
+    private ArrayList<Scan> scans = null;
 
+ // constructor(s)
     public Configuration()
     {
-        configuration = new Hashtable<String,String>(32, (float)0.75);
+        scans = new ArrayList<Scan>();
     }
 
-    public void put(String key, String value)
+ // lock file
+    public void setLockFile(String fileName)
+    throws FileNotFoundException,
+           IOException,
+           NullPointerException,
+           SecurityException
     {
-        configuration.put(key, value);
+        setLockFile(new File(fileName));
     }
-
-    public String get(String key)
+    
+    public void setLockFile(File file)
+    throws FileNotFoundException,
+           IOException,
+           NullPointerException,
+           SecurityException
     {
-        return configuration.get(key);
-    }
-
-    public String get(String key, String defaultValue)
-    {
-        String value = defaultValue;
-        if (configuration.containsKey(key)) {
-            value = configuration.get(key);
+        if (file == null) {
+            throw new NullPointerException();
         }
-        return value;
+        if (!file.isFile()) {
+            throw new IOException("Path '" +file+ "'exists, but it is not a file");
+        }
+        if (!file.canWrite()) {
+            throw new SecurityException("Not permitted to modify file '" +file+ "'");
+        }
+        logger.config("LockFile: "+file);
+        lockFile = file;
     }
 
-    public String remove(String key)
+    public File getLockFile()
     {
-        return configuration.remove(key);
+        return lockFile;
     }
 
-    public Enumeration<String> getKeys()
+ // log configuration
+    public void setLogConfig(LogConfig config)
     {
-        return configuration.keys();
+        logger.config("LogConfig: "+config);
+        logConfig = config;
+    }
+
+    public LogConfig getLogConfig()
+    {
+        return logConfig;
+    }
+
+ // database configuration
+    public void setDatabaseConfig(DatabaseConfig config)
+    {
+        logger.config("DatabaseConfig: "+config);
+        dbConfig = config;
+    }
+
+    public DatabaseConfig getDatabaseConfig()
+    {
+        return dbConfig;
+    }
+
+ // scans
+    public void addScan(Scan scan)
+    {
+        logger.config("Scan: "+scan);
+        scans.add(scan);
+    }
+
+    public int getScanCount()
+    {
+        return scans.size();
+    }
+
+    public Scan getScan(int id)
+    throws IndexOutOfBoundsException
+    {
+        return scans.get(id);
+    }
+
+    public boolean removeScan(Scan scan)
+    {
+        return scans.remove(scan);
+    }
+    
+    public Scan removeScan(int id)
+    throws IndexOutOfBoundsException
+    {
+        return scans.remove(id);
     }
 }
+
