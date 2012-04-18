@@ -1,7 +1,6 @@
 from Database import Database
 
 import base64
-import hashlib
 import threading
 try:
     import sqlite3 as sqlite

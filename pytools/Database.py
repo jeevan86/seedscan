@@ -1,4 +1,10 @@
-import hashlib
+try:
+    import hashlib
+    sha1 = hashlib.sha1
+except:
+    import sha
+    sha1 = sha.new
+
 import base64
 try:
     import sqlite3 as sqlite
@@ -71,7 +77,7 @@ class Database:
 
 # ===== Private Methods ==========================
     def _hash(self, text):
-        sha_obj = hashlib.sha1()
+        sha_obj = sha1()
         sha_obj.update(text)
         return base64.urlsafe_b64encode(sha_obj.digest())
 
