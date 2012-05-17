@@ -184,7 +184,7 @@ public class ConfigReader
         config.setLockFile(xpath.evaluate("//cfg:seedscan/cfg:lockfile/text()", doc));
 
         // Parse Log Config
-        LogConfig logConfig = new LogConfig();
+        LogFileConfig logConfig = new LogFileConfig();
         //config.put("log-levels",      xpath.evaluate("//cfg:seedscan/cfg:log/cfg:level/text()", doc));
 
         String pathLog = "//cfg:seedscan/cfg:log";
