@@ -79,6 +79,7 @@
             <xsd:element ref="cfg:url" />
             <xsd:element ref="cfg:username" />
             <xsd:element ref="cfg:password" />
+            <xsd:element ref="cfg:levels" />
         </xsd:all>
     </xsd:complexType>
 

@@ -402,8 +402,8 @@ def sensor_compare(path, database, start=None, end=None, net=None, st=None):
 def main():
     network = None
     station = None
-    start = (2012,2,1)
-    end   = (2012,2,29)
+    start = (2012,3,1)
+    end   = (2012,3,31)
     #network = "IU"
     #station = "COR"
     #start = (2012,2,1)
@@ -412,11 +412,11 @@ def main():
     database = DB("/dataq/metrics/metrics.db")
 
     start_time = time.time()
-    #gen_soh("/xs0/seed", database, availability, start=start, end=end, net=network, st=station)
-    #gen_soh("/xs1/seed", database, availability, start=start, end=end, net=network, st=station)
-    #gen_soh("/r02/projects/AVAIL/", database, quality_matrix, start=start, end=end, net=network, st=station)
-    #sensor_compare("/qcwork/dqresults/sencomp", database, start=start, end=end, net=network, st=station)
-    #noise("/qcwork/dqresults/noise", database, start=start, end=end, net=network, st=station)
+    gen_soh("/xs0/seed", database, availability, start=start, end=end, net=network, st=station)
+    gen_soh("/xs1/seed", database, availability, start=start, end=end, net=network, st=station)
+    gen_soh("/r02/projects/AVAIL/", database, quality_matrix, start=start, end=end, net=network, st=station)
+    sensor_compare("/qcwork/dqresults/sencomp", database, start=start, end=end, net=network, st=station)
+    noise("/qcwork/dqresults/noise", database, start=start, end=end, net=network, st=station)
     cals("/qcwork/dqresults/caldev", database, start=start, end=end, net=network, st=station)
     database.commit()
     end_time = time.time()

@@ -1,79 +1,171 @@
-<project name="SeedScan" default="jar" basedir=".">
+<project name="asl" default="compile" basedir=".">
     <description>
-        Monitor MiniSEED archive directories, and perform routine data quality analysis.
+        ASL Java Utilities
     </description>
-    <property name="src" location="src"/>
-    <property name="build" location="build"/>
-    <property name="build_libs" location="build/libs"/>
-    <property name="libs" location="libs"/>
-    <property name="target" location="seedscan.jar"/>
-    <property name="doc_src" location="src"/>
-    <property name="doc_packages" value="asl.seedscan"/>
-    <property name="doc" location="doc"/>
 
+    <property file="build.properties"/>
+
+    <!-- Classpath for compile -->
     <path id="compile.class.path">
-        <pathelement location="${src}"/>
-        <fileset dir="${libs}">
+        <pathelement location="${src.dir}"/>
+        <fileset dir="${libs.dir}">
             <include name="**/*.jar"/>
         </fileset>
     </path>
 
+    <!-- Classpath for test -->
+    <path id="test.class.path">
+        <pathelement location="${build.root}" />
+        <fileset dir="${libs.dir}">
+            <include name="**/*.jar" />
+        </fileset>
+    </path>
+
+    <!-- Classpath for jar -->
     <path id="jar.class.path">
-        <fileset dir="${libs}">
+        <fileset dir="${libs.dir}">
             <include name="**/*.jar"/>
         </fileset>
     </path>
+
 
 <!--INIT-->
     <target name="init">
         <tstamp/>
-        <mkdir dir="${build}"/>
+        <mkdir dir="${build.root}"/>
+        <mkdir dir="${build.resources}"/>
     </target>
 
 <!--INIT_DOC-->
     <target name="init_doc">
         <tstamp/>
-        <mkdir dir="${doc}"/>
+        <mkdir dir="${doc.dir}"/>
     </target>
-	
+
 <!--COMPILE-->
     <target name="compile" depends="init" description="Compile the source">
-        <javac srcdir="${src}" destdir="${build}" 
+        <javac srcdir="${src.dir}" destdir="${build.root}" 
                debug="true" includeantruntime="no">
             <classpath refid="compile.class.path"/>
         </javac>
     </target>
 
+<!--DATA-->
+    <target name="data" depends="init" description="Add resource files">
+        <copy todir="${build.resources}">
+            <fileset dir="${resources.dir}">
+            </fileset>
+        </copy>
+    </target>
+
+<!--TEST OR PACKAGE-->
+    <!-- Super-Package: ASL -->
+    <target name="asl_properties" depends="" description="">
+        <property file="asl.properties"/>
+    </target>
+    <target name="asl" depends="asl_properties, test" description="" />
+    <target name="package-asl" depends="asl_properties, jar" description="" />
+
+    <!-- Package: Azimuth -->
+    <target name="azimuth_properties" depends="" description="">
+        <property file="azimuth.properties"/>
+    </target>
+    <target name="azimuth" depends="azimuth_properties, test" description="" />
+    <target name="package-azimuth" depends="azimuth_properties, jar" description="" />
+
+    <!-- Package: SeedScan -->
+    <target name="seedscan_properties" depends="" description="">
+        <property file="seedscan.properties"/>
+    </target>
+    <target name="seedscan" depends="seedscan_properties, test" description="" />
+    <target name="package-seedscan" depends="seedscan_properties, jar" description="" />
+
 <!--LIBRARIES-->
     <target name="libraries" depends="init" description="Add libraries">
-        <unjar dest="${build}">
-            <fileset dir="${libs}">
+        <unjar dest="${build.root}">
+            <fileset dir="${libs.dir}">
                 <include name="**/*.jar"/>
             </fileset>
         </unjar>
-        <delete dir="${build}/META-INF"/>
+        <delete dir="${build.root}/META-INF"/>
     </target>
 
+<!--TEST-->
+    <target name="test" depends="compile, data" description="">
+        <java classname="${project.main}" classpathref="test.class.path" fork="true" />
+    </target>
+    
 <!--JAR-->
-    <target name="jar" depends="compile, libraries"
+    <target name="jar" depends="compile, data, libraries"
             description="generate the distribution" >
-        <jar jarfile="${target}" basedir="${build}">
+        <jar jarfile="${project.target}" basedir="${build.root}">
             <manifest>
-                <attribute name="Main-Class" value="asl.seedscan.SeedScan"/>
+                <attribute name="Main-Class" value="asl.azimuth.Azimuth"/>
             </manifest>
         </jar>
     </target>
 
-<!--DOC-->
-    <target name="doc" depends="init_doc"
+<!--PACKAGE-->
+    <target name="package" depends="clean_package"
+            description="zips all sources and relevent files into an archive">
+            <mkdir dir="${package.root}"/>
+            <mkdir dir="${package.base}"/>
+            <mkdir dir="${package.libs}"/>
+            <mkdir dir="${package.resources}"/>
+            <mkdir dir="${package.src}"/>
+            <copy todir="${package.libs}">
+                <fileset dir="${libs.dir}"/>
+            </copy>
+            <copy todir="${package.resources}">
+                <fileset dir="${resources.dir}"/>
+            </copy>
+            <copy todir="${package.src}">
+                <fileset dir="${src.dir}"/>
+            </copy>
+            <copy todir="${package.base}">
+                <fileset dir=".">
+                    <include name="license-*.txt"/>
+                </fileset>
+            </copy>
+            <copy file="${test.seed.file}"  todir="${package.base}"/>
+            <copy file="${build.file}"      todir="${package.base}"/>
+            <copy file="${properties.file}" todir="${package.base}"/>
+            <zip destfile="${package.zip.file}" basedir="${package.root}"/>
+            <tar destfile="${package.tar.file}" basedir="${package.root}" compression="bzip2"/>
+    </target>
+	
+<!--DOCS-->
+    <target name="docs" depends="init_doc"
             description="generate the javadoc documentation" >
-        <javadoc sourcepath="${doc_src}" destdir="${doc}" packagenames="${doc_packages}" />
+        <javadoc 
+        	sourcepath="${doc.src}" 
+        	destdir="${doc.dir}" 
+        	packagenames="${doc.packages}" 
+        	access="private"
+        	author="true"
+        />
+    </target>
+
+<!--CLEAN-BUILD-->
+    <target name="clean_build" description="clean up build content" >
+        <delete file="${project.target}"/>
+        <delete dir="${build.root}"/>
+    </target>
+
+<!--CLEAN-PACKAGE-->
+    <target name="clean_package" description="clean up package content" >
+        <delete file="${package.zip.file}"/>
+        <delete file="${package.tar.file}"/>
+        <delete dir="${package.root}"/>
+    </target>
+
+<!--CLEAN-DOCS-->
+    <target name="clean_docs" description="clean up docs" >
+    	<delete dir="${doc.dir}"/>
     </target>
 	
 <!--CLEAN-->
-    <target name="clean" description="clean up" >
-        <delete dir="${build}"/>
-        <delete file="${target}"/>
-    	<delete dir="${doc}"/>
-    </target>
+    <target name="clean" description="clean up"
+            depends="clean_build, clean_package, clean_docs"/>
+
 </project>

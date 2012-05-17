@@ -33,6 +33,13 @@
                 <cfg:hmac>952bf002cc030243952bf002cc030243</cfg:hmac>
             <cfg:encrypted-->
         </cfg:password>
+        <cfg:levels>
+            <!-- OFF, SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST, ALL -->
+            <cfg:level cfg:name="">WARNING</cfg:level>
+            <cfg:level cfg:name="asl.seedscan">CONFIG</cfg:level>
+            <cfg:level cfg:name="asl.seedscan.Scanner">WARNING</cfg:level>
+            <cfg:level cfg:name="asl.seedsplitter">INFO</cfg:level>
+        </cfg:levels>
     </cfg:database>
 
     <cfg:scans>
