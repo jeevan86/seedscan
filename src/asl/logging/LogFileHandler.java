@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
  *
  */
-package asl.seedscan;
+package asl.logging;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -33,23 +33,20 @@ import java.util.logging.Logger;
 import java.util.logging.LogRecord;
 import java.util.logging.StreamHandler;
 
-import asl.seedscan.config.Configuration;
-import asl.seedscan.config.LogConfig;
-
 public class LogFileHandler
 extends StreamHandler
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.LogFileHandler");
+    private static final Logger logger = Logger.getLogger("asl.logging.LogFileHandler");
 
     private Formatter formatter;
-    private LogConfig config = null;
+    private LogFileConfig config = null;
     private String logFileName = null;
 
     private Calendar lastRecordTime = null;
     private Calendar recordTime = null;
 
  // constructor(s)
-    public LogFileHandler(LogConfig config)
+    public LogFileHandler(LogFileConfig config)
     {
         super();
         this.config = config;
@@ -81,7 +78,7 @@ extends StreamHandler
     public void publish(LogRecord record)
     {
         try {
-            if (config.isReady()) {
+            if ((config != null) && (config.isReady())) {
                 long timestamp = record.getMillis();
                 recordTime.setTimeInMillis(timestamp);
                 // replace the log file if we have crossed a day boundary

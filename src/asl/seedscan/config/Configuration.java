@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
+import asl.logging.LogFileConfig;
 import asl.seedscan.scan.Scan;
 
 public class Configuration
@@ -31,7 +32,7 @@ public class Configuration
     private static final Logger logger = Logger.getLogger("asl.seedscan.config.Configuration");
 
     private File lockFile = null;
-    private LogConfig logConfig = null;
+    private LogFileConfig logConfig = null;
     private DatabaseConfig dbConfig = null; 
     private ArrayList<Scan> scans = null;
 
@@ -76,13 +77,13 @@ public class Configuration
     }
 
  // log configuration
-    public void setLogConfig(LogConfig config)
+    public void setLogConfig(LogFileConfig config)
     {
-        logger.config("LogConfig: "+config);
+        logger.config("LogFileConfig: "+config);
         logConfig = config;
     }
 
-    public LogConfig getLogConfig()
+    public LogFileConfig getLogConfig()
     {
         return logConfig;
     }

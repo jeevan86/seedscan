@@ -45,6 +45,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Document;
 
+import asl.logging.LogFileConfig;
+import asl.logging.LogDatabaseConfig;
 import asl.seedscan.scan.Scan;
 import asl.seedscan.scan.ScanOperation;
 import asl.seedscan.scan.ScanFrequency;
@@ -200,7 +202,7 @@ public class ConfigReader
             String name = nameAttrib.getNodeValue();
             String level = node.getTextContent();
             logConfig.setLevel(name, Level.parse(level));
-            logger.fine("Log context '" +name+ "' set to level " +level);
+            logger.fine("File logging context '" +name+ "' set to level " +level);
         }
 
      // Parse Database Config
@@ -232,11 +234,24 @@ public class ConfigReader
         }
         dbConfig.setPassword(password);
 
+        nodes = (NodeList)xpath.evaluate(pathDB+"/cfg:levels/cfg:level",
+                                         doc, XPathConstants.NODESET);
+        for (int i = 0; i < nodes.getLength(); i++)
+        {
+            Node node = nodes.item(i);
+            NamedNodeMap attribs = node.getAttributes();
+            Node nameAttrib = attribs.getNamedItem("cfg:name");
+            String name = nameAttrib.getNodeValue();
+            String level = node.getTextContent();
+            dbConfig.setLevel(name, Level.parse(level));
+            logger.fine("Database logging context '" +name+ "' set to level " +level);
+        }
+
      // Parse Scans
         logger.fine("Parsing scans.");
         int id;
         String key;
-        NodeList scans = (NodeList)xpath.evaluate("//cfg:seedscan/cfg:scans/cfg:scan",
+        NodeList scans = (NodeList)xpath.evaluate("/cfg:seedscan/cfg:scans/cfg:scan",
                                                   doc, XPathConstants.NODESET);
         if ((scans == null) || (scans.getLength() < 1)) {
             logger.warning("No scans in configuration.");
@@ -247,15 +262,16 @@ public class ConfigReader
                 Node node = scans.item(i);
                 Scan scan = new Scan();
 
-                scan.setPathPattern(xpath.evaluate("./path/text()", scan));
-                scan.setStartDepth(Integer.parseInt(xpath.evaluate("./start_depth/text()", scan)));
-                scan.setScanDepth(Integer.parseInt(xpath.evaluate("./scan_depth/text()", scan)));
+                scan.setPathPattern(xpath.evaluate("./cfg:path/text()", node));
+                scan.setStartDepth(Integer.parseInt(xpath.evaluate("./cfg:start_depth/text()", node)));
+                scan.setScanDepth(Integer.parseInt(xpath.evaluate("./cfg:scan_depth/text()", node)));
 
                 ScanFrequency frequency = new ScanFrequency();
                 // TODO: parse frequency
                 scan.setScanFrequency(frequency);
 
-                NodeList ops = (NodeList)xpath.evaluate("./operations/operation", scan, XPathConstants.NODESET);
+                NodeList ops = (NodeList)xpath.evaluate("./cfg:operations/cfg:operation",
+                                                        node, XPathConstants.NODESET);
                 int opCount = ops.getLength();
                 if ((ops == null) || (opCount < 1)) {
                     logger.warning("No operations found in scan " +i+ ".");

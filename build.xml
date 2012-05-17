@@ -98,7 +98,7 @@
 <!--JAR-->
     <target name="jar" depends="compile, data, libraries"
             description="generate the distribution" >
-        <jar jarfile="${project.target}" basedir="${build.root}">
+        <jar jarfile="${project.archive}" basedir="${build.root}">
             <manifest>
                 <attribute name="Main-Class" value="asl.azimuth.Azimuth"/>
             </manifest>
