@@ -16,70 +16,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
  *
  */
-package asl.seedscan.config;
+package asl.logging;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class DatabaseConfig
+public class LogLevels
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.config.DatabaseConfig");
+    private static final Logger logger = Logger.getLogger("asl.logging.LogLevels");
 
-    private String uri = null;
-    private String username = null;
-    private Password password = null;
     private Hashtable<String, Level> levels = null;
 
  // constructor(s)
-    public DatabaseConfig()
+    public LogLevels()
     {
         levels = new Hashtable<String, Level>();
-    }
-
- // ready
-    public boolean isReady()
-    {
-        return (uri      == null) ? false :
-               (username == null) ? false :
-               (password == null) ? false : true;
-    }
-
- // uri
-    public void setURI(String uri)
-    {
-        logger.config("URI: "+uri);
-        this.uri = uri;
-    }
-
-    public String getURI()
-    {
-        return uri;
-    }
-
- // username
-    public void setUsername(String username)
-    {
-        logger.config("Username: "+username);
-        this.username = username;
-    }
-
-    public String getUsername()
-    {
-        return username;
-    }
-
- // password
-    public void setPassword(Password password)
-    {
-        logger.config("Password: "+password);
-        this.password = password;
-    }
-
-    public Password getPassword()
-    {
-        return password;
     }
 
  // levels
@@ -106,3 +59,4 @@ public class DatabaseConfig
         return levels.keys();
     }
 }
+

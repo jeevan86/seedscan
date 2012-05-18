@@ -1,16 +1,12 @@
 <?xml version="1.0"?>
-<cfg:seedscan xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xsi:schemaLocation="https://aslweb.cr.usgs.gov SeedScanConfig.xsd"
-              xmlns:cfg="config.seedscan.asl">
+<cfg:config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="https://aslweb.cr.usgs.gov SeedScanConfig.xsd"
+            xmlns:cfg="config.seedscan.asl">
 
     <!--cfg:lockfile>/qcwork/seedscan/seedscan.lock</cfg:lockfile-->
     <cfg:lockfile>seedscan.lock</cfg:lockfile>
  
     <cfg:log>
-        <!--cfg:directory>/qcwork/seedscan/logs</cfg:directory-->
-        <cfg:directory>logs</cfg:directory>
-        <cfg:prefix>seedscan-</cfg:prefix>
-        <cfg:suffix>.log</cfg:suffix>
         <cfg:levels>
             <!-- OFF, SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST, ALL -->
             <cfg:level cfg:name="">FINEST</cfg:level>
@@ -18,11 +14,42 @@
             <cfg:level cfg:name="asl.seedscan.Scanner">INFO</cfg:level>
             <cfg:level cfg:name="asl.seedsplitter">INFO</cfg:level>
         </cfg:levels>
+
+        <cfg:handlers>
+            <cfg:log_console>
+                <cfg:handler_level>FINEST</cfg:level>
+            <cfg:log_console>
+
+            <cfg:log_file>
+                <cfg:handler_level>FINE</cfg:level>
+                <cfg:directory>logs</cfg:directory>
+                <cfg:prefix>seedscan-</cfg:prefix>
+                <cfg:suffix>.log</cfg:suffix>
+            </cfg:log_file>
+
+            <cfg:log_db>
+                <cfg:handler_level>CONFIG</cfg:level>
+                <cfg:database>
+                    <!--cfg:uri>jdbc:mysql://catbox2.cr.usgs.gov/stations</cfg:uri-->
+                    <cfg:uri>jdbc:mysql://136.177.121.210:54321/seedscan</cfg:uri>
+                    <cfg:username>seedscan_write</cfg:username>
+                    <cfg:password>
+                        <cfg:plain>S33dSc@nWr1t3r!</cfg:plain>
+                        <!--cfg:encrypted>
+                            <cfg:salt>952bf002cc030243</cfg:salt>
+                            <cfg:iv>952bf002cc030243952bf002cc030243</cfg:iv>
+                            <cfg:ciphertext>2f9cb9a02ee92a392f9cb9a02ee92a39</cfg:ciphertext>
+                            <cfg:hmac>952bf002cc030243952bf002cc030243</cfg:hmac>
+                        <cfg:encrypted-->
+                    </cfg:password>
+                </cfg:database>
+            </cfg:log_db>
+        </cfg:handlers>
     </cfg:log>
   
     <cfg:database>
-        <!--cfg:url>jdbc:mysql://catbox2.cr.usgs.gov/stations</cfg:url-->
-        <cfg:url>jdbc:mysql://136.177.121.210:54321/seedscan</cfg:url>
+        <!--cfg:uri>jdbc:mysql://catbox2.cr.usgs.gov/stations</cfg:uri-->
+        <cfg:uri>jdbc:mysql://136.177.121.210:54321/seedscan</cfg:uri>
         <cfg:username>seedscan_write</cfg:username>
         <cfg:password>
             <cfg:plain>S33dSc@nWr1t3r!</cfg:plain>
@@ -33,13 +60,6 @@
                 <cfg:hmac>952bf002cc030243952bf002cc030243</cfg:hmac>
             <cfg:encrypted-->
         </cfg:password>
-        <cfg:levels>
-            <!-- OFF, SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST, ALL -->
-            <cfg:level cfg:name="">WARNING</cfg:level>
-            <cfg:level cfg:name="asl.seedscan">CONFIG</cfg:level>
-            <cfg:level cfg:name="asl.seedscan.Scanner">WARNING</cfg:level>
-            <cfg:level cfg:name="asl.seedsplitter">INFO</cfg:level>
-        </cfg:levels>
     </cfg:database>
 
     <cfg:scans>
@@ -82,4 +102,4 @@
         </cfg:scan>
     </cfg:scans>
     
-</cfg:seedscan>
+</cfg:config>

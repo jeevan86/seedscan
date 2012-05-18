@@ -3,7 +3,7 @@
         ASL Java Utilities
     </description>
 
-    <property file="build.properties"/>
+    <property file="properties/build.properties"/>
 
     <!-- Classpath for compile -->
     <path id="compile.class.path">
@@ -42,6 +42,18 @@
         <mkdir dir="${doc.dir}"/>
     </target>
 
+<!--JAXB-->
+    <target name="seedscan_config" depends="seedscan_properties"
+            description="JAXB class generation for config file schema">
+        <exec executable="xjc">
+            <arg value="-p" />
+            <arg value="asl.seedscan.config" />
+            <arg value="-d" />
+            <arg value="${src.dir}" />
+            <arg value="schemas/SeedScanConfig.xsd" />
+        </exec>
+    </target>
+
 <!--COMPILE-->
     <target name="compile" depends="init" description="Compile the source">
         <javac srcdir="${src.dir}" destdir="${build.root}" 
@@ -61,24 +73,24 @@
 <!--TEST OR PACKAGE-->
     <!-- Super-Package: ASL -->
     <target name="asl_properties" depends="" description="">
-        <property file="asl.properties"/>
+        <property file="properties/asl.properties"/>
     </target>
     <target name="asl" depends="asl_properties, test" description="" />
     <target name="package-asl" depends="asl_properties, jar" description="" />
 
     <!-- Package: Azimuth -->
     <target name="azimuth_properties" depends="" description="">
-        <property file="azimuth.properties"/>
+        <property file="properties/azimuth.properties"/>
     </target>
     <target name="azimuth" depends="azimuth_properties, test" description="" />
     <target name="package-azimuth" depends="azimuth_properties, jar" description="" />
 
     <!-- Package: SeedScan -->
     <target name="seedscan_properties" depends="" description="">
-        <property file="seedscan.properties"/>
+        <property file="properties/seedscan.properties"/>
     </target>
-    <target name="seedscan" depends="seedscan_properties, test" description="" />
-    <target name="package-seedscan" depends="seedscan_properties, jar" description="" />
+    <target name="seedscan" depends="seedscan_config, test" description="" />
+    <target name="package-seedscan" depends="seedscan_config, jar" description="" />
 
 <!--LIBRARIES-->
     <target name="libraries" depends="init" description="Add libraries">

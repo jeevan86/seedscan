@@ -27,43 +27,36 @@ public class LogConfig
 {
     private static final Logger logger = Logger.getLogger("asl.logging.LogConfig");
 
-    private Hashtable<String, Level> levels = null;
+    private Level = null;
 
  // constructor(s)
     public LogConfig()
     {
-        levels = new Hashtable<String, Level>();
+        ;
     }
 
  // ready
     public boolean isReady()
     {
-        return true;
+        return level != null;
     }
-
 
  // levels
-    public void setLevel(String name, String level)
+    public void setLevel(String level)
     throws IllegalArgumentException
     {
-        setLevel(name, Level.parse(level));
+        setLevel(Level.parse(level));
     }
 
-    public void setLevel(String name, Level level)
+    public void setLevel(Level level)
     {
         logger.config("Level: '"+name+"' -> '"+level.toString()+"'");
-        levels.put(name, level);
-        Logger.getLogger(name).setLevel(level);
+        level = level;
     }
 
-    public Level getLevel(String name)
+    public Level getLevel()
     {
-        return levels.get(name);
-    }
-
-    public Enumeration<String> getLevelNames()
-    {
-        return levels.keys();
+        return level;
     }
 }
 

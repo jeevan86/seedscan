@@ -19,11 +19,6 @@
 
 package asl.seedscan;
 
-import asl.concurrent.FallOffQueue;
-import asl.seedsplitter.DataSet;
-import asl.seedsplitter.SeedSplitProgress;
-import asl.seedsplitter.SeedSplitter;
-
 import java.io.File;
 import java.io.IOException;
 import java.lang.Runnable;
@@ -33,6 +28,12 @@ import java.util.Hashtable;
 import java.util.logging.Logger;
 import java.util.concurrent.BlockingQueue;
 
+import asl.concurrent.FallOffQueue;
+import asl.seedsplitter.DataSet;
+import asl.seedsplitter.SeedSplitProgress;
+import asl.seedsplitter.SeedSplitter;
+import asl.seedscan.scan.Scan;
+
 public class Scanner
     implements Runnable
 {
@@ -41,24 +42,16 @@ public class Scanner
 
     public Station station;
     public StationDatabase database;
-    public String pathPattern;
-    public int scanDepth  = 2;
-    public int startDepth = 1;
+    public Scan scan;
 
     private FallOffQueue<SeedSplitProgress> progressQueue;
 
-    public Scanner(StationDatabase database,
-                   Station station,
-                   String pathPattern)
+    public Scanner(StationDatabase database, Station station, Scan scan)
     {
         this.station  = station;
         this.database = database;
-        this.pathPattern = pathPattern;
+        this.scan = scan;
         this.progressQueue = new FallOffQueue<SeedSplitProgress>(8);
-    }
-
-    public void setScanDepth(int scanDepth) {
-        this.scanDepth = scanDepth;
     }
 
     public void run() {
@@ -68,16 +61,16 @@ public class Scanner
     public void scan()
     {
         GregorianCalendar timestamp = new GregorianCalendar();
-        if (startDepth > 0) {
-            timestamp.setTimeInMillis(timestamp.getTimeInMillis() - (startDepth * dayMilliseconds));
+        if (scan.getStartDepth() > 0) {
+            timestamp.setTimeInMillis(timestamp.getTimeInMillis() - (scan.getStartDepth() * dayMilliseconds));
         }
 
-        for (int i=0; i < scanDepth; i++) {
+        for (int i=0; i < scan.getScanDepth(); i++) {
             if (i != 0) {
                 timestamp.setTimeInMillis(timestamp.getTimeInMillis() - dayMilliseconds);
             }
             ArchivePath pathEngine = new ArchivePath(timestamp, station);
-            String path = pathEngine.makePath(pathPattern);
+            String path = pathEngine.makePath(scan.getPathPattern());
             File dir = new File(path);
             if (!dir.exists()) {
                 logger.info("Path '" +dir+ "' does not exist.");

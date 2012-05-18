@@ -28,15 +28,21 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
+import asl.seedscan.config.DatabaseConfig;
+import asl.seedscan.config.Password;
+
 public class StationDatabase
 {
     public static final Logger logger = Logger.getLogger("asl.seedscan.StationDatabase");
 
     private Connection connection = null;
+    private DatabaseConfig config = null;
 
-    public StationDatabase(String url, String username, char[] password) {
+    public StationDatabase(DatabaseConfig config) {
+        this.config = config;
         try {
-            connection = DriverManager.getConnection(url, username, new String(password));
+            connection = DriverManager.getConnection(config.getURI(), config.getUsername(),
+                                                     new String(config.getPassword().getPassword()));
         } catch (SQLException e) {
             logger.severe("Could not open station database.");
             throw new RuntimeException("Could not open station database.");

@@ -162,17 +162,6 @@ public class SeedScan
         logFile.setLevel(Level.ALL);
         Logger.getLogger("").addHandler(logFile);
 
-     // Set logger levels from configuration
-        //Logger.getLogger("asl.seedscan").setLevel(Level.FINEST);
-        //Logger.getLogger("asl.seedscan.Scanner").setLevel(Level.INFO);
-        //Logger.getLogger("asl.seedsplitter").setLevel(Level.INFO);
-
-
-        // TODO: Locate scans in config file
-
-
-
-
         int startDepth = 1; // Start this many days back.
         int scanDepth  = 2; // Number of days to evaluate.
         boolean scanXS0 = false;
@@ -183,10 +172,8 @@ public class SeedScan
         // - Track our progress as we go so a new process can pick up where
         //   we left off if our process dies.
         // - Mark when each date-station-channel-operation is complete
-
-        //StationDatabase database = new StationDatabase(url, user, pass);
-        StationDatabase database = null;
-        //Station[] stations = null;
+        StationDatabase database = new StationDatabase(configuration.getDatabaseConfig());
+        LogDatabaseHandler logDB = new LogDatabaseHandler(configuration.get
 
         // Get the list of active channels from a web page where they are currently maintained.
         try 
@@ -209,20 +196,6 @@ public class SeedScan
         logger.finer("Testing Logger Level FINER");
         logger.finest("Testing Logger Level FINEST");
 
-        // TEST LIST (TODO: Remove once configurations are working)
-        Station[] stations = {
-            new Station("IU", "ANMO"),
-            /*
-            new Station("IU", "CCM"),
-            new Station("IU", "COR"),
-            new Station("IU", "HKT"),
-            new Station("IU", "MA2"),
-            new Station("IU", "MAJO"),
-            new Station("IU", "SJG"),
-            new Station("IU", "YSS"),
-            */
-        };
-
         // Get a list of stations
 
         // Get a list of files  (do we want channels too?)
@@ -239,12 +212,8 @@ public class SeedScan
 
 // ==== Perform Scans ====
         for (Station station: stations) {
-            Scanner scanner = new Scanner(database, station, tr1PathPattern);
+            Scanner scanner = new Scanner(database, station, scan);
             scanner.scan();
-            if (scanXS0) {
-                scanner = new Scanner(database, station, tr1PathPattern);
-                scanner.scan();
-            }
         }
 
         try {
