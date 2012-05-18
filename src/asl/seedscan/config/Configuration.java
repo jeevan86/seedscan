@@ -61,10 +61,10 @@ public class Configuration
         if (file == null) {
             throw new NullPointerException();
         }
-        if (!file.isFile()) {
-            throw new IOException("Path '" +file+ "'exists, but it is not a file");
+        if (file.exists() && (!file.isFile())) {
+            throw new IOException("Path '" +file+ "' exists, but it is not a file");
         }
-        if (!file.canWrite()) {
+        if (file.exists() && (!file.canWrite())) {
             throw new SecurityException("Not permitted to modify file '" +file+ "'");
         }
         logger.config("LockFile: "+file);
