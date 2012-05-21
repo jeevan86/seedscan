@@ -16,26 +16,26 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
  *
  */
-package asl.seedscan.config;
+package asl.logging;
 
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.logging.Level;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.logging.Logger;
 
-public class DatabaseConfig
+public class LogDatabaseConfig
+extends LogConfig
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.config.DatabaseConfig");
+    private static final Logger logger = Logger.getLogger("asl.logging.LogDatabaseConfig");
 
     private String uri = null;
     private String username = null;
-    private Password password = null;
-    private Hashtable<String, Level> levels = null;
+    private String password = null;
 
  // constructor(s)
-    public DatabaseConfig()
+    public LogDatabaseConfig()
     {
-        levels = new Hashtable<String, Level>();
+        super();
     }
 
  // ready
@@ -46,10 +46,9 @@ public class DatabaseConfig
                (password == null) ? false : true;
     }
 
- // uri
+ // URI
     public void setURI(String uri)
     {
-        logger.config("URI: "+uri);
         this.uri = uri;
     }
 
@@ -71,38 +70,15 @@ public class DatabaseConfig
     }
 
  // password
-    public void setPassword(Password password)
+    public void setPassword(String password)
     {
         logger.config("Password: "+password);
         this.password = password;
     }
 
-    public Password getPassword()
+    public String getPassword()
     {
         return password;
     }
-
- // levels
-    public void setLevel(String name, String level)
-    throws IllegalArgumentException
-    {
-        setLevel(name, Level.parse(level));
-    }
-
-    public void setLevel(String name, Level level)
-    {
-        logger.config("Level: '"+name+"' -> '"+level.toString()+"'");
-        levels.put(name, level);
-        Logger.getLogger(name).setLevel(level);
-    }
-
-    public Level getLevel(String name)
-    {
-        return levels.get(name);
-    }
-
-    public Enumeration<String> getLevelNames()
-    {
-        return levels.keys();
-    }
 }
+

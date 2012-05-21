@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
+import asl.logging.LogFileConfig;
 import asl.seedscan.scan.Scan;
 
 public class Configuration
@@ -31,7 +32,7 @@ public class Configuration
     private static final Logger logger = Logger.getLogger("asl.seedscan.config.Configuration");
 
     private File lockFile = null;
-    private LogConfig logConfig = null;
+    private LogFileConfig logConfig = null;
     private DatabaseConfig dbConfig = null; 
     private ArrayList<Scan> scans = null;
 
@@ -60,10 +61,10 @@ public class Configuration
         if (file == null) {
             throw new NullPointerException();
         }
-        if (!file.isFile()) {
-            throw new IOException("Path '" +file+ "'exists, but it is not a file");
+        if (file.exists() && (!file.isFile())) {
+            throw new IOException("Path '" +file+ "' exists, but it is not a file");
         }
-        if (!file.canWrite()) {
+        if (file.exists() && (!file.canWrite())) {
             throw new SecurityException("Not permitted to modify file '" +file+ "'");
         }
         logger.config("LockFile: "+file);
@@ -76,13 +77,13 @@ public class Configuration
     }
 
  // log configuration
-    public void setLogConfig(LogConfig config)
+    public void setLogConfig(LogFileConfig config)
     {
-        logger.config("LogConfig: "+config);
+        logger.config("LogFileConfig: "+config);
         logConfig = config;
     }
 
-    public LogConfig getLogConfig()
+    public LogFileConfig getLogConfig()
     {
         return logConfig;
     }

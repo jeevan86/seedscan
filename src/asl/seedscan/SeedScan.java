@@ -41,6 +41,7 @@ import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
 
+import asl.logging.LogFileHandler;
 import asl.seedscan.config.Configuration;
 import asl.seedscan.config.ConfigReader;
 
