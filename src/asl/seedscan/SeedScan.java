@@ -18,11 +18,14 @@
  */
 package asl.seedscan;
 
+import java.io.BufferedInputStream;
 import java.io.Console;
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Formatter;
@@ -42,8 +45,8 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
 
 import asl.logging.LogFileHandler;
-import asl.seedscan.config.Configuration;
-import asl.seedscan.config.ConfigReader;
+import asl.seedscan.config.ConfigT;
+import asl.seedscan.config.ObjectFactory;
 
 /**
  * 
@@ -88,6 +91,9 @@ public class SeedScan
         File schemaFile = new File("schemas/SeedScanConfig.xsd");
         boolean parseConfig = true;
 
+        ArrayList<File> schemaFiles = new ArrayList<File>();
+        schemaFiles.add(schemaFile);
+
 // ==== Command Line Parsing ====
         Options options = new Options();
         Option opConfigFile = new Option("c", "config-file", true, 
@@ -125,46 +131,24 @@ public class SeedScan
             }
         }
 
-// ==== Default Patterns ====
-        String tr1PathPattern = "/tr1/telemetry_days/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}";
-        //String xs0PathPattern = "/xs0/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}";
-        //String xs1PathPattern = "/xs1/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}";
-        //String lockFilePath = "seedscan.lock";
-        //String url  = "jdbc:mysql://136.177.121.210:54321/seedscan";
-        //String user = "seedscan_write";
-        //String pass = "";
-
-        //String url  = "jdbc:oracle://<server>:<port>/database";
-        //Console cons = System.console();
-        //char[] pass = cons.readPassword("SeedScan Unlock Password: ");
-
-        ConfigReader configReader = new ConfigReader(schemaFile);
-        configReader.loadConfiguration(configFile);
-        Configuration configuration = configReader.getConfiguration();
-
 // ==== Configuration Read and Parse Actions ====
+        Config config = new Config(configFile, schemaFiles);
+
      // Print out configuration file contents
         Formatter formatter = new Formatter(new StringBuilder(), Locale.US);
 
-        // TODO: print out the configuration
-        //String format = formatter.format(" %%1$%ds : %%2$s\n", maxKey).toString();
-        //System.out.printf("");
-
      // Set the lock file from the configuration
-        LockFile lock = new LockFile(configuration.getLockFile());
+        File lockFile = new File("seedscan.lock"); // TODO: pull from config
+        LockFile lock = new LockFile(lockFile);
         if (!lock.acquire()) {
             logger.severe("Could not acquire lock.");
             System.exit(1);
         }
         
      // Set the log file from the configuration
-        LogFileHandler logFile = new LogFileHandler(configuration.getLogConfig());
-        logFile.setLevel(Level.ALL);
-        Logger.getLogger("").addHandler(logFile);
+        // TODO: add all log handlers to the global logger
+        //Logger.getLogger("").addHandler(config.getLogFileHandler());
 
-        int startDepth = 1; // Start this many days back.
-        int scanDepth  = 2; // Number of days to evaluate.
-        boolean scanXS0 = false;
 
 // ==== Establish Database Connection ====
         // TODO: State Tracking in the Database
@@ -172,26 +156,9 @@ public class SeedScan
         // - Track our progress as we go so a new process can pick up where
         //   we left off if our process dies.
         // - Mark when each date-station-channel-operation is complete
-        StationDatabase database = new StationDatabase(configuration.getDatabaseConfig());
-        LogDatabaseHandler logDB = new LogDatabaseHandler(configuration.get
+        //StationDatabase database = new StationDatabase(configuration.getDatabaseConfig());
+        //LogDatabaseHandler logDB = new LogDatabaseHandler(configuration.get
 
-        // Get the list of active channels from a web page where they are currently maintained.
-        try 
-        {
-            allchanURL = new URL(allchanURLstr);
-        } catch (MalformedURLException e1) {
-            logger.warning("Exception opening URL %s.");
-            e1.printStackTrace();
-            allchanURL = null;
-        }
-
-        if (allchanURL == null)
-        {
-            logger.severe("Unable to open resource " +allchanURLstr+ ", aborting!\n");
-            System.exit(1);
-        }
-
-        logger.info("We seem to have found " +allchanURLstr+ "\n");
         logger.fine("Testing Logger Level FINE");
         logger.finer("Testing Logger Level FINER");
         logger.finest("Testing Logger Level FINEST");
@@ -211,10 +178,8 @@ public class SeedScan
         // in order to preserve overall system memory resources.
 
 // ==== Perform Scans ====
-        for (Station station: stations) {
-            Scanner scanner = new Scanner(database, station, scan);
-            scanner.scan();
-        }
+        ScanManager manager = new ScanManager();
+        manager.run();
 
         try {
             lock.release();
@@ -230,4 +195,5 @@ public class SeedScan
            }
          */
     } // main()
+
 } // class SeedScan

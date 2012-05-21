@@ -41,8 +41,9 @@ public class StationDatabase
     public StationDatabase(DatabaseConfig config) {
         this.config = config;
         try {
-            connection = DriverManager.getConnection(config.getURI(), config.getUsername(),
-                                                     new String(config.getPassword().getPassword()));
+            //connection = DriverManager.getConnection(config.getUri(), config.getUsername(),
+            //                                         new String(config.getPassword().getPassword()));
+            connection = DriverManager.getConnection("", "", "");
         } catch (SQLException e) {
             logger.severe("Could not open station database.");
             throw new RuntimeException("Could not open station database.");

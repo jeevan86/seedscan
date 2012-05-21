@@ -27,7 +27,7 @@ public class LogConfig
 {
     private static final Logger logger = Logger.getLogger("asl.logging.LogConfig");
 
-    private Level = null;
+    private Level level = null;
 
  // constructor(s)
     public LogConfig()
@@ -50,7 +50,6 @@ public class LogConfig
 
     public void setLevel(Level level)
     {
-        logger.config("Level: '"+name+"' -> '"+level.toString()+"'");
         level = level;
     }
 

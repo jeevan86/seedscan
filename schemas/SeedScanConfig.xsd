@@ -19,14 +19,14 @@
     <xsd:element name="levels"      type="cfg:log_levels_T" />
     <xsd:element name="level"       type="cfg:log_level_T" />
     <xsd:element name="handlers"    type="cfg:handlers_T" />
-    <xsd:element name="handler_level" type="cfg:log_level_T" />
+    <xsd:element name="handler_level" type="cfg:log_level_enum_T" />
     <xsd:element name="log_console" type="cfg:log_console_T" />
     <xsd:element name="log_file"    type="cfg:log_file_T" />
     <xsd:element name="directory"   type="xsd:string" />
     <xsd:element name="prefix"      type="xsd:string" />
     <xsd:element name="suffix"      type="xsd:string" />
     <xsd:element name="log_db"      type="cfg:log_db_T" />
-    <xsd:element name="log_database" type="cfg:database_T" />
+    <!--xsd:element name="log_database" type="cfg:database_T" /-->
     <xsd:element name="uri"         type="xsd:anyURI" />
     <xsd:element name="username"    type="xsd:string" />
     <xsd:element name="password"    type="cfg:password_T" />
@@ -104,7 +104,7 @@
     <xsd:complexType name="log_db_T">
         <xsd:all>
             <xsd:element ref="cfg:handler_level" minOccurs="1" maxOccurs="1"/>
-            <xsd:element ref="cfg:log_database"  minOccurs="1" maxOccurs="1"/>
+            <xsd:element ref="cfg:database"  minOccurs="1" maxOccurs="1"/>
         </xsd:all>
     </xsd:complexType>
 
@@ -113,7 +113,6 @@
             <xsd:element ref="cfg:uri" />
             <xsd:element ref="cfg:username" />
             <xsd:element ref="cfg:password" />
-            <xsd:element ref="cfg:levels" />
         </xsd:all>
     </xsd:complexType>
 

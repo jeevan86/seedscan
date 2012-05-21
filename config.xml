@@ -17,18 +17,18 @@
 
         <cfg:handlers>
             <cfg:log_console>
-                <cfg:handler_level>FINEST</cfg:level>
-            <cfg:log_console>
+                <cfg:handler_level>FINEST</cfg:handler_level>
+            </cfg:log_console>
 
             <cfg:log_file>
-                <cfg:handler_level>FINE</cfg:level>
+                <cfg:handler_level>FINE</cfg:handler_level>
                 <cfg:directory>logs</cfg:directory>
                 <cfg:prefix>seedscan-</cfg:prefix>
                 <cfg:suffix>.log</cfg:suffix>
             </cfg:log_file>
 
             <cfg:log_db>
-                <cfg:handler_level>CONFIG</cfg:level>
+                <cfg:handler_level>CONFIG</cfg:handler_level>
                 <cfg:database>
                     <!--cfg:uri>jdbc:mysql://catbox2.cr.usgs.gov/stations</cfg:uri-->
                     <cfg:uri>jdbc:mysql://136.177.121.210:54321/seedscan</cfg:uri>

@@ -23,6 +23,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.logging.Logger;
 
+import asl.security.Password;
+
 public class LogDatabaseConfig
 extends LogConfig
 {
@@ -30,7 +32,7 @@ extends LogConfig
 
     private String uri = null;
     private String username = null;
-    private String password = null;
+    private Password password = null;
 
  // constructor(s)
     public LogDatabaseConfig()
@@ -70,15 +72,15 @@ extends LogConfig
     }
 
  // password
-    public void setPassword(String password)
+    public void setPassword(Password password)
     {
-        logger.config("Password: "+password);
+        logger.config("Password: " + password);
         this.password = password;
     }
 
     public String getPassword()
     {
-        return password;
+        return password.getPassword();
     }
 }
 

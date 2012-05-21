@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, United States Geological Survey or
+ * Copyright 2011, United States Geological Survey or
  * third-party contributors as indicated by the @author tags.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,11 +16,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
  *
  */
+package asl.seedscan;
 
-package asl.security;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-public interface Password
+public class ScanManager
 {
-    public boolean setPassword(String password);
-    public String getPassword();
+    private static final Logger logger = Logger.getLogger("asl.seedscan.ScanManager");
+
+    public ScanManager()
+    {
+    }
+
+    public void run()
+    {
+        // TODO: Manage a thread pool of Scanners
+
+        /*
+        for (Station station: stations) {
+            Scanner scanner = new Scanner(database, station, scan);
+            scanner.scan();
+        }
+        */
+    }
 }
