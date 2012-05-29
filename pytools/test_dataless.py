@@ -20,9 +20,9 @@ def pretty_int(value):
 def get_file_lines(file):
     return open(file, 'r').readlines()
 
-file = "/qcwork/datalessSTUFF/littlesdataless" # EVERYTHING!
+#file = "/qcwork/datalessSTUFF/littlesdataless" # EVERYTHING!
 file = "/qcwork/datalessSTUFF/littlesANMO" # just ANMO
-file = "/qcwork/datalessSTUFF/RESP.IU.ANMO.00.LHZ" # just ANMO responses
+#file = "/qcwork/datalessSTUFF/RESP.IU.ANMO.00.LHZ" # just ANMO responses
 engine = Dataless.Dataless(get_file_lines(file))
 
 start_time = time.time()

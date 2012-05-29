@@ -17,7 +17,7 @@
  *
  */
 
-package asl.seedscan.config;
+package asl.security;
 
 import java.util.logging.Logger;
 
@@ -27,7 +27,7 @@ public class EncryptedPassword
 extends Encrypted
 implements Password
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.config.EncryptedPassword");
+    private static final Logger logger = Logger.getLogger("asl.security.EncryptedPassword");
 
  // constructor(s)
     public EncryptedPassword(byte[] key)

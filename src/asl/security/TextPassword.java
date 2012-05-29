@@ -17,14 +17,14 @@
  *
  */
 
-package asl.seedscan.config;
+package asl.security;
 
 import java.util.logging.Logger;
 
 public class TextPassword
 implements Password
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.config.TextPassword");
+    private static final Logger logger = Logger.getLogger("asl.security.TextPassword");
 
     private String password = null;
 

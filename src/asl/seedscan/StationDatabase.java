@@ -28,17 +28,17 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
-import asl.seedscan.config.DatabaseConfig;
-import asl.seedscan.config.Password;
+import asl.seedscan.config.DatabaseT;
+import asl.security.Password;
 
 public class StationDatabase
 {
     public static final Logger logger = Logger.getLogger("asl.seedscan.StationDatabase");
 
     private Connection connection = null;
-    private DatabaseConfig config = null;
+    private DatabaseT config = null;
 
-    public StationDatabase(DatabaseConfig config) {
+    public StationDatabase(DatabaseT config) {
         this.config = config;
         try {
             //connection = DriverManager.getConnection(config.getUri(), config.getUsername(),

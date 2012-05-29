@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
  *
  */
-package asl.seedscan.config;
+package asl.security;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -32,7 +32,7 @@ import javax.crypto.spec.PBEKeySpec;
 
 public class PassKey
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.config.Encrypted");
+    private static final Logger logger = Logger.getLogger("asl.security.Encrypted");
 
 	private static final String HASH_ALGORITHM = "PBKDF2WithHmacSHA1";
 

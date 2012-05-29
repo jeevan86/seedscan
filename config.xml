@@ -63,41 +63,25 @@
     </cfg:database>
 
     <cfg:scans>
-        <cfg:scan cfg:id="1">
+        <cfg:scan cfg:name="daily">
             <cfg:path>/xs0/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}</cfg:path>
-            <cfg:frequency>
-                <cfg:days cfg:value="1">
-                    <cfg:hour cfg:value="22"/>
-                </cfg:days>
-            </cfg:frequency>
-            <cfg:start_depth>1</cfg:start_depth>
-            <cfg:scan_depth>2</cfg:scan_depth>
+            <cfg:start_day>1</cfg:start_day>
+            <cfg:days_to_scan>2</cfg:days_to_scan>
             <cfg:operations>
-                <cfg:operation>
-                    <cfg:calibration/>
-                </cfg:operation>
+                <cfg:calibration_metric>
+                    <cfg:class>asl.seedscan.metrics.AvailabilityMetric</cfg:class>
+                </cfg:calibration_metric>
             </cfg:operations>
         </cfg:scan>
-     
-        <cfg:scan cfg:id="2">
+
+        <cfg:scan cfg:name="yearly">
             <cfg:path>/xs0/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}</cfg:path>
-            <cfg:frequency>
-                <cfg:years cfg:value="1">
-                    <cfg:month cfg:value="12">
-                        <cfg:day cfg:value="24">
-                            <cfg:hour cfg:value="22">
-                                <cfg:minute cfg:value="30"/>
-                            </cfg:hour>
-                        </cfg:day>
-                    </cfg:month>
-                </cfg:years>
-            </cfg:frequency>
-            <cfg:start_depth>1</cfg:start_depth>
-            <cfg:scan_depth>366</cfg:scan_depth>
+            <cfg:start_day>1</cfg:start_day>
+            <cfg:days_to_scan>366</cfg:days_to_scan>
             <cfg:operations>
-                <cfg:operation>
-                    <cfg:calibration/>
-                </cfg:operation>
+                <cfg:calibration_metric>
+                    <cfg:class>asl.seedscan.metrics.AvailabilityMetric</cfg:class>
+                </cfg:calibration_metric>
             </cfg:operations>
         </cfg:scan>
     </cfg:scans>
