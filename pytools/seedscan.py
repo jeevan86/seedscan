@@ -408,7 +408,7 @@ def main():
     #station = "COR"
     #start = (2012,2,1)
     #end   = (2012,2,29)
-    database_conString = '10.1.10.3,dev,asldev,test'
+    database_conString = 'catbox2.cr.usgs.gov,dev,asldev,test'
     database = DB(database_conString)
     
 
