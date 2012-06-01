@@ -44,17 +44,16 @@ import org.xml.sax.SAXException;
 
 import asl.seedscan.config.ConfigT;
 
-public class Config
+public class ConfigParser
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.Config");
+    private static final Logger logger = Logger.getLogger("asl.seedscan.ConfigParser");
 
     private ConfigT config = null;
     private Schema  schema = null;
 
-    public Config(File configFile, Collection<File> schemaFiles)
+    public ConfigParser(Collection<File> schemaFiles)
     {
         schema = makeSchema(schemaFiles);
-        config = parseConfig(configFile, schema);
     }
 
     private Schema makeSchema(Collection<File> files) 
@@ -80,7 +79,7 @@ public class Config
         return schema;
     }
 
-    private ConfigT parseConfig(File configFile, Schema schema)
+    public ConfigT parseConfig(File configFile)
     {
         ConfigT cfg = null;
 

@@ -51,6 +51,7 @@ extends LogConfig
  // URI
     public void setURI(String uri)
     {
+        logger.config("URI: "+uri);
         this.uri = uri;
     }
 

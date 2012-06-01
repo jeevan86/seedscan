@@ -23,12 +23,18 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import asl.seedscan.scan.*;
+
 public class ScanManager
+implements Runnable
 {
     private static final Logger logger = Logger.getLogger("asl.seedscan.ScanManager");
 
-    public ScanManager()
+    private Scan scan = null;
+
+    public ScanManager(Scan scan)
     {
+        this.scan = scan;
     }
 
     public void run()

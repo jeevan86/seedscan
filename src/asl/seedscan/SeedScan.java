@@ -22,6 +22,7 @@ import java.io.BufferedInputStream;
 import java.io.Console;
 import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -30,6 +31,7 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Formatter;
 import java.util.GregorianCalendar;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -44,9 +46,10 @@ import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
 
-import asl.logging.LogFileHandler;
-import asl.seedscan.config.ConfigT;
-import asl.seedscan.config.ObjectFactory;
+import asl.logging.*;
+import asl.security.*;
+import asl.seedscan.config.*;
+import asl.seedscan.scan.*;
 
 /**
  * 
@@ -58,6 +61,8 @@ public class SeedScan
     private static final String allchanURLstr = "http://wwwasl/uptime/honeywell/gsn_allchan.txt";
     private static URL allchanURL;
     private static Handler consoleHandler;
+    private static Handler logDatabaseHandler;
+    private static Handler logFileHandler;
 
     public static void findConsoleHandler()
     {
@@ -82,9 +87,7 @@ public class SeedScan
     {
         findConsoleHandler();
         consoleHandler.setLevel(Level.ALL);
-        Logger.getLogger("").setLevel(Level.ALL);
-        Logger.getLogger("asl.seedscan").setLevel(Level.FINEST);
-        Logger.getLogger("asl.seedscan.config").setLevel(Level.FINEST);
+        Logger.getLogger("").setLevel(Level.CONFIG);
 
      // Default locations of config and schema files
         File configFile = new File("config.xml");
@@ -132,11 +135,13 @@ public class SeedScan
         }
 
 // ==== Configuration Read and Parse Actions ====
-        Config config = new Config(configFile, schemaFiles);
+        ConfigParser parser = new ConfigParser(schemaFiles);
+        ConfigT config = parser.parseConfig(configFile);
 
      // Print out configuration file contents
         Formatter formatter = new Formatter(new StringBuilder(), Locale.US);
 
+     // ===== CONFIG: LOCK FILE =====
      // Set the lock file from the configuration
         File lockFile = new File("seedscan.lock"); // TODO: pull from config
         LockFile lock = new LockFile(lockFile);
@@ -145,9 +150,73 @@ public class SeedScan
             System.exit(1);
         }
         
-     // Set the log file from the configuration
-        // TODO: add all log handlers to the global logger
-        //Logger.getLogger("").addHandler(config.getLogFileHandler());
+     // ===== CONFIG: LOGGING =====
+     // Set the log levels from the configuration
+        LogLevels levels = new LogLevels();
+        for (LogLevelT level: config.getLog().getLevels().getLevel()) {
+            levels.setLevel(level.getName(), level.getValue().value());
+        }
+
+     // Set console logging level
+        if (config.getLog().getHandlers().getLogConsole() != null) {
+            consoleHandler.setLevel(Level.parse(config.getLog().getHandlers().getLogConsole().getHandlerLevel().value()));
+        }
+
+     // Create log file handler if specified
+        if (config.getLog().getHandlers().getLogFile() != null) {
+            LogFileConfig fileCfg = new LogFileConfig();
+            LogFileT file = config.getLog().getHandlers().getLogFile();
+
+            try {
+                fileCfg.setDirectory(file.getDirectory());
+            } catch (FileNotFoundException ex) {
+                logger.severe("Error setting log directory: " + ex.toString());
+                System.exit(1);
+            } catch (IOException ex) {
+                logger.severe("Error setting log directory: " + ex.toString());
+                System.exit(1);
+            }
+            fileCfg.setPrefix(file.getPrefix());
+            fileCfg.setSuffix(file.getSuffix());
+
+            logFileHandler = new LogFileHandler(fileCfg);
+            logFileHandler.setLevel(Level.parse(file.getHandlerLevel().value()));
+            Logger.getLogger("").addHandler(logFileHandler);
+        }
+
+     // Create log database handler if specified
+        if (config.getLog().getHandlers().getLogDb() != null) {
+            LogDatabaseConfig dbCfg = new LogDatabaseConfig();
+            DatabaseT db = config.getLog().getHandlers().getLogDb().getDatabase();
+            dbCfg.setURI(db.getUri());
+            dbCfg.setUsername(db.getUsername());
+            Password pwd;
+            if (db.getPassword().getPlain() == null) {
+                pwd = null;
+                /*
+                EncryptedT enc = db.getPassword.getEncrypted();
+                EncryptedPassword epwd = new EncryptedPassword(enc.getIv(), enc.getCipherText(), enc.getHmac()); 
+                // Generate key from enc.getSalt() + supplied password
+                // epwd.setKey(generatedKey);
+                pwd = epwd;
+                */
+            }
+            else {
+                TextPassword ppwd = new TextPassword(db.getPassword().getPlain()); 
+                pwd = ppwd;
+            }
+            dbCfg.setPassword(pwd);
+            logDatabaseHandler = new LogDatabaseHandler(dbCfg);
+            logDatabaseHandler.setLevel(Level.parse(config.getLog().getHandlers().getLogDb().getHandlerLevel().value()));
+            Logger.getLogger("").addHandler(logDatabaseHandler);
+        }
+
+     // ===== CONFIG: DATABASE =====
+        //StationDatabase database = new StationDatabase(config.getDatabase());
+
+     // ===== CONFIG: SCANS =====
+        Hashtable<String, Scan> scans = new Hashtable<String, Scan>();
+        // TODO: populate scans
 
 
 // ==== Establish Database Connection ====
@@ -156,7 +225,6 @@ public class SeedScan
         // - Track our progress as we go so a new process can pick up where
         //   we left off if our process dies.
         // - Mark when each date-station-channel-operation is complete
-        //StationDatabase database = new StationDatabase(configuration.getDatabaseConfig());
         //LogDatabaseHandler logDB = new LogDatabaseHandler(configuration.get
 
         logger.fine("Testing Logger Level FINE");
@@ -177,8 +245,17 @@ public class SeedScan
         // If we need to push all of it at once, do these in sequence
         // in order to preserve overall system memory resources.
 
+        Scan scan = null;
+        /*
+        if (scans.containsKey()) {
+            scan = 
+        }
+        else {
+        }
+        */
+
 // ==== Perform Scans ====
-        ScanManager manager = new ScanManager();
+        ScanManager manager = new ScanManager(scan);
         manager.run();
 
         try {
@@ -188,12 +265,5 @@ public class SeedScan
         } finally {
             lock = null;
         }
-
-        /*
-           for (int i=0; i < pass.length; i++) {
-           pass[i] = ' ';
-           }
-         */
     } // main()
-
 } // class SeedScan

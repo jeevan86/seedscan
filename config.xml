@@ -9,7 +9,9 @@
     <cfg:log>
         <cfg:levels>
             <!-- OFF, SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST, ALL -->
-            <cfg:level cfg:name="">FINEST</cfg:level>
+            <cfg:level cfg:name="">ALL</cfg:level>
+            <cfg:level cfg:name="com.sun.xml">INFO</cfg:level>
+            <cfg:level cfg:name="javax.xml">INFO</cfg:level>
             <cfg:level cfg:name="asl.seedscan">FINEST</cfg:level>
             <cfg:level cfg:name="asl.seedscan.Scanner">INFO</cfg:level>
             <cfg:level cfg:name="asl.seedsplitter">INFO</cfg:level>
