@@ -61,11 +61,11 @@ public class Scanner
     public void scan()
     {
         GregorianCalendar timestamp = new GregorianCalendar();
-        if (scan.getStartDepth() > 0) {
-            timestamp.setTimeInMillis(timestamp.getTimeInMillis() - (scan.getStartDepth() * dayMilliseconds));
+        if (scan.getStartDay() > 0) {
+            timestamp.setTimeInMillis(timestamp.getTimeInMillis() - (scan.getStartDay() * dayMilliseconds));
         }
 
-        for (int i=0; i < scan.getScanDepth(); i++) {
+        for (int i=0; i < scan.getDaysToScan(); i++) {
             if (i != 0) {
                 timestamp.setTimeInMillis(timestamp.getTimeInMillis() - dayMilliseconds);
             }

@@ -142,8 +142,8 @@ public class SeedScan
         Formatter formatter = new Formatter(new StringBuilder(), Locale.US);
 
      // ===== CONFIG: LOCK FILE =====
-     // Set the lock file from the configuration
-        File lockFile = new File("seedscan.lock"); // TODO: pull from config
+        File lockFile = new File(config.getLockfile());
+        logger.config("SeedScan lock file is '" +lockFile+ "'");
         LockFile lock = new LockFile(lockFile);
         if (!lock.acquire()) {
             logger.severe("Could not acquire lock.");
@@ -214,9 +214,29 @@ public class SeedScan
      // ===== CONFIG: DATABASE =====
         //StationDatabase database = new StationDatabase(config.getDatabase());
 
+
      // ===== CONFIG: SCANS =====
         Hashtable<String, Scan> scans = new Hashtable<String, Scan>();
-        // TODO: populate scans
+        if (config.getScans().getScan() == null) {
+            logger.severe("No scans in configuration.");
+            System.exit(1);
+        }
+        else {
+            for (ScanT scanCfg: config.getScans().getScan()) {
+                String name = scanCfg.getName();
+                if (scans.containsKey(name)) {
+                    logger.severe("Duplicate scan name '" +name+ "' encountered.");
+                    System.exit(1);
+                }
+
+                Scan scan = new Scan();
+                scan.setPathPattern(scanCfg.getPath());
+                scan.setStartDay(scanCfg.getStartDay().intValue());
+                scan.setDaysToScan(scanCfg.getDaysToScan().intValue());
+
+                scans.put(name, scan);
+            }
+        }
 
 
 // ==== Establish Database Connection ====

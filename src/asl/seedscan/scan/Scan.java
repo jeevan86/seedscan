@@ -23,10 +23,15 @@ import java.util.ArrayList;
 public class Scan
 {
     private String pathPattern;
-    private ScanFrequency frequency;
+    private int startDay;
+    private int daysToScan;
     private ArrayList<ScanOperation> operations;
-    private int startDepth;
-    private int scanDepth;
+
+    // TODO: add methods for managing inclusions/exclusions
+    private Filter networks;
+    private Filter stations;
+    private Filter locations;
+    private Filter channels;
 
     public Scan()
     {
@@ -42,17 +47,6 @@ public class Scan
     public String getPathPattern()
     {
         return pathPattern;
-    }
-
- // scan frequency
-    public void setScanFrequency(ScanFrequency frequency)
-    {
-        this.frequency = frequency;
-    }
-
-    public ScanFrequency getScanFrequency()
-    {
-        return frequency;
     }
 
  // operations
@@ -84,24 +78,24 @@ public class Scan
     }
 
  // start depth
-    public void setStartDepth(int startDepth)
+    public void setStartDay(int startDay)
     {
-        this.startDepth = startDepth;
+        this.startDay = startDay;
     }
 
-    public int getStartDepth()
+    public int getStartDay()
     {
-        return startDepth;
+        return startDay;
     }
 
  // scan depth
-   public void setScanDepth(int scanDepth)
+   public void setDaysToScan(int daysToScan)
    {
-       this.scanDepth = scanDepth;
+       this.daysToScan = daysToScan;
    }
 
-   public int getScanDepth()
+   public int getDaysToScan()
    {
-       return scanDepth;
+       return daysToScan;
    }
 }
