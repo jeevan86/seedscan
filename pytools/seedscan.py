@@ -408,8 +408,9 @@ def main():
     #station = "COR"
     #start = (2012,2,1)
     #end   = (2012,2,29)
-
-    database = DB("/dataq/metrics/metrics.db")
+    database_conString = 'catbox2.cr.usgs.gov,dev,asldev,test'
+    database = DB(database_conString)
+    
 
     start_time = time.time()
     gen_soh("/xs0/seed", database, availability, start=start, end=end, net=network, st=station)

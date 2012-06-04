@@ -6,25 +6,24 @@ except:
     sha1 = sha.new
 
 import base64
-try:
-    import sqlite3 as sqlite
-except ImportError, e:
-    from pysqlite2 import dbapi2 as sqlite
+import MySQLdb as mysql
+import sys
 
 class Database:
-    def __init__(self, file=None):
+    def __init__(self, conString=None):
         self.db = None
         self.cur = None
-        if file:
-            self.select_database(file)
+        if conString:
+            self.select_database(conString)
 
     def __del__(self):
         self.close()
 
 # ===== Public Methods ===========================
-    def select_database(self, file):
+    def select_database(self, conString):
         self.close()
-        self.db = sqlite.connect(file)
+        host, user, pwd, db = conString.split(',')
+        self.db = mysql.connect(host=host, user=user, passwd=pwd, db=db)
         self.cur = self.db.cursor()
 
     def close(self):

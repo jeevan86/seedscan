@@ -2,23 +2,23 @@ from Database import Database
 
 import base64
 import threading
-try:
-    import sqlite3 as sqlite
-except ImportError, e:
-    from pysqlite2 import dbapi2 as sqlite
+#try:
+import _mysql as mysql
+#except ImportError, e:
+    
 
 inserts = {
         "Station" : """
-            INSERT OR IGNORE INTO Station(network,name) VALUES(?,?)
+            INSERT OR IGNORE INTO Station(network,name) VALUES(%s,%s)
         """,
         "Sensor" : """
             INSERT OR IGNORE INTO Sensor(station_id,location) 
             VALUES(
                 (SELECT (Station.id) 
                  FROM Station 
-                 WHERE Station.network = ? AND 
-                       Station.name = ?),
-                ?
+                 WHERE Station.network = %s AND 
+                       Station.name = %s),
+                %s
             )
         """,
         "Channel" : """
@@ -27,11 +27,11 @@ inserts = {
                 (SELECT (Sensor.id)
                  FROM Sensor INNER JOIN Station
                     ON Station.id = Sensor.station_id
-                 WHERE Station.network = ? AND
-                       Station.name = ? AND
-                       Sensor.location = ?),
-                ?,
-                ?
+                 WHERE Station.network = %s AND
+                       Station.name = %s AND
+                       Sensor.location = %s),
+                %s,
+                %s
             )
         """,
         "Metrics" : """
@@ -43,17 +43,17 @@ inserts = {
                     ON Sensor.id = Channel.sensor_id
                  INNER JOIN Station
                     ON Station.id = Sensor.station_id
-                 WHERE Station.network = ? AND 
-                       Station.name = ? AND
-                       Sensor.location = ? AND 
-                       Channel.name = ?),
-                ?,
-                ?,
-                ?,
-                julianday(?),
-                ?,
-                ?,
-                ?)
+                 WHERE Station.network = %s AND 
+                       Station.name = %s AND
+                       Sensor.location = %s AND 
+                       Channel.name = %s),
+                %s,
+                %s,
+                %s,
+                julianday(%s),
+                %s,
+                %s,
+                %s)
         """,
         "Calibrations" : """
             INSERT OR IGNORE INTO Calibrations(channel_id,year,month,day,date,cal_year,cal_month,cal_day,cal_date,key,value)
@@ -64,20 +64,20 @@ inserts = {
                     ON Sensor.id = Channel.sensor_id
                  INNER JOIN Station
                     ON Station.id = Sensor.station_id
-                 WHERE Station.network = ? AND 
-                       Station.name = ? AND
-                       Sensor.location = ? AND 
-                       Channel.name = ?),
-                ?,
-                ?,
-                ?,
-                julianday(?),
-                ?,
-                ?,
-                ?,
-                julianday(?),
-                ?,
-                ?)
+                 WHERE Station.network = %s AND 
+                       Station.name = %s AND
+                       Sensor.location = %s AND 
+                       Channel.name = %s),
+                %s,
+                %s,
+                %s,
+                julianday(%s),
+                %s,
+                %s,
+                %s,
+                julianday(%s),
+                %s,
+                %s)
         """,
         "Metadata" : """
             INSERT OR REPLACE INTO Metadata(channel_id,epoch,sensor_info,raw_metadata)
@@ -88,19 +88,19 @@ inserts = {
                     ON Sensor.id = Channel.sensor_id
                  INNER JOIN Station
                     ON Station.id = Sensor.station_id
-                 WHERE Station.network = ? AND 
-                       Station.name = ? AND
-                       Sensor.location = ? AND 
-                       Channel.name = ?),
-                ?,
-                ?,
-                ?)
+                 WHERE Station.network = %s AND 
+                       Station.name = %s AND
+                       Sensor.location = %s AND 
+                       Channel.name = %s),
+                %s,
+                %s,
+                %s)
         """,
 }
 
 class MetricDatabase(Database):
-    def __init__(self, file=None):
-        Database.__init__(self, file)
+    def __init__(self, conString=None):
+        Database.__init__(self, conString)
 
   # === INSERT Queries ===
     def add_station(self, network, station):
@@ -147,7 +147,7 @@ class MetricDatabase(Database):
         data = []
         for column,value in parts:
             if value is not None:
-                results.append(" %s = ?" % column)
+                results.append(" %s = %s" % column)
                 data.append(value)
         if len(results):
             result = "WHERE" + " AND".join(results)
@@ -274,7 +274,7 @@ class MetricDatabase(Database):
                 where += " AND "
             else:
                 where = "WHERE "
-            where += "Metadata.epoch >= ?"
+            where += "Metadata.epoch >= %s"
             data.append(start)
 
         if end is not None:
@@ -282,7 +282,7 @@ class MetricDatabase(Database):
                 where += " AND "
             else:
                 where = "WHERE "
-            where += "Metadata.epoch <= ?"
+            where += "Metadata.epoch <= %s"
             data.append(end)
 
         info['where'] = where
@@ -366,5 +366,5 @@ CREATE TABLE IF NOT EXISTS Calibrations (
     UNIQUE (channel_id, year, month, day, cal_year, cal_month, cal_day, key)
 );
         """
-        self.cur.executescript(script)
+        self.cur.executescript(script) #broken
 
