@@ -78,7 +78,8 @@ class DB(object):
         print "Adding stations...",
         sys.stdout.flush()
         ps = time.time()
-        self.db.add_stations(d_stations)
+        #print d_stations
+	self.db.add_stations(d_stations)
         print "Done. Took %f seconds (%f seconds so far)" % (time.time() - ps, time.time() - start)
 
         print "Adding sensors...",
@@ -402,13 +403,13 @@ def sensor_compare(path, database, start=None, end=None, net=None, st=None):
 def main():
     network = None
     station = None
-    start = (2012,4,1)
-    end   = (2012,4,30)
+    start = (2011,8,1)
+    end   = (2012,1,1)
     #network = "IU"
     #station = "COR"
     #start = (2012,2,1)
     #end   = (2012,2,29)
-    database_conString = 'catbox2.cr.usgs.gov,dev,asldev,test'
+    database_conString = 'catbox2.cr.usgs.gov,dev,asldev,metrics'
     database = DB(database_conString)
     
 

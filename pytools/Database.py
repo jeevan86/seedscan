@@ -56,7 +56,9 @@ class Database:
             self.db.commit()
 
     def insert_many(self, query, iterator, commit=True):
-        self.cur.executemany(query, iterator)
+        print query
+	#print iterator
+	self.cur.executemany(query, iterator)
         if commit:
             self.db.commit()
 

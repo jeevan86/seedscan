@@ -9,23 +9,23 @@ import _mysql as mysql
 
 inserts = {
         "Station" : """
-            INSERT OR IGNORE INTO Station(network,name) VALUES(%s,%s)
+            INSERT IGNORE INTO metrics.Station(network,name) VALUES(%s,%s)
         """,
         "Sensor" : """
-            INSERT OR IGNORE INTO Sensor(station_id,location) 
+            INSERT IGNORE INTO metrics.Sensor(station_id,location) 
             VALUES(
                 (SELECT (Station.id) 
-                 FROM Station 
+                 FROM metrics.Station 
                  WHERE Station.network = %s AND 
                        Station.name = %s),
                 %s
             )
         """,
         "Channel" : """
-            INSERT OR IGNORE INTO Channel(sensor_id,name,derived)
+            INSERT IGNORE INTO metrics.Channel(sensor_id,name,derived)
             VALUES (
                 (SELECT (Sensor.id)
-                 FROM Sensor INNER JOIN Station
+                 FROM metrics.Sensor INNER JOIN Station
                     ON Station.id = Sensor.station_id
                  WHERE Station.network = %s AND
                        Station.name = %s AND
@@ -35,13 +35,13 @@ inserts = {
             )
         """,
         "Metrics" : """
-            INSERT OR IGNORE INTO Metrics(channel_id,year,month,day,date,category,key,value)
+            INSERT IGNORE INTO metrics.Metrics(channel_id,year,month,day,date,category,`key`,value)
             VALUES (
                 (SELECT (Channel.id) 
-                 FROM Channel 
-                 INNER JOIN Sensor 
+                 FROM metrics.Channel 
+                 INNER JOIN metrics.Sensor 
                     ON Sensor.id = Channel.sensor_id
-                 INNER JOIN Station
+                 INNER JOIN metrics.Station
                     ON Station.id = Sensor.station_id
                  WHERE Station.network = %s AND 
                        Station.name = %s AND
@@ -50,19 +50,19 @@ inserts = {
                 %s,
                 %s,
                 %s,
-                julianday(%s),
+                metrics.fnJulianDay(%s),
                 %s,
                 %s,
                 %s)
         """,
         "Calibrations" : """
-            INSERT OR IGNORE INTO Calibrations(channel_id,year,month,day,date,cal_year,cal_month,cal_day,cal_date,key,value)
+            INSERT IGNORE INTO metrics.Calibrations(channel_id,year,month,day,date,cal_year,cal_month,cal_day,cal_date,`key`,value)
             VALUES (
                 (SELECT (Channel.id) 
-                 FROM Channel 
-                 INNER JOIN Sensor 
+                 FROM metrics.Channel 
+                 INNER JOIN metrics.Sensor 
                     ON Sensor.id = Channel.sensor_id
-                 INNER JOIN Station
+                 INNER JOIN metrics.Station
                     ON Station.id = Sensor.station_id
                  WHERE Station.network = %s AND 
                        Station.name = %s AND
@@ -71,22 +71,22 @@ inserts = {
                 %s,
                 %s,
                 %s,
-                julianday(%s),
+                metrics.fnJulianDay(%s),
                 %s,
                 %s,
                 %s,
-                julianday(%s),
+                metrics.fnJulianDay(%s),
                 %s,
                 %s)
         """,
         "Metadata" : """
-            INSERT OR REPLACE INTO Metadata(channel_id,epoch,sensor_info,raw_metadata)
+            REPLACE INTO metrics.Metadata(channel_id,epoch,sensor_info,raw_metadata)
             VALUES (
                 (SELECT (Channel.id) 
-                 FROM Channel 
-                 INNER JOIN Sensor 
+                 FROM metrics.Channel 
+                 INNER JOIN metrics.Sensor 
                     ON Sensor.id = Channel.sensor_id
-                 INNER JOIN Station
+                 INNER JOIN metrics.Station
                     ON Station.id = Sensor.station_id
                  WHERE Station.network = %s AND 
                        Station.name = %s AND
@@ -366,5 +366,5 @@ CREATE TABLE IF NOT EXISTS Calibrations (
     UNIQUE (channel_id, year, month, day, cal_year, cal_month, cal_day, key)
 );
         """
-        self.cur.executescript(script) #broken
+       # self.cur.executescript(script) #broken
 
