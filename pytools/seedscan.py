@@ -403,13 +403,13 @@ def sensor_compare(path, database, start=None, end=None, net=None, st=None):
 def main():
     network = None
     station = None
-    start = (2011,8,1)
-    end   = (2012,1,1)
+    start = (2012,3,1)
+    end   = (2012,4,1)
     #network = "IU"
     #station = "COR"
     #start = (2012,2,1)
     #end   = (2012,2,29)
-    database_conString = 'catbox2.cr.usgs.gov,dev,asldev,metrics'
+    database_conString = 'catbox2.cr.usgs.gov,dev,asldev,metricsDev'
     database = DB(database_conString)
     
 

@@ -9,23 +9,23 @@ import _mysql as mysql
 
 inserts = {
         "Station" : """
-            INSERT IGNORE INTO metrics.Station(network,name) VALUES(%s,%s)
+            INSERT IGNORE INTO Station(network,name) VALUES(%s,%s)
         """,
         "Sensor" : """
-            INSERT IGNORE INTO metrics.Sensor(station_id,location) 
+            INSERT IGNORE INTO Sensor(station_id,location) 
             VALUES(
                 (SELECT (Station.id) 
-                 FROM metrics.Station 
+                 FROM Station 
                  WHERE Station.network = %s AND 
                        Station.name = %s),
                 %s
             )
         """,
         "Channel" : """
-            INSERT IGNORE INTO metrics.Channel(sensor_id,name,derived)
+            INSERT IGNORE INTO Channel(sensor_id,name,derived)
             VALUES (
                 (SELECT (Sensor.id)
-                 FROM metrics.Sensor INNER JOIN Station
+                 FROM Sensor INNER JOIN Station
                     ON Station.id = Sensor.station_id
                  WHERE Station.network = %s AND
                        Station.name = %s AND
@@ -35,13 +35,13 @@ inserts = {
             )
         """,
         "Metrics" : """
-            INSERT IGNORE INTO metrics.Metrics(channel_id,year,month,day,date,category,`key`,value)
+            INSERT IGNORE INTO Metrics(channel_id,year,month,day,date,category,`key`,value)
             VALUES (
                 (SELECT (Channel.id) 
-                 FROM metrics.Channel 
-                 INNER JOIN metrics.Sensor 
+                 FROM Channel 
+                 INNER JOIN Sensor 
                     ON Sensor.id = Channel.sensor_id
-                 INNER JOIN metrics.Station
+                 INNER JOIN Station
                     ON Station.id = Sensor.station_id
                  WHERE Station.network = %s AND 
                        Station.name = %s AND
@@ -50,19 +50,19 @@ inserts = {
                 %s,
                 %s,
                 %s,
-                metrics.fnJulianDay(%s),
+                fnJulianDay(%s),
                 %s,
                 %s,
                 %s)
         """,
         "Calibrations" : """
-            INSERT IGNORE INTO metrics.Calibrations(channel_id,year,month,day,date,cal_year,cal_month,cal_day,cal_date,`key`,value)
+            INSERT IGNORE INTO Calibrations(channel_id,year,month,day,date,cal_year,cal_month,cal_day,cal_date,`key`,value)
             VALUES (
                 (SELECT (Channel.id) 
-                 FROM metrics.Channel 
-                 INNER JOIN metrics.Sensor 
+                 FROM Channel 
+                 INNER JOIN Sensor 
                     ON Sensor.id = Channel.sensor_id
-                 INNER JOIN metrics.Station
+                 INNER JOIN Station
                     ON Station.id = Sensor.station_id
                  WHERE Station.network = %s AND 
                        Station.name = %s AND
@@ -71,22 +71,22 @@ inserts = {
                 %s,
                 %s,
                 %s,
-                metrics.fnJulianDay(%s),
+                fnJulianDay(%s),
                 %s,
                 %s,
                 %s,
-                metrics.fnJulianDay(%s),
+                fnJulianDay(%s),
                 %s,
                 %s)
         """,
         "Metadata" : """
-            REPLACE INTO metrics.Metadata(channel_id,epoch,sensor_info,raw_metadata)
+            REPLACE INTO Metadata(channel_id,epoch,sensor_info,raw_metadata)
             VALUES (
                 (SELECT (Channel.id) 
-                 FROM metrics.Channel 
-                 INNER JOIN metrics.Sensor 
+                 FROM Channel 
+                 INNER JOIN Sensor 
                     ON Sensor.id = Channel.sensor_id
-                 INNER JOIN metrics.Station
+                 INNER JOIN Station
                     ON Station.id = Sensor.station_id
                  WHERE Station.network = %s AND 
                        Station.name = %s AND
