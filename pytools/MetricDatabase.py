@@ -21,7 +21,7 @@ inserts = {
         call spInsertMetricData(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                    """,
         "Calibrations" : """
-           call spInsertCalibrationData(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+           call spInsertCalibrationData(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """,
         "Metadata" : """
             REPLACE INTO Metadata(channel_id,epoch,sensor_info,raw_metadata)
