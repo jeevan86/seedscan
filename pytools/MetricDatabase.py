@@ -9,75 +9,19 @@ import _mysql as mysql
 
 inserts = {
         "Station" : """
-            INSERT IGNORE INTO Station(network,name) VALUES(%s,%s)
+            call spInsertStationNetwork(%s, %s)
         """,
         "Sensor" : """
-            INSERT IGNORE INTO Sensor(station_id,location) 
-            VALUES(
-                (SELECT (Station.id) 
-                 FROM Station 
-                 WHERE Station.network = %s AND 
-                       Station.name = %s),
-                %s
-            )
+            call spInsertSensor(%s, %s, %s)
         """,
         "Channel" : """
-            INSERT IGNORE INTO Channel(sensor_id,name,derived)
-            VALUES (
-                (SELECT (Sensor.id)
-                 FROM Sensor INNER JOIN Station
-                    ON Station.id = Sensor.station_id
-                 WHERE Station.network = %s AND
-                       Station.name = %s AND
-                       Sensor.location = %s),
-                %s,
-                %s
-            )
-        """,
+        call spInsertChannel(%s, %s, %s, %s, %s)
+                    """,
         "Metrics" : """
-            INSERT IGNORE INTO Metrics(channel_id,year,month,day,date,category,`key`,value)
-            VALUES (
-                (SELECT (Channel.id) 
-                 FROM Channel 
-                 INNER JOIN Sensor 
-                    ON Sensor.id = Channel.sensor_id
-                 INNER JOIN Station
-                    ON Station.id = Sensor.station_id
-                 WHERE Station.network = %s AND 
-                       Station.name = %s AND
-                       Sensor.location = %s AND 
-                       Channel.name = %s),
-                %s,
-                %s,
-                %s,
-                fnJulianDay(%s),
-                %s,
-                %s,
-                %s)
-        """,
+        call spInsertMetricData(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                   """,
         "Calibrations" : """
-            INSERT IGNORE INTO Calibrations(channel_id,year,month,day,date,cal_year,cal_month,cal_day,cal_date,`key`,value)
-            VALUES (
-                (SELECT (Channel.id) 
-                 FROM Channel 
-                 INNER JOIN Sensor 
-                    ON Sensor.id = Channel.sensor_id
-                 INNER JOIN Station
-                    ON Station.id = Sensor.station_id
-                 WHERE Station.network = %s AND 
-                       Station.name = %s AND
-                       Sensor.location = %s AND 
-                       Channel.name = %s),
-                %s,
-                %s,
-                %s,
-                fnJulianDay(%s),
-                %s,
-                %s,
-                %s,
-                fnJulianDay(%s),
-                %s,
-                %s)
+           call spInsertCalibrationData(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """,
         "Metadata" : """
             REPLACE INTO Metadata(channel_id,epoch,sensor_info,raw_metadata)
