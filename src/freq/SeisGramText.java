@@ -169,19 +169,19 @@ public class SeisGramText {
             CANCEL = "Annuler";
             FILE = "Fichier";
             APPLY = "Appliquer";
-            CLEAR = "DÈgager";
+            CLEAR = "D√©gager";
             SAVE = "Enregistrer";
             OPTIONS = "Options";
             INIT = "Initiale";
-            PREV = "PrÈcÈdente";
+            PREV = "Pr√©c√©dente";
             OVERLAY = "Chevaucher";
-            SEPARATE = "SÈparer";
+            SEPARATE = "S√©parer";
             ROTATE = "Tourner";
             PICK = "Pointer";
             PROCESS = "Traiter";
             REMOVE_MEAN = "EnleverMoyenne";
-            INTEGRATE = "IntÈgrer";
-            DIFFERENTIATE = "DiffÈrentier";
+            INTEGRATE = "Int√©grer";
+            DIFFERENTIATE = "Diff√©rentier";
             DEL_ALL = "Supp Tous";
             ANGLE = "Angle";
             AMP = "Amp";
@@ -209,7 +209,7 @@ public class SeisGramText {
             DEG = "deg";
             KM = "km";
             FIX = "Fixer";
-            FIRST_ARRIVAL = "ArrivÈe Premiere";
+            FIRST_ARRIVAL = "Arriv√©e Premiere";
             PHASE_LIST = "Liste des phases";
             VIEW = "Affichage";
 
@@ -234,7 +234,7 @@ public class SeisGramText {
 
             // error messages
             ERROR_MULTIPLE_PHASES_FOUND =
-                "ATTENTION: multiple P, S ou CODA pointÈes trouvÈe.";
+                "ATTENTION: multiple P, S ou CODA point√©es trouv√©e.";
 
             // Butterworth filter exceptions
             invalid_low_frequency_corner =
@@ -310,9 +310,9 @@ public class SeisGramText {
             TRAVEL_TIME = "Fasi";
             DISTANCE = "Distanza";
             OTIME = "To";
-            DEPTH = "Profondit‡";
+            DEPTH = "Profondit√†";
             TRAVEL_TIME_DIALOG_TITLE = "Opzioni fasi";
-            DISTANCE_UNITS = "Unit‡ di distanza";
+            DISTANCE_UNITS = "Unit√† di distanza";
             DEG = "deg";
             KM = "km";
             FIX = "Fix";
@@ -329,7 +329,7 @@ public class SeisGramText {
             SAMPLE = "Esempio";
             ANIMATE = "Animazione";
 
-            UTILITIES = "Utilit‡";
+            UTILITIES = "Utilit√†";
             LANGUAGE = "Lingua";
             en_US = "Inglese";
             fr_FR = "Francese";
