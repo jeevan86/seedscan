@@ -70,29 +70,29 @@
         </copy>
     </target>
 
-<!--TEST OR PACKAGE-->
-    <!-- Super-Package: ASL -->
+<!--TEST OR JAR-->
+    <!-- Super-JAR: ASL -->
     <target name="asl_properties" depends="" description="">
         <property file="properties/asl.properties"/>
     </target>
     <target name="asl" depends="asl_properties, test" description="" />
     <target name="asl-jar" depends="asl_properties, jar" description="" />
 
-    <!-- Package: Azimuth -->
+    <!-- JAR: Azimuth -->
     <target name="azimuth_properties" depends="" description="">
         <property file="properties/azimuth.properties"/>
     </target>
     <target name="azimuth" depends="azimuth_properties, test" description="" />
     <target name="azimuth-jar" depends="azimuth_properties, jar" description="" />
 
-    <!-- Package: MSPlot -->
+    <!-- JAR: MSPlot -->
     <target name="msplot_properties" depends="" description="">
         <property file="properties/msplot.properties"/>
     </target>
     <target name="msplot" depends="msplot_properties, test" description="" />
     <target name="msplot-jar" depends="msplot_properties, jar" description="" />
 
-    <!-- Package: SeedScan -->
+    <!-- JAR: SeedScan -->
     <target name="seedscan_properties" depends="" description="">
         <property file="properties/seedscan.properties"/>
     </target>
@@ -119,7 +119,7 @@
             description="generate the distribution" >
         <jar jarfile="${project.archive}" basedir="${build.root}">
             <manifest>
-                <attribute name="Main-Class" value="${project.archive}"/>
+                <attribute name="Main-Class" value="${project.main}"/>
             </manifest>
         </jar>
     </target>
