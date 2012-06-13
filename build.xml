@@ -37,17 +37,17 @@
     </target>
 
 <!--INIT_DOC-->
-    <target name="init_doc">
+    <target name="init_doc" depends="jaxb">
         <tstamp/>
         <mkdir dir="${doc.dir}"/>
     </target>
 
 <!--JAXB-->
-    <target name="seedscan_config" depends="seedscan_properties"
+    <target name="jaxb"
             description="JAXB class generation for config file schema">
         <exec executable="xjc">
             <arg value="-p" />
-            <arg value="asl.seedscan.config" />
+            <arg value="${seedscan.config.package}" />
             <arg value="-d" />
             <arg value="${src.dir}" />
             <arg value="schemas/SeedScanConfig.xsd" />
@@ -55,9 +55,10 @@
     </target>
 
 <!--COMPILE-->
-    <target name="compile" depends="init" description="Compile the source">
-        <javac srcdir="${src.dir}" destdir="${build.root}" debug="true" includeantruntime="no">
+    <target name="compile" depends="init, jaxb" description="Compile the source">
+        <javac srcdir="${src.dir}" destdir="${build.root}" encoding="utf-8" debug="true" includeantruntime="no">
             <classpath refid="compile.class.path"/>
+            <compilerarg value="-Xlint" />
         </javac>
     </target>
 
@@ -75,21 +76,28 @@
         <property file="properties/asl.properties"/>
     </target>
     <target name="asl" depends="asl_properties, test" description="" />
-    <target name="package-asl" depends="asl_properties, jar" description="" />
+    <target name="asl-jar" depends="asl_properties, jar" description="" />
 
     <!-- Package: Azimuth -->
     <target name="azimuth_properties" depends="" description="">
         <property file="properties/azimuth.properties"/>
     </target>
     <target name="azimuth" depends="azimuth_properties, test" description="" />
-    <target name="package-azimuth" depends="azimuth_properties, jar" description="" />
+    <target name="azimuth-jar" depends="azimuth_properties, jar" description="" />
+
+    <!-- Package: MSPlot -->
+    <target name="msplot_properties" depends="" description="">
+        <property file="properties/msplot.properties"/>
+    </target>
+    <target name="msplot" depends="msplot_properties, test" description="" />
+    <target name="msplot-jar" depends="msplot_properties, jar" description="" />
 
     <!-- Package: SeedScan -->
     <target name="seedscan_properties" depends="" description="">
         <property file="properties/seedscan.properties"/>
     </target>
-    <target name="seedscan" depends="seedscan_config, test" description="" />
-    <target name="package-seedscan" depends="seedscan_config, jar" description="" />
+    <target name="seedscan" depends="seedscan_properties, test" description="" />
+    <target name="seedscan-jar" depends="seedscan_properties, jar" description="" />
 
 <!--LIBRARIES-->
     <target name="libraries" depends="init" description="Add libraries">
@@ -111,7 +119,7 @@
             description="generate the distribution" >
         <jar jarfile="${project.archive}" basedir="${build.root}">
             <manifest>
-                <attribute name="Main-Class" value="asl.azimuth.Azimuth"/>
+                <attribute name="Main-Class" value="${project.archive}"/>
             </manifest>
         </jar>
     </target>
@@ -138,7 +146,7 @@
                     <include name="license-*.txt"/>
                 </fileset>
             </copy>
-            <copy file="${test.seed.file}"  todir="${package.base}"/>
+            <!--copy file="${test.seed.file}"  todir="${package.base}"/-->
             <copy file="${build.file}"      todir="${package.base}"/>
             <copy file="${properties.file}" todir="${package.base}"/>
             <zip destfile="${package.zip.file}" basedir="${package.root}"/>
@@ -157,14 +165,19 @@
         />
     </target>
 
+<!--CLEAN-JAXB-->
+    <target name="clean_jaxb" description="clean up JAXB generated sources" >
+        <delete dir="${seedscan.config.src}"/>
+    </target>
+
 <!--CLEAN-BUILD-->
-    <target name="clean_build" description="clean up build content" >
+    <target name="clean_build" depends="clean_jaxb" description="clean up build content" >
         <delete file="${project.target}"/>
         <delete dir="${build.root}"/>
     </target>
 
 <!--CLEAN-PACKAGE-->
-    <target name="clean_package" description="clean up package content" >
+    <target name="clean_package" depends="clean_jaxb" description="clean up package content" >
         <delete file="${package.zip.file}"/>
         <delete file="${package.tar.file}"/>
         <delete dir="${package.root}"/>
@@ -174,7 +187,7 @@
     <target name="clean_docs" description="clean up docs" >
     	<delete dir="${doc.dir}"/>
     </target>
-	
+
 <!--CLEAN-->
     <target name="clean" description="clean up"
             depends="clean_build, clean_package, clean_docs"/>
