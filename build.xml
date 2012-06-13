@@ -78,6 +78,13 @@
     <target name="asl" depends="asl_properties, test" description="" />
     <target name="asl-jar" depends="asl_properties, jar" description="" />
 
+    <!-- JAR: ASPSeed -->
+    <target name="aspseed_properties" depends="" description="">
+        <property file="properties/aspseed.properties"/>
+    </target>
+    <target name="aspseed" depends="aspseed_properties, test" description="" />
+    <target name="aspseed-jar" depends="aspseed_properties, jar" description="" />
+
     <!-- JAR: Azimuth -->
     <target name="azimuth_properties" depends="" description="">
         <property file="properties/azimuth.properties"/>
