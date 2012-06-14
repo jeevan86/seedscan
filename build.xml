@@ -99,6 +99,13 @@
     <target name="msplot" depends="msplot_properties, test" description="" />
     <target name="msplot-jar" depends="msplot_properties, jar" description="" />
 
+    <!-- JAR: OFCWeb -->
+    <target name="ofcweb_properties" depends="" description="">
+        <property file="properties/ofcweb.properties"/>
+    </target>
+    <target name="ofcweb" depends="ofcweb_properties, test" description="" />
+    <target name="ofcweb-jar" depends="ofcweb_properties, jar" description="" />
+
     <!-- JAR: SeedScan -->
     <target name="seedscan_properties" depends="" description="">
         <property file="properties/seedscan.properties"/>

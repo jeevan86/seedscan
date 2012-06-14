@@ -84,7 +84,7 @@ public class Fmash
 
     private boolean   swapBytes;
 
-    Fmash(byte[] rawMsh, boolean bigEndian)
+    public Fmash(byte[] rawMsh, boolean bigEndian)
     {
         this.rawMsh = rawMsh;
         totalLength = rawMsh.length;
