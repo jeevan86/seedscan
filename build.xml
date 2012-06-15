@@ -92,6 +92,13 @@
     <target name="azimuth" depends="azimuth_properties, test" description="" />
     <target name="azimuth-jar" depends="azimuth_properties, jar" description="" />
 
+    <!-- JAR: DQAWeb -->
+    <target name="dqaweb_properties" depends="" description="">
+        <property file="properties/dqaweb.properties"/>
+    </target>
+    <target name="dqaweb" depends="dqaweb_properties, test" description="" />
+    <target name="dqaweb-jar" depends="dqaweb_properties, jar" description="" />
+
     <!-- JAR: MSPlot -->
     <target name="msplot_properties" depends="" description="">
         <property file="properties/msplot.properties"/>

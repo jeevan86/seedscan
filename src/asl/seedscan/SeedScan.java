@@ -49,6 +49,7 @@ import org.apache.commons.cli.PosixParser;
 import asl.logging.*;
 import asl.security.*;
 import asl.seedscan.config.*;
+import asl.seedscan.database.*;
 import asl.seedscan.scan.*;
 
 /**

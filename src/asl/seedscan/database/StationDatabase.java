@@ -17,7 +17,7 @@
  *
  */
 
-package asl.seedscan;
+package asl.seedscan.database;
 
 import java.io.File;
 import java.sql.Connection;
@@ -28,12 +28,13 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
-import asl.seedscan.config.DatabaseT;
-import asl.security.Password;
+import asl.security.*;
+import asl.seedscan.*;
+import asl.seedscan.config.*;
 
 public class StationDatabase
 {
-    public static final Logger logger = Logger.getLogger("asl.seedscan.StationDatabase");
+    public static final Logger logger = Logger.getLogger("asl.seedscan.database.StationDatabase");
 
     private Connection connection = null;
     private DatabaseT config = null;
