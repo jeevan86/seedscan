@@ -33,6 +33,7 @@ import asl.seedsplitter.DataSet;
 import asl.seedsplitter.SeedSplitProgress;
 import asl.seedsplitter.SeedSplitter;
 import asl.seedscan.scan.Scan;
+import asl.seedscan.database.StationDatabase;
 
 public class Scanner
     implements Runnable
