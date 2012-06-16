@@ -18,6 +18,7 @@
  */
 package asl.seedscan;
 
+import java.io.*;
 import java.io.BufferedInputStream;
 import java.io.Console;
 import java.io.DataInputStream;
@@ -81,6 +82,12 @@ public class DQAWeb
         }
     }
 
+    private static String getALLMetrics(String startDate, String endDate)
+    {
+        String result = "Gottem";
+        return result;
+    }
+
     public static void main(String args[])
     {
         findConsoleHandler();
@@ -95,15 +102,14 @@ public class DQAWeb
 
         ArrayList<File> schemaFiles = new ArrayList<File>();
         schemaFiles.add(schemaFile);
-
 // ==== Command Line Parsing ====
         Options options = new Options();
         Option opConfigFile = new Option("c", "config-file", true, 
                             "The config file to use for seedscan. XML format according to SeedScanConfig.xsd.");
         Option opSchemaFile = new Option("s", "schema-file", true, 
                             "The schame file which should be used to verify the config file format. ");  
-        Option opTest = new Option("t", "test", true, 
-                                   "Run in test mode rather than as a servlet.");
+        Option opTest = new Option("t", "test", false, 
+                                   "Run in test console mode rather than as a servlet.");
 
         OptionGroup ogConfig = new OptionGroup();
         ogConfig.addOption(opConfigFile);
@@ -131,6 +137,7 @@ public class DQAWeb
         Iterator iter = cmdLine.iterator();
         while (iter.hasNext()) {
             opt = (Option)iter.next();
+            
             if (opt.getOpt().equals("c")) {
                 configFile = new File(opt.getValue());
             }
@@ -141,9 +148,27 @@ public class DQAWeb
                 testMode = true;
             }
         }
-
-        System.err.printf("Starting DQAWeb in test mode...\n");
-
+        while (testMode == true ){
+            InputStreamReader input = new InputStreamReader(System.in);
+            BufferedReader reader = new BufferedReader(input);
+            try{
+                String query = "";
+                System.err.println("Entering Test Mode");
+                System.err.println("Enter a query string to view results or type \"help\" for example query strings");
+                System.err.printf("Query: ");
+                query = reader.readLine();
+                if (query.equals("exit")){
+                    testMode = false;
+                }
+                if (query.equals("ALL")){
+                    String testStr = getALLMetrics("03-01-2012", "03-31-2012");
+                    System.err.println(testStr);
+                }
+            }
+            catch (IOException err) {
+                System.out.println("Error reading line");
+            }
+        }
         System.err.printf("DONE.\n");
     } // main()
 } // class DQAWeb
