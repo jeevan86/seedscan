@@ -24,7 +24,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
@@ -38,48 +38,35 @@ public class StationDatabase
 
     private Connection connection = null;
     private DatabaseT config = null;
+    private String conString = "jdbc:mysql://asltrans.cr.usgs.gov:3306/metricsDev";
+    private String user = "dev";
+    private String password = "asldev";
+    private PreparedStatement prepStatement = null;
 
     public StationDatabase(DatabaseT config) {
         this.config = config;
         try {
-            connection = DriverManager.getConnection(config.getUri(), config.getUsername(),
-                                                     new String(config.getPassword().getPlain()));
+            connection = DriverManager.getConnection(conString, user, password);
         } catch (SQLException e) {
             logger.severe("Could not open station database.");
             throw new RuntimeException("Could not open station database.");
         }
     }
-
-    public ArrayList<Station> getStations(int limit) {
-        ArrayList<Station> results = null;
-        if (limit != 0) {
-            try {
-                Statement s = connection.createStatement();
-                String query = "SELECT network,name FROM Station";
-                if (limit > 0) {
-                    query = query+ " LIMIT " +limit;
-                } 
-                s.executeQuery(query);
-                ResultSet r = s.getResultSet();
-                results = new ArrayList<Station>();
-                while (r.next()) {
-                    results.add(new Station(r.getString("network"), r.getString("name")));
-                }
-                try {
-                    r.close();
-                } catch (SQLException e) {
-                    // We can still proceed even if we could not close 
-                    // this ResultSet. It will eventually go out of scope.
-                }
-            } catch (SQLException e) {
-                results = null;
-            }
+    
+    public String selectAll(String startDate, String endDate){
+        try {
+            ResultSet resultSet = null;
+            prepStatement = connection.prepareStatement("Select spGetAll(?, ?)");
+            prepStatement.setString(1, startDate);
+            prepStatement.setString(2, endDate);
+            resultSet = prepStatement.executeQuery();
+            System.out.print(resultSet);
         }
-        return results;
+        catch (SQLException e) {
+            System.out.print(e);
+        }
+        String stringy = "Stringy";
+        return stringy;
     }
-
-    public ArrayList<Station> getStations() {
-        return getStations(-1);
-    }
-
+    
 }
