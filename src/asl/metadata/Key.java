@@ -27,7 +27,7 @@ public abstract class Key
     public boolean equals(Object obj)
     {
         Key other = (Key)obj;
-        return toString() == other.toString();
+        return toString().equals(other.toString()) ;
     }
 
     public int hashCode()
