@@ -53,6 +53,7 @@ import org.apache.commons.cli.PosixParser;
 import asl.logging.*;
 import asl.security.*;
 import asl.seedscan.config.*;
+import asl.seedscan.database.*;
 import asl.seedscan.scan.*;
 
 /**
@@ -65,6 +66,7 @@ public class DQAWeb
     private static Handler consoleHandler;
     private static Handler logDatabaseHandler;
     private static Handler logFileHandler;
+    private static StationDatabase db; 
 
     public static void findConsoleHandler()
     {
@@ -114,7 +116,8 @@ public class DQAWeb
 
     private static String getAllMetrics(String startDate, String endDate)
     {
-        String result = "Gottem";
+        
+        String result = db.selectAll(startDate, endDate);
         return result;
     }
 
@@ -126,6 +129,7 @@ public class DQAWeb
 
     public static void main(String args[])
     {
+        db = new StationDatabase();
         findConsoleHandler();
         consoleHandler.setLevel(Level.ALL);
         Logger.getLogger("").setLevel(Level.CONFIG);

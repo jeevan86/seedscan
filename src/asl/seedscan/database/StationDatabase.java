@@ -20,6 +20,7 @@
 package asl.seedscan.database;
 
 import java.io.File;
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -38,16 +39,18 @@ public class StationDatabase
 
     private Connection connection = null;
     private DatabaseT config = null;
-    private String conString = "jdbc:mysql://asltrans.cr.usgs.gov:3306/metricsDev";
+    private String conString = "jdbc:mysql://asltrans.cr.usgs.gov:3306/metricsDev?useInformationSchema=true&noAccessToProcedureBodies=true";
     private String user = "dev";
     private String password = "asldev";
-    private PreparedStatement prepStatement = null;
+    private CallableStatement callStatement = null;
+    private String result;
 
-    public StationDatabase(DatabaseT config) {
+    public StationDatabase() {
         this.config = config;
         try {
             connection = DriverManager.getConnection(conString, user, password);
         } catch (SQLException e) {
+            System.err.print(e);
             logger.severe("Could not open station database.");
             throw new RuntimeException("Could not open station database.");
         }
@@ -56,17 +59,17 @@ public class StationDatabase
     public String selectAll(String startDate, String endDate){
         try {
             ResultSet resultSet = null;
-            prepStatement = connection.prepareStatement("Select spGetAll(?, ?)");
-            prepStatement.setString(1, startDate);
-            prepStatement.setString(2, endDate);
-            resultSet = prepStatement.executeQuery();
-            System.out.print(resultSet);
+            callStatement = connection.prepareCall("CALL spGetAll(?, ?, ?)");
+            callStatement.setString(1, startDate);
+            callStatement.setString(2, endDate);
+            callStatement.registerOutParameter(3, java.sql.Types.VARCHAR);
+            resultSet = callStatement.executeQuery();
+            result = callStatement.getString(3);
         }
         catch (SQLException e) {
             System.out.print(e);
         }
-        String stringy = "Stringy";
-        return stringy;
+        return result;
     }
     
 }

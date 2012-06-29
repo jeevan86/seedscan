@@ -3,3 +3,4 @@ doc
 seedscan.jar
 *.pyc
 src/asl/seedscan/config
+*.swp
