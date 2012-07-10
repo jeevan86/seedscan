@@ -27,6 +27,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.*;
+import java.util.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -41,6 +43,7 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
@@ -50,6 +53,7 @@ import org.apache.commons.cli.PosixParser;
 import asl.logging.*;
 import asl.security.*;
 import asl.seedscan.config.*;
+import asl.seedscan.database.*;
 import asl.seedscan.scan.*;
 
 /**
@@ -62,6 +66,7 @@ public class DQAWeb
     private static Handler consoleHandler;
     private static Handler logDatabaseHandler;
     private static Handler logFileHandler;
+    private static StationDatabase db; 
 
     public static void findConsoleHandler()
     {
@@ -82,7 +87,41 @@ public class DQAWeb
         }
     }
 
-    private static String getALLMetrics(String startDate, String endDate)
+    private static String processCommand(String command)
+    {
+        String result = "An error occurred while processing the command";
+        String[] parsedCommand = command.split("\\.");
+        
+        //Incoming commands must be in the following order. Command.StartDate.EndDate.Network.Station.[Channel Info Coming]
+        //Network and Station are ignored with "ALL" commands
+        //
+
+        if (parsedCommand[0].compareToIgnoreCase("All") == 0 && parsedCommand.length == 3){
+            result = getAllMetrics(parsedCommand[1], parsedCommand[2]); 
+        }
+        else if (parsedCommand[0].compareToIgnoreCase("Station") == 0 && parsedCommand.length == 5){
+            result = getStationMetrics(parsedCommand[1], parsedCommand[2], parsedCommand[3], parsedCommand[4]);
+        }
+        else if (parsedCommand[0].compareToIgnoreCase("PlotStation") == 0 && parsedCommand.length == 5){
+            result = "Plotted";
+        }
+        else {
+            result = "Invalid command entered";
+        }
+
+        return result;
+        
+    }
+
+
+    private static String getAllMetrics(String startDate, String endDate)
+    {
+        
+        String result = db.selectAll(startDate, endDate);
+        return result;
+    }
+
+    private static String getStationMetrics(String startDate, String endDate, String network, String station )
     {
         String result = "Gottem";
         return result;
@@ -90,6 +129,7 @@ public class DQAWeb
 
     public static void main(String args[])
     {
+        db = new StationDatabase();
         findConsoleHandler();
         consoleHandler.setLevel(Level.ALL);
         Logger.getLogger("").setLevel(Level.CONFIG);
@@ -148,25 +188,31 @@ public class DQAWeb
                 testMode = true;
             }
         }
+        String query = "";
+        System.out.println("Entering Test Mode");
+        System.out.println("Enter a query string to view results or type \"help\" for example query strings");        
+        InputStreamReader input = new InputStreamReader(System.in);
+        BufferedReader reader = new BufferedReader(input);
+        String result = "";
+
         while (testMode == true ){
-            InputStreamReader input = new InputStreamReader(System.in);
-            BufferedReader reader = new BufferedReader(input);
             try{
-                String query = "";
-                System.err.println("Entering Test Mode");
-                System.err.println("Enter a query string to view results or type \"help\" for example query strings");
-                System.err.printf("Query: ");
+
+                System.out.printf("Query: ");
                 query = reader.readLine();
                 if (query.equals("exit")){
                     testMode = false;
                 }
-                if (query.equals("ALL")){
-                    String testStr = getALLMetrics("03-01-2012", "03-31-2012");
-                    System.err.println(testStr);
+                else if (query.equals("help")) {
+                    System.out.println("Need to add some help for people"); //TODO
                 }
+                else {
+                    result = processCommand(query);
+                }
+                System.out.println(result);
             }
             catch (IOException err) {
-                System.out.println("Error reading line");
+                System.err.println("Error reading line, in DQAWeb.java");
             }
         }
         System.err.printf("DONE.\n");

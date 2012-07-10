@@ -20,11 +20,12 @@
 package asl.seedscan.database;
 
 import java.io.File;
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
@@ -39,51 +40,40 @@ public class StationDatabase
 
     private Connection connection = null;
     private DatabaseT config = null;
+    private String conString = "jdbc:mysql://asltrans.cr.usgs.gov:3306/metricsDev?useInformationSchema=true&noAccessToProcedureBodies=true";
+    private String user = "dev";
+    private String password = "asldev";
+    private CallableStatement callStatement = null;
+    private String result;
 
-    public StationDatabase(DatabaseT config) {
+    public StationDatabase() {
         this.config = config;
 System.out.println("StationDatabase Constructor(): This is where we would make the connection to the dbase");
 /**
         try {
-            connection = DriverManager.getConnection(config.getUri(), config.getUsername(),
-                                                     new String(config.getPassword().getPlain()));
+            connection = DriverManager.getConnection(conString, user, password);
         } catch (SQLException e) {
+            System.err.print(e);
             logger.severe("Could not open station database.");
             throw new RuntimeException("Could not open station database.");
         }
 **/
     }
-
-    public ArrayList<Station> getStations(int limit) {
-        ArrayList<Station> results = null;
-        if (limit != 0) {
-            try {
-                Statement s = connection.createStatement();
-                String query = "SELECT network,name FROM Station";
-                if (limit > 0) {
-                    query = query+ " LIMIT " +limit;
-                } 
-                s.executeQuery(query);
-                ResultSet r = s.getResultSet();
-                results = new ArrayList<Station>();
-                while (r.next()) {
-                    results.add(new Station(r.getString("network"), r.getString("name")));
-                }
-                try {
-                    r.close();
-                } catch (SQLException e) {
-                    // We can still proceed even if we could not close 
-                    // this ResultSet. It will eventually go out of scope.
-                }
-            } catch (SQLException e) {
-                results = null;
-            }
+    
+    public String selectAll(String startDate, String endDate){
+        try {
+            ResultSet resultSet = null;
+            callStatement = connection.prepareCall("CALL spGetAll(?, ?, ?)");
+            callStatement.setString(1, startDate);
+            callStatement.setString(2, endDate);
+            callStatement.registerOutParameter(3, java.sql.Types.VARCHAR);
+            resultSet = callStatement.executeQuery();
+            result = callStatement.getString(3);
         }
-        return results;
+        catch (SQLException e) {
+            System.out.print(e);
+        }
+        return result;
     }
-
-    public ArrayList<Station> getStations() {
-        return getStations(-1);
-    }
-
+    
 }
