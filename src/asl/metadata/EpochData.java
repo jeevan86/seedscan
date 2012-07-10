@@ -21,6 +21,9 @@ package asl.metadata;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.logging.Logger;
+import java.util.Calendar;
+import java.util.Collections;
+import java.text.SimpleDateFormat;
 
 public class EpochData
 {
@@ -31,12 +34,57 @@ public class EpochData
     private ArrayList<Blockette> misc;
     private Hashtable<Integer, StageData> stages;
 
+//MTH:
+    private Calendar startTimestamp = null;
+    private Calendar endTimestamp = null;
+    private double dip;
+    private double azimuth;
+    private double depth;
+    private double sampleRate;
+
+//  epochToDateString(Calendar timestamp):
+//  Return date string (e.g., "2002:324:14:30") for given Calendar timestamp
+//  Return "(null)" if timestamp==null
+
+    public static String epochToDateString(Calendar time)
+    {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy:DDD:HH:mm");
+        if (time != null){
+          return sdf.format(time.getTime());
+        }
+        else {
+          return "(null)";
+        }
+    }
+
+
     // Constructors
     public EpochData(Blockette info)
     {
         this.info = info;
         misc = new ArrayList<Blockette>();
         stages =  new Hashtable<Integer, StageData>();
+        String startDateString = info.getFieldValue(22, 0);
+        String endDateString   = info.getFieldValue(23, 0);
+        if (!startDateString.equals("(null)") ) {
+          try {
+            startTimestamp = BlocketteTimestamp.parseTimestamp(startDateString);
+          }
+          catch (TimestampFormatException e) {
+          }
+        }
+        if (!endDateString.equals("(null)") ) {
+          try {
+            endTimestamp   = BlocketteTimestamp.parseTimestamp(endDateString);
+          }
+          catch (TimestampFormatException e) {
+          }
+        }
+
+        this.depth      = Double.parseDouble(info.getFieldValue(13, 0));
+        this.azimuth    = Double.parseDouble(info.getFieldValue(14, 0));
+        this.dip        = Double.parseDouble(info.getFieldValue(15, 0));
+        this.sampleRate = Double.parseDouble(info.getFieldValue(18, 0));
     }
 
     public EpochData(Blockette format, Blockette info)
@@ -94,6 +142,38 @@ public class EpochData
     public StageData getStage(Integer stageID)
     {
         return stages.get(stageID);
+    }
+
+    public Hashtable<Integer, StageData> getStages()
+    {
+        return stages;
+    }
+
+    public int getNumberOfStages()
+    {
+        //ArrayList<Integer> stageNumbers = new ArrayList<Integer>();
+        //stageNumbers.addAll(stages.keySet());
+        //Collections.sort(stageNumbers);
+        return stages.size();
+    }
+
+    public Calendar getStartTime() {
+      return startTimestamp;
+    }
+    public Calendar getEndTime() {
+      return endTimestamp;
+    }
+    public double getDip() {
+      return dip;
+    }
+    public double getDepth() {
+      return depth;
+    }
+    public double getAzimuth() {
+      return azimuth;
+    }
+    public double getSampleRate() {
+      return sampleRate;
     }
 }
 

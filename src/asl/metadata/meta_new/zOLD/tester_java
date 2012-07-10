@@ -1,0 +1,108 @@
+import java.util.ArrayList;
+import java.util.TreeSet;
+
+
+public class tester {
+
+   public static void main(String[] args) {
+
+     //StationMeta stnMeta = new StationMeta("ANMO","IU");
+     Station station = new Station("IU","ANMO");
+     StationMeta stnMeta = new StationMeta(station);
+     stnMeta.setLatitude(34.950200);
+     stnMeta.setLongitude(-106.460200);
+     stnMeta.setElevation(1743.0);
+     stnMeta.setComment("Albuquerque, New Mexico, USA");
+
+stnMeta.listChannels();
+
+     //ChannelMeta chanMeta = new ChannelMeta("BHZ","00");
+     Channel channel = new Channel("--","BHZ");
+     ChannelMeta chanMeta = new ChannelMeta(channel);
+
+     chanMeta.setSampleRate(20.0);
+     chanMeta.setDip(0.0);
+     chanMeta.setAzimuth(0.0);
+     chanMeta.setComment("Geotech KS-54000 Borehole Seismometer");
+
+     DigitalStage filt = new DigitalStage(2,'D',4.194300E+05);
+     filt.setInputSampleRate(5.120000E+03);
+     filt.setDecimation(1);
+     filt.addCoefficient(-1.097070E-03);
+     filt.addCoefficient(-9.933270E-04);
+     filt.addCoefficient(-1.333160E-03);
+     filt.addCoefficient(-1.705260E-03);
+
+     ResponseStage stage = filt;
+     chanMeta.addStage(stage);
+
+     PoleZeroStage pz = new PoleZeroStage(1,'A',2.061680E+03);
+/**
+     pz.setNormalization(86083);
+
+     pz.addPole(new Complex(-5.943130e+01,   +0.000000e+00));
+     pz.addPole(new Complex(-2.271210e+01,   +2.710650e+01));
+     pz.addPole(new Complex(-2.271210e+01,   -2.710650e+01));
+     pz.addPole(new Complex(-4.800400e-03,   +0.000000e+00));
+     pz.addPole(new Complex(-7.319900e-02,   +0.000000e+00));
+     pz.addZero(new Complex(+0.000000e+00,   +0.000000e+00));
+     pz.addZero(new Complex(+0.000000e+00,   +0.000000e+00));
+**/
+
+     pz.setNormalization(7.1367E+07);
+     pz.addPole(new Complex(-3.701000E-02,  3.701000E-02));
+     pz.addPole(new Complex(-3.701000E-02, -3.701000E-02));
+     pz.addPole(new Complex(-1.979000E+02,  1.979000E+02));
+     pz.addPole(new Complex(-1.979000E+02, -1.979000E+02));
+     pz.addPole(new Complex(-9.111000E+02,  0.000000E+00));
+     pz.addZero(new Complex(+0.000000e+00,   +0.000000e+00));
+     pz.addZero(new Complex(+0.000000e+00,   +0.000000e+00));
+
+
+     stnMeta.addChannel(chanMeta);
+
+     chanMeta = new ChannelMeta("VH1","10");
+     chanMeta.setSampleRate(1);
+     chanMeta.setAzimuth(90.0);
+     stnMeta.addChannel(chanMeta);
+
+     stage = pz;
+     chanMeta.addStage(stage);
+     chanMeta.addStage(stage);
+
+     System.out.println(chanMeta);
+
+     TreeSet<ResponseStage> stages = chanMeta.getStages();
+//     ResponseStage stage = new ResponseStage(2,'A',2.061680E+03);
+     //stages.remove(stage);
+     for (ResponseStage s : stages){
+       System.out.println(s);
+     }
+
+     stnMeta.addChannel(chanMeta);
+     chanMeta.setAzimuth(99.0);
+     stnMeta.addChannel(chanMeta);
+
+     chanMeta = new ChannelMeta("VHZ","10");
+     stnMeta.addChannel(chanMeta);
+     stnMeta.addChannel(chanMeta);
+System.out.println("Number of channels = " + stnMeta.getNumberOfChannels() );
+
+stnMeta.listChannels();
+System.exit(0);
+
+
+     //pz.printResponse();
+
+     double[] freqs = new double[100];
+     for (int i=0; i<freqs.length; i++){
+       freqs[i]=0.1*i;
+     }
+     Complex[] response = pz.getResponse(freqs);
+     for (int i=0; i<freqs.length; i++){
+       System.out.format("%12.4f\t%12.4f\n",freqs[i],response[i].mod() );
+     }
+
+   } // end main()
+
+} // end class test

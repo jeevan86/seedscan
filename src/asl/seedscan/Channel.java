@@ -20,6 +20,7 @@
 package asl.seedscan;
 
 import java.util.logging.Logger;
+import asl.metadata.*;
 
 public class Channel
 {

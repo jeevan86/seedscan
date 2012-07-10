@@ -24,6 +24,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import asl.seedscan.scan.*;
+import asl.metadata.*;
 
 public class ScanManager
 implements Runnable

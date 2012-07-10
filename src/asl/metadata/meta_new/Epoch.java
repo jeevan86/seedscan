@@ -16,23 +16,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
  *
  */
-package asl.metadata;
 
-import java.util.logging.Logger;
+package asl.metadata.meta_new;
 
-public abstract class Key
+public class Epoch
 {
-    public abstract String toString();
-
-    public boolean equals(Object obj)
+    // constructor(s)
+    public Epoch()
     {
-        Key other = (Key)obj;
-        return toString().equals(other.toString()) ;
     }
 
-    public int hashCode()
-    {
-        return toString().hashCode();
-    }
 }
 

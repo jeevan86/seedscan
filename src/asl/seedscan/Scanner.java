@@ -19,11 +19,15 @@
 
 package asl.seedscan;
 
+import java.util.Set;
+import java.io.FilenameFilter;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.Runnable;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
+import java.util.Calendar;
 import java.util.Hashtable;
 import java.util.logging.Logger;
 import java.util.concurrent.BlockingQueue;
@@ -34,6 +38,8 @@ import asl.seedsplitter.SeedSplitProgress;
 import asl.seedsplitter.SeedSplitter;
 import asl.seedscan.scan.Scan;
 import asl.seedscan.database.StationDatabase;
+import asl.metadata.*;
+import asl.metadata.meta_new.*;
 
 public class Scanner
     implements Runnable
@@ -41,9 +47,9 @@ public class Scanner
     private static final Logger logger = Logger.getLogger("asl.seedscan.Scanner");
     public long dayMilliseconds = 1000 * 60 * 60 * 24;
 
-    public Station station;
-    public StationDatabase database;
-    public Scan scan;
+    private Station station;
+    private StationDatabase database;
+    private Scan scan;
 
     private FallOffQueue<SeedSplitProgress> progressQueue;
 
@@ -82,25 +88,91 @@ public class Scanner
                 continue;
             }
 
-            File[] files = dir.listFiles();
+/** MTH: There are some non-seed files (e.g., data_avail.txt) included in files[].
+ **      For some reason the file netday.index causes the splitter to hang.
+ **      Either restrict the file list to .seed files (as I do below) -or-
+ **      Debug splitter so it drops non-seed/miniseed files.
+ **
+ **         File[] files = dir.listFiles();
+**/
+            FilenameFilter textFilter = new FilenameFilter() {
+              public boolean accept(File dir, String name) {
+                  String lowercaseName = name.toLowerCase();
+                  if (lowercaseName.endsWith(".seed")) {
+                      return true;
+                  } else {
+                      return false;
+                  }
+              }
+            };
+
+// Here we go - Let's read in all the .seed files for this station, for this day
+
+            File[] files = dir.listFiles(textFilter);
             int seedCount = files.length;
 
             Hashtable<String,ArrayList<DataSet>> table = null;
             logger.info(dir.getPath() + " contains " +seedCount+ " files.");
             progressQueue.clear();
+
             SeedSplitter splitter = new SeedSplitter(files, progressQueue);
             table = splitter.doInBackground();
 
-            // TODO: List Contents
-
-            //*
-            for (File file: files) {
-                if (file.getName().endsWith(".seed")) {
-                    seedCount++;
-                    logger.fine("Processing file '" +file.getPath()+ "'.");
-                }
+// MTH: This is just for testing, if we want to see what we loaded into table
+            ArrayList<DataSet> datasets = new ArrayList<DataSet>();
+            DataSet dataset;
+            Set<String> keys = table.keySet();
+            for (String key : keys){
+               //logger.info("** table key=" + key); 
+               datasets = table.get(key);          // Will normally be = 1 for contiguous data
+               dataset  = table.get(key).get(0);
+               String knet = dataset.getNetwork(); String kstn = dataset.getStation();
+               String locn = dataset.getLocation();String kchn = dataset.getChannel();
+               double srate= dataset.getSampleRate();
+               String out = String.format("NET=%s KSTN=%s KCHN=%s KLOC=%s srate=%.2f",knet,kstn,kchn,locn,srate);
+               //logger.info("<===== PROCESSING: " + out); 
             }
-            // */
+
+            Runtime runtime = Runtime.getRuntime();
+            System.out.println(" Java total memory=" + runtime.totalMemory() );
+
+// MTH: Now we're going to load in MetaData for this station, for this day
+// Really, we are requesting the metadata for a time exactly 24 hours before now
+// e.g., timestamp --> 2012:159:02:44
+// but the seed files all start at 00:00 and we are processing 1 day at a time,
+// so we should request metadata for the 24-hr period starting at 00:00
+// e.g., 2012:159:00 - 2012:160:00
+
+            System.out.println("============ Scanner() ====================");
+            MetaGenerator metaGen = new MetaGenerator();
+        //timestamp.set(Calendar.YEAR, 2011);
+        //timestamp.set(Calendar.DAY_OF_YEAR, 200);
+            StationMeta stnMeta = metaGen.getStationMeta(station, timestamp); 
+            stnMeta.print();
+System.out.println("stnMeta.hasChannel(00,BHZ)=" + stnMeta.hasChannel("00","BHZ") );
+System.out.println("stnMeta.hasChannel(00,BYZ)=" + stnMeta.hasChannel("00","BYZ") );
+
+            runtime = Runtime.getRuntime();
+            System.out.println(" Java total memory=" + runtime.totalMemory() );
+
+/**
+ ** Here's how Adam's code might use the metadata:
+            double latitude  = stnMeta.getLatitude();
+            double longitude = stnMeta.getLongitude();
+            ChanMeta chnMeta = stnMeta.getChan("00","VHZ");
+            double azimuth   = chnMeta.getAzimuth();
+            double sampRate  = chnMeta.getSampleRate();
+            Complex[] Response = chnMeta.getResponse(double freq[]); // Return complex response at freq[]
+
+  [2] Data (table) get/return methods:
+            DataSet vertical    = stnData.getChan("00","VHZ");
+            double startTime    = vertical.getStartTime();
+            long numberOfPoints = vertical.getlength();
+            double sampleRate   = vertical.getSampleRate();
+**/
+
+//  From here we would hand off the data table + stnMeta for this Station(=name + net) + Day to Adam's Metrics.
+
         }
     }
 }

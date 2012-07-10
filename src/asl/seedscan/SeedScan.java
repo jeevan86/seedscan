@@ -18,6 +18,8 @@
  */
 package asl.seedscan;
 
+import java.util.Set;
+
 import java.io.BufferedInputStream;
 import java.io.Console;
 import java.io.DataInputStream;
@@ -51,6 +53,8 @@ import asl.security.*;
 import asl.seedscan.config.*;
 import asl.seedscan.database.*;
 import asl.seedscan.scan.*;
+import asl.metadata.*;
+import asl.metadata.meta_new.*;
 
 /**
  * 
@@ -213,7 +217,7 @@ public class SeedScan
         }
 
      // ===== CONFIG: DATABASE =====
-        //StationDatabase database = new StationDatabase(config.getDatabase());
+        StationDatabase database = new StationDatabase(config.getDatabase());
 
 
      // ===== CONFIG: SCANS =====
@@ -276,8 +280,25 @@ public class SeedScan
         */
 
 // ==== Perform Scans ====
+        System.out.println("MTH: HERE WE GO");
+
+Runtime runtime = Runtime.getRuntime();
+System.out.println(" Java total memory=" + runtime.totalMemory() );
+
+        Station station = new Station("IU","ANMO");
+
+        //Set<String> keys = scans.keySet(); 
+        for (String key : scans.keySet() ) {
+           scan = scans.get(key);
+           System.out.format("scan key=%s startDay=%d daysToScan=%d\n", key, scan.getStartDay(), scan.getDaysToScan() );
+        }
+        scan = scans.get("daily");
+        Scanner scanner = new Scanner(database,station,scan);
+        scanner.scan();
+/**
         ScanManager manager = new ScanManager(scan);
         manager.run();
+**/
 
         try {
             lock.release();

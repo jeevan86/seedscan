@@ -73,9 +73,10 @@ public class Blockette
         // We are dealing with multiple field identifiers
         if (range.length > 1) {
             int end = Integer.parseInt(range[1]);
-            String[] dataItems = data.split("\\s");
+            String[] dataItems = data.trim().split("\\s+");
             int index = dataItems.length - (end - start + 1);
-            for (; index <= dataItems.length; index++) {
+//System.out.format(" addFieldData(): start=%d end=%d index=%d dataItems.length=%d\n",start,end,index,dataItems.length);
+            for (; index < dataItems.length; index++) {
                 if (!fields.containsKey(id)) {
                     field = new Field(id, description);
                     fields.put(id, field);
@@ -90,7 +91,7 @@ public class Blockette
         }
         // We are only dealing with a single field identifier
         else {
-            String[] parts = data.split(":", 1);
+            String[] parts = data.split(":", 2);
             String value;
             if (parts.length > 1) {
                 description = parts[0].trim();
@@ -130,5 +131,23 @@ public class Blockette
         }
         return values;
     }
+
+    public void print()
+    {
+        System.out.format("Blockette Number:%02d\n", number);
+        for (Integer key : fields.keySet() ){
+            fields.get(key).print();
+        }
+    }
+
+ // MTH: added this to return the fields hashtable for this blockette
+    public Hashtable<Integer, Field> getFields()
+    {
+if (fields == null){
+  System.out.println(" fields is null!! ");
+}
+        return fields;
+    }
+
 }
 

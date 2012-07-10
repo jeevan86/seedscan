@@ -77,7 +77,9 @@ public class BlocketteTimestamp
 
         timestamp.set(Calendar.YEAR, year);
         timestamp.set(Calendar.DAY_OF_YEAR, dayOfYear);
-        timestamp.set(Calendar.HOUR, hour);
+      //timestamp.set(Calendar.HOUR, hour);
+      //MTH: I think we want to use 24-hour calendar here to get correct Epoch timestamp
+        timestamp.set(Calendar.HOUR_OF_DAY, hour);
         timestamp.set(Calendar.MINUTE, minute);
         timestamp.set(Calendar.SECOND, second);
         timestamp.set(Calendar.MILLISECOND, 0);

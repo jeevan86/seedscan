@@ -37,6 +37,10 @@ public class Field
         this.description = description;
         values = new ArrayList<String>();
     }
+    public int getID()
+    {
+        return fieldID;
+    }
 
     // description
     public void setDescription(String description)
@@ -75,5 +79,13 @@ public class Field
     {
         return values;
     }
+
+    public void print()
+    {
+        for (String value : values) {
+            System.out.format("Field:%02d Description:%s Value:%s\n",fieldID, description, value );
+        }
+    }
+
 }
 

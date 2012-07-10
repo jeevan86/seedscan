@@ -31,6 +31,7 @@ import java.util.logging.Logger;
 import asl.security.*;
 import asl.seedscan.*;
 import asl.seedscan.config.*;
+import asl.metadata.*;
 
 public class StationDatabase
 {
@@ -41,6 +42,8 @@ public class StationDatabase
 
     public StationDatabase(DatabaseT config) {
         this.config = config;
+System.out.println("StationDatabase Constructor(): This is where we would make the connection to the dbase");
+/**
         try {
             connection = DriverManager.getConnection(config.getUri(), config.getUsername(),
                                                      new String(config.getPassword().getPlain()));
@@ -48,6 +51,7 @@ public class StationDatabase
             logger.severe("Could not open station database.");
             throw new RuntimeException("Could not open station database.");
         }
+**/
     }
 
     public ArrayList<Station> getStations(int limit) {

@@ -16,23 +16,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
  *
  */
-package asl.metadata;
 
-import java.util.logging.Logger;
+package asl.metadata.meta_new;
 
-public abstract class Key
+public class PolynomialStage extends ResponseStage
 {
-    public abstract String toString();
+    private int numberOfCoefficients;
 
-    public boolean equals(Object obj)
+    // constructor(s)
+    public PolynomialStage(int stageNumber, char stageType, double stageGain)
     {
-        Key other = (Key)obj;
-        return toString().equals(other.toString()) ;
+        super(stageNumber, stageType, stageGain);
     }
 
-    public int hashCode()
-    {
-        return toString().hashCode();
-    }
 }
 
