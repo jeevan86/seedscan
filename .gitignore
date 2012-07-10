@@ -1,6 +1,8 @@
 build
 doc
 seedscan.jar
+seedscan.lock
 *.pyc
 src/asl/seedscan/config
 *.swp
+logs/*.log

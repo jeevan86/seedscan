@@ -132,7 +132,10 @@
 
 <!--TEST-->
     <target name="test" depends="compile, data" description="">
-        <java classname="${project.main}" classpathref="test.class.path" fork="true" />
+        <java classname="${project.main}" classpathref="test.class.path" fork="true">
+            <jvmarg value="-Xms64m"/>
+            <jvmarg value="-Xmx2048m"/>
+        </java>
     </target>
     
 <!--JAR-->
