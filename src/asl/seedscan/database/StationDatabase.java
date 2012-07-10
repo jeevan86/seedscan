@@ -46,7 +46,7 @@ public class StationDatabase
     private CallableStatement callStatement = null;
     private String result;
 
-    public StationDatabase() {
+    public StationDatabase(DatabaseT config) {
         this.config = config;
 System.out.println("StationDatabase Constructor(): This is where we would make the connection to the dbase");
 /**
@@ -58,6 +58,10 @@ System.out.println("StationDatabase Constructor(): This is where we would make t
             throw new RuntimeException("Could not open station database.");
         }
 **/
+    }
+
+    public StationDatabase() {
+	this(null);
     }
     
     public String selectAll(String startDate, String endDate){
