@@ -142,15 +142,29 @@ public class Scanner
 // but the seed files all start at 00:00 and we are processing 1 day at a time,
 // so we should request metadata for the 24-hr period starting at 00:00
 // e.g., 2012:159:00 - 2012:160:00
+// We should also set a flag to true for each channel where the metadata changed
+//    sometime during the epoch (day) requested.
 
-            System.out.println("============ Scanner() ====================");
             MetaGenerator metaGen = new MetaGenerator();
-        //timestamp.set(Calendar.YEAR, 2011);
-        //timestamp.set(Calendar.DAY_OF_YEAR, 200);
             StationMeta stnMeta = metaGen.getStationMeta(station, timestamp); 
+// At this point we should have the data and the metadata for all channels of this station,
+//  for this day and we can hand them off to the metrics.
+// Everything below is just for testing.
+
             stnMeta.print();
-System.out.println("stnMeta.hasChannel(00,BHZ)=" + stnMeta.hasChannel("00","BHZ") );
-System.out.println("stnMeta.hasChannel(00,BYZ)=" + stnMeta.hasChannel("00","BYZ") );
+            ChannelMeta chanMeta = null;
+            if (stnMeta.hasChannel("00","BHZ") ) {
+               chanMeta = stnMeta.getChanMeta(new ChannelKey("00","BHZ") );
+               if (chanMeta == null){
+                 System.out.println("Scanner Error: stnMeta.getChannel returned null!");
+               }
+               else {
+                 chanMeta.print();
+               }
+            }
+            else {
+               System.out.println("Scanner Error: chanMeta not found!");
+            }
 
             runtime = Runtime.getRuntime();
             System.out.println(" Java total memory=" + runtime.totalMemory() );
