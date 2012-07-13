@@ -19,6 +19,7 @@
 
 package asl.seedscan;
 
+import java.util.TimeZone;
 import java.util.Set;
 import java.io.FilenameFilter;
 
@@ -40,6 +41,7 @@ import asl.seedscan.scan.Scan;
 import asl.seedscan.database.StationDatabase;
 import asl.metadata.*;
 import asl.metadata.meta_new.*;
+import asl.seedscan.metrics.*;
 
 public class Scanner
     implements Runnable
@@ -67,15 +69,35 @@ public class Scanner
 
     public void scan()
     {
-        GregorianCalendar timestamp = new GregorianCalendar();
+
+    //  GregorianCalendar timestamp = new GregorianCalendar();
+
+    // This has to be done so that EpochData.epochToDateString will return the correct times
+    //   since seedsplitter/SeedSplitProcessor sets the TimeZone to GMT.
+    // Otherwise, all calls to epochToDateString will print local time (GMT - 4 hours).
+    // Update: There's more to it: If this is run after 8:00pm EST then it thinks it's the next GMT day ...
+
+        GregorianCalendar timestamp = new GregorianCalendar(TimeZone.getTimeZone("GMT") );
+
         if (scan.getStartDay() > 0) {
             timestamp.setTimeInMillis(timestamp.getTimeInMillis() - (scan.getStartDay() * dayMilliseconds));
         }
+     // timestamp is now set to current time - (24 hours x StartDay). What we really want is to set it
+     //   to the start (hh:mm=00:00) of the first day we want to scan
+        timestamp.set(Calendar.HOUR_OF_DAY, 0);      timestamp.set(Calendar.MINUTE, 0);
+        timestamp.set(Calendar.SECOND, 0);      timestamp.set(Calendar.MILLISECOND, 0);
+
+     // Loop over days to scan
 
         for (int i=0; i < scan.getDaysToScan(); i++) {
             if (i != 0) {
                 timestamp.setTimeInMillis(timestamp.getTimeInMillis() - dayMilliseconds);
             }
+
+            System.out.format("==Scanner: scan Day=%s\n", EpochData.epochToDateString(timestamp) );
+
+// [1] Read in all the seed files for this station, for this day
+
             ArchivePath pathEngine = new ArchivePath(timestamp, station);
             String path = pathEngine.makePath(scan.getPathPattern());
             File dir = new File(path);
@@ -106,8 +128,6 @@ public class Scanner
               }
             };
 
-// Here we go - Let's read in all the .seed files for this station, for this day
-
             File[] files = dir.listFiles(textFilter);
             int seedCount = files.length;
 
@@ -118,75 +138,29 @@ public class Scanner
             SeedSplitter splitter = new SeedSplitter(files, progressQueue);
             table = splitter.doInBackground();
 
-// MTH: This is just for testing, if we want to see what we loaded into table
-            ArrayList<DataSet> datasets = new ArrayList<DataSet>();
-            DataSet dataset;
-            Set<String> keys = table.keySet();
-            for (String key : keys){
-               //logger.info("** table key=" + key); 
-               datasets = table.get(key);          // Will normally be = 1 for contiguous data
-               dataset  = table.get(key).get(0);
-               String knet = dataset.getNetwork(); String kstn = dataset.getStation();
-               String locn = dataset.getLocation();String kchn = dataset.getChannel();
-               double srate= dataset.getSampleRate();
-               String out = String.format("NET=%s KSTN=%s KCHN=%s KLOC=%s srate=%.2f",knet,kstn,kchn,locn,srate);
-               //logger.info("<===== PROCESSING: " + out); 
-            }
-
             Runtime runtime = Runtime.getRuntime();
             System.out.println(" Java total memory=" + runtime.totalMemory() );
 
-// MTH: Now we're going to load in MetaData for this station, for this day
-// Really, we are requesting the metadata for a time exactly 24 hours before now
-// e.g., timestamp --> 2012:159:02:44
-// but the seed files all start at 00:00 and we are processing 1 day at a time,
-// so we should request metadata for the 24-hr period starting at 00:00
-// e.g., 2012:159:00 - 2012:160:00
+
+// [2] Read in all the metadata for this station, for this day
+
 // We should also set a flag to true for each channel where the metadata changed
 //    sometime during the epoch (day) requested.
 
             MetaGenerator metaGen = new MetaGenerator();
             StationMeta stnMeta = metaGen.getStationMeta(station, timestamp); 
-// At this point we should have the data and the metadata for all channels of this station,
-//  for this day and we can hand them off to the metrics.
-// Everything below is just for testing.
+            System.out.format("==Scanner: scan Day=%s\n", EpochData.epochToDateString(timestamp) );
 
-            stnMeta.print();
-            ChannelMeta chanMeta = null;
-            if (stnMeta.hasChannel("00","BHZ") ) {
-               chanMeta = stnMeta.getChanMeta(new ChannelKey("00","BHZ") );
-               if (chanMeta == null){
-                 System.out.println("Scanner Error: stnMeta.getChannel returned null!");
-               }
-               else {
-                 chanMeta.print();
-               }
-            }
-            else {
-               System.out.println("Scanner Error: chanMeta not found!");
-            }
+            MetricData metricData = new MetricData(table, stnMeta);
+// [3] Loop over Metrics to compute, for this station, for this day
+            CalibrationMetric calibration = new CalibrationMetric(metricData);
+            calibration.process();
+   // This is a little convoluted: calibration.getResult() returns a MetricResult, which may contain many values
+   //   in a Hashtable<String,String> = map.
+   //   MetricResult.getResult(id) returns value = String
+            String value = calibration.getResult().getResult("Calibration");
+            System.out.format(" Calibration Result = %s\n", value);
 
-            runtime = Runtime.getRuntime();
-            System.out.println(" Java total memory=" + runtime.totalMemory() );
-
-/**
- ** Here's how Adam's code might use the metadata:
-            double latitude  = stnMeta.getLatitude();
-            double longitude = stnMeta.getLongitude();
-            ChanMeta chnMeta = stnMeta.getChan("00","VHZ");
-            double azimuth   = chnMeta.getAzimuth();
-            double sampRate  = chnMeta.getSampleRate();
-            Complex[] Response = chnMeta.getResponse(double freq[]); // Return complex response at freq[]
-
-  [2] Data (table) get/return methods:
-            DataSet vertical    = stnData.getChan("00","VHZ");
-            double startTime    = vertical.getStartTime();
-            long numberOfPoints = vertical.getlength();
-            double sampleRate   = vertical.getSampleRate();
-**/
-
-//  From here we would hand off the data table + stnMeta for this Station(=name + net) + Day to Adam's Metrics.
-
-        }
-    }
+        } // end loop over day to scan
+    } // end scan()
 }

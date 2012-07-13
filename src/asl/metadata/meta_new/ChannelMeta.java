@@ -45,7 +45,7 @@ public class ChannelMeta
         stages = new TreeSet<ResponseStage>();
     }
 
-    public ChannelMeta(String channel, String location)
+    public ChannelMeta(String location, String channel)
     {
         this.name     = channel;
         this.location = location;

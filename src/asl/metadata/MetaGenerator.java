@@ -93,7 +93,7 @@ public class MetaGenerator
 
     public StationMeta getStationMeta(Station station, Calendar timestamp){
       StationKey stnkey = new StationKey(station);  // Kind of redundant ...
-//      System.out.format("===== getStationMeta(): station=%s net=%s epoch date=%s\n",stnkey.getName(),stnkey.getNetwork(),EpochData.epochToDateString(timestamp));
+      System.out.format("===== getStationMeta(): station=%s net=%s epoch date=%s\n",stnkey.getName(),stnkey.getNetwork(),EpochData.epochToDateString(timestamp));
 
       StationData stationData = getStationData(station);
  // Scan stationData for the correct station blockette (050) for this timestamp - return null if it isn't found
@@ -108,7 +108,8 @@ public class MetaGenerator
 
       StationMeta stationMeta = null;
       try {
-        stationMeta = new StationMeta(blockette);
+        stationMeta = new StationMeta(blockette, timestamp);
+        //stationMeta = new StationMeta(blockette);
       }
       catch (WrongBlocketteException e ){
         System.out.println("ERROR: Could not create new StationMeta(blockette) !!");

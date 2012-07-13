@@ -30,12 +30,21 @@ public class Channel
     private String  location = "";
     private String  channel  = "";
 
+// Not sure this constructor makes sense / is even used
     public Channel ()
     {
         setStation(station);
         setLocation(location);
         setChannel(channel);
     }
+
+    public Channel (String location, String channel)
+    {
+        //setStation(station);
+        setLocation(location);
+        setChannel(channel);
+    }
+
 
     public void setStation(Station station) {
         if (station == null) {
@@ -66,6 +75,9 @@ public class Channel
         this.channel = channel;
     }
 
+    @Override public String toString() {
+      return getLocation() + "-" + getChannel();
+    }
 
     public Station getStation() {
         return station;
