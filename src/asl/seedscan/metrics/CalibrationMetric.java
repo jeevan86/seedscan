@@ -33,9 +33,9 @@ extends Metric
 {
     private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.CalibrationMetric");
 
-    public CalibrationMetric(MetricData data)
+    public String getName()
     {
-        super(data);
+        return "CalibrationMetric";
     }
 
     public void process()

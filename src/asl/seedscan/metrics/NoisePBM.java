@@ -25,9 +25,9 @@ extends PowerBandMetric
 {
     private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.CoherencePBM");
 
-    public NoisePBM(MetricData data, PowerBand powerBand)
+    public String getBaseName()
     {
-        super(data, powerBand);
+        return "NoisePBM";
     }
 
     public void process()

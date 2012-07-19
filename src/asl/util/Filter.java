@@ -16,11 +16,33 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
  *
  */
-package asl.seedscan.scan;
+package asl.util;
 
-public class ScanOperation
+import java.util.Hashtable;
+
+public class Filter
 {
-    public ScanOperation()
+    private Hashtable<String, Boolean> filters;
+    private boolean exclusive = false;
+
+    public Filter(boolean exclusive)
     {
+        this.exclusive = exclusive;
+        filters = new Hashtable<String, Boolean>();
+    }
+
+    public void addFilter(String key)
+    {
+        filters.put(key, exclusive);
+    }
+
+    public void removeFilter(String key)
+    {
+        filters.remove(key);
+    }
+
+    public boolean filter(String key)
+    {
+        return filters.containsKey(key) ^ exclusive;
     }
 }

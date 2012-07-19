@@ -43,15 +43,11 @@
     <xsd:element name="station_subset"  type="xsd:string" />
     <xsd:element name="location_subset" type="xsd:string" />
     <xsd:element name="channel_subset"  type="xsd:string" />
-    <xsd:element name="operations"  type="cfg:operations_T" />
+    <xsd:element name="metrics"     type="cfg:metrics_T" />
 
-    <!-- operation elements -->
-    <xsd:element name="class" type="cfg:class_enum_T" />
     <xsd:element name="metric" type="cfg:metric_T" />
-    <xsd:element name="calibration_metric" type="cfg:metric_T" />
-    <xsd:element name="power_band_metric"  type="cfg:power_band_metric_T" />
-        <xsd:element name="power_band_lower_limit" type="xsd:integer" />
-        <xsd:element name="power_band_upper_limit" type="xsd:integer" />
+        <xsd:element name="class_name" type="xsd:string" />
+        <xsd:element name="argument" type="cfg:argument_T" />
 
     <xsd:complexType name="config_T">
         <xsd:all>
@@ -141,9 +137,9 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:complexType name="operations_T">
+    <xsd:complexType name="metrics_T">
         <xsd:choice minOccurs="1" maxOccurs="unbounded">
-            <xsd:element ref="cfg:calibration_metric" />
+            <xsd:element ref="cfg:metric" />
         </xsd:choice>
     </xsd:complexType>
 
@@ -162,7 +158,7 @@
             <xsd:element ref="cfg:network_subset"   minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="cfg:location_subset"  minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="cfg:channel_subset"   minOccurs="0" maxOccurs="1"/>
-            <xsd:element ref="cfg:operations"       minOccurs="1" maxOccurs="1"/>
+            <xsd:element ref="cfg:metrics"          minOccurs="1" maxOccurs="1"/>
         </xsd:all>
         <xsd:attribute name="name" use="required" type="xsd:string" />
     </xsd:complexType>
@@ -197,33 +193,17 @@
 
     <xsd:complexType name="metric_T">
         <xsd:sequence>
-            <xsd:element ref="cfg:class" />
+            <xsd:element ref="cfg:class_name" minOccurs="1" maxOccurs="1" />
+            <xsd:element ref="cfg:argument" minOccurs="0" maxOccurs="unbounded" />
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="power_band_metric_T">
-        <xsd:complexContent>
-            <xsd:extension base="cfg:metric_T">
-                <xsd:sequence>
-                    <xsd:element ref="cfg:power_band_lower_limit" />
-                    <xsd:element ref="cfg:power_band_upper_limit" />
-                </xsd:sequence>
+    <xsd:complexType name="argument_T">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+                <xsd:attribute name="name" use="required" type="xsd:string" />
             </xsd:extension>
-        </xsd:complexContent>
+        </xsd:simpleContent>
     </xsd:complexType>
-
-    <xsd:simpleType name="class_enum_T">
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="asl.seedscan.metrics.AvailabilityMetric" />
-            <xsd:enumeration value="asl.seedscan.metrics.GapCountMetric" />
-            <xsd:enumeration value="asl.seedscan.metrics.TimingQualityMetric" />
-            <xsd:enumeration value="asl.seedscan.metrics.CoherencePBM" />
-            <xsd:enumeration value="asl.seedscan.metrics.PowerDifferencePBM" />
-            <xsd:enumeration value="asl.seedscan.metrics.NoisePBM" />
-            <xsd:enumeration value="asl.seedscan.metrics.DaysSinceCalMetric" />
-            <xsd:enumeration value="asl.seedscan.metrics.CormerMAECalMetric" />
-            <xsd:enumeration value="asl.seedscan.metrics.FlatMAECalMetric" />
-        </xsd:restriction>
-    </xsd:simpleType>
 
 </xsd:schema>

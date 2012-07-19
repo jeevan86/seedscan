@@ -49,7 +49,7 @@ public class MetaGenerator
       Dataless dataless = null;
 
       try {
-          readFile("/Users/mth/mth/Projects/dcc/metadata/dataless/rdseed_-s_output");
+          readFile("/qcwork/datalessSTUFF/littlesANMO");
       }
       catch(IOException e) {
           System.out.println("Error: IOException " + e);

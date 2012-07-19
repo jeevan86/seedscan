@@ -18,25 +18,69 @@
  */
 package asl.seedscan.metrics;
 
+import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.logging.Logger;
 
 public abstract class Metric
 {
     private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.Metric");
 
-    protected MetricData data;
-    protected MetricResult result;
+    private Hashtable<String, String> arguments;
 
-    public Metric(MetricData data)
+    protected MetricData data = null;
+    protected MetricResult result = null;
+
+    public Metric()
+    {
+        arguments = new Hashtable<String, String>();
+    }
+
+    public void setData(MetricData data)
     {
         this.data = data;
     }
-
-    public abstract void process();
 
     public MetricResult getResult()
     {
         return result;
     }
+
+    public abstract void process();
+    public abstract String getName();
+
+// Dynamic argumemnt managment
+    protected void addArgument(String name)
+    {
+        arguments.put(name, "");
+    }
+
+    public void add(String name, String value)
+    throws NoSuchFieldException
+    {
+        if (!arguments.containsKey(name)) {
+            throw new NoSuchFieldException("Argument '" +name+ "' is not recognized.");
+        }
+        arguments.put(name, value);
+    }
+
+    public String get(String name)
+    throws NoSuchFieldException
+    {
+        if (!arguments.containsKey(name)) {
+            throw new NoSuchFieldException("Argument '" +name+ "' is not recognized.");
+        }
+        String result = arguments.get(name);
+        if ((result == null) || (result.equals(""))) {
+            result = null;
+        }
+        return result;
+    }
+
+    public Enumeration<String> names()
+    {
+        return arguments.keys();
+    }
+
 }
 

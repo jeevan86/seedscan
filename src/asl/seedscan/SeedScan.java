@@ -49,12 +49,13 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
 
 import asl.logging.*;
+import asl.metadata.*;
+import asl.metadata.meta_new.*;
 import asl.security.*;
 import asl.seedscan.config.*;
 import asl.seedscan.database.*;
-import asl.seedscan.scan.*;
-import asl.metadata.*;
-import asl.metadata.meta_new.*;
+import asl.seedscan.metrics.*;
+import asl.util.*;
 
 /**
  * 
@@ -238,6 +239,29 @@ public class SeedScan
                 scan.setPathPattern(scanCfg.getPath());
                 scan.setStartDay(scanCfg.getStartDay().intValue());
                 scan.setDaysToScan(scanCfg.getDaysToScan().intValue());
+                for (MetricT met: scanCfg.getMetrics().getMetric()) {
+                    Metric metric;
+                    try {
+                        metric = (Metric)Class.forName(met.getClassName()).newInstance();
+                        for (ArgumentT arg: met.getArgument()) {
+                            metric.add(arg.getName(), arg.getValue());
+                        }
+                        scan.addMetric(metric);
+                    } catch (ClassNotFoundException ex) {
+                        logger.severe("No such metric class '" +met.getClassName()+ "'");
+                        System.exit(1);
+                    } catch (InstantiationException ex) {
+                        logger.severe("Could not dynamically instantiate class '" +met.getClassName()+ "'");
+                        System.exit(1);
+                    } catch (IllegalAccessException ex) {
+                        logger.severe("Illegal access while loading class '" +met.getClassName()+ "'");
+                        System.exit(1);
+                    } catch (NoSuchFieldException ex) {
+                        logger.severe("Invalid dynamic argument to Metric subclass '" +met.getClassName()+ "'");
+                        System.exit(1);
+                    }
+
+                }
 
                 scans.put(name, scan);
             }

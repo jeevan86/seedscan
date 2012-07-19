@@ -25,12 +25,30 @@ extends Metric
 {
     private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.CoherencePBM");
 
-    protected PowerBand powerBand;
-
-    public PowerBandMetric(MetricData data, PowerBand powerBand)
+    public PowerBandMetric()
     {
-        super(data);
-        this.powerBand = powerBand;
+        super();
+        addArgument("lower-limit");
+        addArgument("upper-limit");
+    }
+
+    public final PowerBand getPowerBand()
+    {
+        PowerBand band = null;
+        try {
+            band = new PowerBand(Double.parseDouble(get("lower-limit")), Double.parseDouble(get("upper-limit")));
+        } catch (NoSuchFieldException ex) {
+            ;
+        }
+        return band;
+    }
+
+    protected abstract String getBaseName();
+
+    public final String getName()
+    {
+        PowerBand band = getPowerBand();
+        return getBaseName() + String.format("-%0.6f-%0.6f", band.getLow(), band.getHigh());
     }
 }
 

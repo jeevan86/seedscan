@@ -37,7 +37,6 @@ import asl.concurrent.FallOffQueue;
 import asl.seedsplitter.DataSet;
 import asl.seedsplitter.SeedSplitProgress;
 import asl.seedsplitter.SeedSplitter;
-import asl.seedscan.scan.Scan;
 import asl.seedscan.database.StationDatabase;
 import asl.metadata.*;
 import asl.metadata.meta_new.*;
@@ -153,7 +152,8 @@ public class Scanner
 
             MetricData metricData = new MetricData(table, stnMeta);
 // [3] Loop over Metrics to compute, for this station, for this day
-            CalibrationMetric calibration = new CalibrationMetric(metricData);
+            CalibrationMetric calibration = new CalibrationMetric();
+            calibration.setData(metricData);
             calibration.process();
    // This is a little convoluted: calibration.getResult() returns a MetricResult, which may contain many values
    //   in a Hashtable<String,String> = map.

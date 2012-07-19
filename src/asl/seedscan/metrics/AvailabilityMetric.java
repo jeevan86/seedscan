@@ -16,33 +16,31 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
  *
  */
-package asl.seedscan.scan;
+package asl.seedscan.metrics;
 
-import java.util.Hashtable;
+import java.util.logging.Logger;
+import java.util.ArrayList;
+import java.util.GregorianCalendar;
+import java.util.Calendar;
 
-public class Filter
+import asl.metadata.EpochData;
+import asl.metadata.meta_new.*;
+import asl.seedsplitter.*;
+import asl.seedscan.Channel;
+
+public class AvailabilityMetric
+extends Metric
 {
-    private Hashtable<String, Boolean> filters;
-    private boolean exclusive = false;
+    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.AvailabilityMetric");
 
-    public Filter(boolean exclusive)
+    public String getName()
     {
-        this.exclusive = exclusive;
-        filters = new Hashtable<String, Boolean>();
+        return "AvailabilityMetric";
     }
 
-    public void addFilter(String key)
+    public void process()
     {
-        filters.put(key, exclusive);
-    }
-
-    public void removeFilter(String key)
-    {
-        filters.remove(key);
-    }
-
-    public boolean filter(String key)
-    {
-        return filters.containsKey(key) ^ exclusive;
+        ;
     }
 }
+
