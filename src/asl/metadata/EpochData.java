@@ -43,6 +43,7 @@ public class EpochData
     private double azimuth;
     private double depth;
     private double sampleRate;
+    private String instrumentType;
 
 //  epochToDateString(Calendar timestamp):
 //  Return date string (e.g., "2002:324:14:30") for given Calendar timestamp
@@ -91,6 +92,26 @@ public class EpochData
         this.azimuth    = Double.parseDouble(info.getFieldValue(14, 0));
         this.dip        = Double.parseDouble(info.getFieldValue(15, 0));
         this.sampleRate = Double.parseDouble(info.getFieldValue(18, 0));
+        this.instrumentType = info.getFieldValue(6, 0);
+
+/** MTH: This is what Blockette B052 looks like:
+B052F04     Channel:                               HNZ
+B052F03     Location:                              20
+B052F05     Subchannel:                            0
+B052F06     Instrument lookup:      12             Kinemetrics FBA ES-T EpiSensor Accelerometer
+B052F07     Comment:                               (null)
+B052F08     Signal units lookup:     7             M/S**2 - Acceleration in Meters Per Second Per Second
+B052F09     Calibration units lookup:     0        No Abbreviation Referenced
+B052F10     Latitude:                              34.945913
+B052F11     Longitude:                             -106.457295
+B052F12     Elevation:                             1816.000000
+B052F13     Local depth:                           0.000000
+B052F14     Azimuth:                               0.000000
+B052F15     Dip:                                   -90.000000
+B052F16     Format lookup:     2                   Format Information Follows
+B030F03          Format Name: Steim2 Integer Compression Format
+B030F05          Data family:   50
+**/
     }
 
     public EpochData(Blockette format, Blockette info)
@@ -180,6 +201,9 @@ public class EpochData
     }
     public double getSampleRate() {
       return sampleRate;
+    }
+    public String getInstrumentType() {
+      return instrumentType;
     }
 }
 

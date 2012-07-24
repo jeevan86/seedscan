@@ -24,8 +24,6 @@ import java.util.Hashtable;
 import java.util.Collections;
 import java.util.Calendar;
 import asl.metadata.*;
-import asl.seedscan.Channel;
-import asl.seedscan.metrics.ChannelArray;
 
 public class StationMeta
 {

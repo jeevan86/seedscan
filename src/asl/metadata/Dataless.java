@@ -323,7 +323,8 @@ public class Dataless
                     ChannelKey channelKey = new ChannelKey(blockette);
 //System.out.println(" ==Dataless: look for channelKey:" + channelKey);
                     if (!station.hasChannel(channelKey)) {
-                        channel = new ChannelData(channelKey.getLocation(), channelKey.getName());
+                        //channel = new ChannelData(channelKey.getLocation(), channelKey.getName());
+                        channel = new ChannelData(channelKey);
                         station.addChannel(channelKey, channel);
                     } else {
                         channel = station.getChannel(channelKey);

@@ -18,7 +18,7 @@
  */
 package asl.seedscan.metrics;
 
-import asl.seedscan.Channel;
+import asl.metadata.Channel;
 import asl.metadata.meta_new.StationMeta;
 import asl.seedsplitter.DataSet;
 

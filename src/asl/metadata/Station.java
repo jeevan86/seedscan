@@ -20,6 +20,11 @@ package asl.metadata;
 
 import java.util.logging.Logger;
 
+/* Station and Channel are the only station/channel classes that should be seen by 
+ *   clients of asl.metadata.
+ * They are the fundamental building blocks of StationKey, ChannelKey and ChannelArray
+ */
+
 public class Station
 {
     private static final Logger logger = Logger.getLogger("asl.metadata.Station");
@@ -33,17 +38,21 @@ public class Station
         setStation(station);
     }
 
+// MTH: in the spirit of "fail early", I'm going to make this even more restrictive:
+//      Network must be exactly 2 characters long
+//      Station must be either 3 or 4 characters long
+
     public void setNetwork(String network) {
         if (network != null) {
-            if (network.length() > 2) {
-                throw new RuntimeException("network name is too long");
+            if (!(network.length()==2) ) {
+                throw new RuntimeException("network name MUST be 2-character string!");
             }
-            else if (network.length() == 0) {
-                this.network = null;
-            } 
             else {
                 this.network = network;
             }
+        }
+        else {
+            throw new RuntimeException("network name CANNOT be null!");
         }
     }
 
@@ -51,11 +60,8 @@ public class Station
         if (station == null) {
             throw new RuntimeException("station cannot be null");
         }
-        if (station.length() < 1) {
-            throw new RuntimeException("station name is too short");
-        }
-        if (station.length() > 5) {
-            throw new RuntimeException("station name is too long");
+        if (station.length() < 3 || station.length() > 4)  {
+            throw new RuntimeException("station name MUST be either 3 or 4 characters long");
         }
         this.station = station;
     }
