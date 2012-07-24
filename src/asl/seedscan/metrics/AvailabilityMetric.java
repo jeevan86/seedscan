@@ -23,10 +23,9 @@ import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.Calendar;
 
-import asl.metadata.EpochData;
+import asl.metadata.*;
 import asl.metadata.meta_new.*;
 import asl.seedsplitter.*;
-import asl.seedscan.Channel;
 
 public class AvailabilityMetric
 extends Metric
