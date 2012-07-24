@@ -240,13 +240,13 @@ public class SeedScan
                 scan.setStartDay(scanCfg.getStartDay().intValue());
                 scan.setDaysToScan(scanCfg.getDaysToScan().intValue());
                 for (MetricT met: scanCfg.getMetrics().getMetric()) {
-                    Metric metric;
                     try {
-                        metric = (Metric)Class.forName(met.getClassName()).newInstance();
+                        Class metricClass = Class.forName(met.getClassName());
+                        MetricWrapper wrapper = new MetricWrapper(metricClass);
                         for (ArgumentT arg: met.getArgument()) {
-                            metric.add(arg.getName(), arg.getValue());
+                            wrapper.add(arg.getName(), arg.getValue());
                         }
-                        scan.addMetric(metric);
+                        scan.addMetric(wrapper);
                     } catch (ClassNotFoundException ex) {
                         logger.severe("No such metric class '" +met.getClassName()+ "'");
                         System.exit(1);

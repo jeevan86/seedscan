@@ -21,14 +21,14 @@ package asl.seedscan;
 import java.util.ArrayList;
 
 import asl.util.Filter; 
-import asl.seedscan.metrics.Metric; 
+import asl.seedscan.metrics.MetricWrapper; 
 
 public class Scan
 {
     private String pathPattern;
     private int startDay;
     private int daysToScan;
-    private ArrayList<Metric> metrics;
+    private ArrayList<MetricWrapper> metrics;
 
     private Filter networks = null;
     private Filter stations = null;
@@ -37,7 +37,7 @@ public class Scan
 
     public Scan()
     {
-        metrics = new ArrayList<Metric>();
+        metrics = new ArrayList<MetricWrapper>();
     }
 
     // path pattern
@@ -52,28 +52,28 @@ public class Scan
     }
 
     // metrics
-    public void addMetric(Metric metric)
+    public void addMetric(MetricWrapper metric)
     {
         metrics.add(metric);
     }
 
-    public Metric getMetric(int index)
+    public MetricWrapper getMetric(int index)
         throws IndexOutOfBoundsException
         {
             return metrics.get(index);
         }
 
-    public ArrayList<Metric> getMetrics()
+    public ArrayList<MetricWrapper> getMetrics()
     {
         return metrics;
     }
 
-    public boolean removeMetric(Metric metric)
+    public boolean removeMetric(MetricWrapper metric)
     {
         return metrics.remove(metric);
     }
 
-    public Metric removeMetric(int index)
+    public MetricWrapper removeMetric(int index)
         throws IndexOutOfBoundsException
         {
             return metrics.remove(index);

@@ -50,12 +50,12 @@ public abstract class Metric
     public abstract String getName();
 
 // Dynamic argumemnt managment
-    protected void addArgument(String name)
+    protected final void addArgument(String name)
     {
         arguments.put(name, "");
     }
 
-    public void add(String name, String value)
+    public final void add(String name, String value)
     throws NoSuchFieldException
     {
         if (!arguments.containsKey(name)) {
@@ -64,7 +64,7 @@ public abstract class Metric
         arguments.put(name, value);
     }
 
-    public String get(String name)
+    public final String get(String name)
     throws NoSuchFieldException
     {
         if (!arguments.containsKey(name)) {
@@ -77,10 +77,8 @@ public abstract class Metric
         return result;
     }
 
-    public Enumeration<String> names()
+    public final Enumeration<String> names()
     {
         return arguments.keys();
     }
-
 }
-
