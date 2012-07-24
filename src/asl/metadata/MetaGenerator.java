@@ -125,7 +125,8 @@ public class MetaGenerator
         System.out.println("==Channel:"+key );
         ChannelData channel = channels.get(key);
 
-        ChannelMeta channelMeta = new ChannelMeta(key);
+        //ChannelMeta channelMeta = new ChannelMeta(key);
+        ChannelMeta channelMeta = new ChannelMeta(key,timestamp);
 
      // See if this channel contains the requested epoch time and if so return the key (=Epoch Start timestamp)
       //channel.printEpochs();
@@ -134,6 +135,16 @@ public class MetaGenerator
            StageData stage     = null; 
            blockette = null;
            EpochData epochData = channel.getEpoch(epochTimestamp);
+
+     // If the epoch is closed, check that the end time is at least 24 hours later than the requested time
+           if (epochData.getEndTime() != null ){  
+         // Make sure this epoch end time is > requested time + 24 hours
+              long epochStart = epochData.getStartTime().getTimeInMillis();
+              long epochEnd   = epochData.getEndTime().getTimeInMillis();
+              if ( epochEnd <  (timestamp.getTimeInMillis() + 24 * 3600 * 1000) ) {
+                channelMeta.setDayBreak(); // set channelMeta.dayBreak = true
+              }
+           }
 
     // Process Stage 0:
            if (epochData.hasStage(0)) {
@@ -147,7 +158,8 @@ public class MetaGenerator
 
          // Set the Stage 0 Gain = The Sensitivity:
                DigitalStage responseStage = new DigitalStage(0, 'D', Sensitivity);
-               channelMeta.addStage(responseStage);
+               channelMeta.addStage(0, responseStage);
+               //channelMeta.addStage(responseStage);
              }
              else {
                System.out.println("Error: Stage 0 does not appear to contain Blockette Number = 58");
@@ -198,8 +210,11 @@ public class MetaGenerator
                //char respType = TransferFunctionType.substring(0,0);
 
                pz = new PoleZeroStage(1, respType[0], Gain);
-               channelMeta.addStage(pz);
+               channelMeta.addStage(1, pz);
+               //channelMeta.addStage(pz);
                pz.setNormalization(A0Normalization);
+               pz.setInputUnits(ResponseInUnits);
+               pz.setOutputUnits(ResponseOutUnits);
 
                for (int i=0; i<numberOfPoles; i++){
                  Double pole_re = Double.parseDouble(RealPoles.get(i));
@@ -227,13 +242,29 @@ public class MetaGenerator
            if (epochData.hasStage(2)) {
              stage = epochData.getStage(2); 
              double Gain = 0;
+             char[] respType=null;
+             String ResponseInUnits = null;
+             String ResponseOutUnits = null;
+             if (stage.hasBlockette(54)) {
+               blockette = stage.getBlockette(54); 
+               String TransferFunctionType = blockette.getFieldValue(3, 0);
+               respType  = TransferFunctionType.toCharArray();
+               ResponseInUnits = blockette.getFieldValue(5, 0);
+               ResponseOutUnits = blockette.getFieldValue(6, 0);
+             }
+             else {
+               System.out.println("Error: Stage 2 does not appear to contain Blockette Number = 54");
+             }
              if (stage.hasBlockette(58)) {
                blockette = stage.getBlockette(58); 
                Gain = Double.parseDouble(blockette.getFieldValue(4, 0));
                //Double frequencyOfGain = Double.parseDouble(blockette.getFieldValue(5, 0));
                String frequencyOfGain = blockette.getFieldValue(5, 0);
-               DigitalStage responseStage = new DigitalStage(2, 'D', Gain);
-               channelMeta.addStage(responseStage);
+               DigitalStage responseStage = new DigitalStage(2, respType[0], Gain);
+               responseStage.setInputUnits(ResponseInUnits);
+               responseStage.setOutputUnits(ResponseOutUnits);
+               channelMeta.addStage(2, responseStage);
+               //channelMeta.addStage(responseStage);
              }
              else {
                System.out.println("Error: Stage 2 does not appear to contain Blockette Number = 58");
@@ -247,6 +278,7 @@ public class MetaGenerator
            channelMeta.setDepth(epochData.getDepth() );
            channelMeta.setDip(epochData.getDip() );
            channelMeta.setSampleRate(epochData.getSampleRate() );
+           channelMeta.setInstrumentType(epochData.getInstrumentType() );
            stationMeta.addChannel(key, channelMeta);
            //System.out.format("==Dip=%.2f Azim=%.2f SampRate=%.2f\n",epochData.getDip(), epochData.getAzimuth(), epochData.getSampleRate() ); 
            //System.out.format("==Dip=%.2f Azim=%.2f SampRate=%.2f\n",channelMeta.getDip(), channelMeta.getAzimuth(), channelMeta.getSampleRate() ); 

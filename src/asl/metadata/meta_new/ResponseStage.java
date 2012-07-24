@@ -19,20 +19,14 @@
 
 package asl.metadata.meta_new;
 
-/** A ChannelMeta consists of a series of ResponseStages.
-    Typically there will be 3 ResponseStages, numbered 0, 1 and 2.
-    ResponseStages 0 and 2 will likely contain only gain and frequencyOfgain info (e.g., Blockette B058)
-    ResponseStage 1 will contain this info + specific instrument response (e.g., PoleZero) info,
-    so that the complete channel response can be obtained by scaling ResponseStage1 response
-    by the gains in ResponseStage1 and ResponseStage2.
-**/
-
 public abstract class ResponseStage implements Comparable<ResponseStage>
 {
     protected int stageNumber;
     protected char stageType;
     protected double stageGain; 
     protected double frequencyOfstageGain; 
+    protected String inputUnits; 
+    protected String outputUnits; 
 /**
  *  A [Analog Response rad/sec]
  *  B [Analog Response Hz]
@@ -48,6 +42,14 @@ public abstract class ResponseStage implements Comparable<ResponseStage>
         stageType   = type;
         stageGain   = gain;
     }
+
+    public void setInputUnits(String inputUnits){
+      this.inputUnits = inputUnits;
+    }
+    public void setOutputUnits(String outputUnits){
+      this.outputUnits = outputUnits;
+    }
+
     public int getStageNumber()
     {
         return stageNumber;
@@ -69,7 +71,8 @@ public abstract class ResponseStage implements Comparable<ResponseStage>
     {
       StringBuilder result = new StringBuilder();
       String NEW_LINE = System.getProperty("line.separator");
-      result.append(String.format("Stage:%d  [Type='%1s'] Gain=%.2f",stageNumber,stageType,stageGain) );
+      result.append(String.format("Stage:%d  [Type='%1s'] Gain=%.2f\n",stageNumber,stageType,stageGain) );
+      result.append(String.format("Units In:[%s]  Units Out:[%s]\n",inputUnits, outputUnits) );
       return result.toString();
     }
 

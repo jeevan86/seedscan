@@ -39,8 +39,11 @@ public class ChannelData
     private String name = null;
 
     // constructor(s)
-    public ChannelData(String location, String name)
+    //public ChannelData(String location, String name)
+    public ChannelData(ChannelKey channelKey)
     {
+        this.location = channelKey.getLocation();
+        this.name     = channelKey.getName();
         comments = new Hashtable<Calendar, Blockette>();
         epochs = new Hashtable<Calendar, EpochData>();
     }
@@ -188,7 +191,8 @@ Epoch index
       String startDateString  = EpochData.epochToDateString(startTimeStamp);
       String endDateString    = EpochData.epochToDateString(endTimeStamp);
       if (containsEpochTime){
-        System.out.format("----ChannelData %s-%s Epoch: [%s - %s] contains EpochTime=%s\n",this.getLocation(), this.getName(), startDateString,endDateString,epochDateString);
+        System.out.format("----ChannelData %s-%s Epoch: [%s - %s] contains EpochTime=%s\n",getLocation(), getName(), startDateString,endDateString,epochDateString);
+        //System.out.format("----ChannelData %s-%s Epoch: [%s - %s] contains EpochTime=%s\n",this.getLocation(), this.getName(), startDateString,endDateString,epochDateString);
         return startTimeStamp;
       }
       else {

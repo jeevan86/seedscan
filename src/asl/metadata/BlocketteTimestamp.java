@@ -37,6 +37,8 @@ public class BlocketteTimestamp
         int second = 0;
 
         try {
+// MTH: this will work for something like: End date: 2012,158,23:59
+//                                but NOT: End date: 2012,158:23:59 - Probably should be more robust (??)
             String[] dateParts = timestampString.split(",");
             // There should be no more than three parts:
             //   year,day-of-year,time
