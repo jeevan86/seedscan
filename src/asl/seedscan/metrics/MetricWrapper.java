@@ -24,6 +24,8 @@ import java.util.logging.Logger;
 
 public class MetricWrapper
 {
+    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.MetricWrapper");
+
     private Metric arguments;
     private Class metricClass;
 
@@ -48,16 +50,27 @@ public class MetricWrapper
     }
 
     public Metric getNewInstance()
-    throws  IllegalAccessException,
-            InstantiationException,
-            NoSuchFieldException
     {
-        Metric metric = (Metric)metricClass.newInstance();
-        Enumeration<String> names = arguments.names();
-        while (names.hasMoreElements()) {
-            String name = names.nextElement();
-            metric.add(name, arguments.get(name));
+        try {
+            Metric metric = (Metric)metricClass.newInstance();
+            Enumeration<String> names = arguments.names();
+            while (names.hasMoreElements()) {
+                String name = names.nextElement();
+                metric.add(name, arguments.get(name));
+            }
+            return metric;
+        } catch (InstantiationException ex) {
+            String message = ex.getClass().getName() + " in MetricWrapper.getNewInstance(), should never happen!";
+            logger.severe(message);
+            throw new RuntimeException(message);
+        } catch (IllegalAccessException ex) {
+            String message = ex.getClass().getName() + " in MetricWrapper.getNewInstance(), should never happen!";
+            logger.severe(message);
+            throw new RuntimeException(message);
+        } catch (NoSuchFieldException ex) {
+            String message = ex.getClass().getName() + " in MetricWrapper.getNewInstance(), should never happen!";
+            logger.severe(message);
+            throw new RuntimeException(message);
         }
-        return metric;
     }
 }

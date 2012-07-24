@@ -22,7 +22,9 @@ import asl.seedsplitter.DataSet;
 import asl.metadata.StationData;
 
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Set;
 import java.util.logging.Logger;
 
 public class MetricResult
@@ -44,6 +46,16 @@ public class MetricResult
     public String getResult(String id)
     {
         return map.get(id);
+    }
+
+    public Enumeration<String> getIds()
+    {
+        return map.keys();
+    }
+
+    public Set<String> getIdSet()
+    {
+        return map.keySet();
     }
 }
 

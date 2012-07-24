@@ -21,6 +21,7 @@ package asl.seedscan;
 
 import java.util.TimeZone;
 import java.util.Set;
+import java.util.Enumeration;
 import java.io.FilenameFilter;
 
 import java.io.File;
@@ -152,14 +153,21 @@ public class Scanner
 
             MetricData metricData = new MetricData(table, stnMeta);
 // [3] Loop over Metrics to compute, for this station, for this day
-            CalibrationMetric calibration = new CalibrationMetric();
-            calibration.setData(metricData);
-            calibration.process();
+            for (MetricWrapper wrapper: scan.getMetrics()) {
+                Metric metric = wrapper.getNewInstance();
+                metric.setData(metricData);
+                metric.process();
    // This is a little convoluted: calibration.getResult() returns a MetricResult, which may contain many values
    //   in a Hashtable<String,String> = map.
    //   MetricResult.getResult(id) returns value = String
-            String value = calibration.getResult().getResult("Calibration");
-            System.out.format(" Calibration Result = %s\n", value);
+                
+                MetricResult result = metric.getResult();
+                System.out.format("Results for %s:\n", metric.getClass().getName());
+                for (String id: result.getIdSet()) {
+                    String value = result.getResult(id);
+                    System.out.format("  %s : %s\n", id, value);
+                }
+            }
 
         } // end loop over day to scan
     } // end scan()
