@@ -1,0 +1,169 @@
+/*
+ * Copyright 2012, United States Geological Survey or
+ * third-party contributors as indicated by the @author tags.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
+ *
+ */
+
+package asl.metadata.meta_new;
+
+import java.util.ArrayList;
+import asl.metadata.*;
+
+public class StationMeta
+{
+    private String network = null;
+    private String name = null;
+    private String comment = null;
+    private double latitude;
+    private double longitude;
+    private double elevation;
+    private Epoch stationEpoch;
+    private ArrayList<ChannelMeta> channels;
+
+    // constructor(s)
+
+    public StationMeta(Blockette blockette)
+    throws WrongBlocketteException
+    {
+        if (blockette.getNumber() != 50) {  // We're expecting a station blockette (B050)
+            throw new WrongBlocketteException();
+        }
+        this.network = blockette.getFieldValue(16,0);
+        this.name    = blockette.getFieldValue(3,0);
+        this.latitude = Double.parseDouble(blockette.getFieldValue(4,0));
+        this.longitude= Double.parseDouble(blockette.getFieldValue(5,0));
+        this.elevation= Double.parseDouble(blockette.getFieldValue(6,0));
+System.out.format("StationMeta(blockette): name=%s net=%s lat=%12.4f lon=%12.4f\n",name,network,latitude,longitude);
+    }
+
+    public StationMeta(Station station)
+    {
+        this.name    = station.getStation();
+        this.network = station.getNetwork();
+        channels = new ArrayList<ChannelMeta>();
+    }
+
+// Need to check that Station name has <= 5 chars and network == 2 chars 
+    public StationMeta(String name, String network)
+    {
+        this.name    = name;
+        this.network = network;
+        channels = new ArrayList<ChannelMeta>();
+    }
+    public void setLatitude(double latitude)
+    {
+        if (! (latitude <= 90. && latitude >= -90) ) {
+           throw new RuntimeException("Error: station latitude must be: -90 <= val <= 90");
+        }
+        this.latitude = latitude;
+    }
+    public void setLongitude(double longitude)
+    {
+        if (! (longitude <= 180. && longitude >= -180) ) {
+           throw new RuntimeException("Error: station longitude must be: -180 <= val <= 180");
+        }
+        this.longitude = longitude;
+    }
+    public void setLatLon(double latitude, double longitude)
+    {
+        if (! (latitude <= 90. && latitude >= -90) ) {
+           throw new RuntimeException("Error: station latitude must be: -90 <= val <= 90");
+        }
+        if (! (longitude <= 180. && longitude >= -180) ) {
+           throw new RuntimeException("Error: station longitude must be: -180 <= val <= 180");
+        }
+        this.latitude  = latitude;
+        this.longitude = longitude;
+    }
+    public void setElevation(double elevation)
+    {
+        this.elevation = elevation;
+    }
+    public void setComment(String comment)
+    {
+        this.comment = comment;
+    }
+
+    public void addChannel(ChannelMeta channel)
+    {
+      String location = channel.getLocation();
+      String name     = channel.getName();
+
+  // First see if this location+name has already been added.  
+  //   If so, then replace it with the new channel
+
+      for (int ichan=0; ichan < channels.size(); ichan++) {
+        ChannelMeta chan = channels.get(ichan);
+        if (chan.getLocation().equals(location) && chan.getName().equals(name)){ 
+          // We found channel in the ArrayList
+          // Replace existing chan with new channel at same index=ichan:
+          channels.set(ichan,channel);
+          return;
+        }
+      }
+ 
+  // If you're here then the channel must not have been found,
+  //  so simply add it to the end of the list
+
+      channels.add(channel);
+
+    }
+
+    public String getStation(){
+      return name;
+    }
+    public String getNetwork(){
+      return network;
+    }
+    public String getComment(){
+      return comment;
+    }
+    public double getLatitude(){
+      return latitude;
+    }
+    public double getLongitude(){
+      return longitude;
+    }
+    public int getNumberOfChannels() {
+        return channels.size();
+    }
+
+//  Look for particular channelMeta (e.g., "00" "VHZ") in channels array.
+//    Return it if found, else return null
+
+    public ChannelMeta getChanMeta(String location, String name) {
+      for (ChannelMeta chan : channels){
+        if (chan.getLocation().equals(location) && chan.getName().equals(name)){ // We found it
+          return chan; 
+        } 
+      } // If we reached here then we didn't find it so return null
+    return null;
+    }
+
+// This is just for debugging purposes
+    public void listChannels() {
+      if (channels == null || channels.size() == 0){
+        System.out.format(" No Channels loaded\n");
+      } 
+      else {
+        for (ChannelMeta chan : channels){
+          System.out.format(" Channel: %s-%s\n",chan.getLocation(),chan.getName());
+        } 
+      } 
+    }
+
+}
+

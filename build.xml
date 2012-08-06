@@ -30,20 +30,20 @@
 
 
 <!--INIT-->
-    <target name="init">
+    <target name="init" depends="clean_build">
         <tstamp/>
         <mkdir dir="${build.root}"/>
         <mkdir dir="${build.resources}"/>
     </target>
 
 <!--INIT_DOC-->
-    <target name="init_doc" depends="jaxb">
+    <target name="init_doc" depends="clean_docs, jaxb">
         <tstamp/>
         <mkdir dir="${doc.dir}"/>
     </target>
 
 <!--JAXB-->
-    <target name="jaxb"
+    <target name="jaxb" depends="clean_jaxb"
             description="JAXB class generation for config file schema">
         <exec executable="xjc">
             <arg value="-p" />
@@ -132,7 +132,10 @@
 
 <!--TEST-->
     <target name="test" depends="compile, data" description="">
-        <java classname="${project.main}" classpathref="test.class.path" fork="true" />
+        <java classname="${project.main}" classpathref="test.class.path" fork="true">
+            <jvmarg value="-Xms64m"/>
+            <jvmarg value="-Xmx2048m"/>
+        </java>
     </target>
     
 <!--JAR-->

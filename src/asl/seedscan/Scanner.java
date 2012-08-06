@@ -19,11 +19,17 @@
 
 package asl.seedscan;
 
+import java.util.TimeZone;
+import java.util.Set;
+import java.util.Enumeration;
+import java.io.FilenameFilter;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.Runnable;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
+import java.util.Calendar;
 import java.util.Hashtable;
 import java.util.logging.Logger;
 import java.util.concurrent.BlockingQueue;
@@ -32,8 +38,10 @@ import asl.concurrent.FallOffQueue;
 import asl.seedsplitter.DataSet;
 import asl.seedsplitter.SeedSplitProgress;
 import asl.seedsplitter.SeedSplitter;
-import asl.seedscan.scan.Scan;
 import asl.seedscan.database.StationDatabase;
+import asl.metadata.*;
+import asl.metadata.meta_new.*;
+import asl.seedscan.metrics.*;
 
 public class Scanner
     implements Runnable
@@ -41,9 +49,9 @@ public class Scanner
     private static final Logger logger = Logger.getLogger("asl.seedscan.Scanner");
     public long dayMilliseconds = 1000 * 60 * 60 * 24;
 
-    public Station station;
-    public StationDatabase database;
-    public Scan scan;
+    private Station station;
+    private StationDatabase database;
+    private Scan scan;
 
     private FallOffQueue<SeedSplitProgress> progressQueue;
 
@@ -61,15 +69,35 @@ public class Scanner
 
     public void scan()
     {
-        GregorianCalendar timestamp = new GregorianCalendar();
+
+    //  GregorianCalendar timestamp = new GregorianCalendar();
+
+    // This has to be done so that EpochData.epochToDateString will return the correct times
+    //   since seedsplitter/SeedSplitProcessor sets the TimeZone to GMT.
+    // Otherwise, all calls to epochToDateString will print local time (GMT - 4 hours).
+    // Update: There's more to it: If this is run after 8:00pm EST then it thinks it's the next GMT day ...
+
+        GregorianCalendar timestamp = new GregorianCalendar(TimeZone.getTimeZone("GMT") );
+
         if (scan.getStartDay() > 0) {
             timestamp.setTimeInMillis(timestamp.getTimeInMillis() - (scan.getStartDay() * dayMilliseconds));
         }
+     // timestamp is now set to current time - (24 hours x StartDay). What we really want is to set it
+     //   to the start (hh:mm=00:00) of the first day we want to scan
+        timestamp.set(Calendar.HOUR_OF_DAY, 0);      timestamp.set(Calendar.MINUTE, 0);
+        timestamp.set(Calendar.SECOND, 0);      timestamp.set(Calendar.MILLISECOND, 0);
+
+     // Loop over days to scan
 
         for (int i=0; i < scan.getDaysToScan(); i++) {
             if (i != 0) {
                 timestamp.setTimeInMillis(timestamp.getTimeInMillis() - dayMilliseconds);
             }
+
+            System.out.format("==Scanner: scan Day=%s\n", EpochData.epochToDateString(timestamp) );
+
+// [1] Read in all the seed files for this station, for this day
+
             ArchivePath pathEngine = new ArchivePath(timestamp, station);
             String path = pathEngine.makePath(scan.getPathPattern());
             File dir = new File(path);
@@ -82,25 +110,65 @@ public class Scanner
                 continue;
             }
 
-            File[] files = dir.listFiles();
+/** MTH: There are some non-seed files (e.g., data_avail.txt) included in files[].
+ **      For some reason the file netday.index causes the splitter to hang.
+ **      Either restrict the file list to .seed files (as I do below) -or-
+ **      Debug splitter so it drops non-seed/miniseed files.
+ **
+ **         File[] files = dir.listFiles();
+**/
+            FilenameFilter textFilter = new FilenameFilter() {
+              public boolean accept(File dir, String name) {
+                  String lowercaseName = name.toLowerCase();
+                  if (lowercaseName.endsWith(".seed")) {
+                      return true;
+                  } else {
+                      return false;
+                  }
+              }
+            };
+
+            File[] files = dir.listFiles(textFilter);
             int seedCount = files.length;
 
             Hashtable<String,ArrayList<DataSet>> table = null;
             logger.info(dir.getPath() + " contains " +seedCount+ " files.");
             progressQueue.clear();
+
             SeedSplitter splitter = new SeedSplitter(files, progressQueue);
             table = splitter.doInBackground();
 
-            // TODO: List Contents
+            Runtime runtime = Runtime.getRuntime();
+            System.out.println(" Java total memory=" + runtime.totalMemory() );
 
-            //*
-            for (File file: files) {
-                if (file.getName().endsWith(".seed")) {
-                    seedCount++;
-                    logger.fine("Processing file '" +file.getPath()+ "'.");
+
+// [2] Read in all the metadata for this station, for this day
+
+// We should also set a flag to true for each channel where the metadata changed
+//    sometime during the epoch (day) requested.
+
+            MetaGenerator metaGen = new MetaGenerator();
+            StationMeta stnMeta = metaGen.getStationMeta(station, timestamp); 
+            System.out.format("==Scanner: scan Day=%s\n", EpochData.epochToDateString(timestamp) );
+
+            MetricData metricData = new MetricData(table, stnMeta);
+// [3] Loop over Metrics to compute, for this station, for this day
+            for (MetricWrapper wrapper: scan.getMetrics()) {
+                Metric metric = wrapper.getNewInstance();
+                metric.setData(metricData);
+                metric.process();
+   // This is a little convoluted: calibration.getResult() returns a MetricResult, which may contain many values
+   //   in a Hashtable<String,String> = map.
+   //   MetricResult.getResult(id) returns value = String
+                
+                MetricResult result = metric.getResult();
+                System.out.format("Results for %s:\n", metric.getClass().getName());
+                for (String id: result.getIdSet()) {
+                    String value = result.getResult(id);
+                    System.out.format("  %s : %s\n", id, value);
                 }
             }
-            // */
-        }
-    }
+
+        } // end loop over day to scan
+    } // end scan()
 }

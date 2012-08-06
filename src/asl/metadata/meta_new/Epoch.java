@@ -16,11 +16,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
  *
  */
-package asl.seedscan.scan;
 
-public class ScanOperation
+package asl.metadata.meta_new;
+
+public class Epoch
 {
-    public ScanOperation()
+    // constructor(s)
+    public Epoch()
     {
     }
+
 }
+

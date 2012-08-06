@@ -37,6 +37,8 @@ public class BlocketteTimestamp
         int second = 0;
 
         try {
+// MTH: this will work for something like: End date: 2012,158,23:59
+//                                but NOT: End date: 2012,158:23:59 - Probably should be more robust (??)
             String[] dateParts = timestampString.split(",");
             // There should be no more than three parts:
             //   year,day-of-year,time
@@ -77,7 +79,9 @@ public class BlocketteTimestamp
 
         timestamp.set(Calendar.YEAR, year);
         timestamp.set(Calendar.DAY_OF_YEAR, dayOfYear);
-        timestamp.set(Calendar.HOUR, hour);
+      //timestamp.set(Calendar.HOUR, hour);
+      //MTH: I think we want to use 24-hour calendar here to get correct Epoch timestamp
+        timestamp.set(Calendar.HOUR_OF_DAY, hour);
         timestamp.set(Calendar.MINUTE, minute);
         timestamp.set(Calendar.SECOND, second);
         timestamp.set(Calendar.MILLISECOND, 0);

@@ -18,6 +18,8 @@
  */
 package asl.seedscan;
 
+import java.util.Set;
+
 import java.io.BufferedInputStream;
 import java.io.Console;
 import java.io.DataInputStream;
@@ -47,10 +49,13 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
 
 import asl.logging.*;
+import asl.metadata.*;
+import asl.metadata.meta_new.*;
 import asl.security.*;
 import asl.seedscan.config.*;
 import asl.seedscan.database.*;
-import asl.seedscan.scan.*;
+import asl.seedscan.metrics.*;
+import asl.util.*;
 
 /**
  * 
@@ -213,7 +218,7 @@ public class SeedScan
         }
 
      // ===== CONFIG: DATABASE =====
-        //StationDatabase database = new StationDatabase(config.getDatabase());
+        StationDatabase database = new StationDatabase(config.getDatabase());
 
 
      // ===== CONFIG: SCANS =====
@@ -234,6 +239,29 @@ public class SeedScan
                 scan.setPathPattern(scanCfg.getPath());
                 scan.setStartDay(scanCfg.getStartDay().intValue());
                 scan.setDaysToScan(scanCfg.getDaysToScan().intValue());
+                for (MetricT met: scanCfg.getMetrics().getMetric()) {
+                    try {
+                        Class metricClass = Class.forName(met.getClassName());
+                        MetricWrapper wrapper = new MetricWrapper(metricClass);
+                        for (ArgumentT arg: met.getArgument()) {
+                            wrapper.add(arg.getName(), arg.getValue());
+                        }
+                        scan.addMetric(wrapper);
+                    } catch (ClassNotFoundException ex) {
+                        logger.severe("No such metric class '" +met.getClassName()+ "'");
+                        System.exit(1);
+                    } catch (InstantiationException ex) {
+                        logger.severe("Could not dynamically instantiate class '" +met.getClassName()+ "'");
+                        System.exit(1);
+                    } catch (IllegalAccessException ex) {
+                        logger.severe("Illegal access while loading class '" +met.getClassName()+ "'");
+                        System.exit(1);
+                    } catch (NoSuchFieldException ex) {
+                        logger.severe("Invalid dynamic argument to Metric subclass '" +met.getClassName()+ "'");
+                        System.exit(1);
+                    }
+
+                }
 
                 scans.put(name, scan);
             }
@@ -276,8 +304,25 @@ public class SeedScan
         */
 
 // ==== Perform Scans ====
+        System.out.println("MTH: HERE WE GO");
+
+Runtime runtime = Runtime.getRuntime();
+System.out.println(" Java total memory=" + runtime.totalMemory() );
+
+        Station station = new Station("IU","ANMO");
+
+        //Set<String> keys = scans.keySet(); 
+        for (String key : scans.keySet() ) {
+           scan = scans.get(key);
+           System.out.format("scan key=%s startDay=%d daysToScan=%d\n", key, scan.getStartDay(), scan.getDaysToScan() );
+        }
+        scan = scans.get("daily");
+        Scanner scanner = new Scanner(database,station,scan);
+        scanner.scan();
+/**
         ScanManager manager = new ScanManager(scan);
         manager.run();
+**/
 
         try {
             lock.release();

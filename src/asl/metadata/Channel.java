@@ -17,23 +17,46 @@
  *
  */
 
-package asl.seedscan;
+package asl.metadata;
 
 import java.util.logging.Logger;
 
 public class Channel
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.Channel");
+    private static final Logger logger = Logger.getLogger("asl.metadata.Channel");
 
-    private Station station  = null;
-    private String  location = "";
-    private String  channel  = "";
+    private Station station  = null; // We're not currently using this ... Do we need it ?
+    private String  location = null;
+    private String  channel  = null;
 
-    public Channel ()
+    public Channel (String location, String channel)
     {
-        setStation(station);
+        //setStation(station);
         setLocation(location);
         setChannel(channel);
+    }
+
+    public void setLocation(String location) {
+        if (location != null) {
+            if (location.length() != 2) {
+                throw new RuntimeException("location name MUST be 2-characters long");
+            }
+            this.location = location;
+        }
+        else {
+            this.location = "--"; // If no location given, set location = "--" [Default]
+        }
+    }
+
+    public void setChannel(String channel) {
+        if (channel == null) {
+            throw new RuntimeException("channel cannot be null");
+        }
+    //  I don't know of any channels that aren't exactly 3-characters long (??)
+        if (channel.length() != 3) {
+            throw new RuntimeException("channel name MUST be 3-characters long");
+        }
+        this.channel = channel;
     }
 
     public void setStation(Station station) {
@@ -43,28 +66,10 @@ public class Channel
         this.station = station;
     }
 
-    public void setLocation(String location) {
-        if (location != null) {
-            if (location.length() > 2) {
-                throw new RuntimeException("location name is too long");
-            }
-            this.location = location;
-        }
-    }
 
-    public void setChannel(String channel) {
-        if (channel == null) {
-            throw new RuntimeException("channel cannot be null");
-        }
-        if (channel.length() < 1) {
-            throw new RuntimeException("channel name is too short");
-        }
-        if (channel.length() > 3) {
-            throw new RuntimeException("channel name is too long");
-        }
-        this.channel = channel;
+    @Override public String toString() {
+      return getLocation() + "-" + getChannel();
     }
-
 
     public Station getStation() {
         return station;

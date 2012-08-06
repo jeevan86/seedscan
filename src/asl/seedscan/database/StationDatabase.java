@@ -32,6 +32,7 @@ import java.util.logging.Logger;
 import asl.security.*;
 import asl.seedscan.*;
 import asl.seedscan.config.*;
+import asl.metadata.*;
 
 public class StationDatabase
 {
@@ -45,8 +46,10 @@ public class StationDatabase
     private CallableStatement callStatement = null;
     private String result;
 
-    public StationDatabase() {
+    public StationDatabase(DatabaseT config) {
         this.config = config;
+System.out.println("StationDatabase Constructor(): This is where we would make the connection to the dbase");
+/**
         try {
             connection = DriverManager.getConnection(conString, user, password);
         } catch (SQLException e) {
@@ -54,6 +57,11 @@ public class StationDatabase
             logger.severe("Could not open station database.");
             throw new RuntimeException("Could not open station database.");
         }
+**/
+    }
+
+    public StationDatabase() {
+	this(null);
     }
     
     public String selectAll(String startDate, String endDate){

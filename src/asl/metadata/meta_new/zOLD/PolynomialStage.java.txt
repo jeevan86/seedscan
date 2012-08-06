@@ -16,23 +16,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
  *
  */
-package asl.seedscan.metrics;
 
-import java.util.logging.Logger;
+package asl.metadata.meta_new;
 
-public class NoisePBM
-extends PowerBandMetric
+public class PolynomialStage extends ResponseStage
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.CoherencePBM");
+    private int numberOfCoefficients;
 
-    public String getBaseName()
+    // constructor(s)
+    public PolynomialStage(int stageNumber, char stageType, double stageGain)
     {
-        return "NoisePBM";
+        super(stageNumber, stageType, stageGain);
     }
 
-    public void process()
-    {
-        // populate
-    }
 }
 

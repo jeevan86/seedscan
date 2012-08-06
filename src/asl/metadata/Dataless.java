@@ -47,7 +47,7 @@ package asl.metadata;
  *                  :
  *                 epoch (Blockette)
  *          | 
- *           - channels (Hashtable<String, StationData>)
+ *           - channels (Hashtable<String, ChannelData>)
  *              |
  *               - 'LL-CCC' (String)
  *                  :
@@ -71,7 +71,7 @@ package asl.metadata;
  *                              |
  *                               - misc (ArrayList<Blockette>)
  *                              |
- *                               - format (Hashtable<Integer, StageData>)
+ *                               - stages (Hashtable<Integer, StageData>)
  *                                  |
  *                                   - stageIndex (Integer)
  *                                      :
@@ -195,6 +195,7 @@ public class Dataless
 
             line = line.trim();
             this.line = line;
+//System.out.format(" line=%s\n",line);
 
             // assume we are going to skip this line
             skipped++;
@@ -213,16 +214,20 @@ public class Dataless
             // we are not skipping this line, so revert the increment
             skipped--;
 
-            String[] lineParts = line.split("\\s", 1);
-            String[] keyParts = lineParts[0].substring(1).split("F", 1);
-            int blocketteNumber = Integer.parseInt(keyParts[0]);
-            String fieldIdentifier = keyParts[1];
-            String lineData = lineParts[1];
+            String[] lineParts = line.split("\\s",2);
+            String    word  = lineParts[0];               // e.g.,  word = "B010F13-18"
+            String lineData = lineParts[1];               // e.g., lineData = "  SEED Format version: ..."
+
+            int blocketteNumber    = Integer.parseInt(word.substring(1,4) );
+            String fieldIdentifier = word.substring(5,word.length());
+
+//System.out.format("  blocketteNumber=%d fieldIdentifier=%s lineData=%s\n",blocketteNumber,fieldIdentifier,lineData);
 
             Blockette blockette;
             // If the blockette does not exists, or the attempt to add field data
             // reported that this should be part of a new blockette, we create
             // a new blockette, and add this data to it instead.
+
             if ((!blocketteMap.containsKey(blocketteNumber)) ||
                 (!blocketteMap.get(blocketteNumber).addFieldData(fieldIdentifier, lineData)))
             {
@@ -230,6 +235,7 @@ public class Dataless
                 blocketteMap.put(blocketteNumber, blockette);
                 blockettes.add(blockette);
                 blockette.addFieldData(fieldIdentifier, lineData);
+//System.out.format(" new blockette number=%d fieldIdentifier=%s\n", blocketteNumber, fieldIdentifier );
             }
         }
     }
@@ -255,11 +261,11 @@ public class Dataless
         lastPercent = 0.0;
         stage = "Assembling Data";
 
-        volume = new SeedVolume();
+        //volume = new SeedVolume();
         StationData station = null;
         ChannelData channel = null;
         EpochData epoch = null;
-        
+
         for (Blockette blockette: blockettes)
         {
             checkCancel();
@@ -273,6 +279,7 @@ public class Dataless
             }
 
             int blocketteNumber = blockette.getNumber();
+//System.out.format("  Dataless: assemble() blocketteNumber=%d\n",blocketteNumber);
 
             switch (blocketteNumber) {
                 case 10:
@@ -292,11 +299,14 @@ public class Dataless
                         throw new BlocketteOutOfOrderException();
                     }
                     StationKey stationKey = new StationKey(blockette);
+//System.out.format("  Dataless: blockette 50, stationKey=%s\n",stationKey);
                     if (!volume.hasStation(stationKey)) {
+//System.out.format("  Dataless: call new StationData(%s,%s)\n",stationKey.getNetwork(), stationKey.getName() );
                         station = new StationData(stationKey.getNetwork(), stationKey.getName());
                         volume.addStation(stationKey, station);
                     } else {
                         station = volume.getStation(stationKey);
+//System.out.format("  Dataless: getStation, stationKey=%s station name=%s\n",stationKey,station.getName());
                     }
                     station.addEpoch(blockette);
                     break;
@@ -311,8 +321,10 @@ public class Dataless
                         throw new BlocketteOutOfOrderException();
                     }
                     ChannelKey channelKey = new ChannelKey(blockette);
+//System.out.println(" ==Dataless: look for channelKey:" + channelKey);
                     if (!station.hasChannel(channelKey)) {
-                        channel = new ChannelData(channelKey.getLocation(), channelKey.getName());
+                        //channel = new ChannelData(channelKey.getLocation(), channelKey.getName());
+                        channel = new ChannelData(channelKey);
                         station.addChannel(channelKey, channel);
                     } else {
                         channel = station.getChannel(channelKey);
@@ -342,7 +354,23 @@ public class Dataless
                     if (epoch == null) {
                         throw new BlocketteOutOfOrderException();
                     }
-                    int stageKey = Integer.parseInt(blockette.getFieldValue(3, 0));
+/** MTH: I see the following output from rdseed -s:
+  *      B053F04	Stage Sequence Number:	1
+  *      B058F03	Stage Sequence Number:	1
+  *      B054F04	Stage Sequence Number:	2
+  *      B057F03	Stage Sequence Number:	2
+  *      B058F03	Stage Sequence Number:	2
+  *      B054F04	Stage Sequence Number:	3
+**/
+                    //int stageKey = Integer.parseInt(blockette.getFieldValue(3, 0));
+                    int stageKey;
+                    if (blocketteNumber == 57 || blocketteNumber == 58){
+                        stageKey = Integer.parseInt(blockette.getFieldValue(3, 0));
+                    }
+                    else {
+                        stageKey = Integer.parseInt(blockette.getFieldValue(4, 0));
+                    }
+                    
                     if (!epoch.hasStage(stageKey)) {
                         epoch.addStage(stageKey, new StageData(stageKey));
                     }
@@ -357,6 +385,10 @@ public class Dataless
                     break;
             }
         }
+    }
+
+    public SeedVolume getVolume(){
+      return volume;
     }
 }
 

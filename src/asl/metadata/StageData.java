@@ -48,7 +48,9 @@ public class StageData
     {
         int blocketteNumber = blockette.getNumber();
         if (blockettes.containsKey(blocketteNumber)) {
-            throw new DuplicateBlocketteException();
+System.out.format("**** addBlockette() BLOCKETTES already CONTAINS blockette Number %d\n", blocketteNumber);
+// MTH: This throw is causing the reading of file zfoo (=rdseed -s) to cease:
+            //throw new DuplicateBlocketteException();
         }
         blockettes.put(blocketteNumber, blockette);
         return blocketteNumber;
@@ -62,6 +64,11 @@ public class StageData
     public Blockette getBlockette(int blocketteNumber)
     {
         return blockettes.get(blocketteNumber);
+    }
+
+    public Hashtable<Integer, Blockette> getBlockettes()
+    {
+        return blockettes;
     }
 }
 

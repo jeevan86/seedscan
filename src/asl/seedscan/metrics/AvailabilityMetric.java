@@ -19,20 +19,27 @@
 package asl.seedscan.metrics;
 
 import java.util.logging.Logger;
+import java.util.ArrayList;
+import java.util.GregorianCalendar;
+import java.util.Calendar;
 
-public class NoisePBM
-extends PowerBandMetric
+import asl.metadata.*;
+import asl.metadata.meta_new.*;
+import asl.seedsplitter.*;
+
+public class AvailabilityMetric
+extends Metric
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.CoherencePBM");
+    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.AvailabilityMetric");
 
-    public String getBaseName()
+    public String getName()
     {
-        return "NoisePBM";
+        return "AvailabilityMetric";
     }
 
     public void process()
     {
-        // populate
+        ;
     }
 }
 
