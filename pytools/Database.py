@@ -6,7 +6,7 @@ except:
     sha1 = sha.new
 
 import base64
-import MySQLdb as mysql
+import psycopg2
 import sys
 
 class Database:
@@ -22,8 +22,8 @@ class Database:
 # ===== Public Methods ===========================
     def select_database(self, conString):
         self.close()
-        host, user, pwd, db = conString.split(',')
-        self.db = mysql.connect(host=host, user=user, passwd=pwd, db=db)
+        host, user, pwd, db, port = conString.split(',')
+        self.db = psycopg2.connect(host=host, user=user, password=pwd, dbname=db, port=port)
         self.cur = self.db.cursor()
 
     def close(self):
