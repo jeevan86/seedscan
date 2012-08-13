@@ -71,6 +71,9 @@
             <cfg:days_to_scan>2</cfg:days_to_scan>
             <cfg:metrics>
                 <cfg:metric>
+                    <cfg:class_name>asl.seedscan.metrics.CalibrationMetric</cfg:class_name>
+                </cfg:metric>
+                <cfg:metric>
                     <cfg:class_name>asl.seedscan.metrics.AvailabilityMetric</cfg:class_name>
                 </cfg:metric>
                 <cfg:metric>
