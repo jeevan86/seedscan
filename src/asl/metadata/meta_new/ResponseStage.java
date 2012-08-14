@@ -50,6 +50,13 @@ public abstract class ResponseStage implements Comparable<ResponseStage>
       this.outputUnits = outputUnits;
     }
 
+    public String getInputUnits(){
+      return inputUnits;
+    }
+    public String getOutputUnits(){
+      return outputUnits;
+    }
+
     public int getStageNumber()
     {
         return stageNumber;

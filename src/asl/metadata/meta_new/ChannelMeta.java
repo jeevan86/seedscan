@@ -211,7 +211,6 @@ public class ChannelMeta
       Complex[] response = null;
 
  // Set response = polezero response (with A0 factored in):
-      //PoleZeroStage pz = (PoleZeroStage)stages.get(1);
       ResponseStage stage = stages.get(1);
       if (stage instanceof PoleZeroStage){
         PoleZeroStage pz = (PoleZeroStage)stage;
@@ -254,6 +253,19 @@ public class ChannelMeta
       result.append(String.format("%15s%s","num of stages:",stages.size()) );
       //result.append(NEW_LINE);
       return result.toString();
+    }
+
+// Return the polynomial stage coefficients + upper/lower bounds in a double array[]
+    //public double[] getPolynomialResponse(){
+    public double[] getRealPolynomialCoefficients(){
+      ResponseStage stage = stages.get(1);
+      if (!(stage instanceof PolynomialStage)) {
+        throw new RuntimeException("getPolynomialResponse(): Stage1 is NOT a PolynomialStage!");
+      }
+      else {
+        PolynomialStage polyStage = (PolynomialStage)stage;
+        return polyStage.getRealPolynomialCoefficients();
+      }
     }
 
 }

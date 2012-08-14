@@ -23,8 +23,6 @@ import java.util.ArrayList;
 
 public class PoleZeroStage extends ResponseStage
 {
-    private int numberOfZeros;
-    private int numberOfPoles;
     private ArrayList<Complex> poles;
     private ArrayList<Complex> zeros;
     private double normalizationConstant;
@@ -42,12 +40,10 @@ public class PoleZeroStage extends ResponseStage
 
     public void addPole(Complex pole){
       poles.add(pole);
-      numberOfPoles++;
       poleAdded = true;
     }
     public void addZero(Complex zero){
       zeros.add(zero);
-      numberOfZeros++;
       zeroAdded = true;
     }
     public void setNormalization(double A0){
@@ -58,10 +54,10 @@ public class PoleZeroStage extends ResponseStage
       return normalizationConstant;
     }
     public int getNumberOfPoles(){
-      return numberOfPoles;
+      return poles.size();
     }
     public int getNumberOfZeros(){
-      return numberOfZeros;
+      return zeros.size();
     }
 
     public void print(){
@@ -75,7 +71,7 @@ public class PoleZeroStage extends ResponseStage
       for (int j=0; j<getNumberOfZeros(); j++){
         System.out.println(zeros.get(j) );
       }
-      System.out.format(" A0 Normalization=%f\n",getNormalization());
+      System.out.format(" A0 Normalization=%f\n\n",getNormalization());
     }
 
 /*  This is just for checking purposes.
@@ -95,7 +91,9 @@ public class PoleZeroStage extends ResponseStage
  *  Should really check that length > 0
 **/
     public Complex[] getResponse(double[] freqs){
-      if (poleAdded && zeroAdded && normalizationSet) {
+      //Some polezero responses (e.g., ANMO.IU.20.BN?) appear to have NO zeros
+      //if (poleAdded && zeroAdded && normalizationSet) {
+      if (poleAdded && normalizationSet) {
       // Looks like the polezero info has been loaded ... so continue ...
       }
       else {
@@ -112,21 +110,49 @@ public class PoleZeroStage extends ResponseStage
       return response;
     }
 
+/*  SEED Manual - Appendix C
+ *  PoleZero Representation for Analog Stages
+ *    The first part of any seismic sensor will be some sort of linear system that operates in
+ *    continuous time, rather than discrete time. Usually, any such system has a frequency response
+ *    that is the ratio of two complex polynomials, each with real coefficients.  These polynomials
+ *    can be represented either by their coefficients or (preferably) by their roots (poles and zeros).
+ *
+ *    The polynomials are specified by their roots.  The roots of the numerator polynomial are the
+ *    instrument zeros, and the roots of the denominator polynomial are the instrument poles.
+ *    Because the polynomials have real coefficients, complex poles and zeros will occur in complex
+ *    conjugate pairs.  By convention, the real parts of the poles and zeros are negative.
+ *
+ *    The expansion formula gives the response ( G(f) ) at any frequency f (Hz), using the variable:
+ *      s = 2*pi*i*f (rad/sec) if the PoleZero transfer function is type A  -OR-
+ *      s = i*f (Hz)           if the PoleZero transfer function is type B
+*/
+
 /*  Evaluate the polezero response at a single frequency, f
  *  Return G(f) = A0 * pole zero expansion
- *  Note that the stage sensitivity Sd is *not* included
+ *  Note that the stage sensitivity Sd is *not* included, so that the response from this
+ *  stage should be approx. 1 (flat) at the mid range.
 **/
     private Complex evalResp(double f){
       Complex numerator   = new Complex(1,0);
       Complex denomenator = new Complex(1,0);
-      Complex iv = new Complex(0.0, 2*Math.PI*f);
+      Complex s;
       Complex Gf;
 
-      for (int j=0; j<numberOfZeros; j++){
-        numerator = numerator.times(iv.minus(zeros.get(j))) ;
+      if (getStageType() == 'A'){
+        s = new Complex(0.0, 2*Math.PI*f);
       }
-      for (int j=0; j<numberOfPoles; j++){
-        denomenator = denomenator.times(iv.minus(poles.get(j))) ;
+      else if (getStageType() == 'B'){
+        s = new Complex(0.0, f);
+      }
+      else {
+        throw new RuntimeException("[ PoleZeroStage-->evalResponse Error: Cannot evalResp a non-PoleZero Stage!]");
+      }
+
+      for (int j=0; j<getNumberOfZeros(); j++){
+        numerator = numerator.times(s.minus(zeros.get(j))) ;
+      }
+      for (int j=0; j<getNumberOfPoles(); j++){
+        denomenator = denomenator.times(s.minus(poles.get(j))) ;
       }
       Complex A0 = new Complex(normalizationConstant, 0);
       Gf = A0.times(numerator);

@@ -144,15 +144,12 @@ public class Scanner
 
 // [2] Read in all the metadata for this station, for this day
 
-// We should also set a flag to true for each channel where the metadata changed
-//    sometime during the epoch (day) requested.
-
             MetaGenerator metaGen = new MetaGenerator();
             StationMeta stnMeta = metaGen.getStationMeta(station, timestamp); 
             System.out.format("==Scanner: scan Day=%s\n", EpochData.epochToDateString(timestamp) );
 
-            MetricData metricData = new MetricData(table, stnMeta);
 // [3] Loop over Metrics to compute, for this station, for this day
+            MetricData metricData = new MetricData(table, stnMeta);
             for (MetricWrapper wrapper: scan.getMetrics()) {
                 Metric metric = wrapper.getNewInstance();
                 metric.setData(metricData);
@@ -167,7 +164,7 @@ public class Scanner
                     String value = result.getResult(id);
                     System.out.format("  %s : %s\n", id, value);
                 }
-            }
+            } // end loop over metrics
 
         } // end loop over day to scan
     } // end scan()

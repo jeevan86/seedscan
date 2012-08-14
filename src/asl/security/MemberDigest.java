@@ -52,7 +52,12 @@ public abstract class MemberDigest
 
     public MessageDigest getDigest() {
         computeDigest();
-        return digest.clone();
+        try {
+          return (MessageDigest)digest.clone();
+        }
+        catch(CloneNotSupportedException e) {
+          return null;
+        }
     }
 
     public byte[] getDigestBytes() {

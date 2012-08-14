@@ -351,6 +351,7 @@ public class Dataless
                 case 57:
                 case 58:
                 case 61:
+                case 62:
                     if (epoch == null) {
                         throw new BlocketteOutOfOrderException();
                     }

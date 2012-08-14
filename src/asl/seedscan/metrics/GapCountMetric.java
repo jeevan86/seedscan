@@ -27,14 +27,14 @@ import asl.metadata.*;
 import asl.metadata.meta_new.*;
 import asl.seedsplitter.*;
 
-public class AvailabilityMetric
+public class GapCountMetric
 extends Metric
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.AvailabilityMetric");
+    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.GapCountMetric");
 
     public String getName()
     {
-        return "AvailabilityMetric";
+        return "GapCountMetric";
     }
 
     public void process()
@@ -59,22 +59,10 @@ extends Metric
 
            result = new MetricResult();
    // Loop over channels, get metadata & data for channel and Do Something ...
-
            for (Channel channel : channels){
-             int totalPoints  = 0;
+             int gapCount  = 0;
 
              ChannelMeta chanMeta = stnMeta.getChanMeta(channel);
-             if (chanMeta == null){
-               System.out.format("%s Error: stnMeta.getChannel returned null for channel=%s\n", getName(), channel.getChannel());
-             }
-             else {
-               if (chanMeta.hasDayBreak() ){ // Check to see if the metadata for this channel changes during this day
-                  System.out.format("%s Error: channel=%s metadata has a break!\n", getName(), channel.getChannel() );
-               }
-             } // end chanMeta for this channel
-
-// Maybe getSampleRate() should return integer ??
-             int sampleRate = (int)chanMeta.getSampleRate();
 
         // Get DataSet(s) for this channel
              ArrayList<DataSet>datasets = data.getChannelData(channel);
@@ -82,34 +70,14 @@ extends Metric
                System.out.format("%s Error: No data for requested channel:%s\n", getName(), channel.getChannel());
              }
              else {
-               for (DataSet dataset : datasets) {
-                 String knet    = dataset.getNetwork(); String kstn = dataset.getStation();
-                 String locn    = dataset.getLocation();String kchn = dataset.getChannel();
-                 double srate   = dataset.getSampleRate();
-                 long startTime = dataset.getStartTime();  // microsecs since Jan. 1, 1970
-                 long endTime   = dataset.getEndTime();
-                 long interval  = dataset.getInterval();
-                 int length     = dataset.getLength();
-                 Calendar startTimestamp = new GregorianCalendar();
-                 startTimestamp.setTimeInMillis(startTime/1000);
-                 Calendar endTimestamp = new GregorianCalendar();
-                 endTimestamp.setTimeInMillis(endTime/1000);
-
-                 totalPoints += dataset.getLength();
-
-               } // end for each dataset
-             }// end else (= we DO have data for this channel)
-
-             int expectedPoints = sampleRate * 24 * 60 * 60; 
-         
-             double availability = 100 * totalPoints/expectedPoints;
-
+               gapCount = datasets.size()-1;
+             }
              System.out.format("\n%s-%s [Meta Date:%s] %s-%s ", stnMeta.getStation(), stnMeta.getNetwork(), 
                EpochData.epochToDateString(stnMeta.getTimestamp()), chanMeta.getLocation(), chanMeta.getName() );
-             System.out.format("totalPoints:%d (%d points expected) -or- %.2f%%\n", totalPoints, expectedPoints, availability ); 
+             System.out.format("Gap Count:%d \n", gapCount ); 
 
              String key   = getName() + "+Channel(s)=" + channel.getChannel();
-             String value = String.format("%.2f",availability);
+             String value = String.format("%d",gapCount);
              result.addResult(key, value);
 
            }// end foreach channel

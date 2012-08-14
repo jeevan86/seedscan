@@ -49,7 +49,8 @@ public class MetaGenerator
       Dataless dataless = null;
 
       try {
-          readFile("/qcwork/datalessSTUFF/littlesANMO");
+          readFile("/Users/mth/mth/Projects/dcc/metadata/dataless/rdseed_-s_output");
+          //readFile("/qcwork/datalessSTUFF/littlesANMO");
       }
       catch(IOException e) {
           System.out.println("Error: IOException " + e);
@@ -173,22 +174,57 @@ public class MetaGenerator
 
     // Process Stage 1:
            if (epochData.hasStage(1)) {
-             stage = epochData.getStage(1); 
-             PoleZeroStage pz;
-             double Gain=0;
 
-             if (stage.hasBlockette(58)) {
+             stage = epochData.getStage(1); 
+
+             double Gain=0;
+             if (stage.hasBlockette(58)) {        // We have a gain blockette in this stage
                blockette = stage.getBlockette(58); 
                Gain = Double.parseDouble(blockette.getFieldValue(4, 0));
                //Double frequencyOfGain = Double.parseDouble(blockette.getFieldValue(5, 0));
                String frequencyOfGain = blockette.getFieldValue(5, 0);
              }
              else {
-               System.out.println("Error: Stage 1 does not appear to contain Blockette Number = 58");
+               System.out.println("Warning: Stage 1 does not appear to contain Blockette Number = 58");
              }
 
-          // Get polezero blockette B053:
-             if (stage.hasBlockette(53)) {
+             if (stage.hasBlockette(62)) {        // This is a polynomial stage, e.g., ANMO_IU_00_VMZ
+               PolynomialStage polyStage;
+               blockette = stage.getBlockette(62); 
+               //blockette.print(); 
+               String TransferFunctionType = blockette.getFieldValue(3, 0); // Should be "P [Polynomial]"
+               String ResponseInUnits  = blockette.getFieldValue(5, 0);
+               String ResponseOutUnits = blockette.getFieldValue(6, 0);
+               String PolynomialApproximationType = blockette.getFieldValue(7, 0); // e.g., "M [MacLaurin]"
+               Double lowerFrequencyBound = Double.parseDouble(blockette.getFieldValue(9, 0));
+               Double upperFrequencyBound = Double.parseDouble(blockette.getFieldValue(10, 0));
+               Double lowerApproximationBound = Double.parseDouble(blockette.getFieldValue(11, 0));
+               Double upperApproximationBound = Double.parseDouble(blockette.getFieldValue(12, 0));
+               int numberOfCoefficients = Integer.parseInt(blockette.getFieldValue(14, 0));
+               ArrayList<String> RealCoefficients = blockette.getFieldValues(15);
+               ArrayList<String> ImagCoefficients = blockette.getFieldValues(16);
+               char[] respType  = TransferFunctionType.toCharArray();
+               polyStage = new PolynomialStage(1, respType[0], Gain);
+               channelMeta.addStage(1, polyStage);
+               polyStage.setInputUnits(ResponseInUnits);
+               polyStage.setOutputUnits(ResponseOutUnits);
+               polyStage.setLowerFrequencyBound(lowerFrequencyBound);
+               polyStage.setUpperFrequencyBound(upperFrequencyBound);
+               polyStage.setLowerApproximationBound(lowerApproximationBound);
+               polyStage.setUpperApproximationBound(upperApproximationBound);
+               polyStage.setPolynomialApproximationType(PolynomialApproximationType);
+
+               for (int i=0; i<numberOfCoefficients; i++){
+                 Double coeff_re = Double.parseDouble(RealCoefficients.get(i));
+                 Double coeff_im = Double.parseDouble(ImagCoefficients.get(i));
+                 Complex coefficient = new Complex(coeff_re, coeff_im);
+                 polyStage.addCoefficient(coefficient);
+               }
+polyStage.print();
+             } // end process blockette(62) = polynomial stage
+
+             if (stage.hasBlockette(53)) {        // This is a pole-zero stage
+               PoleZeroStage pz;
                blockette = stage.getBlockette(53); 
                //blockette.print(); 
                String TransferFunctionType = blockette.getFieldValue(3, 0);
@@ -202,9 +238,9 @@ public class MetaGenerator
                ArrayList<String> ImagPoles = blockette.getFieldValues(16);
                ArrayList<String> RealZeros = blockette.getFieldValues(10);
                ArrayList<String> ImagZeros = blockette.getFieldValues(11);
-           // There are channels (e.g., LWS) that have a blockette 53 but have NO poles and/or NO zeros
-             //int nPoles = RealPoles.size();
-             //int nZeros = RealZeros.size();
+             // There are channels (e.g., LWS) that have a blockette 53 but have NO poles and/or NO zeros
+               //int nPoles = RealPoles.size();
+               //int nZeros = RealZeros.size();
 
                char[] respType  = TransferFunctionType.toCharArray();
                //char respType = TransferFunctionType.substring(0,0);
@@ -215,7 +251,7 @@ public class MetaGenerator
                pz.setNormalization(A0Normalization);
                pz.setInputUnits(ResponseInUnits);
                pz.setOutputUnits(ResponseOutUnits);
-
+  
                for (int i=0; i<numberOfPoles; i++){
                  Double pole_re = Double.parseDouble(RealPoles.get(i));
                  Double pole_im = Double.parseDouble(ImagPoles.get(i));
@@ -228,12 +264,10 @@ public class MetaGenerator
                  Complex zero_complex = new Complex(zero_re, zero_im);
                  pz.addZero(zero_complex);
                }
-             }
-             else {
-               System.out.println("Error: Stage 1 does not appear to contain Blockette Number = 53");
-             }
 
-           }
+             } // end blockette(53) = pole-zero stage
+
+           } // end epoch has stage 1
            else {
                System.out.println("== There is NO Stage:1 for this Channel + Epoch !");
            }
