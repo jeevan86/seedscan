@@ -33,10 +33,7 @@ public class StationMeta
     private double latitude;
     private double longitude;
     private double elevation;
-    //private ArrayList<ChannelMeta> channels;
     private Hashtable<ChannelKey,ChannelMeta> channels;
-//  The loaded StationMeta and all of its ChannelMeta is expected to be valid
-//    for the 24-hour period beginning at metaTimestamp
     private Calendar metaTimestamp = null;
 
     // constructor(s)
@@ -56,20 +53,6 @@ public class StationMeta
         this.metaTimestamp = timestamp;
     }
 
-    public StationMeta(Station station)
-    {
-        this.name    = station.getStation();
-        this.network = station.getNetwork();
-        channels = new Hashtable<ChannelKey,ChannelMeta>();
-    }
-
-// Need to check that Station name has <= 5 chars and network == 2 chars 
-    public StationMeta(String name, String network)
-    {
-        this.name    = name;
-        this.network = network;
-        channels = new Hashtable<ChannelKey,ChannelMeta>();
-    }
     public void setLatitude(double latitude)
     {
         if (! (latitude <= 90. && latitude >= -90) ) {
@@ -142,28 +125,35 @@ public class StationMeta
           return null;
       }
     }
-
     public ChannelMeta getChanMeta(Channel channel) {
-      String location = channel.getLocation();
-      String name = channel.getChannel();
-      ChannelKey chanKey = new ChannelKey(location, name);
-      return getChanMeta(chanKey);
+      return getChanMeta(new ChannelKey(channel.getLocation(), channel.getChannel()) );
+    }
+    public ChannelMeta getChanMeta(String location, String name) {
+      return getChanMeta(new ChannelKey(location, name));
     }
 
-    public ChannelMeta getChanMeta(String location, String name) {
-      ChannelKey chanKey = new ChannelKey(location, name);
-      return getChanMeta(chanKey);
+    public Hashtable<ChannelKey,ChannelMeta> getChannelHashTable() {
+      return channels;
+    }
+
+    public Boolean hasChannel(ChannelKey channelKey) {
+      return channels.containsKey(channelKey);
+    }
+    public Boolean hasChannel(Channel channel) {
+      return hasChannel(new ChannelKey(channel.getLocation(), channel.getChannel()) );
+    }
+    public Boolean hasChannel(String location, String name) {
+      return hasChannel(new ChannelKey(location, name) );
     }
 
     public Boolean hasChannels(ChannelArray channelArray) {
       for (Channel channel : channelArray.getChannels() ){
-        if (! hasChannel(channel.getLocation(), channel.getChannel()) ){
+        if (!hasChannel(channel)){
             return false;
         }
       }
       return true; // If we made it to here then it must've found all channels
     }
-
     public Boolean hasChannels(String location, String chan1, String chan2, String chan3) {
       if ( hasChannel(location, chan1) && hasChannel(location, chan2) && hasChannel(location, chan3) ){
           return true;
@@ -173,14 +163,6 @@ public class StationMeta
       }
     }
 
-    public Boolean hasChannel(String location, String name) {
-      ChannelKey chanKey = new ChannelKey(location, name);
-      return hasChannel(chanKey);
-    }
-
-    public Boolean hasChannel(ChannelKey channelKey) {
-      return channels.containsKey(channelKey);
-    }
 
     public void print() {
       System.out.print(this);

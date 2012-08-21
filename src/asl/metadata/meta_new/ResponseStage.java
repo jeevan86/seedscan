@@ -24,23 +24,32 @@ public abstract class ResponseStage implements Comparable<ResponseStage>
     protected int stageNumber;
     protected char stageType;
     protected double stageGain; 
-    protected double frequencyOfstageGain; 
+    protected double stageGainFrequency; 
     protected String inputUnits; 
     protected String outputUnits; 
-/**
- *  A [Analog Response rad/sec]
- *  B [Analog Response Hz]
- *  D [Digital]
- *  P [Polynomial]
+/** 
+ * Every response stage type will contain generic info from SEED 
+ *  Blockette B058 (e.g., Stage Gain, Frequency of Gain) here.
+ * 
+ * In addition, info that is unique to a particular stage type will be stored 
+ *   in the child class for that type (PoleZeroStage, PolynomialStage, etc.)
+ *
+ *   Stage Type			SEED Blockette(s)	Child Class
+ * ---------------------------  -----------------	--------------
+ * A [Analog Response rad/sec]	B053 			PoleZeroStage
+ * B [Analog Response Hz]	B053 			PoleZeroStage
+ * D [Digital]			B062			PolynomialStage
+ * P [Polynomial]		B054, B057		DigitalStage
  *
 **/
 
     // constructor(s)
-    public ResponseStage(int number, char type, double gain)
+    public ResponseStage(int number, char type, double gain, double frequency)
     {
         stageNumber = number;
         stageType   = type;
         stageGain   = gain;
+        stageGainFrequency   = frequency;
     }
 
     public void setInputUnits(String inputUnits){
@@ -49,12 +58,14 @@ public abstract class ResponseStage implements Comparable<ResponseStage>
     public void setOutputUnits(String outputUnits){
       this.outputUnits = outputUnits;
     }
-
     public String getInputUnits(){
       return inputUnits;
     }
     public String getOutputUnits(){
       return outputUnits;
+    }
+    public double getStageGainFrequency(){
+      return stageGainFrequency;
     }
 
     public int getStageNumber()
@@ -78,7 +89,7 @@ public abstract class ResponseStage implements Comparable<ResponseStage>
     {
       StringBuilder result = new StringBuilder();
       String NEW_LINE = System.getProperty("line.separator");
-      result.append(String.format("Stage:%d  [Type='%1s'] Gain=%.2f\n",stageNumber,stageType,stageGain) );
+      result.append(String.format("Stage:%d  [Type='%1s'] Gain=%.2f FreqOfGain=%.2f\n",stageNumber,stageType,stageGain,stageGainFrequency) );
       result.append(String.format("Units In:[%s]  Units Out:[%s]\n",inputUnits, outputUnits) );
       return result.toString();
     }

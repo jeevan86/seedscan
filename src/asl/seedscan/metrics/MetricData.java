@@ -19,7 +19,9 @@
 package asl.seedscan.metrics;
 
 import asl.metadata.Channel;
+import asl.metadata.ChannelArray;
 import asl.metadata.meta_new.StationMeta;
+import asl.metadata.meta_new.ChannelMeta;
 import asl.seedsplitter.DataSet;
 
 import java.util.ArrayList;
@@ -84,6 +86,42 @@ public class MetricData
     {
         return getChannelData(channel.getLocation(), channel.getChannel() );           
     }
+
+
+//  Get/Compute both the metadata and data digests for this channel
+//  If either have changed, return true
+
+    public Boolean hashChanged(Channel channel)
+    {
+        ChannelMeta chanMeta = getMetaData().getChanMeta(channel);
+        String chanMetaDigestString = null;
+        if (chanMeta == null){
+          System.out.format("==Error: MetricData.hashChanged() channelMeta returned null for channel=%s\n", channel.getChannel());
+        }
+        else {
+          chanMetaDigestString = chanMeta.getDigestString();
+        //System.out.format("%s-%s: metaHash=%s\n", channel.getLocation(), channel.getChannel(), chanMetaDigestString);
+        }
+      // Here's where we need to check this digest against a stored value
+        return true;
+    }
+
+// Loop over array of channels needed for this metric calculation.
+//  If metadata or data has changed for ANY channel, return true
+    public Boolean hashChanged(ChannelArray channelArray)
+    {
+        ArrayList<Channel> channels = channelArray.getChannels();
+        for (Channel channel : channels){
+            if (hashChanged(channel)) {
+               return true;
+            }
+        } //end for each channel
+     // We made it to here so there must not be any changes
+        //return false;
+// This is for testing so we make it into compute the metric(s):
+        return true;
+    }
+
 
 
 }

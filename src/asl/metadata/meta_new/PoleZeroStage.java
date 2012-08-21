@@ -20,29 +20,30 @@
 package asl.metadata.meta_new;
 
 import java.util.ArrayList;
+import freq.Cmplx;
 
 public class PoleZeroStage extends ResponseStage
 {
-    private ArrayList<Complex> poles;
-    private ArrayList<Complex> zeros;
+    private ArrayList<Cmplx> poles;
+    private ArrayList<Cmplx> zeros;
     private double normalizationConstant;
     private boolean poleAdded = false;
     private boolean zeroAdded = false;
     private boolean normalizationSet = false;
 
     // constructor(s)
-    public PoleZeroStage(int stageNumber, char stageType, double stageGain)
+    public PoleZeroStage(int stageNumber, char stageType, double stageGain, double stageFrequency)
     {
-        super(stageNumber, stageType, stageGain);
-        poles = new ArrayList<Complex>();
-        zeros = new ArrayList<Complex>();
+        super(stageNumber, stageType, stageGain, stageFrequency);
+        poles = new ArrayList<Cmplx>();
+        zeros = new ArrayList<Cmplx>();
     }
 
-    public void addPole(Complex pole){
+    public void addPole(Cmplx pole){
       poles.add(pole);
       poleAdded = true;
     }
-    public void addZero(Complex zero){
+    public void addZero(Cmplx zero){
       zeros.add(zero);
       zeroAdded = true;
     }
@@ -58,6 +59,12 @@ public class PoleZeroStage extends ResponseStage
     }
     public int getNumberOfZeros(){
       return zeros.size();
+    }
+    public ArrayList<Cmplx> getZeros(){
+      return zeros;
+    }
+    public ArrayList<Cmplx> getPoles(){
+      return poles;
     }
 
     public void print(){
@@ -80,17 +87,17 @@ public class PoleZeroStage extends ResponseStage
  *  then print it out.
 **/
     public void printResponse(){
-      Complex response;
+      Cmplx response;
       for (double x=.01; x<=100; x += .01){ // 100sec -to- 100Hz
         response = evalResp(x);
-        System.out.format("%12.4f\t%12.4f\n",x, response.mod() );
+        System.out.format("%12.4f\t%12.4f\n",x, response.mag() );
       }
     }
 
 /*  Return complex response computed at given freqs[0,...length]
  *  Should really check that length > 0
 **/
-    public Complex[] getResponse(double[] freqs){
+    public Cmplx[] getResponse(double[] freqs){
       //Some polezero responses (e.g., ANMO.IU.20.BN?) appear to have NO zeros
       //if (poleAdded && zeroAdded && normalizationSet) {
       if (poleAdded && normalizationSet) {
@@ -102,10 +109,10 @@ public class PoleZeroStage extends ResponseStage
       if (!(freqs.length > 0)){
         throw new RuntimeException("[ PoleZeroStage-->getResponse Error: Input freqs[] has no zero length! ]");
       }
-      Complex[] response = new Complex[freqs.length];
+      Cmplx[] response = new Cmplx[freqs.length];
       for (int i=0; i<freqs.length; i++){
         response[i] = evalResp(freqs[i]);
-      //System.out.format("%12.4f\t%12.4f\n",freqs[i], response[i].mod() );
+      //System.out.format("%12.4f\t%12.4f\n",freqs[i], response[i].mag() );
       }
       return response;
     }
@@ -132,31 +139,30 @@ public class PoleZeroStage extends ResponseStage
  *  Note that the stage sensitivity Sd is *not* included, so that the response from this
  *  stage should be approx. 1 (flat) at the mid range.
 **/
-    private Complex evalResp(double f){
-      Complex numerator   = new Complex(1,0);
-      Complex denomenator = new Complex(1,0);
-      Complex s;
-      Complex Gf;
+    private Cmplx evalResp(double f){
+      Cmplx numerator   = new Cmplx(1,0);
+      Cmplx denomenator = new Cmplx(1,0);
+      Cmplx s;
+      Cmplx Gf;
 
       if (getStageType() == 'A'){
-        s = new Complex(0.0, 2*Math.PI*f);
+        s = new Cmplx(0.0, 2*Math.PI*f);
       }
       else if (getStageType() == 'B'){
-        s = new Complex(0.0, f);
+        s = new Cmplx(0.0, f);
       }
       else {
         throw new RuntimeException("[ PoleZeroStage-->evalResponse Error: Cannot evalResp a non-PoleZero Stage!]");
       }
 
       for (int j=0; j<getNumberOfZeros(); j++){
-        numerator = numerator.times(s.minus(zeros.get(j))) ;
+        numerator = Cmplx.mul(numerator,Cmplx.sub(s, zeros.get(j)) );
       }
       for (int j=0; j<getNumberOfPoles(); j++){
-        denomenator = denomenator.times(s.minus(poles.get(j))) ;
+        denomenator = Cmplx.mul(denomenator,Cmplx.sub(s, poles.get(j)) );
       }
-      Complex A0 = new Complex(normalizationConstant, 0);
-      Gf = A0.times(numerator);
-      Gf = Gf.div(denomenator);
+      Gf = Cmplx.mul(normalizationConstant, numerator);
+      Gf = Cmplx.div(Gf, denomenator);
       return Gf;
     }
 

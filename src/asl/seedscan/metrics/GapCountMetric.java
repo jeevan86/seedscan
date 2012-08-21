@@ -60,6 +60,9 @@ extends Metric
            result = new MetricResult();
    // Loop over channels, get metadata & data for channel and Do Something ...
            for (Channel channel : channels){
+
+             if (!data.hashChanged(channel)) continue;
+
              int gapCount  = 0;
 
              ChannelMeta chanMeta = stnMeta.getChanMeta(channel);
@@ -72,11 +75,13 @@ extends Metric
              else {
                gapCount = datasets.size()-1;
              }
-             System.out.format("\n%s-%s [Meta Date:%s] %s-%s ", stnMeta.getStation(), stnMeta.getNetwork(), 
-               EpochData.epochToDateString(stnMeta.getTimestamp()), chanMeta.getLocation(), chanMeta.getName() );
-             System.out.format("Gap Count:%d \n", gapCount ); 
 
-             String key   = getName() + "+Channel(s)=" + channel.getChannel();
+             System.out.format("%s-%s [%s] %s %s-%s ", stnMeta.getStation(), stnMeta.getNetwork(),  
+               EpochData.epochToDateString(stnMeta.getTimestamp()), getName(), chanMeta.getLocation(), chanMeta.getName() );
+             System.out.format("Gap Count:%d %s\n", gapCount, chanMeta.getDigestString() );
+
+
+             String key   = getName() + "+Channel(s)=" + channel.getLocation() + "-" + channel.getChannel();
              String value = String.format("%d",gapCount);
              result.addResult(key, value);
 

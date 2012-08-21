@@ -48,7 +48,9 @@ extends Metric
     public final String getName()
     {
         PowerBand band = getPowerBand();
-        return getBaseName() + String.format("-%0.6f-%0.6f", band.getLow(), band.getHigh());
+        //This gives a runtime error: I think it will left-justify by default anyway ...
+        //return getBaseName() + String.format("-%0.6f-%0.6f", band.getLow(), band.getHigh());
+        return getBaseName() + String.format(":%.6f-%.6f", band.getLow(), band.getHigh());
     }
 }
 

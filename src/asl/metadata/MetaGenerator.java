@@ -18,6 +18,8 @@
  */
 package asl.metadata;
 
+import freq.Cmplx;
+
 import java.util.ArrayList;
 import java.util.TreeSet;
 import java.util.Calendar;
@@ -110,7 +112,6 @@ public class MetaGenerator
       StationMeta stationMeta = null;
       try {
         stationMeta = new StationMeta(blockette, timestamp);
-        //stationMeta = new StationMeta(blockette);
       }
       catch (WrongBlocketteException e ){
         System.out.println("ERROR: Could not create new StationMeta(blockette) !!");
@@ -125,8 +126,6 @@ public class MetaGenerator
       for (ChannelKey key : keys){
         System.out.println("==Channel:"+key );
         ChannelData channel = channels.get(key);
-
-        //ChannelMeta channelMeta = new ChannelMeta(key);
         ChannelMeta channelMeta = new ChannelMeta(key,timestamp);
 
      // See if this channel contains the requested epoch time and if so return the key (=Epoch Start timestamp)
@@ -153,12 +152,12 @@ public class MetaGenerator
              if (stage.hasBlockette(58)) {
                blockette = stage.getBlockette(58); 
                Double Sensitivity = Double.parseDouble(blockette.getFieldValue(4, 0));
-//B058F05     Frequency of sensitivity:              2.000000E-02 HZ
-               //Double frequencyOfSensitivity = Double.parseDouble(blockette.getFieldValue(5, 0));
-               String frequencyOfSensitivity = blockette.getFieldValue(5, 0);
+             //B058F05     Frequency of sensitivity:              2.000000E-02 HZ
+               String temp[] = blockette.getFieldValue(5, 0).split(" ");
+               Double frequencyOfSensitivity = Double.parseDouble(temp[0]);
 
          // Set the Stage 0 Gain = The Sensitivity:
-               DigitalStage responseStage = new DigitalStage(0, 'D', Sensitivity);
+               DigitalStage responseStage = new DigitalStage(0, 'D', Sensitivity, frequencyOfSensitivity);
                channelMeta.addStage(0, responseStage);
                //channelMeta.addStage(responseStage);
              }
@@ -178,11 +177,12 @@ public class MetaGenerator
              stage = epochData.getStage(1); 
 
              double Gain=0;
+             double frequencyOfGain=0;
              if (stage.hasBlockette(58)) {        // We have a gain blockette in this stage
                blockette = stage.getBlockette(58); 
                Gain = Double.parseDouble(blockette.getFieldValue(4, 0));
-               //Double frequencyOfGain = Double.parseDouble(blockette.getFieldValue(5, 0));
-               String frequencyOfGain = blockette.getFieldValue(5, 0);
+               String temp[] = blockette.getFieldValue(5, 0).split(" ");
+               frequencyOfGain = Double.parseDouble(temp[0]);
              }
              else {
                System.out.println("Warning: Stage 1 does not appear to contain Blockette Number = 58");
@@ -204,7 +204,7 @@ public class MetaGenerator
                ArrayList<String> RealCoefficients = blockette.getFieldValues(15);
                ArrayList<String> ImagCoefficients = blockette.getFieldValues(16);
                char[] respType  = TransferFunctionType.toCharArray();
-               polyStage = new PolynomialStage(1, respType[0], Gain);
+               polyStage = new PolynomialStage(1, respType[0], Gain, frequencyOfGain);
                channelMeta.addStage(1, polyStage);
                polyStage.setInputUnits(ResponseInUnits);
                polyStage.setOutputUnits(ResponseOutUnits);
@@ -217,10 +217,9 @@ public class MetaGenerator
                for (int i=0; i<numberOfCoefficients; i++){
                  Double coeff_re = Double.parseDouble(RealCoefficients.get(i));
                  Double coeff_im = Double.parseDouble(ImagCoefficients.get(i));
-                 Complex coefficient = new Complex(coeff_re, coeff_im);
+                 Cmplx coefficient = new Cmplx(coeff_re, coeff_im);
                  polyStage.addCoefficient(coefficient);
                }
-polyStage.print();
              } // end process blockette(62) = polynomial stage
 
              if (stage.hasBlockette(53)) {        // This is a pole-zero stage
@@ -245,7 +244,7 @@ polyStage.print();
                char[] respType  = TransferFunctionType.toCharArray();
                //char respType = TransferFunctionType.substring(0,0);
 
-               pz = new PoleZeroStage(1, respType[0], Gain);
+               pz = new PoleZeroStage(1, respType[0], Gain, frequencyOfGain);
                channelMeta.addStage(1, pz);
                //channelMeta.addStage(pz);
                pz.setNormalization(A0Normalization);
@@ -255,13 +254,13 @@ polyStage.print();
                for (int i=0; i<numberOfPoles; i++){
                  Double pole_re = Double.parseDouble(RealPoles.get(i));
                  Double pole_im = Double.parseDouble(ImagPoles.get(i));
-                 Complex pole_complex = new Complex(pole_re, pole_im);
+                 Cmplx pole_complex = new Cmplx(pole_re, pole_im);
                  pz.addPole(pole_complex);
                }
                for (int i=0; i<numberOfZeros; i++){
                  Double zero_re = Double.parseDouble(RealZeros.get(i));
                  Double zero_im = Double.parseDouble(ImagZeros.get(i));
-                 Complex zero_complex = new Complex(zero_re, zero_im);
+                 Cmplx zero_complex = new Cmplx(zero_re, zero_im);
                  pz.addZero(zero_complex);
                }
 
@@ -276,6 +275,7 @@ polyStage.print();
            if (epochData.hasStage(2)) {
              stage = epochData.getStage(2); 
              double Gain = 0;
+             double frequencyOfGain = 0;
              char[] respType=null;
              String ResponseInUnits = null;
              String ResponseOutUnits = null;
@@ -292,9 +292,9 @@ polyStage.print();
              if (stage.hasBlockette(58)) {
                blockette = stage.getBlockette(58); 
                Gain = Double.parseDouble(blockette.getFieldValue(4, 0));
-               //Double frequencyOfGain = Double.parseDouble(blockette.getFieldValue(5, 0));
-               String frequencyOfGain = blockette.getFieldValue(5, 0);
-               DigitalStage responseStage = new DigitalStage(2, respType[0], Gain);
+               String temp[] = blockette.getFieldValue(5, 0).split(" ");
+               frequencyOfGain = Double.parseDouble(temp[0]);
+               DigitalStage responseStage = new DigitalStage(2, respType[0], Gain, frequencyOfGain);
                responseStage.setInputUnits(ResponseInUnits);
                responseStage.setOutputUnits(ResponseOutUnits);
                channelMeta.addStage(2, responseStage);

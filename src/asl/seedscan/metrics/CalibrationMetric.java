@@ -28,35 +28,26 @@ import asl.metadata.meta_new.*;
 import asl.seedsplitter.*;
 
 public class CalibrationMetric
-extends Metric
+extends PowerBandMetric
 {
     private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.CalibrationMetric");
 
-    public String getName()
+    public String getBaseName()
     {
         return "CalibrationMetric";
     }
 
     public void process()
     {
-           double avge = 0;
 
-   // Grab station metadata for all channels:
+           System.out.format("\n              [ == Metric %s == ]\n", getName() ); 
+
+   // Grab station metadata for all channels for this day:
            StationMeta stnMeta = data.getMetaData();
-           Calendar stnMetaTimestamp = stnMeta.getTimestamp();
-           System.out.format("\n== CalibrationMetric: %s-%s [Meta Date:%s] Latitude: %6.2f Longitude: %6.2f\n", stnMeta.getStation(), 
-            stnMeta.getNetwork(), EpochData.epochToDateString(stnMetaTimestamp),stnMeta.getLatitude(), stnMeta.getLongitude() );
-           //This will loop over ALL channels and print metadata summaries
-           //stnMeta.print();
 
-         //Channel channel = new Channel("00","BHZ");
    // Create a 3-channel array and check that we have metadata for all 3 channels:
-         //ChannelArray channelArray = new ChannelArray("10","BHZ","BH1","BH2");
-         //ChannelArray channelArray = new ChannelArray("00","BHZ","BH1","BH2");
-         //ChannelArray channelArray = new ChannelArray("00","BHZ");
-         //ChannelArray channelArray = new ChannelArray("20","HNZ", "HN1", "LNZ");
-         ChannelArray channelArray = new ChannelArray("30","LDO");
-         //ChannelArray channelArray = new ChannelArray("00","VMZ");
+         //ChannelArray channelArray = new ChannelArray("00","BCZ", "BC1", "BC2");
+           ChannelArray channelArray = new ChannelArray("00","BHZ", "BH1", "BH2");
 
            if (stnMeta.hasChannels(channelArray) ){
               //System.out.println("== Found metadata for all 3 channels for this epoch");
@@ -67,40 +58,40 @@ extends Metric
 
            ArrayList<Channel> channels = channelArray.getChannels();
 
-   // Loop over channels, get metadata & data for channel and Do Something ...
+   // We are computing a CalibrationMetric for each channel in channelArray.
+   //   Loop over channels, get metadata & data for channel and compute metric.
+
+           result = new MetricResult();
+
            for (Channel channel : channels){
+
+           // At this point we know what channel(s) are going into this metric and we can
+           //   check to see if the channel metadata hash(es) or data hash(es) have changed
+           //   since we last computed the metric.  If not, then we don't have to re-compute it.
+           //   so break to next metric (=channel) calculation.
+
+             if (!data.hashChanged(channel)) continue;
+
              ChannelMeta chanMeta = stnMeta.getChanMeta(channel);
              if (chanMeta == null){
-               System.out.println("Scanner Error: stnMeta.getChannel returned null for channel:" + channel.getChannel());
+               System.out.format("%s Error: stnMeta.getChannel returned null for channel=%s\n", getName(), channel.getChannel());
              }
-             else {
-               chanMeta.print();
+             else { //Do something with chanMeta
                if (chanMeta.hasDayBreak() ){ // Check to see if the metadata for this channel changes during this day
-                  System.out.println("Scanner Error: chanMeta has a break!");
+                  System.out.format("%s Error: channel=%s metadata has a break!\n", getName(), channel.getChannel() );
                }
-               System.out.format(" Channel Meta: %s-%s Meta Epoch: %s (Break=%s) Azimuth: %6.2f SampleRate: %6.2f Inst Type:%s\n",
-                  chanMeta.getLocation(), chanMeta.getName(), EpochData.epochToDateString(chanMeta.getTimestamp()), chanMeta.hasDayBreak(), 
-                  chanMeta.getAzimuth(), chanMeta.getSampleRate(), chanMeta.getInstrumentType() );
+             } // end chanMeta for this channel
 
-               double[] freqs = new double[100];
-               for (int i=0; i<100; i++){
-                 freqs[i] = 1.0 * i; 
-               }
-               //Complex[] response = chanMeta.getResponse(freqs);
-
-               for (int i=0; i<freqs.length; i++){
-                 //System.out.format("%12.4f\t%12.4f\n",freqs[i], response[i].mod() );
-               }
-             }
-
-        // Get DataSet(s) for this channel
+          // Get DataSet(s) for this channel
              ArrayList<DataSet>datasets = data.getChannelData(channel);
              if (datasets == null){
-               System.out.println("Scanner Error: No data for requested channel:" + channel.getChannel());
+               System.out.format("%s Error: No data for requested channel:%s\n", getName(), channel.getChannel());
              }
-
-             else {
+             else { // DO something with this channel data
                int numberOfDataSets = datasets.size();
+               if (numberOfDataSets != 1) {
+                 System.out.format("%s: Warning: number of datasets for channel:%s != 1\n", getName(), channel.getChannel() );
+               }
 
                for (DataSet dataset : datasets) {
                  String knet    = dataset.getNetwork(); String kstn = dataset.getStation();
@@ -115,36 +106,29 @@ extends Metric
                  Calendar endTimestamp = new GregorianCalendar();
                  endTimestamp.setTimeInMillis(endTime/1000);
 
-                 //System.out.format("%s_%s: Channel Data:%s-%s srate=%.2f [=%dL] length=%d [Start:%s End:%s]\n",knet,kstn,locn,kchn,srate,
-                       //interval,length,EpochData.epochToDateString(startTimestamp),EpochData.epochToDateString(endTimestamp) );
-
-                 //System.out.format(" Channel Data: %s-%s [Start:%s End:%s] srate=%.2f [=%dL] length=%d\n",
-                  //dataset.getLocation(), dataset.getChannel(), EpochData.epochToDateString(startTimestamp), EpochData.epochToDateString(endTimestamp),
-                  //dataset.getSampleRate(), dataset.getInterval(), dataset.getLength() );
-
-        // Calculate something for this channel
+          // Calculate something for this channel ...
                  int intArray[] = dataset.getSeries();
-                 avge = 0;
                  for (int i=0; i<intArray.length; i++){
-                  //System.out.format("%d\n",intArray[i]);
-                   avge += intArray[i];
+                   //massPosition += Math.pow( (a0 + intArray[i] * a1), 2);
                  }
                  if (intArray.length == 0){
                    System.out.println("CalibrationMetric: Error: Array Length == 0 --> Divide by Zero");
                  }
                  else {
-                   avge /= (double)intArray.length;
+                   //massPosition = Math.sqrt( massPosition / (double)intArray.length );
                  }
                } // end for each dataset
+             }// end else (= we DO have data for this channel)
 
-             }// end else
+             String calibrationResult = "Nothing-to-Report";
+         
+             System.out.format("%s-%s [%s] %s %s-%s ", stnMeta.getStation(), stnMeta.getNetwork(), 
+               EpochData.epochToDateString(stnMeta.getTimestamp()), getName(), chanMeta.getLocation(), chanMeta.getName() );
+             System.out.format("Calibration:%s %s\n", calibrationResult, chanMeta.getDigestString() ); 
 
+             String key   = getName() + "+Channel(s)=" + channel.getLocation() + "-" + channel.getChannel();
+             String value = String.format("%s",calibrationResult);
+             result.addResult(key, value);
            }// end foreach channel
-           
-           String value = String.format("%.2f",avge);
-           result = new MetricResult();
-           result.addResult("Calibration", value);
-
-     }
-}
-
+    } // end process()
+} // end class

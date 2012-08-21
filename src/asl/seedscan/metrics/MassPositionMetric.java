@@ -57,11 +57,20 @@ extends Metric
 
            ArrayList<Channel> channels = channelArray.getChannels();
 
-   // Loop over channels, get metadata & data for channel and Do Something ...
+   // We are computing a MassPositionMetric for each channel in channelArray.
+   //   Loop over channels, get metadata & data for channel and compute metric.
 
            result = new MetricResult();
 
            for (Channel channel : channels){
+
+           // At this point we know what channel(s) are going into this metric and we can
+           //   check to see if the channel metadata hash(es) or data hash(es) have changed
+           //   since we last computed the metric.  If not, then we don't have to re-compute it.
+           //   so break to next metric (=channel) calculation.
+
+             if (!data.hashChanged(channel)) continue;
+
              double massPosition  = 0;
              double a0 = 0;
              double a1 = 0;
@@ -72,11 +81,10 @@ extends Metric
              if (chanMeta == null){
                System.out.format("%s Error: stnMeta.getChannel returned null for channel=%s\n", getName(), channel.getChannel());
              }
-             else {
+             else { //Do something with chanMeta
                if (chanMeta.hasDayBreak() ){ // Check to see if the metadata for this channel changes during this day
                   System.out.format("%s Error: channel=%s metadata has a break!\n", getName(), channel.getChannel() );
                }
-
             // Get Stage 1, make sure it is a Polynomial Stage (MacLaurin) and get Coefficients
                ResponseStage stage = chanMeta.getStage(1);
                if (!(stage instanceof PolynomialStage)) {
@@ -99,20 +107,17 @@ extends Metric
                if (a0 == 0 && a1 == 0 || lowerBound == 0 && upperBound == 0) {
                  throw new RuntimeException("MassPositionMetric: We don't have enough information to compute mass position!");
                }
-
              } // end chanMeta for this channel
 
-        // Get DataSet(s) for this channel
+          // Get DataSet(s) for this channel
              ArrayList<DataSet>datasets = data.getChannelData(channel);
              if (datasets == null){
                System.out.format("%s Error: No data for requested channel:%s\n", getName(), channel.getChannel());
              }
-
-             else {
+             else { // DO something with this channel data
                int numberOfDataSets = datasets.size();
-
                if (numberOfDataSets != 1) {
-                   System.out.format("%s: Warning: number of datasets for channel:%s != 1\n", getName(), channel.getChannel() );
+                 System.out.format("%s: Warning: number of datasets for channel:%s != 1\n", getName(), channel.getChannel() );
                }
 
                for (DataSet dataset : datasets) {
@@ -128,7 +133,7 @@ extends Metric
                  Calendar endTimestamp = new GregorianCalendar();
                  endTimestamp.setTimeInMillis(endTime/1000);
 
-        // Calculate RMS mass position for this channel
+          // Calculate RMS mass position for this channel
                  int intArray[] = dataset.getSeries();
                  for (int i=0; i<intArray.length; i++){
                    massPosition += Math.pow( (a0 + intArray[i] * a1), 2);
@@ -139,24 +144,20 @@ extends Metric
                  else {
                    massPosition = Math.sqrt( massPosition / (double)intArray.length );
                  }
-
                } // end for each dataset
-
              }// end else (= we DO have data for this channel)
          
              double massRange  = (upperBound - lowerBound)/2;
              double massCenter = lowerBound + massRange;
              double massPercent= 100 * Math.abs(massPosition - massCenter) / massRange;
 
-             System.out.format("\n%s-%s [Meta Date:%s] %s-%s ", stnMeta.getStation(), stnMeta.getNetwork(), 
-               EpochData.epochToDateString(stnMeta.getTimestamp()), chanMeta.getLocation(), chanMeta.getName() );
-             System.out.format("RMS-Volts:%.2f (%.0f%%) \n", massPosition, massPercent ); 
+             System.out.format("%s-%s [%s] %s %s-%s ", stnMeta.getStation(), stnMeta.getNetwork(), 
+               EpochData.epochToDateString(stnMeta.getTimestamp()), getName(), chanMeta.getLocation(), chanMeta.getName() );
+             System.out.format("RMS-Volts:%.2f (%.0f%%) %s\n", massPosition, massPercent, chanMeta.getDigestString() ); 
 
-             String key   = getName() + "+Channel(s)=" + channel.getChannel();
-             String value = String.format("%.2f",massPosition);
+             String key   = getName() + "+Channel(s)=" + channel.getLocation() + "-" + channel.getChannel();
+             String value = String.format("%.2f",massPercent);
              result.addResult(key, value);
-
            }// end foreach channel
-     }
-}
-
+    } // end process()
+} // end class

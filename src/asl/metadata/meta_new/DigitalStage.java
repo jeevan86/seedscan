@@ -30,10 +30,41 @@ public class DigitalStage extends ResponseStage
     private double inputSampleRate;
     private ArrayList<Double> coefficients;
 
+/** Relevant SEED Blockettes 
+ *
+B054F03     Transfer function type:                D
+B054F04     Stage sequence number:                 2
+B054F05     Response in units lookup:              V - Volts
+B054F06     Response out units lookup:             COUNTS - Digital Counts
+B054F07     Number of numerators:                  0
+B054F10     Number of denominators:                0
+ *
+B057F03     Stage sequence number:                 2
+B057F04     Input sample rate:                     5.120000E+03
+B057F05     Decimation factor:                     1
+B057F06     Decimation offset:                     0
+B057F07     Estimated delay (seconds):             0.000000E+00
+B057F08     Correction applied (seconds):          0.000000E+00
+ *
+ *  .... or for stage # > 2:
+B054F03     Transfer function type:                D
+B054F04     Stage sequence number:                 3
+B054F05     Response in units lookup:              COUNTS - Digital Counts
+B054F06     Response out units lookup:             COUNTS - Digital Counts
+B054F07     Number of numerators:                  64
+B054F10     Number of denominators:                0
+#               Numerator coefficients:
+#                 i, coefficient,  error
+B054F08-09    0 -1.097070E-03  0.000000E+00
+B054F08-09    1 -9.933270E-04  0.000000E+00
+...
+ *
+**/
+
     // constructor(s)
-    public DigitalStage(int stageNumber, char stageType, double stageGain)
+    public DigitalStage(int stageNumber, char stageType, double stageGain, double stageFrequency)
     {
-        super(stageNumber, stageType, stageGain);
+        super(stageNumber, stageType, stageGain, stageFrequency);
     }
     public void setInputSampleRate(double sampleRate)
     {

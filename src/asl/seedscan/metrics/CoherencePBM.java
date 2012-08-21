@@ -32,7 +32,15 @@ extends PowerBandMetric
 
     public void process()
     {
+
+           System.out.format("\n              [ == Metric %s == ]\n", getName() ); 
+
         // populate
+           result = new MetricResult();
+         //String key   = getName() + "+Channel(s)=" + channel.getLocation() + "-" + channel.getChannel();
+           String key   = getName();
+           String value = "result-goes-here";
+           result.addResult(key, value);
     }
 }
 

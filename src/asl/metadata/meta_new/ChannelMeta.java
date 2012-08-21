@@ -20,6 +20,8 @@
 package asl.metadata.meta_new;
 
 import asl.metadata.ChannelKey;
+import freq.Cmplx;
+import asl.security.MemberDigest;
 import java.util.ArrayList;
 import java.util.TreeSet;
 import java.util.Hashtable;
@@ -38,38 +40,79 @@ import java.util.Calendar;
 **/
 
 
-public class ChannelMeta
+public class ChannelMeta extends MemberDigest
 {
     private String name = null;
     private String location = null;
     private String comment = null;
     private String instrumentType = null;
-    private double latitude, longitude; // Not sure if we need separate <lat,lon> for each ch
     private double sampleRate;
     private double dip;
     private double azimuth;
     private double depth;
     private Calendar metaTimestamp = null; // This should be same as the stationMeta metaTimestamp
-    private Boolean dayBreak = false; // This will be set to true if channelMeta changes during requested day
+    private Boolean dayBreak = false;      // This will be set to true if channelMeta changes during requested day
     private Hashtable<Integer, ResponseStage> stages;
+
+    public void addDigestMembers() {
+
+      addToDigest(sampleRate);
+      addToDigest(getNumberOfStages());
+      for (Integer stageID : stages.keySet() ){
+        ResponseStage stage = getStage(stageID);
+        addToDigest(stage.getStageGain());
+        addToDigest(stage.getStageGainFrequency());
+        addToDigest(stage.getStageType());
+     // Add PoleZero Stage to Digest
+        if (stage instanceof PoleZeroStage){
+          PoleZeroStage pz = (PoleZeroStage)stage;
+          addToDigest(pz.getNormalization());
+          ArrayList<Cmplx> poles = pz.getPoles();
+          for (int j=0; j<poles.size(); j++){
+            addToDigest(poles.get(j).real());
+            addToDigest(poles.get(j).imag());
+          }
+          ArrayList<Cmplx> zeros = pz.getZeros();
+          for (int j=0; j<zeros.size(); j++){
+            addToDigest(zeros.get(j).real());
+            addToDigest(zeros.get(j).imag());
+          }
+        }
+     // Add Polynomial Stage to Digest
+        else if (stage instanceof PolynomialStage){
+          PolynomialStage poly = (PolynomialStage)stage;
+          addToDigest(poly.getLowerApproximationBound());
+          addToDigest(poly.getUpperApproximationBound());
+          addToDigest(poly.getNumberOfCoefficients());
+          double[] coeffs = poly.getRealPolynomialCoefficients();
+          for (int j=0; j<coeffs.length; j++){
+            addToDigest(coeffs[j]);
+          }
+        }
+     // Add Digital Stage to Digest
+        else if (stage instanceof DigitalStage){
+          DigitalStage dig = (DigitalStage)stage;
+          addToDigest(dig.getInputSampleRate());
+          addToDigest(dig.getDecimation());
+        }
+      } //end loop over response stages
+
+    } // end addDigestMembers()
 
     // constructor(s)
 
     public ChannelMeta(ChannelKey channel, Calendar metaTimestamp)
     {
+   // We need to call the super constructor to start the MessageDigest
+        super();
         this.name     = channel.getName();
         this.location = channel.getLocation();
         this.metaTimestamp = metaTimestamp;
         stages = new Hashtable<Integer, ResponseStage>();
-
     }
-
     public ChannelMeta(String location, String channel, Calendar metaTimestamp)
     {
-        this.name     = channel;
-        this.location = location;
-        this.metaTimestamp = metaTimestamp;
-        stages = new Hashtable<Integer, ResponseStage>();
+        this(new ChannelKey(location, channel), metaTimestamp);
     }
 
     // setter(s)
@@ -155,15 +198,19 @@ public class ChannelMeta
         return stages;
     }
 
+//  Be careful when using this since:
+//  A pole-zero response will have 3 stages: 0, 1, 2
+//  A polynomial response will have 1 stage: 1
+
     public int getNumberOfStages()
     {
         return stages.size();
     }
 
-// invalidResponse() - Returns true if any errors found in loaded ResponseStages
+//  Return true if any errors found in loaded ResponseStages
     public boolean invalidResponse()
     {
-      if (getNumberOfStages() <= 0) {
+      if (getNumberOfStages() == 0) {
         System.out.format("ChannelMeta.invalidResponse(): Error: No stages have been loaded for chan-loc=%s-%s\n",
                                     this.getLocation(), this.getName() );
         return true;
@@ -191,24 +238,23 @@ public class ChannelMeta
           System.out.format("Alert: stageGain0=%f VS. stage1=%f * stage2=%f (diff=%f%%)\n", stageGain0, stageGain1, stageGain2, diff);
         }
       }
+   // If we made it to here then we must have a loaded response
 
       return false;
-
     }
 
 
 //  Return complex response computed at given freqs[0,...length]
 
-    public Complex[] getResponse(double[] freqs){
+    public Cmplx[] getResponse(double[] freqs){
 
-      if (freqs.length <= 0) {
+      if (freqs.length == 0) {
         throw new RuntimeException("getResponse(): freqs.length = 0!");
       }
       if (invalidResponse()) {
         throw new RuntimeException("getResponse(): Invalid Response!");
       }
-
-      Complex[] response = null;
+      Cmplx[] response = null;
 
  // Set response = polezero response (with A0 factored in):
       ResponseStage stage = stages.get(1);
@@ -224,13 +270,13 @@ public class ChannelMeta
  // Scale polezero response by stage1Gain * stage2Gain:
       double stage1Gain = stages.get(1).getStageGain();
       double stage2Gain = stages.get(2).getStageGain();
-      Complex scale = new Complex(stage1Gain*stage2Gain, 0);
+      //Cmplx scale = new Cmplx(stage1Gain*stage2Gain, 0);
+      double scale = stage1Gain*stage2Gain;
       for (int i=0; i<freqs.length; i++){
-        response[i] = response[i].times(scale);
+        response[i] = Cmplx.mul(scale, response[i]);
       }
       return response;
 }
-
 
     public void print() {
       System.out.println(this);
@@ -253,19 +299,6 @@ public class ChannelMeta
       result.append(String.format("%15s%s","num of stages:",stages.size()) );
       //result.append(NEW_LINE);
       return result.toString();
-    }
-
-// Return the polynomial stage coefficients + upper/lower bounds in a double array[]
-    //public double[] getPolynomialResponse(){
-    public double[] getRealPolynomialCoefficients(){
-      ResponseStage stage = stages.get(1);
-      if (!(stage instanceof PolynomialStage)) {
-        throw new RuntimeException("getPolynomialResponse(): Stage1 is NOT a PolynomialStage!");
-      }
-      else {
-        PolynomialStage polyStage = (PolynomialStage)stage;
-        return polyStage.getRealPolynomialCoefficients();
-      }
     }
 
 }

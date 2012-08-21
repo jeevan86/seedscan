@@ -20,6 +20,7 @@
 package asl.metadata.meta_new;
 
 import java.util.ArrayList;
+import freq.Cmplx;
 
 public class PolynomialStage extends ResponseStage
 {
@@ -28,15 +29,15 @@ public class PolynomialStage extends ResponseStage
     private double lowerApproximationBound;
     private double upperApproximationBound;
     private String polynomialApproximationType;
-    private ArrayList<Complex> coefficients;
+    private ArrayList<Cmplx> coefficients;
 
     // constructor(s)
-    public PolynomialStage(int stageNumber, char stageType, double stageGain)
+    public PolynomialStage(int stageNumber, char stageType, double stageGain, double stageFrequency)
     {
-        super(stageNumber, stageType, stageGain);
-        coefficients = new ArrayList<Complex>();
+        super(stageNumber, stageType, stageGain, stageFrequency);
+        coefficients = new ArrayList<Cmplx>();
     }
-    public void addCoefficient(Complex coefficient){
+    public void addCoefficient(Cmplx coefficient){
       coefficients.add(coefficient);
     }
     public int getNumberOfCoefficients(){
@@ -88,7 +89,6 @@ public class PolynomialStage extends ResponseStage
 **/
       return values;
     }
-
 
     public void print(){
       super.print();

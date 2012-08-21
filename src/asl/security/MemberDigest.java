@@ -47,7 +47,8 @@ public abstract class MemberDigest
     private void computeDigest() {
         digest.reset();
         addDigestMembers();
-        digest.digest();
+      //Once you call digest() it resets the digest ...
+      //digest.digest();
     }
 
     public MessageDigest getDigest() {
@@ -68,6 +69,16 @@ public abstract class MemberDigest
         return digest.digest();
     }
 
+// Does 'final' do any good here to protect the string .... ?
+    public String getDigestString() {
+        if (digest == null ) {
+            return null;
+        }
+      //This will return a string of hex digits
+        return bytesToHex(getDigestBytes());
+    }
+
+/** digest.toString() just returns the default hash algorithm + status
     public String getDigestString() {
         computeDigest();
         if (digest == null ) {
@@ -75,6 +86,7 @@ public abstract class MemberDigest
         }
         return digest.toString();
     }
+**/
 
  // Methods for adding member variables data to the digest
     protected void addToDigest(byte[] data) {
@@ -116,4 +128,17 @@ public abstract class MemberDigest
     protected void addToDigest(Double data) {
         addToDigest(ByteBuffer.allocate(8).putDouble(data));
     }
+
+   public static String bytesToHex(byte[] b) {
+      char hexDigit[] = {'0', '1', '2', '3', '4', '5', '6', '7',
+                         '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+      StringBuffer buf = new StringBuffer();
+      for (int j=0; j<b.length; j++) {
+         buf.append(hexDigit[(b[j] >> 4) & 0x0f]);
+         buf.append(hexDigit[b[j] & 0x0f]);
+      }
+      return buf.toString();
+   }
+
+
 }
