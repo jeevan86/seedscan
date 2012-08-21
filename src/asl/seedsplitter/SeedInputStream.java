@@ -53,6 +53,7 @@ implements Runnable
     private int m_bufferBytes = 0;
     private int m_skippedBytes = 0;
     private boolean m_indicateLast = true;
+    private String m_digest_algorithm = "MD5";
     private MessageDigest m_digest = null;
 
     /**
@@ -68,7 +69,7 @@ implements Runnable
         m_buffer = new byte[MAX_RECORD_SIZE];
         m_indicateLast = indicateLast;
         try {
-            m_digest = MessageDigest.getInstance("SHA-1");
+            m_digest = MessageDigest.getInstance(m_digest_algorithm);
         } catch (NoSuchAlgorithmException e) {;}
     }
 
@@ -83,32 +84,20 @@ implements Runnable
         m_queue = queue;
         m_buffer = new byte[MAX_RECORD_SIZE];
         try {
-            m_digest = MessageDigest.getInstance("SHA-1");
+            m_digest = MessageDigest.getInstance(m_digest_algorithm);
         } catch (NoSuchAlgorithmException e) {;}
     }
 
     /**
-     * Returns the raw SHA-1 sum of this stream.
+     * Returns this stream's MessageDigest
      * 
-     * @return the raw SHA-1 sum of this stream.
+     * @return the raw digest of this stream.
      */
     public byte[] getDigest() {
         if (m_digest == null ) {
             return null;
         }
-        return m_digest.digest();
-    }
-
-    /**
-     * Returns a String version of the SHA-1 sum of this stream.
-     * 
-     * @return a String version of the SHA-1 sum of this stream.
-     */
-    public String getDigestString() {
-        if (m_digest == null ) {
-            return null;
-        }
-        return m_digest.toString();
+        return ((MessageDigest)m_digest.clone()).digest();
     }
 
     /**

@@ -32,65 +32,80 @@ public abstract class MemberDigest
     private static final Logger logger = Logger.getLogger("asl.seedsplitter.MemberDigest");
 
     private MessageDigest digest = null;
+    private byte[] raw = null;
+    private String str = null;
+    private boolean stale = true;
+
+    private static char[] hexList = {
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+        'a', 'b', 'c', 'd', 'e', 'f'
+    };
 
     /**
      * Constructor.
      */
-    public MemberDigest() {
-        try {
-            digest = MessageDigest.getInstance("SHA-1");
-        } catch (NoSuchAlgorithmException e) {;}
+    public MemberDigest()
+    throws NoSuchAlgorithmException
+    {
+        this("MD5");
+    }
+
+    public MemberDigest(String algorithm)
+    throws NoSuchAlgorithmException
+    {
+        digest = MessageDigest.getInstance(algorithm);
     }
 
     protected abstract void addDigestMembers();
 
-    private void computeDigest() {
-        digest.reset();
-        addDigestMembers();
-        digest.digest();
+    private synchronized void computeDigest() {
+        if (!stale) {
+            digest.reset();
+            addDigestMembers();
+            raw = digest.digest();
+            str = bin2hex(raw);
+            stale = false;
+        }
     }
 
-    public MessageDigest getDigest() {
-        computeDigest();
-        try {
-          return (MessageDigest)digest.clone();
+    public static String bin2hex(byte[] bin)
+    {
+        StringBuilder result = new StringBuilder();
+        for (byte b: bin) {
+            h = (b >> 4) & 0x0f;
+            l = b & 0x0f; 
+            result.append(hexList[h]);
+            result.append(hexList[l]);
         }
-        catch(CloneNotSupportedException e) {
-          return null;
-        }
+        return result.toString();
     }
 
     public byte[] getDigestBytes() {
         computeDigest();
-        if (digest == null ) {
-            return null;
-        }
-        return digest.digest();
+        return raw;
     }
 
     public String getDigestString() {
         computeDigest();
-        if (digest == null ) {
-            return null;
-        }
-        return digest.toString();
+        return str;
     }
 
  // Methods for adding member variables data to the digest
     protected void addToDigest(byte[] data) {
         digest.update(data);
+        stale = true;
     }
 
     protected void addToDigest(Object data) {
-        digest.update(data.toString().getBytes());
+        addToDigest(data.toString().getBytes());
     }
 
     protected void addToDigest(String data) {
-        digest.update(data.getBytes());
+        addToDigest(data.getBytes());
     }
 
     protected void addToDigest(ByteBuffer data) {
-        digest.update(data.array());
+        addToDigest(data.array());
     }
 
     protected void addToDigest(Character data) {
