@@ -23,6 +23,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Logger;
 
+import asl.util.Hex;
+
 /**
  * @author Joel D. Edwards <jdedwards@usgs.gov>
  * 
@@ -34,50 +36,32 @@ public abstract class MemberDigest
     private MessageDigest digest = null;
     private byte[] raw = null;
     private String str = null;
-    private boolean stale = true;
-
-    private static char[] hexList = {
-        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-        'a', 'b', 'c', 'd', 'e', 'f'
-    };
 
     /**
      * Constructor.
      */
     public MemberDigest()
-    throws NoSuchAlgorithmException
     {
         this("MD5");
     }
 
     public MemberDigest(String algorithm)
-    throws NoSuchAlgorithmException
     {
-        digest = MessageDigest.getInstance(algorithm);
+        try {
+            digest = MessageDigest.getInstance(algorithm);
+        }
+        catch (NoSuchAlgorithmException ex) {
+            throw new RuntimeException("Could not initialize digest for the '" +algorithm+ "' algorithm");
+        }
     }
 
     protected abstract void addDigestMembers();
 
     private synchronized void computeDigest() {
-        if (!stale) {
-            digest.reset();
-            addDigestMembers();
-            raw = digest.digest();
-            str = bin2hex(raw);
-            stale = false;
-        }
-    }
-
-    public static String bin2hex(byte[] bin)
-    {
-        StringBuilder result = new StringBuilder();
-        for (byte b: bin) {
-            h = (b >> 4) & 0x0f;
-            l = b & 0x0f; 
-            result.append(hexList[h]);
-            result.append(hexList[l]);
-        }
-        return result.toString();
+        digest.reset();
+        addDigestMembers();
+        raw = digest.digest();
+        str = Hex.byteArrayToHexString(raw);
     }
 
     public byte[] getDigestBytes() {
@@ -90,10 +74,9 @@ public abstract class MemberDigest
         return str;
     }
 
- // Methods for adding member variables data to the digest
+ // Methods for adding member variables' data to the digest
     protected void addToDigest(byte[] data) {
         digest.update(data);
-        stale = true;
     }
 
     protected void addToDigest(Object data) {
