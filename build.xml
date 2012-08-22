@@ -120,6 +120,13 @@
     <target name="seedscan" depends="seedscan_properties, test" description="" />
     <target name="seedscan-jar" depends="seedscan_properties, jar" description="" />
 
+    <!-- JAR: Tests -->
+    <target name="tests_properties" depends="" description="">
+        <property file="properties/tests.properties"/>
+    </target>
+    <target name="tests" depends="tests_properties, test" description="" />
+    <target name="tests-jar" depends="tests_properties, jar" description="" />
+
 <!--LIBRARIES-->
     <target name="libraries" depends="init" description="Add libraries">
         <unjar dest="${build.root}">

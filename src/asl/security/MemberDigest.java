@@ -23,6 +23,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Logger;
 
+import asl.util.Hex;
+
 /**
  * @author Joel D. Edwards <jdedwards@usgs.gov>
  * 
@@ -32,77 +34,61 @@ public abstract class MemberDigest
     private static final Logger logger = Logger.getLogger("asl.seedsplitter.MemberDigest");
 
     private MessageDigest digest = null;
+    private byte[] raw = null;
+    private String str = null;
 
     /**
      * Constructor.
      */
-    public MemberDigest() {
+    public MemberDigest()
+    {
+        this("MD5");
+    }
+
+    public MemberDigest(String algorithm)
+    {
         try {
-            digest = MessageDigest.getInstance("SHA-1");
-        } catch (NoSuchAlgorithmException e) {;}
+            digest = MessageDigest.getInstance(algorithm);
+        }
+        catch (NoSuchAlgorithmException ex) {
+            throw new RuntimeException("Could not initialize digest for the '" +algorithm+ "' algorithm");
+        }
     }
 
     protected abstract void addDigestMembers();
 
-    private void computeDigest() {
+    private synchronized void computeDigest() {
         digest.reset();
         addDigestMembers();
-      //Once you call digest() it resets the digest ...
-      //digest.digest();
-    }
-
-    public MessageDigest getDigest() {
-        computeDigest();
-        try {
-          return (MessageDigest)digest.clone();
-        }
-        catch(CloneNotSupportedException e) {
-          return null;
-        }
+        raw = digest.digest();
+        str = Hex.byteArrayToHexString(raw);
     }
 
     public byte[] getDigestBytes() {
         computeDigest();
-        if (digest == null ) {
-            return null;
-        }
-        return digest.digest();
+        return raw;
     }
 
-// Does 'final' do any good here to protect the string .... ?
-    public String getDigestString() {
-        if (digest == null ) {
-            return null;
-        }
-      //This will return a string of hex digits
-        return bytesToHex(getDigestBytes());
-    }
-
-/** digest.toString() just returns the default hash algorithm + status
     public String getDigestString() {
         computeDigest();
-        if (digest == null ) {
-            return null;
-        }
-        return digest.toString();
+        return str;
     }
-**/
 
- // Methods for adding member variables data to the digest
+ // Methods for adding member variables' data to the digest
     protected void addToDigest(byte[] data) {
         digest.update(data);
     }
 
     protected void addToDigest(Object data) {
-        digest.update(data.toString().getBytes());
+        addToDigest(data.toString().getBytes());
     }
 
     protected void addToDigest(String data) {
-        digest.update(data.getBytes());
+        addToDigest(data.getBytes());
     }
 
     protected void addToDigest(ByteBuffer data) {
-        digest.update(data.array());
+        addToDigest(data.array());
     }
 
     protected void addToDigest(Character data) {

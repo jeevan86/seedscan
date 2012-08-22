@@ -24,11 +24,14 @@ import java.util.GregorianCalendar;
 import java.util.logging.Logger;
 import java.util.TimeZone;
 
+import asl.security.MemberDigest;
+
 /**
  * @author	Joel D. Edwards <jdedwards@usgs.gov>
  *
  */
 public class Sequence 
+extends MemberDigest
 {
     private static final Logger logger = Logger.getLogger("asl.seedsplitter.Sequence");
 
@@ -52,11 +55,11 @@ public class Sequence
      */
     public Sequence()
     {
+        super();
         TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
         m_pool = new BlockPool(BLOCK_SIZE);
         _reset();
     }
-
 
     /**
      * Flushes all entries from the time series, but does not remove metadata.
@@ -78,6 +81,22 @@ public class Sequence
         m_remainder = BLOCK_SIZE;
     }
 
+    /**
+     * Sets the timestamp of the first data point.
+     * 
+     * @param   startTime   timestamp of first data point
+     */
+    @Override
+    protected void addDigestMembers()
+    {
+        addToDigest(m_startTime);
+        addToDigest(m_sampleRate);
+        for (int[] block: m_blocks) {
+            for (int sample: block) {
+                addToDigest(sample);
+            }
+        }
+    }
 
     /**
      * Sets the timestamp of the first data point.
