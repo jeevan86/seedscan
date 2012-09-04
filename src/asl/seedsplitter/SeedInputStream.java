@@ -28,6 +28,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.Formatter;
 import java.util.logging.Logger;
 
+import asl.util.Hex;
 import seed.IllegalSeednameException;
 import seed.MiniSeed;
 
@@ -53,7 +54,28 @@ implements Runnable
     private int m_bufferBytes = 0;
     private int m_skippedBytes = 0;
     private boolean m_indicateLast = true;
+    private String m_digest_algorithm = "MD5";
     private MessageDigest m_digest = null;
+
+    /**
+     * Constructor.
+     * 
+     * @param inStream 		The stream from which to read MiniSEED records.
+     * @param queue			The processing queue into which the MiniSEED records are placed.
+     * @param indicateLast 	An indicator of whether this is the last record for this stream.
+     * @param disableDigest	A flag to disable assembling a digest of this stream's contents.
+     */
+    public SeedInputStream(DataInputStream inStream, LinkedBlockingQueue<ByteBlock> queue, boolean indicateLast, boolean disableDigest) {
+        m_inputStream = inStream;
+        m_queue = queue;
+        m_buffer = new byte[MAX_RECORD_SIZE];
+        m_indicateLast = indicateLast;
+        if (!disableDigest) {
+            try {
+                m_digest = MessageDigest.getInstance(m_digest_algorithm);
+            } catch (NoSuchAlgorithmException e) {;}
+        }
+    }
 
     /**
      * Constructor.
@@ -63,13 +85,7 @@ implements Runnable
      * @param indicateLast 	An indicator of whether this is the last record for this stream.
      */
     public SeedInputStream(DataInputStream inStream, LinkedBlockingQueue<ByteBlock> queue, boolean indicateLast) {
-        m_inputStream = inStream;
-        m_queue = queue;
-        m_buffer = new byte[MAX_RECORD_SIZE];
-        m_indicateLast = indicateLast;
-        try {
-            m_digest = MessageDigest.getInstance("SHA-1");
-        } catch (NoSuchAlgorithmException e) {;}
+        this(inStream, queue, indicateLast, false);
     }
 
     /**
@@ -79,36 +95,39 @@ implements Runnable
      * @param queue		The processing queue into which the MiniSEED records are placed.
      */
     public SeedInputStream(DataInputStream inStream, LinkedBlockingQueue<ByteBlock> queue) {
-        m_inputStream = inStream;
-        m_queue = queue;
-        m_buffer = new byte[MAX_RECORD_SIZE];
-        try {
-            m_digest = MessageDigest.getInstance("SHA-1");
-        } catch (NoSuchAlgorithmException e) {;}
+        this(inStream, queue, true, false);
     }
 
     /**
-     * Returns the raw SHA-1 sum of this stream.
+     * Returns this stream's MessageDigest
      * 
-     * @return the raw SHA-1 sum of this stream.
+     * @return the raw digest for this stream.
      */
     public byte[] getDigest() {
-        if (m_digest == null ) {
-            return null;
+        byte[] result = null;
+        if (m_digest != null ) {
+            try {
+                result = ((MessageDigest)m_digest.clone()).digest();
+            }
+            catch (CloneNotSupportedException ex) {;}
         }
-        return m_digest.digest();
+        return result;
     }
 
     /**
-     * Returns a String version of the SHA-1 sum of this stream.
+     * Returns a hex version of the digest for this stream.
      * 
-     * @return a String version of the SHA-1 sum of this stream.
+     * @return a String version of the for this stream.
      */
     public String getDigestString() {
-        if (m_digest == null ) {
-            return null;
+        String result = null;
+        if (m_digest != null ) {
+            try {
+                result = Hex.byteArrayToHexString(((MessageDigest)m_digest.clone()).digest());
+            }
+            catch (CloneNotSupportedException ex) {;}
         }
-        return m_digest.toString();
+        return result;
     }
 
     /**
