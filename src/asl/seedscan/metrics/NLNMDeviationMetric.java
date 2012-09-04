@@ -27,12 +27,14 @@ import asl.metadata.*;
 import asl.metadata.meta_new.*;
 import asl.seedsplitter.*;
 
+import freq.Cmplx;
+
 public class NLNMDeviationMetric
-extends PowerBandMetric
+extends Metric
 {
     private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.NLNMDeviationMetric");
 
-    public String getBaseName()
+    public String getName()
     {
         return "NLNMDeviationMetric";
     }
@@ -46,57 +48,48 @@ extends PowerBandMetric
            StationMeta stnMeta = data.getMetaData();
 
    // Create a 3-channel array and check that we have metadata for all 3 channels:
-
-           ChannelArray channelArray = new ChannelArray("00","LHZ", "LH1", "LH2");
+           ChannelArray channelArray = new ChannelArray("00","BHZ", "BH1", "BH2");
 
            if (stnMeta.hasChannels(channelArray) ){
               //System.out.println("== Found metadata for all 3 channels for this epoch");
            }
            else {
-              System.out.println("== Channel Meta not found for this epoch");
+              //System.out.println("== Channel Meta not found for this epoch");
            }
 
            ArrayList<Channel> channels = channelArray.getChannels();
 
-   // We are computing a metric for each channel in channelArray.
-   //   Loop over channels, get metadata & data for channel and compute metric.
-
            result = new MetricResult();
+   // Loop over channels, get metadata & data for channel and Do Something ...
 
            for (Channel channel : channels){
 
-           // At this point we know what channel(s) are going into this metric and we can
-           //   check to see if the channel metadata hash(es) or data hash(es) have changed
-           //   since we last computed the metric.  If not, then we don't have to re-compute it.
-           //   so break to next metric (=channel) calculation.
-
-             if (!data.hashChanged(channel)) continue;
-
              ChannelMeta chanMeta = stnMeta.getChanMeta(channel);
-             if (chanMeta == null){
-               System.out.format("%s Error: stnMeta.getChannel returned null for channel=%s\n", getName(), channel.getChannel());
+             if (chanMeta == null){ // Skip channel, we have no metadata for it
+               System.out.format("%s Error: metadata not found for requested channel:%s --> Skipping\n", getName(), channel.getChannel());
+               continue;
              }
-             else { //Do something with chanMeta
+             else {
                if (chanMeta.hasDayBreak() ){ // Check to see if the metadata for this channel changes during this day
                   System.out.format("%s Error: channel=%s metadata has a break!\n", getName(), channel.getChannel() );
                }
              } // end chanMeta for this channel
 
-          // Get DataSet(s) for this channel
+             if (!data.hashChanged(channel)) continue;
+
+        // Get DataSet(s) for this channel
+             int ndata      = 0;
+             double srate   = 0;
+             int[] intArray = null;
+
              ArrayList<DataSet>datasets = data.getChannelData(channel);
              if (datasets == null){
                System.out.format("%s Error: No data for requested channel:%s\n", getName(), channel.getChannel());
              }
-             else { // DO something with this channel data
-               int numberOfDataSets = datasets.size();
-               if (numberOfDataSets != 1) {
-                 System.out.format("%s: Warning: number of datasets for channel:%s != 1\n", getName(), channel.getChannel() );
-               }
-
+             else {
                for (DataSet dataset : datasets) {
                  String knet    = dataset.getNetwork(); String kstn = dataset.getStation();
                  String locn    = dataset.getLocation();String kchn = dataset.getChannel();
-                 double srate   = dataset.getSampleRate();
                  long startTime = dataset.getStartTime();  // microsecs since Jan. 1, 1970
                  long endTime   = dataset.getEndTime();
                  long interval  = dataset.getInterval();
@@ -106,40 +99,77 @@ extends PowerBandMetric
                  Calendar endTimestamp = new GregorianCalendar();
                  endTimestamp.setTimeInMillis(endTime/1000);
 
-          // Calculate something for this channel ...
-/** Break 24-hour data into hourly blocks with 50% overlap
- *    Break each hour into 13 segments, each ~15 min long, and overlapping 75%
- *      Demean segment, truncate or pad to pow2, and apply 10% cosine taper
- *      Compute FFT of demeaned, tapered segment
- *      Compute PSD of segment and correct for power loss to cosine taper (1.142857)
- *      Remove I(f) from PSD segment --> acceleration
- *      Convert PSD to dB with respect to acceleration
- *    Average together the 13 segments --> PSD for this hour
- *    Compare to NLNM ??
-**/ 
-                 int intArray[] = dataset.getSeries();
+                 intArray   = dataset.getSeries();
+                 srate      = dataset.getSampleRate();
+                 ndata     += dataset.getLength();
 
-                 for (int i=0; i<intArray.length; i++){
-                   //massPosition += Math.pow( (a0 + intArray[i] * a1), 2);
-                 }
-                 if (intArray.length == 0){
-                   System.out.println("NLNMDeviationMetric: Error: Array Length == 0 --> Divide by Zero");
-                 }
-                 else {
-                   //massPosition = Math.sqrt( massPosition / (double)intArray.length );
-                 }
                } // end for each dataset
              }// end else (= we DO have data for this channel)
 
-             String calibrationResult = "Nothing-to-Report";
-         
-             System.out.format("%s-%s [%s] %s %s-%s ", stnMeta.getStation(), stnMeta.getNetwork(), 
+      // Compute PSD for this channel using the following algorithm:
+      //   Break up the data (one day) into 13 overlapping segments of 75% 
+      //   Remove the trend and mean 
+      //   Apply a taper (cosine) 
+      //   Zero pad to a power of 2 
+      //   Compute FFT 
+      //   Average all 13 FFTs 
+      //   Remove response 
+
+      // For 13 windows with 75% overlap, each window will contain ndata/4 points
+      // ** Still need to handle the case of multiple datasets with gaps!
+        int nseg_pnts = ndata / 4;  
+        int noff      = nseg_pnts / 4;  
+      // Find smallest power of 2 >= nseg_pnts:
+        int nfft=1;
+        while (nfft < nseg_pnts) nfft *= 2;
+        int nf=nfft/2;
+        double dt = srate;
+        double df = 1./(nfft*dt);
+
+        float[] xseg     = new float[nfft];
+        Cmplx[]  xfft    = new Cmplx[nfft];
+        double[] psd     = new double[nfft];
+
+        int iwin=0;
+        int ilst=nseg_pnts-1;
+        int offset = noff;
+
+        while (ilst < ndata) // ndata needs to come from largest dataset
+        {
+          for(int k=0; k<nseg_pnts; k++)
+          {
+            xseg[k]=intArray[k+offset]; // Load current window
+          }
+          //debias(xseg); detrend(xseg); taper(xseg); pad(xseg, nfft);
+
+          xfft = Cmplx.fft(xseg);
+          for(int k = 0; k < nfft; k++){
+              psd[k]= psd[k] +  Math.pow(xfft[k].mag(),2);
+          }
+          iwin ++;
+          offset += noff;
+          ilst   += noff;
+        }
+
+/**
+        for(int curind = 0; curind < 512; curind++){
+            psd[curind] = psd[curind]/(double)numOfWins;
+            freq[curind] = ((double)SPS)*(double)curind/((double)512);
+**/
+
+
+/**
+             System.out.format("%s-%s [%s] %s %s-%s ", stnMeta.getStation(), stnMeta.getNetwork(),
                EpochData.epochToDateString(stnMeta.getTimestamp()), getName(), chanMeta.getLocation(), chanMeta.getName() );
-             System.out.format("NLNMDeviationMetric:%s %s\n", calibrationResult, chanMeta.getDigestString() ); 
+             System.out.format("ndata:%d (%.0f%%) %s\n", ndata, availability, chanMeta.getDigestString()); 
 
              String key   = getName() + "+Channel(s)=" + channel.getLocation() + "-" + channel.getChannel();
-             String value = String.format("%s",calibrationResult);
+             String value = String.format("%.2f",availability);
              result.addResult(key, value);
+**/
+
            }// end foreach channel
-    } // end process()
-} // end class
+
+     }
+}
+

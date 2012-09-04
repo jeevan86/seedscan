@@ -52,7 +52,7 @@ extends Metric
               //System.out.println("== Found metadata for all 3 channels for this epoch");
            }
            else {
-              System.out.println("== Channel Meta not found for this epoch");
+              //System.out.println("== Channel Meta not found for this epoch");
            }
 
            ArrayList<Channel> channels = channelArray.getChannels();
@@ -69,6 +69,17 @@ extends Metric
            //   since we last computed the metric.  If not, then we don't have to re-compute it.
            //   so break to next metric (=channel) calculation.
 
+             ChannelMeta chanMeta = stnMeta.getChanMeta(channel);
+             if (chanMeta == null){ // Skip channel, we have no metadata for it
+               System.out.format("%s Error: metadata not found for requested channel:%s --> Skipping\n", getName(), channel.getChannel());
+               continue;
+             }
+             else {
+               if (chanMeta.hasDayBreak() ){ // Check to see if the metadata for this channel changes during this day
+                  System.out.format("%s Error: channel=%s metadata has a break!\n", getName(), channel.getChannel() );
+               }
+             } // end chanMeta for this channel
+
              if (!data.hashChanged(channel)) continue;
 
              double massPosition  = 0;
@@ -77,37 +88,29 @@ extends Metric
              double upperBound = 0;
              double lowerBound = 0;
 
-             ChannelMeta chanMeta = stnMeta.getChanMeta(channel);
-             if (chanMeta == null){
-               System.out.format("%s Error: stnMeta.getChannel returned null for channel=%s\n", getName(), channel.getChannel());
-             }
-             else { //Do something with chanMeta
-               if (chanMeta.hasDayBreak() ){ // Check to see if the metadata for this channel changes during this day
-                  System.out.format("%s Error: channel=%s metadata has a break!\n", getName(), channel.getChannel() );
-               }
             // Get Stage 1, make sure it is a Polynomial Stage (MacLaurin) and get Coefficients
-               ResponseStage stage = chanMeta.getStage(1);
-               if (!(stage instanceof PolynomialStage)) {
-                 throw new RuntimeException("MassPositionMetric: Stage1 is NOT a PolynomialStage!");
-               }
-               PolynomialStage polyStage = (PolynomialStage)stage;
-               double[] coefficients = polyStage.getRealPolynomialCoefficients();
-               lowerBound   = polyStage.getLowerApproximationBound();
-               upperBound   = polyStage.getUpperApproximationBound();
+             ResponseStage stage = chanMeta.getStage(1);
+             if (!(stage instanceof PolynomialStage)) {
+               throw new RuntimeException("MassPositionMetric: Stage1 is NOT a PolynomialStage!");
+             }
+             PolynomialStage polyStage = (PolynomialStage)stage;
+             double[] coefficients = polyStage.getRealPolynomialCoefficients();
+             lowerBound   = polyStage.getLowerApproximationBound();
+             upperBound   = polyStage.getUpperApproximationBound();
                   
              //We're expecting a MacLaurin Polynomial with 2 coefficients (a0, a1) to represent mass position
-               if (coefficients.length != 2) {
-                 throw new RuntimeException("MassPositionMetric: We're expecting 2 coefficients for this PolynomialStage!");
-               }
-               else {
-                 a0 = coefficients[0];
-                 a1 = coefficients[1];
-               }
+             if (coefficients.length != 2) {
+               throw new RuntimeException("MassPositionMetric: We're expecting 2 coefficients for this PolynomialStage!");
+             }
+             else {
+               a0 = coefficients[0];
+               a1 = coefficients[1];
+             }
              // Make sure we have enough ingredients to calculate something useful
-               if (a0 == 0 && a1 == 0 || lowerBound == 0 && upperBound == 0) {
-                 throw new RuntimeException("MassPositionMetric: We don't have enough information to compute mass position!");
-               }
-             } // end chanMeta for this channel
+             if (a0 == 0 && a1 == 0 || lowerBound == 0 && upperBound == 0) {
+               throw new RuntimeException("MassPositionMetric: We don't have enough information to compute mass position!");
+             }
+
 
           // Get DataSet(s) for this channel
              ArrayList<DataSet>datasets = data.getChannelData(channel);

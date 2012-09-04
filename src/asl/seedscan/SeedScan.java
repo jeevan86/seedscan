@@ -309,16 +309,26 @@ public class SeedScan
 Runtime runtime = Runtime.getRuntime();
 System.out.println(" Java total memory=" + runtime.totalMemory() );
 
-        Station station = new Station("IU","ANMO");
-
-        //Set<String> keys = scans.keySet(); 
         for (String key : scans.keySet() ) {
            scan = scans.get(key);
            System.out.format("scan key=%s startDay=%d daysToScan=%d\n", key, scan.getStartDay(), scan.getDaysToScan() );
         }
         scan = scans.get("daily");
-        Scanner scanner = new Scanner(database,station,scan);
-        scanner.scan();
+
+ // Really the scan for each station will be handled by ScanManager using thread pools
+ // For now we're just going to do it here:
+        ArrayList<Station> stations = new ArrayList<Station>();
+        stations.add( new Station("IU","ANMO") );
+        stations.add( new Station("IU","SNZO") );
+        //stations.add( new Station("IU","ANTO") );
+        stations.add( new Station("IC","KMI") );
+
+        for (Station station: stations) {
+            Scanner scanner = new Scanner(database, station, scan);
+            scanner.scan();
+        }
+        ////Scanner scanner = new Scanner(database,station,scan);
+        //scanner.scan();
 /**
         ScanManager manager = new ScanManager(scan);
         manager.run();

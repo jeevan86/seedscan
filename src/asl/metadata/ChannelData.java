@@ -191,12 +191,11 @@ Epoch index
       String startDateString  = EpochData.epochToDateString(startTimeStamp);
       String endDateString    = EpochData.epochToDateString(endTimeStamp);
       if (containsEpochTime){
-        System.out.format("----ChannelData %s-%s Epoch: [%s - %s] contains EpochTime=%s\n",getLocation(), getName(), startDateString,endDateString,epochDateString);
-        //System.out.format("----ChannelData %s-%s Epoch: [%s - %s] contains EpochTime=%s\n",this.getLocation(), this.getName(), startDateString,endDateString,epochDateString);
+        //System.out.format("----ChannelData %s-%s Epoch: [%s - %s] contains EpochTime=%s\n",getLocation(), getName(), startDateString,endDateString,epochDateString);
         return startTimeStamp;
       }
       else {
-        System.out.format("----ChannelData EpochTime=%s was NOT FOUND!!\n",epochDateString);
+        //System.out.format("----ChannelData EpochTime=%s was NOT FOUND!!\n",epochDateString);
         return null;
       }
 

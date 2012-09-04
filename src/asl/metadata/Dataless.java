@@ -114,6 +114,12 @@ public class Dataless
         complete = false;
     }
 
+    public void processVolume(Station station)
+    throws CancelledException, DatalessParseException
+    {
+      processVolume(station.getNetwork(), station.getStation());
+    }
+
     public void processVolume(String networkMask, String stationMask)
     throws CancelledException,
            DatalessParseException

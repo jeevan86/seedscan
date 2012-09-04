@@ -52,7 +52,7 @@ extends Metric
               //System.out.println("== Found metadata for all 3 channels for this epoch");
            }
            else {
-              System.out.println("== Channel Meta not found for this epoch");
+              //System.out.println("== Channel Meta not found for this epoch");
            }
 
            ArrayList<Channel> channels = channelArray.getChannels();
@@ -61,17 +61,21 @@ extends Metric
    // Loop over channels, get metadata & data for channel and Do Something ...
 
            for (Channel channel : channels){
-             int totalPoints  = 0;
 
              ChannelMeta chanMeta = stnMeta.getChanMeta(channel);
-             if (chanMeta == null){
-               System.out.format("%s Error: stnMeta.getChannel returned null for channel=%s\n", getName(), channel.getChannel());
+             if (chanMeta == null){ // Skip channel, we have no metadata for it
+               System.out.format("%s Error: metadata not found for requested channel:%s --> Skipping\n", getName(), channel.getChannel());
+               continue;
              }
              else {
                if (chanMeta.hasDayBreak() ){ // Check to see if the metadata for this channel changes during this day
                   System.out.format("%s Error: channel=%s metadata has a break!\n", getName(), channel.getChannel() );
                }
              } // end chanMeta for this channel
+
+             if (!data.hashChanged(channel)) continue;
+
+             int totalPoints  = 0;
 
 // Maybe getSampleRate() should return integer ??
              int sampleRate = (int)chanMeta.getSampleRate();
