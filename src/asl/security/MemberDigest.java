@@ -21,6 +21,8 @@ package asl.security;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.logging.Logger;
 
 import asl.util.Hex;
@@ -34,7 +36,7 @@ public abstract class MemberDigest
     private static final Logger logger = Logger.getLogger("asl.seedsplitter.MemberDigest");
 
     private MessageDigest digest = null;
-    private byte[] raw = null;
+    private ByteBuffer raw = null;
     private String str = null;
 
     /**
@@ -60,11 +62,11 @@ public abstract class MemberDigest
     private synchronized void computeDigest() {
         digest.reset();
         addDigestMembers();
-        raw = digest.digest();
-        str = Hex.byteArrayToHexString(raw);
+        raw = ByteBuffer.wrap(digest.digest());
+        str = Hex.byteArrayToHexString(raw.array());
     }
 
-    public byte[] getDigestBytes() {
+    public ByteBuffer getDigestBytes() {
         computeDigest();
         return raw;
     }
@@ -74,7 +76,7 @@ public abstract class MemberDigest
         return str;
     }
 
- // Methods for adding member variables' data to the digest
+    // Methods for adding member variables' data to the digest
     protected void addToDigest(byte[] data) {
         digest.update(data);
     }
@@ -115,16 +117,63 @@ public abstract class MemberDigest
         addToDigest(ByteBuffer.allocate(8).putDouble(data));
     }
 
-   public static String bytesToHex(byte[] b) {
-      char hexDigit[] = {'0', '1', '2', '3', '4', '5', '6', '7',
-                         '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
-      StringBuffer buf = new StringBuffer();
-      for (int j=0; j<b.length; j++) {
-         buf.append(hexDigit[(b[j] >> 4) & 0x0f]);
-         buf.append(hexDigit[b[j] & 0x0f]);
-      }
-      return buf.toString();
-   }
+    public static ByteBuffer multiDigest(Collection<MemberDigest> digests) {
+        ArrayList<ByteBuffer> buffers = new ArrayList<ByteBuffer>(digests.size());
+        for (MemberDigest digest: digests) {
+            buffers.add(digest.getDigestBytes());
+        }
+        return multiBuffer(buffers);
+    }
 
+    public static ByteBuffer multiBuffer(Collection<ByteBuffer> digests) {
+        // If the digests collection is empty, we will end up returning null
+        ByteBuffer last = null;
+        ByteBuffer multi = null;
 
+        for (ByteBuffer curr: digests) {
+            int last_len, curr_len;
+            byte[] last_array = null;
+            byte[] curr_array = null;
+
+            curr_array = curr.array();
+            curr_len = curr_array.length;
+
+            // If this is the first digest, only its contents should be included in
+            // the multi-digest ByteBuffer
+            if (last == null) {
+                last_len = 0;
+            } else {
+                last_array = last.array();
+                last_len = last_array.length;
+            }
+
+            int max_len = Math.max(last_len, curr_len);
+            // skip zero-length digests
+            if (max_len == 0)
+                continue;
+
+            multi = ByteBuffer.allocate(max_len);
+            byte[] multi_array = multi.array();
+
+            for (int i = 0; i < max_len; i++) {
+                // No more bytes in last, just add byte from curr
+                if (i >= last_len) {
+                    multi_array[i] = curr_array[i];
+                }
+                // No more bytes in curr, just add byte from last
+                else if (i >= curr_len) {
+                    multi_array[i] = last_array[i];
+                }
+                // Bytes in both curr and last, combine them with XOR
+                else {
+                    multi_array[i] = (byte)(last_array[i] ^ curr_array[i]);
+                }
+            }
+
+            // The combination of all digests so far becomes the new value of last
+            last = multi;
+        }
+
+        return last;
+    }
 }

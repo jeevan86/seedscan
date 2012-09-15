@@ -18,12 +18,20 @@
  */
 package asl.util;
 
+import java.nio.ByteBuffer;
+
 public class Hex
 {
     public static String byteArrayToHexString(byte[] byteArray)
     throws IllegalArgumentException
     {
         return byteArrayToHexString(byteArray, false);
+    }
+
+    public static String byteBufferToHexString(ByteBuffer byteBuffer, boolean upperCase)
+    throws IllegalArgumentException
+    {
+        return byteArrayToHexString(byteBuffer.array());
     }
 
     public static String byteArrayToHexString(byte[] byteArray, boolean upperCase)
@@ -35,6 +43,12 @@ public class Hex
             builder.append((char)valueToHexChar((b & 0x0f), upperCase));
         }
         return builder.toString();
+    }
+
+    public static ByteBuffer hexStringToByteBuffer(String hexString)
+    throws IllegalArgumentException
+    {
+        return ByteBuffer.wrap(hexStringToByteArray(hexString));
     }
 
     public static byte[] hexStringToByteArray(String hexString)

@@ -1,5 +1,8 @@
 package asl;
 
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
@@ -19,37 +22,46 @@ public class Tests
 
     public static void main(String args[])
     {
-        MemberDigest memberDigest = new MemberDigest() {
+        MemberDigest d1 = new MemberDigest() {
             protected void addDigestMembers() {
-                addToDigest("Test string is testing");
+                addToDigest("Test string for first digest.");
             }
         };
-        System.out.format("Testing MemberDigest & Hex:\n", memberDigest.getDigestString());
-        System.out.format(" 1) MemberDigest.getDigestString() - %s\n", memberDigest.getDigestString());
+        MemberDigest d2 = new MemberDigest() {
+            protected void addDigestMembers() {
+                addToDigest("Test string for second digest.");
+            }
+        };
+        MemberDigest d3 = new MemberDigest("SHA-1") {
+            protected void addDigestMembers() {
+                addToDigest("Test string for third digest");
+            }
+        };
 
-        byte[] pre = memberDigest.getDigestBytes();
-        System.out.format(" 2) MemberDigest.getDigestBytes()  - ");
-        for (byte b: pre) {
-            System.out.format("%02x", b);
-        }
-        System.out.print("\n");
-
-        String hexStr = Hex.byteArrayToHexString(pre);
-        System.out.format(" 3) Hex.byteArrayToHexString()     - %s\n", hexStr);
-
-        byte[] post = Hex.hexStringToByteArray(hexStr);
-        System.out.format(" 4) Hex.hexStringToByteArray()     - ");
-        for (byte b: post) {
-            System.out.format("%02x", b);
-        }
+        MemberDigest d4 = new MemberDigest("SHA-1") {
+            protected void addDigestMembers() {
+                addToDigest("Test string for fourth digest");
+            }
+        };
 
 
-        /*
-        if (args.length < 2) {
-            usage();
-        }
+        System.out.format(" d1 MemberDigest(MD5)            : %s\n", d1.getDigestString());
+        System.out.format(" d2 MemberDigest(MD5)            : %s\n", d2.getDigestString());
+        System.out.format(" d3 MemberDigest(SHA-1)          : %s\n", d3.getDigestString());
+        System.out.format(" d4 MemberDigest(SHA-1)          : %s\n", d4.getDigestString());
+        System.out.println("");
 
-        System.out.println("You selected test: " +args[1]);
-        */
+        System.out.format(" d1.hex -> bytes -> hex          : %s\n", Hex.byteBufferToHexString(Hex.hexStringToByteBuffer(d1.getDigestString()), false));
+        ArrayList<MemberDigest> coll = new ArrayList<MemberDigest>();
+        coll.add(d1);
+        System.out.format(" multi-digest: d1                : %s\n", Hex.byteBufferToHexString(MemberDigest.multiDigest(coll), false));
+        coll.add(d3);
+        System.out.format(" multi-digest: d1 ^ d3           : %s\n", Hex.byteBufferToHexString(MemberDigest.multiDigest(coll), false));
+        coll.add(d2);
+        System.out.format(" multi-digest: d1 ^ d3 ^ d2      : %s\n", Hex.byteBufferToHexString(MemberDigest.multiDigest(coll), false));
+        coll.add(d2);
+        System.out.format(" multi-digest: d1 ^ d3 ^ d2 ^ d2 : %s\n", Hex.byteBufferToHexString(MemberDigest.multiDigest(coll), false));
+        coll.add(d4);
+        System.out.format(" multi-digest: d1 ^ d3 ^ d4      : %s\n", Hex.byteBufferToHexString(MemberDigest.multiDigest(coll), false));
     }
 }
