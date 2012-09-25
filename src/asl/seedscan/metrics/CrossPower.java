@@ -20,24 +20,13 @@ package asl.seedscan.metrics;
 
 import java.util.logging.Logger;
 
-public class NoisePBM
-extends PowerBandMetric
+public class CrossPower
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.CoherencePBM");
+    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.CrossPower");
 
-    @Override public long getVersion()
+    public CrossPower()
     {
-        return 1;
     }
 
-    @Override public String getBaseName()
-    {
-        return "NoisePBM";
-    }
-
-    public void process()
-    {
-        // populate
-    }
 }
 

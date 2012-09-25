@@ -23,7 +23,7 @@ import java.util.logging.Logger;
 public abstract class PowerBandMetric
 extends Metric
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.CoherencePBM");
+    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.PowerBandMetric");
 
     public PowerBandMetric()
     {

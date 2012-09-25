@@ -32,7 +32,12 @@ extends PowerBandMetric
 {
     private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.CalibrationMetric");
 
-    public String getBaseName()
+    @Override public long getVersion()
+    {
+        return 1;
+    }
+
+    @Override public String getBaseName()
     {
         return "CalibrationMetric";
     }
