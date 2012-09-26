@@ -32,7 +32,12 @@ extends Metric
 {
     private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.MassPositionMetric");
 
-    public String getName()
+    @Override public long getVersion()
+    {
+        return 1;
+    }
+
+    @Override public String getName()
     {
         return "MassPositionMetric";
     }

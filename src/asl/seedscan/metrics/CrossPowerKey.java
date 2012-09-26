@@ -18,26 +18,46 @@
  */
 package asl.seedscan.metrics;
 
+import asl.metadata.Channel;
+
 import java.util.logging.Logger;
 
-public class NoisePBM
-extends PowerBandMetric
+public class CrossPowerKey
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.CoherencePBM");
+    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.CrossPowerKey");
 
-    @Override public long getVersion()
+    private String key;
+
+    public CrossPowerKey(Channel a, Channel b)
     {
-        return 1;
+        String aKey = a.toString();
+        String bKey = b.toString();
+        if (aKey.compareTo(bKey) < 0) {
+            key = aKey + bKey;
+        }
+        else {
+            key = bKey + aKey;
+        }
     }
 
-    @Override public String getBaseName()
+    public String getKey()
     {
-        return "NoisePBM";
+        return key;
     }
 
-    public void process()
+    @Override public String toString()
     {
-        // populate
+        return key;
+    }
+
+    @Override public int hashCode()
+    {
+        return key.hashCode();
+    }
+
+    @Override public boolean equals(Object obj)
+    {
+        return key.equals((String)obj);
     }
 }
 

@@ -16,28 +16,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
  *
  */
-package asl.seedscan.metrics;
+package seed;
 
-import java.util.logging.Logger;
-
-public class NoisePBM
-extends PowerBandMetric
+public class WrongBlocketteNumberException
+extends Exception
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.CoherencePBM");
-
-    @Override public long getVersion()
+    public WrongBlocketteNumberException()
     {
-        return 1;
+        super();
     }
 
-    @Override public String getBaseName()
+    public WrongBlocketteNumberException(String message)
     {
-        return "NoisePBM";
-    }
-
-    public void process()
-    {
-        // populate
+        super(message);
     }
 }
 

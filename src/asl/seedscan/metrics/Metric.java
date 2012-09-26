@@ -18,6 +18,8 @@
  */
 package asl.seedscan.metrics;
 
+import asl.metadata.Channel;
+
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.logging.Logger;
@@ -27,6 +29,7 @@ public abstract class Metric
     private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.Metric");
 
     private Hashtable<String, String> arguments;
+    private Hashtable<CrossPowerKey, CrossPower> crossPowers;
 
     protected MetricData data = null;
     protected MetricResult result = null;
@@ -34,6 +37,24 @@ public abstract class Metric
     public Metric()
     {
         arguments = new Hashtable<String, String>();
+        crossPowers = new Hashtable<CrossPowerKey, CrossPower>();
+    }
+
+    protected CrossPower getCrossPower(Channel channelA, Channel channelB)
+    {
+        CrossPowerKey key = new CrossPowerKey(channelA, channelB);
+        CrossPower crossPower;
+        if (crossPowers.containsKey(key)) {
+            crossPower = crossPowers.get(key);
+        }
+        else {
+            crossPower = new CrossPower();
+
+            // TODO: Generate the CrossPower
+
+            crossPowers.put(key, crossPower);
+        }
+        return crossPower;
     }
 
     public void setData(MetricData data)
@@ -46,8 +67,9 @@ public abstract class Metric
         return result;
     }
 
-    public abstract void process();
+    public abstract long getVersion();
     public abstract String getName();
+    public abstract void process();
 
 // Dynamic argumemnt managment
     protected final void addArgument(String name)
