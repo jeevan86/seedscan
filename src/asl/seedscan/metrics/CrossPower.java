@@ -24,8 +24,20 @@ public class CrossPower
 {
     private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.CrossPower");
 
-    public CrossPower()
+    private double[] powerSpectrum  = null;
+    private double   spectrumDeltaF = 0.;
+
+    // constructor
+    public CrossPower(double[] powerSpectrum, double df)
     {
+        this.powerSpectrum  = powerSpectrum;
+        this.spectrumDeltaF = df;
+    }
+    public double[] getSpectrum(){
+        return powerSpectrum;
+    }
+    public double getSpectrumDeltaF(){
+        return spectrumDeltaF;
     }
 
 }

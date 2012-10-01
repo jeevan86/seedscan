@@ -39,6 +39,7 @@ public class MetaGenerator
     private Collection<String> rawDataless;
     private ArrayList<String> strings = null;
     private StationData stationData = null;
+    private Boolean successfullyLoaded = false;
 
     public MetaGenerator(Station station)
     {
@@ -62,6 +63,12 @@ public class MetaGenerator
       ProcessBuilder pb = new ProcessBuilder("rdseed", "-s", "-f", datalessFile);
       //pb.redirectErrorStream(true);
       strings = new ArrayList<String>();
+
+   // First see if the dataless file even exists
+      if (!(new File(datalessFile).exists())) {
+        System.out.format("=== MetaGenerator: Dataless file=%s does NOT exist!\n", datalessFile);
+        return;
+      }
 
       try {
         Process process = pb.start();
@@ -98,8 +105,13 @@ public class MetaGenerator
          throw new RuntimeException(message);
       }
 
-     } // end loadDataless()
+      successfullyLoaded = true;
 
+    } // end loadDataless()
+
+    public Boolean isLoaded() {
+      return successfullyLoaded;
+    } 
 
     public StationData getStationData(Station station){
       StationKey stnkey = new StationKey(station);

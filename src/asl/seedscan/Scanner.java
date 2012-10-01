@@ -89,8 +89,9 @@ public class Scanner
 
      // Read in all metadata for this station (all channels + all days):
         MetaGenerator metaGen = new MetaGenerator(station);
-        if (metaGen == null) {
-      // We didn't get the metadata so we should probably stop here ...
+        if (!metaGen.isLoaded()) {    // No Metadata found for this station --> Skip station == End thread ??
+            System.out.format("Scanner Error: No Metadata found for Station:%s_%s --> Skip this Station\n", station.getNetwork(), station.getStation());
+            return;
         }
 
      // Loop over days to scan
@@ -100,9 +101,17 @@ public class Scanner
                 timestamp.setTimeInMillis(timestamp.getTimeInMillis() - dayMilliseconds);
             }
 
-            System.out.format("\n==Scanner: scan Day=%s Station=%s\n", EpochData.epochToDateString(timestamp) ,station);
+            System.out.format("\n==Scanner: scan Day=%s Station=%s\n", EpochData.epochToDateString(timestamp), station);
 
-// [1] Read in all the seed files for this station, for this day
+// [1] Get all the channel metadata for this station, for this day
+            StationMeta stnMeta = metaGen.getStationMeta(station, timestamp); 
+            if (stnMeta == null) { // No Metadata found for this station + this day --> skip day
+               System.out.format("Scanner Error: No Metadata found for Station:%s_%s + Day:%s --> Skipping\n", station.getNetwork(), station.getStation(),
+                                  EpochData.epochToDateString(timestamp) );
+               continue;
+            }
+
+// [2] Read in all the seed files for this station, for this day
 
             ArchivePath pathEngine = new ArchivePath(timestamp, station);
             String path = pathEngine.makePath(scan.getPathPattern());
@@ -155,12 +164,6 @@ public class Scanner
 
             Runtime runtime = Runtime.getRuntime();
             System.out.println(" Java total memory=" + runtime.totalMemory() );
-
-
-// [2] Get all the channel metadata for this station, for this day
-
-            StationMeta stnMeta = metaGen.getStationMeta(station, timestamp); 
-            System.out.format("==Scanner: scan Day=%s\n", EpochData.epochToDateString(timestamp) );
 
 // [3] Loop over Metrics to compute, for this station, for this day
             MetricData metricData = new MetricData(table, stnMeta);

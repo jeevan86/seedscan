@@ -352,18 +352,100 @@ public class Cmplx {
         }
     }
 
+    // MTH: Same as above version but takes input = double[]
+    //      AND returns only the positive frequencies: f=0, df, 2df, ..., fNyq
+
+    /** Forward Fast Fourier Transform */
+    public static final Cmplx[] fft2(double[] fdata) {
+        // find power of two greater than num of points in fdata
+        int nPointsPow2 = 1;
+        while(nPointsPow2 < fdata.length)
+            nPointsPow2 *= 2;
+        // create double array
+        double[] data = new double[2 * nPointsPow2];
+        // load float data to double array
+        int i, j;
+        for(i = 0, j = 0; i < fdata.length; i++) {
+            data[j++] = fdata[i];
+            data[j++] = 0.0;
+        }
+        for(; j < 2 * nPointsPow2; j++)
+            data[j] = 0.0;
+        // apply forward FFT
+        data = four1(data, 1);
+
+        // four1 Input = N complex time samples, stored in a real array of length 2N
+        //      Output = N complex spectra (+ve & -ve frequencies), stored in real array of length 2N  
+        //             = N/2 - 1 +ve frequencies (df, ... (N/2-1)df)
+        //             + 2 (=DC + Nyquist (N/2)df)
+        //           -----------------------------
+        //             = N/2 + 1 +ve frequencies (0,df, ... (N/2-1)df, (N/2)df)
+        
+        // create complex array
+        Cmplx[] cdata = new Cmplx[nPointsPow2/2 + 1];
+
+        // load double data to complex array
+        for(i = 0, j = 0; i <= nPointsPow2/2; i++, j += 2)
+            cdata[i] = new Cmplx(data[j], data[j + 1]);
+        return (cdata);
+    }
 
 
 
+    /**
+     * FFT of a real valued function. Adapted from Numerial Recipes in C by M.Hagerty
+     * 
+     * Calculates the Fourier transform of a set of n real-valued data points. Replaces this 
+     * data (which is stored in array data[0..n-1] by the positive frequency half of its complex
+     * Fourier transform.  The real-valued first (=DC) and last (=Nyq) components of the 
+     * complex transform are returned as elements data[0] and data[1]. n must be a power of 2.
+     * This routine also calculates the inverse transform of a complex data array if it is the
+     * transform of real data.  **Results in this case must be multiplied by 2/n!
+     */
 
+/**
+    public static void realft(double[] data, int isign) {
+        int n = data.length;
+        int nn= n>>1;
+        double theta = PI/(double)(nn);
+        double c2;
 
+        if (isign == 1){ 
+          c2 = -0.5;
+          four1(data,nn,1); // The forward transform
+        }
+        else{
+          c2 = 0.5;
+          theta = -theta;
+        }
 
+        double wtemp= sin(0.5*theta);
+        double wpr= -2.0*wtemp*wtemp;
+        double wpi= sin(theta);
+        double wr= 1.0+wpr;
+        double wi= wpi;
+        //int np3=n+3;
+        int np3=n+2;
 
+        for(int i = 1; i < (n>>2); i ++) {
+          i4=1+(i3=np3-(i2=1+(i1=i+i-1)));
+          h1r=c1*(data[i1]+data[i3]);
+          h1i=c1*(data[i2]-data[i4]);
+          h2r= -c2*(data[i2]+data[i4]);
+          h2i=  c2*(data[i1]-data[i3]);
+          data[i1]=h1r+wr*h2r-wi*h2i;
+          data[i2]=h1i+wr*h2i+wi*h2r;
+          data[i3]=h1r-wr*h2r+wi*h2i;
+          data[i4]= -h1i+wr*h2i+wi*h2r;
+          wr=(wtemp=wr)*wpr-wi*wpi+wr;
+          wi=wi*wpr+wtemp*wpi+wi;
+        }
+        if (isign == 1){
+          data[1] = (h1r=data[i]) + data[2];
+          data[2] = h1r - data[2];
+        }
 
-
-
-
-
+**/
 
 
 

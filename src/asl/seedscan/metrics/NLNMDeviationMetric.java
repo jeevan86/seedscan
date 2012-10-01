@@ -23,14 +23,19 @@ import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.Calendar;
 
+import java.io.IOException;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.File;
+
 import asl.metadata.*;
 import asl.metadata.meta_new.*;
-import asl.seedsplitter.*;
+import asl.seedsplitter.DataSet;
 
-import freq.Cmplx;
+import timeutils.Timeseries;
 
 public class NLNMDeviationMetric
-extends Metric
+extends PowerBandMetric
 {
     private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.NLNMDeviationMetric");
 
@@ -44,137 +49,237 @@ extends Metric
         return "NLNMDeviationMetric";
     }
 
+    private double[] NLNMPeriods;
+    private double[] NLNMPowers;
+
     public void process()
     {
-
-           System.out.format("\n              [ == Metric %s == ]\n", getName() ); 
+        System.out.format("\n              [ == Metric %s == ]\n", getName() ); 
 
    // Grab station metadata for all channels for this day:
-           StationMeta stnMeta = data.getMetaData();
+        StationMeta stnMeta = metricData.getMetaData();
 
-   // Create a 3-channel array and check that we have metadata for all 3 channels:
-           ChannelArray channelArray = new ChannelArray("00","BHZ", "BH1", "BH2");
+   // Create a 3-channel array to use for loop
+        ChannelArray channelArray = new ChannelArray("00","LHZ", "LH1", "LH2");
+        //ChannelArray channelArray = new ChannelArray("10","BHZ", "BH1", "BH2");
+        //ChannelArray channelArray = new ChannelArray("00","BHZ", "BH1", "BH2");
+        ArrayList<Channel> channels = channelArray.getChannels();
 
-           if (stnMeta.hasChannels(channelArray) ){
-              //System.out.println("== Found metadata for all 3 channels for this epoch");
-           }
-           else {
-              //System.out.println("== Channel Meta not found for this epoch");
-           }
+        metricResult = new MetricResult();
 
-           ArrayList<Channel> channels = channelArray.getChannels();
+   // Read in the NLNM
+        readNLNM();
 
-           result = new MetricResult();
-   // Loop over channels, get metadata & data for channel and Do Something ...
+   // Loop over channels, get metadata & data for channel and Calculate Metric
 
-           for (Channel channel : channels){
+        for (Channel channel : channels){
 
-             ChannelMeta chanMeta = stnMeta.getChanMeta(channel);
-             if (chanMeta == null){ // Skip channel, we have no metadata for it
-               System.out.format("%s Error: metadata not found for requested channel:%s --> Skipping\n", getName(), channel.getChannel());
-               continue;
-             }
-             else {
-               if (chanMeta.hasDayBreak() ){ // Check to see if the metadata for this channel changes during this day
-                  System.out.format("%s Error: channel=%s metadata has a break!\n", getName(), channel.getChannel() );
-               }
-             } // end chanMeta for this channel
+            ChannelMeta chanMeta = stnMeta.getChanMeta(channel);
+            if (chanMeta == null){ // Skip channel, we have no metadata for it
+                System.out.format("%s Error: metadata not found for requested channel:%s --> Skipping\n"
+                                  ,getName(), channel.getChannel());
+                continue;
+            }
 
-             if (!data.hashChanged(channel)) continue;
+            ArrayList<DataSet>datasets = metricData.getChannelData(channel);
+            if (datasets == null){ // Skip channel, we have no data for it
+                System.out.format("%s Error: No data for requested channel:%s --> Skipping\n"
+                                  ,getName(), channel.getChannel());
+                continue;
+            }
 
-        // Get DataSet(s) for this channel
-             int ndata      = 0;
-             double srate   = 0;
-             int[] intArray = null;
+            if (!metricData.hashChanged(channel)) { // Skip channel, we don't need to recompute the metric
+                System.out.format("%s INFO: Data and metadata have NOT changed for this channel:%s --> Skipping\n"
+                                  ,getName(), channel.getChannel());
+                continue;
+            }
 
-             ArrayList<DataSet>datasets = data.getChannelData(channel);
-             if (datasets == null){
-               System.out.format("%s Error: No data for requested channel:%s\n", getName(), channel.getChannel());
-             }
-             else {
-               for (DataSet dataset : datasets) {
-                 String knet    = dataset.getNetwork(); String kstn = dataset.getStation();
-                 String locn    = dataset.getLocation();String kchn = dataset.getChannel();
-                 long startTime = dataset.getStartTime();  // microsecs since Jan. 1, 1970
-                 long endTime   = dataset.getEndTime();
-                 long interval  = dataset.getInterval();
-                 int length     = dataset.getLength();
-                 Calendar startTimestamp = new GregorianCalendar();
-                 startTimestamp.setTimeInMillis(startTime/1000);
-                 Calendar endTimestamp = new GregorianCalendar();
-                 endTimestamp.setTimeInMillis(endTime/1000);
+         // If we're here, it means we need to (re)compute the metric for this channel:
 
-                 intArray   = dataset.getSeries();
-                 srate      = dataset.getSampleRate();
-                 ndata     += dataset.getLength();
+         // Compute/Get the 1-sided psd[f] using Peterson's algorithm (24 hrs, 13 segments, etc.)
 
-               } // end for each dataset
-             }// end else (= we DO have data for this channel)
+            CrossPower crossPower = getCrossPower(channel, channel);
+            double[] psd  = crossPower.getSpectrum();
+            double df     = crossPower.getSpectrumDeltaF();
+         // nf = number of positive frequencies + DC (nf = nfft/2 + 1, [f: 0, df, 2df, ...,nfft/2*df] )
+            int nf        = psd.length;
+            double freq[] = new double[nf];
 
-      // Compute PSD for this channel using the following algorithm:
-      //   Break up the data (one day) into 13 overlapping segments of 75% 
-      //   Remove the trend and mean 
-      //   Apply a taper (cosine) 
-      //   Zero pad to a power of 2 
-      //   Compute FFT 
-      //   Average all 13 FFTs 
-      //   Remove response 
+         // Convert the psd to dB and fill freq array
 
-      // For 13 windows with 75% overlap, each window will contain ndata/4 points
-      // ** Still need to handle the case of multiple datasets with gaps!
-        int nseg_pnts = ndata / 4;  
-        int noff      = nseg_pnts / 4;  
-      // Find smallest power of 2 >= nseg_pnts:
-        int nfft=1;
-        while (nfft < nseg_pnts) nfft *= 2;
-        int nf=nfft/2;
-        double dt = srate;
-        double df = 1./(nfft*dt);
+            for (int k = 0; k < nf; k++){
+                freq[k] = (double)k * df;
+                psd[k] = 10 * Math.log10(psd[k]);
+            }
 
-        float[] xseg     = new float[nfft];
-        Cmplx[]  xfft    = new Cmplx[nfft];
-        double[] psd     = new double[nfft];
+         // Reverse freq[] --> per[] where per[0]=shortest T and per[nf-2]=longest T:
 
-        int iwin=0;
-        int ilst=nseg_pnts-1;
-        int offset = noff;
+            double[] per    = new double[nf];
+            double[] psdPer = new double[nf];
+            per[nf-1] = 0;  // = 1/freq[0] and we don't want 1/0 = inf
+            for (int k = 0; k < nf-1; k++){
+                per[k]     = 1./freq[nf-k-1];
+                psdPer[k]  = psd[nf-k-1];
+            }
+            double Tmin  = per[0];    // Should be = 1/fNyq = 2/fs = 0.1 for fs=20Hz
+            double Tmax  = per[nf-2]; // Should be = 1/df = Ndt
 
-        while (ilst < ndata) // ndata needs to come from largest dataset
-        {
-          for(int k=0; k<nseg_pnts; k++)
-          {
-            xseg[k]=intArray[k+offset]; // Load current window
-          }
-          //debias(xseg); detrend(xseg); taper(xseg); pad(xseg, nfft);
+         // Average over each octave, starting with shortest period
 
-          xfft = Cmplx.fft(xseg);
-          for(int k = 0; k < nfft; k++){
-              psd[k]= psd[k] +  Math.pow(xfft[k].mag(),2);
-          }
-          iwin ++;
-          offset += noff;
-          ilst   += noff;
+            double T1 = Tmin;
+            double T2 = 2.*T1;
+            double Tc = Math.sqrt(T1*T2);
+            double powerInOctave;
+            int    npersInOctave;
+
+            ArrayList<Double> Tcs    = new ArrayList<Double>();
+            ArrayList<Double> Powers = new ArrayList<Double>();
+
+            while (T2 < Tmax) {
+                powerInOctave = 0;
+                npersInOctave = 0;
+                for (int k = 0; k < nf; k++){
+                    if ( (per[k] >= T1) && (per[k] <= T2) ) {
+                        powerInOctave += psdPer[k];
+                        npersInOctave++;
+                    }
+                }
+                powerInOctave = powerInOctave / (double)npersInOctave;
+                Tcs.add(Tc);
+                Powers.add(powerInOctave);
+
+                T1 *= Math.pow(2.0, .125);
+                T2  = 2*T1;
+                Tc  = Math.sqrt(T1*T2);
+            }
+            Double[] octavePowers  = Powers.toArray(new Double[]{});
+            Double[] octavePeriods = Tcs.toArray(new Double[]{});
+
+            //Timeseries.timeoutXY(octavePeriods, octavePowers, "psd.10-lhz");
+            //Timeseries.timeoutXY(octavePeriods, octavePowers, "psd.00-lhz");
+            //Timeseries.timeoutXY(octavePeriods, octavePowers, "psd.10-bhz");
+            //for (int i=0; i<octavePeriods.length; i++){
+                //System.out.format("%12.6f %12.6f\n", octavePeriods[i], octavePowers[i]);
+            //}
+            //System.exit(0);
+ 
+       // Interpolate the psd octave-average to the periods of the NLNM Model:
+            double[] psdInterp;
+            psdInterp = interpolateToNLNM(octavePeriods, octavePowers);
+
+            //Timeseries.timeoutXY(NLNMPeriods, psdInterp, "psd.00-lhz.interp");
+            //Timeseries.timeoutXY(NLNMPeriods, psdInterp, "psd.00-bhz.interp");
+            //System.exit(0);
+
+         // TODO: Read in (?) NLNM Model
+         //       Interpolate psd[T] to same periods as NLNM
+         //  ---> Loop over periods within requested frequency/period band
+         //       Compute average difference from NLNM in band
+
+            //double lowLimit = getLow(); 
+            //double hiLimit = getHigh(); 
+
+            PowerBand band = getPowerBand();
+            double low     = band.getLow();
+            double high    = band.getHigh();
+
+       // Loop over periods/freqs of NLNM that fall within requested band
+       //   Compute diff between psd and NLNM and average in band
+
+/**
+            String key   = getName() + "+Channel(s)=" + channel.getLocation() + "-" + channel.getChannel();
+            String value = String.format("%.2f",availability);
+            metricResult.addResult(key, value);
+
+            System.out.format("%s-%s [%s] %s %s-%s ", stnMeta.getStation(), stnMeta.getNetwork(),
+              EpochData.epochToDateString(stnMeta.getTimestamp()), getName(), chanMeta.getLocation(), chanMeta.getName() );
+            System.out.format("ndata:%d (%.0f%%) %s %s\n", ndata, availability, chanMeta.getDigestString(), dataHashString); 
+    1   2   3   4   5   6
+**/
+
+        }// end foreach channel
+
+    } // end process()
+
+
+    private void readNLNM() {
+
+   // Read in the NLNM from local file
+
+        String fileName = "./NLNM.ascii";
+        String path     = "/Users/mth/mth/Projects/asl/src/asl/seedscan/metrics/";
+        fileName = path + fileName;
+
+   // First see if the file exists
+        if (!(new File(fileName).exists())) {
+            System.out.format("=== %s: NLNM file=%s does NOT exist!\n", getName(), fileName);
+            System.exit(0);
+        }
+   // Temp ArrayList(s) to read in unknown number of (x,y) pairs:
+        ArrayList<Double> tmpPers = new ArrayList<Double>();
+        ArrayList<Double> tmpPows = new ArrayList<Double>();
+        BufferedReader br = null;
+        try {
+            String line;
+            br = new BufferedReader(new FileReader(fileName));
+            while ((line = br.readLine()) != null) {
+                String[] args = line.trim().split("\\s+") ;
+                if (args.length != 2) {
+                    String message = "==Error reading NLNM: got " + args.length + " args on one line!";
+                    throw new RuntimeException(message);
+                }
+                tmpPers.add( Double.valueOf(args[0].trim()).doubleValue() );
+                tmpPows.add( Double.valueOf(args[1].trim()).doubleValue() );
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (br != null)br.close();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+        Double[] modelPeriods  = tmpPers.toArray(new Double[]{});
+        Double[] modelPowers   = tmpPows.toArray(new Double[]{});
+
+        NLNMPeriods = new double[modelPeriods.length];
+        NLNMPowers  = new double[modelPowers.length];
+
+        for (int i=0; i<modelPeriods.length; i++){
+            NLNMPeriods[i] = modelPeriods[i];
+            NLNMPowers[i]  = modelPowers[i];
         }
 
-/**
-        for(int curind = 0; curind < 512; curind++){
-            psd[curind] = psd[curind]/(double)numOfWins;
-            freq[curind] = ((double)SPS)*(double)curind/((double)512);
-**/
+    } // end readNLNM
 
 
-/**
-             System.out.format("%s-%s [%s] %s %s-%s ", stnMeta.getStation(), stnMeta.getNetwork(),
-               EpochData.epochToDateString(stnMeta.getTimestamp()), getName(), chanMeta.getLocation(), chanMeta.getName() );
-             System.out.format("ndata:%d (%.0f%%) %s\n", ndata, availability, chanMeta.getDigestString()); 
+// Interpolate measured pows[per] to the periods of the NLNM Model
 
-             String key   = getName() + "+Channel(s)=" + channel.getLocation() + "-" + channel.getChannel();
-             String value = String.format("%.2f",availability);
-             result.addResult(key, value);
-**/
+    private double[] interpolateToNLNM(Double[] pers, Double[] pows) {
 
-           }// end foreach channel
+        double[] interpolatedPowers = new double[NLNMPeriods.length];
+        int n = pers.length;
+        
+        double[] tmpPowers  = new double[n+1];
+        double[] tmpPeriods = new double[n+1];
 
-     }
-}
+   // Create offset (+1) arrays to use with Num Recipes interpolation (spline.c)
+        for (int i=0; i<n; i++) {
+            tmpPowers[i+1]  = pows[i];
+            tmpPeriods[i+1] = pers[i];
+        }
+        double[] y2 = new double[n+1];
+        Timeseries.spline(tmpPeriods, tmpPowers, n, 0., 0., y2);
+
+        double[] y = new double[1];
+        for (int i=0; i<NLNMPeriods.length; i++){
+            Timeseries.splint(tmpPeriods, tmpPowers, y2, n, NLNMPeriods[i], y);
+            interpolatedPowers[i] = y[0];
+        }
+
+        return interpolatedPowers;
+    }
+
+} // end class
 

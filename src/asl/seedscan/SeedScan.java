@@ -319,9 +319,10 @@ System.out.println(" Java total memory=" + runtime.totalMemory() );
  // For now we're just going to do it here:
         ArrayList<Station> stations = new ArrayList<Station>();
         stations.add( new Station("IU","ANMO") );
-        stations.add( new Station("IU","SNZO") );
         //stations.add( new Station("IU","ANTO") );
-        stations.add( new Station("IC","KMI") );
+        //stations.add( new Station("IU","SNZO") );
+        //stations.add( new Station("IC","KMI") );
+        //stations.add( new Station("IC","XXXX") );
 
         for (Station station: stations) {
             Scanner scanner = new Scanner(database, station, scan);

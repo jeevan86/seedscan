@@ -41,11 +41,11 @@ extends PowerBandMetric
            System.out.format("\n              [ == Metric %s == ]\n", getName() ); 
 
         // populate
-           result = new MetricResult();
+           metricResult = new MetricResult();
          //String key   = getName() + "+Channel(s)=" + channel.getLocation() + "-" + channel.getChannel();
            String key   = getName();
            String value = "result-goes-here";
-           result.addResult(key, value);
+           metricResult.addResult(key, value);
     }
 }
 
