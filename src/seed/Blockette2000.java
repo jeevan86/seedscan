@@ -27,39 +27,39 @@
  * 8  ULONG - record number (applies to this stream, continuations will have the same value)
  * 12 UBYTE - word order (0 = little-endian, 1 = big-endian)
  * 13 UBYTE - opaque data flags 
-                 [bit 0] opaque blockette orientation
-                     0 = record oriented
-                     1 = stream oriented
-                 [bit 1] packaging bit  (blockette 2000s from multiple SEED data records with 
-                                         different timetags may be backaged into a single SEED
-                                         data record. The exact original timetag in each SEED
-                                         Fixed Data Header is not required for each 
-                                         blockette 2000)
-                     0 = allowed     (timing NOT dependent on SEED time tag)
-                     1 = disallowed  (timing IS  dependent on SEED time tag)
-                 [bits 2-3]
-                     00 = opaque record identified by record number is completely contained
-                     within ths opaque blockette
-                     01 = first opaque blockette for record spanning multiple blockettes
-                     10 = continuation blockette (2 ... N-1) of record spanning N blockettes
-                     11 = final blockette for record spanning N blockettes (where N > 1)
-                 [bits 4-5]
-                     00 = not file oriented
-                     01 = first blockette of file
-                     10 = continuation of file
-                     11 = last blockette of file
+ *               [bit 0] opaque blockette orientation
+ *                   0 = record oriented
+ *                   1 = stream oriented
+ *               [bit 1] packaging bit  (blockette 2000s from multiple SEED data records with 
+ *                                       different timetags may be backaged into a single SEED
+ *                                       data record. The exact original timetag in each SEED
+ *                                       Fixed Data Header is not required for each 
+ *                                       blockette 2000)
+ *                   0 = allowed     (timing NOT dependent on SEED time tag)
+ *                   1 = disallowed  (timing IS  dependent on SEED time tag)
+ *               [bits 2-3]
+ *                   00 = opaque record identified by record number is completely contained
+ *                   within ths opaque blockette
+ *                   01 = first opaque blockette for record spanning multiple blockettes
+ *                   10 = continuation blockette (2 ... N-1) of record spanning N blockettes
+ *                   11 = final blockette for record spanning N blockettes (where N > 1)
+ *               [bits 4-5]
+ *                   00 = not file oriented
+ *                   01 = first blockette of file
+ *                   10 = continuation of file
+ *                   11 = last blockette of file
  * 14 UBYTE - number of tags
-
+ *
  * 15 VAR   - ASCII tags (number indicated by previous field) each terminated by ~ character
-                          recommended fields are:
-                 a)  Record Type      - idenfier for this type of record
-                 b)  Vendor Name      - equipment vendor/manufacturer
-                 c)  Model Number     - equipment model number
-                 d)  Software Version - version number
-                 e)  Firmware Version - version number
-
+ *                        recommended fields are:
+ *               a)  Record Type      - idenfier for this type of record
+ *               b)  Vendor Name      - equipment vendor/manufacturer
+ *               c)  Model Number     - equipment model number
+ *               d)  Software Version - version number
+ *               e)  Firmware Version - version number
+ *
  * ?? OPAQUE - raw opaque data (opaque_data length = total_blockette_length - offset_to_opqueue_data)
-
+ *
  * Created on September 25, 2012 @ 08:38 MDT
  *
  * To change this template, choose Tools | Template Manager
@@ -71,18 +71,10 @@ package seed;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 
 /** This class represents the Blockette 2000 from the SEED standard V2.4 
- * Blockette2000.java
- * * The blockette 2000 has :
- * 0  i*2 blockette type  is 2000
- * 2  i*2 Next Blockette byte number (offset to next blockette)
- * 4  Encoding format - 10 = steimI, 11=steim2, 
- * 5  word order 0 little endian, 1=big endian
- * 6  record length power (2^b(6) = length) 
- * 7 reserved
-
  *
  * @author Joel Edwards <jdedwards@usgs.gov>
  */
@@ -99,9 +91,7 @@ public class Blockette2000 {
 
     private int flags;
 
-    private byte[] opaqueBuffer;
-    private int opaqueOffset;
-    private int opaqueLength;
+    private byte[] opaqueData;
 
     private void _init(ByteOrder byteOrder)
     {
@@ -157,10 +147,9 @@ public class Blockette2000 {
             tags.add(parts[i]);
         }
         
-        opaqueOffset = 0;
-        opaqueLength = totalBlocketteLength - offsetToOpaqueData;
-        opaqueBuffer = new byte[opaqueLength];
-        bb.get(opaqueBuffer, opaqueOffset, opaqueLength);
+        int opaqueLength = totalBlocketteLength - offsetToOpaqueData;
+        opaqueData = new byte[opaqueLength];
+        bb.get(opaqueData, 0, opaqueLength);
     }
 
     /** get the raw bytes
@@ -171,6 +160,9 @@ public class Blockette2000 {
     {
         int blocketteLength = 0;
         ByteBuffer bb = ByteBuffer.allocate(blocketteLength);
+
+        // TODO: populate buffer
+
         return bb.array();
     }
 
@@ -203,7 +195,8 @@ public class Blockette2000 {
         return flags;
     }
 
-    public void setFlagStreamOriented(boolean streamOriented)
+//  Orientation Flag (Stream or Record)
+    public void setStreamOriented(boolean streamOriented)
     {
         if (streamOriented) {
             flags |= 0x01;
@@ -213,12 +206,16 @@ public class Blockette2000 {
         }
     }
 
-    public boolean getFlagStreamOriented()
+    public boolean getStreamOriented()
     {
         return ((flags & 0x01) == 0x01);
     }
 
-    public void setFlagStrictPackaging(boolean strictPackaging)
+
+// === Fragmentation Flags ===
+
+//  Packaging Flag (If strict, do not re-package opaque data from MiniSEED records with different timestamps
+    public void setStrictPackaging(boolean strictPackaging)
     {
         if (strictPackaging) {
             flags |= 0x02;
@@ -228,12 +225,110 @@ public class Blockette2000 {
         }
     }
 
-
-    public boolean getFlagStrictPackaging()
+    public boolean getStrictPackaging()
     {
         return ((flags & 0x02) == 0x02);
     }
 
+//  Fragmentation: Single Record - all data for this record id is contained in this blockette
+    public void setFragSingleRecord()
+    {
+        flags &= (0xff & 0x0c);
+    }
+
+    public boolean getFragSingleRecord()
+    {
+        return ((flags & 0x0c) == 0x00);
+    }
+
+//  Fragmentation: First Blockette - first blockette in a stream
+    public void setFragFirstBlockette()
+    {
+        flags &= (0xff & 0x0c);
+        flags |= 0x04;
+    }
+
+    public boolean getFragFirstBlockette()
+    {
+        return ((flags & 0x0c) == 0x04);
+    }
+
+//  Fragmentation: Continuation Blockette - one of the middle blockettes (not first or last) in a stream
+    public void setFragContinuationBlockette()
+    {
+        flags &= (0xff & 0x0c);
+        flags |= 0x08;
+    }
+
+    public boolean getFragContinuationBlockette()
+    {
+        return ((flags & 0x0c) == 0x08);
+    }
+
+//  Fragmentation: Last Blockette - last blockette in a stream
+    public void setFragLastBlockette()
+    {
+        flags &= (0xff & 0x0c);
+        flags |= 0x0c;
+    }
+
+    public boolean getFragLastBlockette()
+    {
+        return ((flags & 0x0c) == 0x0c);
+    }
+
+
+// === File Blockette Flags ===
+
+//  File: Single Record - all data for this record id is contained in this blockette
+    public void setFileSingleRecord()
+    {
+        flags &= (0xff & 0x30);
+    }
+
+    public boolean getFileSingleRecord()
+    {
+        return ((flags & 0x30) == 0x00);
+    }
+
+//  File: First Blockette - first blockette in a stream
+    public void setFileFirstBlockette()
+    {
+        flags &= (0xff & 0x30);
+        flags |= 0x10;
+    }
+
+    public boolean getFileFirstBlockette()
+    {
+        return ((flags & 0x30) == 0x10);
+    }
+
+//  File: Continuation Blockette - one of the middle blockettes (not first or last) in a stream
+    public void setFileContinuationBlockette()
+    {
+        flags &= (0xff & 0x30);
+        flags |= 0x20;
+    }
+
+    public boolean getFileContinuationBlockette()
+    {
+        return ((flags & 0x30) == 0x20);
+    }
+
+//  File: Last Blockette - last blockette in a stream
+    public void setFileLastBlockette()
+    {
+        flags &= (0xff & 0x30);
+        flags |= 0x30;
+    }
+
+    public boolean getFileLastBlockette()
+    {
+        return ((flags & 0x30) == 0x30);
+    }
+
+
+// === Tags ===
     public void setTags(Collection<String> tags)
     {
         this.tags = tags;
@@ -244,4 +339,16 @@ public class Blockette2000 {
         return tags;
     }
 
+
+
+// === Opaque Data ===
+    public void setOpaqueData(byte[] data, int offset, int length)
+    {
+        opaqueData = Arrays.copyOfRange(data, offset, offset+length);
+    }
+
+    public byte[] getOpaqueData()
+    {
+        return opaqueData;
+    }
 }
