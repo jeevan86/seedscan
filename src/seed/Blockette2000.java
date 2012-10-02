@@ -84,14 +84,14 @@ public class Blockette2000 {
     private ByteOrder byteOrder = ByteOrder.BIG_ENDIAN;
 
     // Blockette 2000 Data Fields
-    private int nextBlocketteOffset;
-    private int recordNumber;
-    private ByteOrder wordOrder;
-    private Collection<String> tags;
+    private short nextBlocketteOffset = 0;
+    private int recordNumber = 0;
+    private ByteOrder wordOrder = ByteOrder.BIG_ENDIAN;
+    private byte flags = 0;
 
-    private int flags;
+    private Collection<String> tags = null;
 
-    private byte[] opaqueData;
+    private byte[] opaqueData = null;
 
     private void _init(ByteOrder byteOrder)
     {
@@ -101,7 +101,7 @@ public class Blockette2000 {
 
     /** Creates a new instance of Blockette2000
      *
-     * @param bigEndian - true if word order of the blockettes fields is big-endian, otherwise little-endian
+     * @param byteOrder - byte order of the blockette 2000 header
      */
     public Blockette2000(ByteOrder byteOrder)
     {
@@ -111,68 +111,117 @@ public class Blockette2000 {
     /** Creates a new instance of Blockette2000
      *
      * @param blockette - The raw bytes from an existing blockette 2000
-     * @param bigEndian - true if word order of the blockettes fields is big-endian, otherwise little-endian
+     * @param byteOrder - byte order of the blockette 2000 header
      */
-    public Blockette2000(byte[] blockette, ByteOrder byteOrder)
+    public Blockette2000(Collection<ByteBuffer> blockettes, ByteOrder byteOrder)
     throws WrongBlocketteNumberException
     {
-        reload(blockette, byteOrder);
+        reload(blockettes, byteOrder);
     }
 
-    public void reload(byte[] blockette, ByteOrder byteOrder)
+    /** get the resulting blockettes
+     *
+     * @param blockettes - one or more type 2000 blockettes which contain an opaque data set
+     * @param byteOrder  - the byte order to the blockettes header (not the opaque data itself)
+     */
+    public void reload(Collection<ByteBuffer> blockettes, ByteOrder byteOrder)
     throws WrongBlocketteNumberException
     {
         _init(byteOrder);
-        ByteBuffer bb = ByteBuffer.wrap(blockette);
-        bb.order(byteOrder);
-        int blocketteType = (int) bb.getShort();
-        if (blocketteType != 2000) {
-            throw new WrongBlocketteNumberException("Require type 2000, received type " + blocketteType);
-        }
+        byte[] data;
+        for (ByteBuffer bb: blockettes) {
+            bb.order(byteOrder);
+            int blocketteType = (int) bb.getShort();
+            if (blocketteType != 2000) {
+                throw new WrongBlocketteNumberException("Require type 2000, received type " + blocketteType);
+            }
 
-        nextBlocketteOffset = bb.getShort();
-        int totalBlocketteLength = bb.getShort();
-        int offsetToOpaqueData = bb.getShort();
-        recordNumber = bb.getInt();
-        wordOrder = (bb.get() == 0) ? ByteOrder.LITTLE_ENDIAN : ByteOrder.BIG_ENDIAN;
-        flags = bb.get();
+            nextBlocketteOffset = bb.getShort();
+            int totalBlocketteLength = bb.getShort();
+            int offsetToOpaqueData = bb.getShort();
+            recordNumber = bb.getInt();
+            wordOrder = (bb.get() == 0) ? ByteOrder.LITTLE_ENDIAN : ByteOrder.BIG_ENDIAN;
+            flags = bb.get();
 
-        int tagCount = bb.get();
-        int tagsLength = offsetToOpaqueData - 15 /* Fixed part of header */ ;
-        byte[] tagsBuffer = new byte[tagsLength];
-        bb.get(tagsBuffer, 0, tagsLength);
-        String tagsString = new String(tagsBuffer);
-        String[] parts = tagsString.split("~");
-        for (int i = 0; i < (parts.length - 1); i++) {
-            tags.add(parts[i]);
+            int tagCount = bb.get();
+            int tagsLength = offsetToOpaqueData - 15 /* Fixed part of header */ ;
+            byte[] tagsBuffer = new byte[tagsLength];
+            bb.get(tagsBuffer, 0, tagsLength);
+            String tagsString = new String(tagsBuffer);
+            String[] parts = tagsString.split("~");
+            for (int i = 0; i < (parts.length - 1); i++) {
+                tags.add(parts[i]);
+            }
+            
+            int opaqueLength = totalBlocketteLength - offsetToOpaqueData;
+            opaqueData = new byte[opaqueLength];
+            bb.get(opaqueData, 0, opaqueLength);
         }
-        
-        int opaqueLength = totalBlocketteLength - offsetToOpaqueData;
-        opaqueData = new byte[opaqueLength];
-        bb.get(opaqueData, 0, opaqueLength);
     }
 
-    /** get the raw bytes
+    /** get the resulting blockettes
      *
-     * @return The raw bytes in this 2000 block
+     * @return One or more type 2000 blockettes assembled from the supplied values
      */
-    public byte[] getBytes()
+    public Collection<ByteBuffer> getBlockettes(int maxBlocketteLength)
     {
-        int blocketteLength = 0;
-        ByteBuffer bb = ByteBuffer.allocate(blocketteLength);
+        ArrayList<ByteBuffer> blockettes = new ArrayList<ByteBuffer>();
 
-        // TODO: populate buffer
+        short headerLength = 15; // Length of fixed part of header
+        for (String tag: tags) {
+            headerLength += tag.length() + 1;
+        }
+        int maxDataLength = maxBlocketteLength - headerLength;
+        int bytesRemaining = opaqueData.length;
 
-        return bb.array();
+        boolean first = true;
+        while (bytesRemaining > 0) {
+            int dataBytes = Math.min(maxDataLength, bytesRemaining);
+            bytesRemaining -= dataBytes;
+            
+            if (first) {
+            }
+
+            int blocketteLength = headerLength + dataBytes;
+
+            ByteBuffer bb = ByteBuffer.allocate(blocketteLength);
+
+            bb.putShort((short)2000);
+            bb.putShort(nextBlocketteOffset);
+            bb.putShort((short)blocketteLength);
+            bb.putShort(headerLength);
+            bb.putInt(recordNumber);
+            bb.put((byte)((wordOrder == ByteOrder.LITTLE_ENDIAN) ? 0 : 1));
+            bb.put(flags);
+            bb.put((byte)tags.size());
+            for (String tag: tags) {
+                bb.put((tag + "~").getBytes());
+            }
+            bb.put(opaqueData);
+
+            blockettes.add(bb);
+        }
+
+        return blockettes;
     }
 
-    public void setNextBlocketteOffset(int offset)
+    public void setNextBlocketteOffset(short offset)
     {
         nextBlocketteOffset = offset;
     }
 
-    public int getNextBlocketteOffset() {
+    public short getNextBlocketteOffset() {
         return nextBlocketteOffset;
+    }
+
+    public void setRecordNumber(int recordNumber)
+    {
+        this.recordNumber = recordNumber;
+    }
+
+    public int getRecordNumber()
+    {
+        return recordNumber;
     }
 
     public void setWordOrder(ByteOrder wordOrder)
@@ -185,7 +234,7 @@ public class Blockette2000 {
         return wordOrder;
     }
 
-    public void setFlags(int flags)
+    public void setFlags(byte flags)
     {
         this.flags = flags;
     }
@@ -212,8 +261,6 @@ public class Blockette2000 {
     }
 
 
-// === Fragmentation Flags ===
-
 //  Packaging Flag (If strict, do not re-package opaque data from MiniSEED records with different timestamps
     public void setStrictPackaging(boolean strictPackaging)
     {
@@ -229,6 +276,8 @@ public class Blockette2000 {
     {
         return ((flags & 0x02) == 0x02);
     }
+
+// === Fragmentation Flags ===
 
 //  Fragmentation: Single Record - all data for this record id is contained in this blockette
     public void setFragSingleRecord()
@@ -257,24 +306,24 @@ public class Blockette2000 {
     public void setFragContinuationBlockette()
     {
         flags &= (0xff & 0x0c);
-        flags |= 0x08;
+        flags |= 0x0c;
     }
 
     public boolean getFragContinuationBlockette()
     {
-        return ((flags & 0x0c) == 0x08);
+        return ((flags & 0x0c) == 0x0c);
     }
 
 //  Fragmentation: Last Blockette - last blockette in a stream
     public void setFragLastBlockette()
     {
         flags &= (0xff & 0x0c);
-        flags |= 0x0c;
+        flags |= 0x08;
     }
 
     public boolean getFragLastBlockette()
     {
-        return ((flags & 0x0c) == 0x0c);
+        return ((flags & 0x0c) == 0x08);
     }
 
 
@@ -329,6 +378,7 @@ public class Blockette2000 {
 
 
 // === Tags ===
+
     public void setTags(Collection<String> tags)
     {
         this.tags = tags;
