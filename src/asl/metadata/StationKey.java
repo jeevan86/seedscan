@@ -39,7 +39,6 @@ extends Key
         }
         network = blockette.getFieldValue(16,0);
         name = blockette.getFieldValue(3,0);
-System.out.format(" StationKey: network=%s name=%s\n",network,name);
     }
     // MTH:
     public StationKey(Station station)

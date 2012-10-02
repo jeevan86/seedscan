@@ -39,28 +39,61 @@ public class MetaGenerator
     private Collection<String> rawDataless;
     private ArrayList<String> strings = null;
     private StationData stationData = null;
+    private Boolean successfullyLoaded = false;
 
-    public MetaGenerator()
+    public MetaGenerator(Station station)
     {
-        //loadDataless(file);
-        loadDataless();
+        loadDataless(station);
     }
 
-    private void loadDataless()
+    private void loadDataless(Station station)
     {
-      Dataless dataless = null;
+
+     // MTH: We could handle one dataless with multiple stations ... and then use station filters in processVolume() below 
+     //      or we could expect one dataless per station.
+     // We probably need a flag to switch between either expectation
+     // For now this is hardwired to expect one dataless per station (e.g., dataless=DATALESS.IU_ANMO.seed)
+     // ** Note that if the station/network masks get implemented in Dataless.processVolume(), then it will no longer
+     //    be possible to use a single dataless seed file with multiple station metadata.
+
+      Dataless dataless   = null;
+     // MTH: This is a param we should likely read in from config.xml:
+      String datalessPath = "/Users/mth/mth/Projects/dcc/metadata/dataless/";
+      String datalessFile = datalessPath + "DATALESS." + station.getNetwork() + "_" + station.getStation() + ".seed"; 
+      ProcessBuilder pb = new ProcessBuilder("rdseed", "-s", "-f", datalessFile);
+      //pb.redirectErrorStream(true);
+      strings = new ArrayList<String>();
+
+   // First see if the dataless file even exists
+      if (!(new File(datalessFile).exists())) {
+        System.out.format("=== MetaGenerator: Dataless file=%s does NOT exist!\n", datalessFile);
+        return;
+      }
 
       try {
-          readFile("/Users/mth/mth/Projects/dcc/metadata/dataless/rdseed_-s_output");
-          //readFile("/qcwork/datalessSTUFF/littlesANMO");
+        Process process = pb.start();
+        BufferedReader reader = new BufferedReader( new InputStreamReader(process.getInputStream() ) );
+        String line = null;
+        while( ( line = reader.readLine() ) != null ) {
+           strings.add(line);
+        }
+        int shellExitStatus = process.waitFor();
+        //System.out.println("Exit status" + shellExitStatus);
       }
-      catch(IOException e) {
-          System.out.println("Error: IOException " + e);
+// Need to catch both IOException and InterruptedException
+      catch (IOException e) {
+         System.out.println("Error: IOException Description: " + e.getMessage());
+      }
+      catch (InterruptedException e) {
+         System.out.println("Error: InterruptedException Description: " + e.getMessage());
+      }
+
+      if (strings.size() == 0) { // We didn't read any metadata in from the rdseed output ...
       }
       dataless = new Dataless( strings ) ;
 
       try {
-          dataless.processVolume("IU","ANMO"); // The network and station masks aren't implemented
+          dataless.processVolume(station); // The network and station masks aren't implemented
       }
       catch (Exception e){
       }
@@ -68,20 +101,17 @@ public class MetaGenerator
       volume = dataless.getVolume();
 
       if (volume == null){
-// Do something here so we don't go on
+         String message = "MetaGenerator: Unable to process dataless seed for: " + station.getNetwork() + "-" + station.getStation();
+         throw new RuntimeException(message);
       }
 
-     } // end loadDataless()
+      successfullyLoaded = true;
 
-     private void readFile( String file ) throws IOException {
-       strings = new ArrayList<String>();
-       BufferedReader reader = new BufferedReader( new FileReader (file));
-       String line = null;
-       while( ( line = reader.readLine() ) != null ) {
-           strings.add(line);
-       }
-     }
+    } // end loadDataless()
 
+    public Boolean isLoaded() {
+      return successfullyLoaded;
+    } 
 
     public StationData getStationData(Station station){
       StationKey stnkey = new StationKey(station);
@@ -124,7 +154,7 @@ public class MetaGenerator
       TreeSet<ChannelKey> keys = new TreeSet<ChannelKey>();
       keys.addAll(channels.keySet());
       for (ChannelKey key : keys){
-        System.out.println("==Channel:"+key );
+        //System.out.println("==Channel:"+key );
         ChannelData channel = channels.get(key);
         ChannelMeta channelMeta = new ChannelMeta(key,timestamp);
 
@@ -162,13 +192,18 @@ public class MetaGenerator
                //channelMeta.addStage(responseStage);
              }
              else {
-               System.out.println("Error: Stage 0 does not appear to contain Blockette Number = 58");
+               System.out.format("== Error: Stage 0 does not appear to contain Blockette B058 [Channel=%s-%s]\n", channel.getLocation(), channel.getName());
              }
 
            }
-
+/**
+  Channels VM? and LD? do NOT appear to have a stage 0
+**/
            else {
-               System.out.println("== There is NO Stage:0 for this Channel + Epoch !");
+             String excludeCodes = "MD";
+             if (!excludeCodes.contains(channel.getName().substring(1,2))) {
+               System.out.format("== Error: There is NO Stage 0 for this epoch [Channel=%s-%s]\n", channel.getLocation(), channel.getName());
+             }
            }
 
     // Process Stage 1:
@@ -184,8 +219,8 @@ public class MetaGenerator
                String temp[] = blockette.getFieldValue(5, 0).split(" ");
                frequencyOfGain = Double.parseDouble(temp[0]);
              }
-             else {
-               System.out.println("Warning: Stage 1 does not appear to contain Blockette Number = 58");
+             else if (channel.getName().charAt(1) != 'M') {  // Mass positions, eg., VMZ, VM1, VM2 .. don't have a B058 in stage 1
+               System.out.format("== Error: Stage 1 does not appear to contain Blockette B058 [Channel=%s-%s]\n", channel.getLocation(), channel.getName());
              }
 
              if (stage.hasBlockette(62)) {        // This is a polynomial stage, e.g., ANMO_IU_00_VMZ
@@ -268,7 +303,7 @@ public class MetaGenerator
 
            } // end epoch has stage 1
            else {
-               System.out.println("== There is NO Stage:1 for this Channel + Epoch !");
+               System.out.format("== Error: There is NO Stage 1 for this epoch: [Channel=%s-%s]\n", channel.getLocation(), channel.getName());
            }
 
     // Process Stage 2:
@@ -287,7 +322,7 @@ public class MetaGenerator
                ResponseOutUnits = blockette.getFieldValue(6, 0);
              }
              else {
-               System.out.println("Error: Stage 2 does not appear to contain Blockette Number = 54");
+               System.out.format("== Error: Stage 2 does not appear to contain Blockette B054 [Channel=%s-%s]\n", channel.getLocation(), channel.getName());
              }
              if (stage.hasBlockette(58)) {
                blockette = stage.getBlockette(58); 
@@ -301,11 +336,23 @@ public class MetaGenerator
                //channelMeta.addStage(responseStage);
              }
              else {
-               System.out.println("Error: Stage 2 does not appear to contain Blockette Number = 58");
+               System.out.format("== Error: Stage 2 does not appear to contain Blockette B058 [Channel=%s-%s]\n", channel.getLocation(), channel.getName());
              }
            }
+/**
+     [java] == Error: There is NO Stage 2 for this epoch: [Channel=30-LDO]
+     [java] == Error: There is NO Stage 2 for this epoch: [Channel=50-LIO]
+     [java] == Error: There is NO Stage 2 for this epoch: [Channel=50-LKO]
+     [java] == Error: There is NO Stage 2 for this epoch: [Channel=50-LRH]
+     [java] == Error: There is NO Stage 2 for this epoch: [Channel=50-LRI]
+     [java] == Error: There is NO Stage 2 for this epoch: [Channel=50-LWD]
+     [java] == Error: There is NO Stage 2 for this epoch: [Channel=50-LWS]
+**/
            else {
-               System.out.println("== There is NO Stage:2 for this Channel + Epoch !");
+             String excludeCodes = "MDIKRW"; // Channel codes that we DON'T expect to have a stage 2 (e.g., VM?, LD?, LIO, etc.)
+             if (!excludeCodes.contains(channel.getName().substring(1,2))) {
+               System.out.format("== Error: There is NO Stage 2 for this epoch: [Channel=%s-%s]\n", channel.getLocation(), channel.getName());
+             }
            }
 
            channelMeta.setAzimuth(epochData.getAzimuth() );
@@ -318,7 +365,7 @@ public class MetaGenerator
            //System.out.format("==Dip=%.2f Azim=%.2f SampRate=%.2f\n",channelMeta.getDip(), channelMeta.getAzimuth(), channelMeta.getSampleRate() ); 
         }
         else {
-             System.out.format("==No Response found for this Channel + Epoch\n");
+             //System.out.format("==No Response found for this Channel + Epoch\n");
         }
       }
 

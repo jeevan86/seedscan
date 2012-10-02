@@ -44,81 +44,59 @@ extends Metric
 
     public void process()
     {
-
            System.out.format("\n              [ == Metric %s == ]\n", getName() ); 
 
    // Grab station metadata for all channels for this day:
-           StationMeta stnMeta = data.getMetaData();
+           StationMeta stnMeta = metricData.getMetaData();
 
-   // Create a 3-channel array and check that we have metadata for all 3 channels:
+   // Create a 3-channel array to use for loop
            ChannelArray channelArray = new ChannelArray("00","BHZ", "BH1", "BH2");
-
-           if (stnMeta.hasChannels(channelArray) ){
-              //System.out.println("== Found metadata for all 3 channels for this epoch");
-           }
-           else {
-              System.out.println("== Channel Meta not found for this epoch");
-           }
-
            ArrayList<Channel> channels = channelArray.getChannels();
 
-           result = new MetricResult();
-   // Loop over channels, get metadata & data for channel and Do Something ...
+           metricResult = new MetricResult();
+
+   // Loop over channels, get metadata & data for channel and Calculate Metric
 
            for (Channel channel : channels){
-             int totalPoints  = 0;
 
              ChannelMeta chanMeta = stnMeta.getChanMeta(channel);
-             if (chanMeta == null){
-               System.out.format("%s Error: stnMeta.getChannel returned null for channel=%s\n", getName(), channel.getChannel());
+             if (chanMeta == null){ // Skip channel, we have no metadata for it
+               System.out.format("%s Error: metadata not found for requested channel:%s --> Skipping\n", getName(), channel.getChannel());
+               continue;
              }
-             else {
-               if (chanMeta.hasDayBreak() ){ // Check to see if the metadata for this channel changes during this day
-                  System.out.format("%s Error: channel=%s metadata has a break!\n", getName(), channel.getChannel() );
-               }
-             } // end chanMeta for this channel
-
-// Maybe getSampleRate() should return integer ??
-             int sampleRate = (int)chanMeta.getSampleRate();
-
-        // Get DataSet(s) for this channel
-             ArrayList<DataSet>datasets = data.getChannelData(channel);
-             if (datasets == null){
-               System.out.format("%s Error: No data for requested channel:%s\n", getName(), channel.getChannel());
+             ArrayList<DataSet>datasets = metricData.getChannelData(channel);
+             if (datasets == null){ // Skip channel, we have no data for it
+               System.out.format("%s Error: No data for requested channel:%s --> Skipping\n", getName(), channel.getChannel());
+               continue;
              }
-             else {
-               for (DataSet dataset : datasets) {
-                 String knet    = dataset.getNetwork(); String kstn = dataset.getStation();
-                 String locn    = dataset.getLocation();String kchn = dataset.getChannel();
-                 double srate   = dataset.getSampleRate();
-                 long startTime = dataset.getStartTime();  // microsecs since Jan. 1, 1970
-                 long endTime   = dataset.getEndTime();
-                 long interval  = dataset.getInterval();
-                 int length     = dataset.getLength();
-                 Calendar startTimestamp = new GregorianCalendar();
-                 startTimestamp.setTimeInMillis(startTime/1000);
-                 Calendar endTimestamp = new GregorianCalendar();
-                 endTimestamp.setTimeInMillis(endTime/1000);
+             if (!metricData.hashChanged(channel)) { // Skip channel, we don't need to recompute the metric
+               System.out.format("%s INFO: Data and metadata have NOT changed for this channel:%s --> Skipping\n", getName(), channel.getChannel());
+               continue;
+             }
 
-                 totalPoints += dataset.getLength();
+          // If we're here, it means we need to (re)compute the metric for this channel:
 
-               } // end for each dataset
-             }// end else (= we DO have data for this channel)
+             int ndata    = 0;
+             String dataHashString = null;
 
-             int expectedPoints = sampleRate * 24 * 60 * 60; 
-         
-             double availability = 100 * totalPoints/expectedPoints;
+             for (DataSet dataset : datasets) {
+               ndata   += dataset.getLength();
+               dataHashString = dataset.getDigestString();
+             } // end for each dataset
 
-             System.out.format("%s-%s [%s] %s %s-%s ", stnMeta.getStation(), stnMeta.getNetwork(),
-               EpochData.epochToDateString(stnMeta.getTimestamp()), getName(), chanMeta.getLocation(), chanMeta.getName() );
-             System.out.format("totalPoints:%d (%.0f%%) %s\n", totalPoints, availability, chanMeta.getDigestString()); 
+             int expectedPoints  = (int)chanMeta.getSampleRate() * 24 * 60 * 60; 
+             double availability = 100 * ndata/expectedPoints;
 
              String key   = getName() + "+Channel(s)=" + channel.getLocation() + "-" + channel.getChannel();
              String value = String.format("%.2f",availability);
-             result.addResult(key, value);
+             metricResult.addResult(key, value);
+
+             System.out.format("%s-%s [%s] %s %s-%s ", stnMeta.getStation(), stnMeta.getNetwork(),
+               EpochData.epochToDateString(stnMeta.getTimestamp()), getName(), chanMeta.getLocation(), chanMeta.getName() );
+             System.out.format("ndata:%d (%.0f%%) %s %s\n", ndata, availability, chanMeta.getDigestString(), dataHashString); 
 
            }// end foreach channel
 
-     }
+     } // end process()
 }
 

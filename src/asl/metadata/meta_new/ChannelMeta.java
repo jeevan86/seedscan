@@ -246,21 +246,64 @@ public class ChannelMeta extends MemberDigest
 
 //  Return complex response computed at given freqs[0,...length]
 
-    public Cmplx[] getResponse(double[] freqs){
+/**
+    @outUnits = 0 Return Response in default units of seed file]
+    @outUnits = 1 Return [Displacement] Response
+    @outUnits = 2 Return [Velocity    ] Response
+    @outUnits = 3 Return [Acceleration] Response
+**/
+    public Cmplx[] getResponse(double[] freqs, int outUnits){
+
+      if (outUnits < 0 || outUnits > 3) {
+          throw new RuntimeException("getResponse(): Requested outUnits Unrecognized");
+      }
 
       if (freqs.length == 0) {
-        throw new RuntimeException("getResponse(): freqs.length = 0!");
+          throw new RuntimeException("getResponse(): freqs.length = 0!");
       }
       if (invalidResponse()) {
-        throw new RuntimeException("getResponse(): Invalid Response!");
+          throw new RuntimeException("getResponse(): Invalid Response!");
       }
       Cmplx[] response = null;
 
  // Set response = polezero response (with A0 factored in):
       ResponseStage stage = stages.get(1);
+      int stageUnitsIn    = stage.getInputUnits();
       if (stage instanceof PoleZeroStage){
-        PoleZeroStage pz = (PoleZeroStage)stage;
-        response = pz.getResponse(freqs);
+          PoleZeroStage pz = (PoleZeroStage)stage;
+          response = pz.getResponse(freqs);
+
+ // We need to convert the returned response if the desired response units != the stored response units:
+ // inUnit
+ //   1 - Displacement
+ //   2 - Velocity
+ //   3 - Acceleration
+ // X(w) = U(w)/I(w) --> X'(w) = (iw)X(w) = U(w)/I'(w), where I'(w)=I(w)/(iw)
+ //  so, for instance, if the response units are Velocity (inUnits=2) and we want our 
+ //  output units = Acceleration (outUnits=3), then
+ //  n = 3 - 2 = 1, and we return I'(w)=I(w)/(iw) = -i/w * I(w)
+ //  So, differentiation n times: multiply I(w) by (-i/w)^n
+ //      integration     n times: multiply I(w) by (iw)^n
+
+        int inUnits = stage.getInputUnits();
+        if (inUnits > 0) {
+            int n = outUnits - inUnits;
+            if (n < 0) {
+                for (int i=0; i<freqs.length; i++){
+                  Cmplx iw    = new Cmplx(0.0, 2*Math.PI*freqs[i]);
+                  for (int j=1; j<n; j++) iw = Cmplx.mul(iw, iw);
+                  response[i] = Cmplx.mul(iw, response[i]);
+                }
+            }
+            else if (n > 0) {
+                for (int i=0; i<freqs.length; i++){
+                  Cmplx iw    = new Cmplx(0.0, -1.0/(2*Math.PI*freqs[i]) );
+                  for (int j=1; j<Math.abs(n); j++) iw = Cmplx.mul(iw, iw);
+                  response[i] = Cmplx.mul(iw, response[i]);
+                }
+            }
+        } // end mul by (iw)^n
+
         //pz.print();
       }
       else {
@@ -275,6 +318,7 @@ public class ChannelMeta extends MemberDigest
       for (int i=0; i<freqs.length; i++){
         response[i] = Cmplx.mul(scale, response[i]);
       }
+
       return response;
 }
 

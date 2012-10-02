@@ -21,12 +21,14 @@ package asl.metadata.meta_new;
 
 public abstract class ResponseStage implements Comparable<ResponseStage>
 {
-    protected int stageNumber;
-    protected char stageType;
+    protected int    stageNumber;
+    protected char   stageType;
     protected double stageGain; 
     protected double stageGainFrequency; 
-    protected String inputUnits; 
-    protected String outputUnits; 
+    protected int    inputUnits; 
+    protected int    outputUnits; 
+    protected String inputUnitsString; 
+    protected String outputUnitsString; 
 /** 
  * Every response stage type will contain generic info from SEED 
  *  Blockette B058 (e.g., Stage Gain, Frequency of Gain) here.
@@ -34,12 +36,12 @@ public abstract class ResponseStage implements Comparable<ResponseStage>
  * In addition, info that is unique to a particular stage type will be stored 
  *   in the child class for that type (PoleZeroStage, PolynomialStage, etc.)
  *
- *   Stage Type			SEED Blockette(s)	Child Class
- * ---------------------------  -----------------	--------------
- * A [Analog Response rad/sec]	B053 			PoleZeroStage
- * B [Analog Response Hz]	B053 			PoleZeroStage
- * D [Digital]			B062			PolynomialStage
- * P [Polynomial]		B054, B057		DigitalStage
+ *   Stage Type             SEED Blockette(s)   Child Class
+ * ----------------------------------------------------------
+ * A [Analog Response rad/sec]  B053        PoleZeroStage
+ * B [Analog Response Hz]       B053        PoleZeroStage
+ * D [Digital]                  B062        PolynomialStage
+ * P [Polynomial]               B054, B057  DigitalStage
  *
 **/
 
@@ -52,17 +54,76 @@ public abstract class ResponseStage implements Comparable<ResponseStage>
         stageGainFrequency   = frequency;
     }
 
-    public void setInputUnits(String inputUnits){
-      this.inputUnits = inputUnits;
+    public void setInputUnits(String inputUnitsString){
+      this.inputUnitsString = inputUnitsString;
+
+   // Set inputUnits of this stage:
+   //     0 = Unknown 
+   //     1 = Displacement (m)
+   //     2 = Velocity (m/s)
+   //     3 = Acceleration (m/s^2)
+   //     4 = Pressure (Pa) 
+   //     5 = Pressure (KPa) 
+   //     6 = Magnetic Flux Density (Teslas - T)
+   //     7 = Magnetic Flux Density (nanoTeslas - NT)
+   //     8 = Degrees Centigrade (C)
+   //     9 = Degrees Orientation 0-360 (theta)
+   //    10 = Volts (V)
+
+      if (inputUnitsString.contains("Displacement")      || inputUnitsString.contains("displacement") ){
+          inputUnits = 1;
+      }
+      else if (inputUnitsString.contains("Velocity")     || inputUnitsString.contains("velocity") ){
+          inputUnits = 2;
+      }
+      else if (inputUnitsString.contains("Acceleration") || inputUnitsString.contains("M/S**2") ){
+          inputUnits = 3;
+      }
+      else if (inputUnitsString.contains("Pressure") ){
+           if (inputUnitsString.contains("KPA")){
+               inputUnits = 5;
+           }
+           else  {
+               inputUnits = 4;
+           }
+      }
+      else if (inputUnitsString.contains("Magnetic") ){
+           if (inputUnitsString.contains("nanoTeslas")){
+               inputUnits = 7;
+           }
+           else  {
+               inputUnits = 6;
+           }
+      }
+      else if (inputUnitsString.contains("Degrees") ){
+           if (inputUnitsString.contains("Centigrade")){
+               inputUnits = 8;
+           }
+           else  {
+               inputUnits = 9;
+           }
+      }
+      else if (inputUnitsString.contains("Volts") || inputUnitsString.contains("VOLTS") ){
+          inputUnits = 10;
+      }
+      else {                // We didn't find anything
+          inputUnits = 0;
+      }
+
     }
-    public void setOutputUnits(String outputUnits){
-      this.outputUnits = outputUnits;
+
+
+    public void setOutputUnits(String outputUnitsString){
+      this.outputUnitsString = outputUnitsString;
     }
-    public String getInputUnits(){
+    public int getInputUnits(){
       return inputUnits;
     }
-    public String getOutputUnits(){
-      return outputUnits;
+    public String getInputUnitsString(){
+      return inputUnitsString;
+    }
+    public String getOutputUnitsString(){
+      return outputUnitsString;
     }
     public double getStageGainFrequency(){
       return stageGainFrequency;
@@ -90,7 +151,7 @@ public abstract class ResponseStage implements Comparable<ResponseStage>
       StringBuilder result = new StringBuilder();
       String NEW_LINE = System.getProperty("line.separator");
       result.append(String.format("Stage:%d  [Type='%1s'] Gain=%.2f FreqOfGain=%.2f\n",stageNumber,stageType,stageGain,stageGainFrequency) );
-      result.append(String.format("Units In:[%s]  Units Out:[%s]\n",inputUnits, outputUnits) );
+      result.append(String.format("Units In:[%s]  Units Out:[%s]\n",inputUnitsString, outputUnits) );
       return result.toString();
     }
 

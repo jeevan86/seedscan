@@ -1,0 +1,261 @@
+/*
+ * Copyright 2012, United States Geological Survey or
+ * third-party contributors as indicated by the @author tags.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
+ *
+ */
+package timeutils;
+
+import java.io.PrintWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+
+public class Timeseries
+{
+    public static void detrend(double[] timeseries)
+    {
+       int ndata = timeseries.length;
+       double sumx=0.0;
+       double sumxx=0.0;
+       double sumy=0.0;
+       double sumyy=0.0;
+       double sumxy=0.0;
+
+       for(int i=0;i<ndata;i++)
+       {
+          sumx  +=(double)i;
+          sumxx +=(double)i*(double)i;
+          sumy  +=timeseries[i];
+          sumyy +=timeseries[i]*timeseries[i];
+          sumxy +=(double)i*timeseries[i];
+       }
+
+       double del   = sumxx - sumx*sumx/(double)ndata;
+       double slope = sumxy - sumx*sumy/(double)ndata;
+       slope /= del;
+       double yoff = (sumxx*sumy - sumx*sumxy);
+       yoff  /= (double)ndata*del;
+
+       for (int i=0; i<ndata; i++){
+         timeseries[i] -= (slope * (double)i + yoff);
+       }
+
+       //return timeseries;
+    }
+
+    public static void debias(double[] timeseries)
+    {
+       double mean=0;
+       for (int i=0; i<timeseries.length; i++){
+         mean += timeseries[i];
+       }
+       mean /= (double)timeseries.length;
+       if (mean == 0.) { // Should we check for abs(mean) < someThreshold instead ... ?
+         throw new RuntimeException("Error: debias: mean=0 --> divide by zero!");
+       }
+       for (int i=0; i<timeseries.length; i++){
+         timeseries[i] -= mean;
+       }
+    }
+
+    public static double costaper(double[] timeseries, double width)
+    {
+        int n=timeseries.length;
+        double ramp = width*(double)n;
+        double taper;
+        double Wss=0;
+
+        for (int i = 0; i < ramp; i++) {
+            taper = 0.5 * ( 1.0 - Math.cos( (double)i * Math.PI / ramp ) );
+            timeseries[i] *= taper;
+            timeseries[n - i - 1] *= taper;
+            Wss += 2.0*taper*taper;
+        }   
+        Wss += (double)(n - 2.*ramp);   
+        return Wss;   
+    }
+
+
+    double taper(double[] timeseries, int type)
+    {
+       double taper=0;
+       double Wss=0;
+       int n=timeseries.length;
+
+       switch (type) {
+           case 0: // Default = Rectangular window
+             for(int i = 0; i < n; i++){
+               taper = 1.0;
+               timeseries[i] *= taper;
+               Wss += taper*taper;
+             }
+             break;
+           case 1: // Hann window
+             for(int i = 0; i < n; i++){
+               taper = (0.5 - 0.5*Math.cos(2*Math.PI*(double)i/(double)n));
+               timeseries[i] *= taper;
+               Wss += taper*taper;
+             }
+             break;
+           case 2: // Hamming window 
+             for(int i = 0; i < n; i++){
+               taper = (0.54 - 0.46*Math.cos(2*Math.PI*(double)i/(double)n));
+               timeseries[i] *= taper;
+               Wss += taper*taper;
+             }
+             break;
+           case 3: // Blackman window 
+           case 4: // Welch window 
+             for(int i = 0; i < n; i++){
+               taper = ( (double)i - (double)(n-1)/2. ) / ( (double)(n-1)/2. );
+               timeseries[i] *= (1.0 - taper*taper);
+               Wss += taper*taper;
+             }
+             break;
+           case 5: // Bartlett window (=Triangle window)
+             for(int i = 0; i < n; i++){
+               taper = ( (double)i - (double)(n-1)/2. ) / ( (double)(n-1)/2. );
+               timeseries[i] *= (1.0 - taper);
+               Wss += taper*taper;
+             }
+             break;
+       } //end switch
+       return Wss;
+    }
+
+    public static void timeoutXY(Double[] x, Double[] y, String filename)
+    {
+        double[] xdouble = new double[x.length];
+        double[] ydouble = new double[y.length];
+        for (int i=0; i<x.length; i++) xdouble[i] = x[i];
+        for (int i=0; i<y.length; i++) ydouble[i] = y[i];
+        timeoutXY(xdouble, ydouble, filename);
+    }
+
+    public static void timeoutXY(double[] x, double[] y, String filename)
+    {
+       PrintWriter out=null;
+       try {
+         out = new PrintWriter(new FileWriter(filename));
+         for (int i = 0; i < y.length; i++)
+           out.format("%12.6f %12.6f \n", x[i], y[i]);
+       } 
+       catch (IOException e) {
+         System.err.println("Caught IOException: " +  e.getMessage());
+       } 
+       finally {
+         if (out != null) out.close();
+       }
+    }
+
+    public static void timeout(double[] timeseries, String filename)
+    {
+       PrintWriter out=null;
+       try {
+         out = new PrintWriter(new FileWriter(filename));
+         for (int i = 0; i < timeseries.length; i++)
+           out.format("%f\n", timeseries[i]);
+       } 
+       catch (IOException e) {
+         System.err.println("Caught IOException: " +  e.getMessage());
+       } 
+       finally {
+         if (out != null) out.close();
+       }
+    }
+
+    void timeout(float[] timeseries, String filename)
+    {
+       PrintWriter out=null;
+       try {
+         out = new PrintWriter(new FileWriter(filename));
+         for (int i = 0; i < timeseries.length; i++)
+           out.format("%f\n", timeseries[i]);
+       } 
+       catch (IOException e) {
+         System.err.println("Caught IOException: " +  e.getMessage());
+       } 
+       finally {
+         if (out != null) out.close();
+       }
+    }
+
+//  Numerical Recipes cubic spline interpolation (spline.c and splint.c)
+//    Expects arrays with +1 offset: x[1,...,n], etc. - we will pass it arrays
+//                   with  0 offset: x[0,1,...,n] and ignore the first points. 
+
+    public static void spline(double[] x, double[] y, int n, double yp1, double ypn, double[] y2) {
+
+        double p,qn,sig,un; 
+        p=qn=sig=un=0;
+
+        //u=vector(1,n-1);
+        double[] u = new double[n];
+
+        if (yp1 > 0.99e30) y2[1]=u[1]=0.0;
+        else {
+                y2[1] = -0.5;
+                u[1]=(3.0/(x[2]-x[1]))*((y[2]-y[1])/(x[2]-x[1])-yp1);
+        }
+        for (int i=2;i<=n-1;i++) {
+                sig=(x[i]-x[i-1])/(x[i+1]-x[i-1]);
+                p=sig*y2[i-1]+2.0;
+                y2[i]=(sig-1.0)/p;
+                u[i]=(y[i+1]-y[i])/(x[i+1]-x[i]) - (y[i]-y[i-1])/(x[i]-x[i-1]);
+                u[i]=(6.0*u[i]/(x[i+1]-x[i-1])-sig*u[i-1])/p;
+        }
+        if (ypn > 0.99e30)
+                qn=un=0.0;
+        else {
+                qn=0.5;
+                un=(3.0/(x[n]-x[n-1]))*(ypn-(y[n]-y[n-1])/(x[n]-x[n-1]));
+        }
+        y2[n]=(un-qn*u[n-1])/(qn*y2[n-1]+1.0);
+        for (int k=n-1;k>=1;k--)
+                y2[k]=y2[k]*y2[k+1]+u[k];
+
+    } 
+
+// Same as above (+1 offset arrays) & y=double[1] is used to pass out the interpolated value (y=f(x)).
+
+    public static void splint(double[] xa, double[] ya, double[] y2a, int n, double x, double[] y) {
+
+        int klo,khi,k;
+        double h,b,a;
+
+        klo=1;
+        khi=n;
+        while (khi-klo > 1) {
+                k=(khi+klo) >> 1;
+                if (xa[k] > x) khi=k;
+                else klo=k;
+        }
+        h=xa[khi]-xa[klo];
+        //if (h == 0.0) nrerror("Bad XA input to routine SPLINT");
+        if (h == 0.0) System.out.format("Bad XA input to routine SPLINT\n");
+
+        a=(xa[khi]-x)/h;
+        b=(x-xa[klo])/h;
+        //*y=a*ya[klo]+b*ya[khi]+((a*a*a-a)*y2a[klo]+(b*b*b-b)*y2a[khi])*(h*h)/6.0;
+        y[0]=a*ya[klo]+b*ya[khi]+((a*a*a-a)*y2a[klo]+(b*b*b-b)*y2a[khi])*(h*h)/6.0;
+    } 
+
+
+
+
+
+
+}
+

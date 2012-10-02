@@ -87,6 +87,13 @@ public class Scanner
         timestamp.set(Calendar.HOUR_OF_DAY, 0);      timestamp.set(Calendar.MINUTE, 0);
         timestamp.set(Calendar.SECOND, 0);      timestamp.set(Calendar.MILLISECOND, 0);
 
+     // Read in all metadata for this station (all channels + all days):
+        MetaGenerator metaGen = new MetaGenerator(station);
+        if (!metaGen.isLoaded()) {    // No Metadata found for this station --> Skip station == End thread ??
+            System.out.format("Scanner Error: No Metadata found for Station:%s_%s --> Skip this Station\n", station.getNetwork(), station.getStation());
+            return;
+        }
+
      // Loop over days to scan
 
         for (int i=0; i < scan.getDaysToScan(); i++) {
@@ -94,9 +101,17 @@ public class Scanner
                 timestamp.setTimeInMillis(timestamp.getTimeInMillis() - dayMilliseconds);
             }
 
-            System.out.format("==Scanner: scan Day=%s\n", EpochData.epochToDateString(timestamp) );
+            System.out.format("\n==Scanner: scan Day=%s Station=%s\n", EpochData.epochToDateString(timestamp), station);
 
-// [1] Read in all the seed files for this station, for this day
+// [1] Get all the channel metadata for this station, for this day
+            StationMeta stnMeta = metaGen.getStationMeta(station, timestamp); 
+            if (stnMeta == null) { // No Metadata found for this station + this day --> skip day
+               System.out.format("Scanner Error: No Metadata found for Station:%s_%s + Day:%s --> Skipping\n", station.getNetwork(), station.getStation(),
+                                  EpochData.epochToDateString(timestamp) );
+               continue;
+            }
+
+// [2] Read in all the seed files for this station, for this day
 
             ArchivePath pathEngine = new ArchivePath(timestamp, station);
             String path = pathEngine.makePath(scan.getPathPattern());
@@ -138,15 +153,17 @@ public class Scanner
             SeedSplitter splitter = new SeedSplitter(files, progressQueue);
             table = splitter.doInBackground();
 
+/** These digests are empty:
+            String DigestStrings[] = splitter.getDigests();
+            System.out.format("==Scanner: got %d digestString(s)\n", DigestStrings.length );
+
+            for (String digestString : DigestStrings) {
+              System.out.format("==Scanner: digestString=%s\n", digestString );
+            }
+**/
+
             Runtime runtime = Runtime.getRuntime();
             System.out.println(" Java total memory=" + runtime.totalMemory() );
-
-
-// [2] Read in all the metadata for this station, for this day
-
-            MetaGenerator metaGen = new MetaGenerator();
-            StationMeta stnMeta = metaGen.getStationMeta(station, timestamp); 
-            System.out.format("==Scanner: scan Day=%s\n", EpochData.epochToDateString(timestamp) );
 
 // [3] Loop over Metrics to compute, for this station, for this day
             MetricData metricData = new MetricData(table, stnMeta);

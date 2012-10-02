@@ -74,5 +74,10 @@ public class Station
     public String getStation() {
         return station;
     }
+
+    @Override public String toString() {
+      return this.getNetwork() + "_" + this.getStation();
+    }
+
 }
 
