@@ -70,6 +70,7 @@ package seed;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -78,327 +79,238 @@ import java.util.Collection;
  *
  * @author Joel Edwards <jdedwards@usgs.gov>
  */
-public class Blockette2000 {
+public class Blockette2000
+extends Blockette
+{
+    public static final short FIXED_LENGTH = 15;
+    public static final ByteOrder DEFAULT_WORD_ORDER = ByteOrder.BIG_ENDIAN; 
+    public static final Charset TAG_CHARSET = Charset.forName("UTF-8");
 
-    //ByteBuffer buffer;
-    private ByteOrder byteOrder = ByteOrder.BIG_ENDIAN;
-
-    // Blockette 2000 Data Fields
-    private short nextBlocketteOffset = 0;
-    private int recordNumber = 0;
-    private ByteOrder wordOrder = ByteOrder.BIG_ENDIAN;
-    private byte flags = 0;
-
-    private Collection<String> tags = null;
-
-    private byte[] opaqueData = null;
-
-    private void _init(ByteOrder byteOrder)
+    @Override public short blocketteNumber()
     {
-        this.byteOrder = byteOrder;
-        tags = new ArrayList<String>();
+        return 2000;
     }
 
     /** Creates a new instance of Blockette2000
      *
-     * @param byteOrder - byte order of the blockette 2000 header
      */
-    public Blockette2000(ByteOrder byteOrder)
+    public Blockette2000()
     {
-        _init(byteOrder);
-    }
+        super(FIXED_LENGTH);
+
+        bb.position(4);
+        bb.putShort(FIXED_LENGTH); // Blockette length is header length for now
+        bb.putShort(FIXED_LENGTH); // Offset is same is header length with no tags
+
+        bb.position(14);
+        bb.put((byte)0); // Zero tags to start
+
+        setRecordNumber(0);
+        setOpaqueByteOrder(DEFAULT_WORD_ORDER);
+        setStrict(false);
+        try { setOpaqueState(OpaqueState.RECORD); }
+        catch (OpaqueStateException ex) { throw new RuntimeException("This should be impossible!"); } }
 
     /** Creates a new instance of Blockette2000
      *
      * @param blockette - The raw bytes from an existing blockette 2000
-     * @param byteOrder - byte order of the blockette 2000 header
      */
-    public Blockette2000(Collection<ByteBuffer> blockettes, ByteOrder byteOrder)
-    throws WrongBlocketteNumberException
+    public Blockette2000(byte[] b)
     {
-        reload(blockettes, byteOrder);
+        super(b);
     }
 
-    /** get the resulting blockettes
-     *
-     * @param blockettes - one or more type 2000 blockettes which contain an opaque data set
-     * @param byteOrder  - the byte order to the blockettes header (not the opaque data itself)
-     */
-    public void reload(Collection<ByteBuffer> blockettes, ByteOrder byteOrder)
-    throws WrongBlocketteNumberException
+    public short getBlocketteLength()
     {
-        _init(byteOrder);
-        byte[] data;
-        for (ByteBuffer bb: blockettes) {
-            bb.order(byteOrder);
-            int blocketteType = (int) bb.getShort();
-            if (blocketteType != 2000) {
-                throw new WrongBlocketteNumberException("Require type 2000, received type " + blocketteType);
-            }
-
-            nextBlocketteOffset = bb.getShort();
-            int totalBlocketteLength = bb.getShort();
-            int offsetToOpaqueData = bb.getShort();
-            recordNumber = bb.getInt();
-            wordOrder = (bb.get() == 0) ? ByteOrder.LITTLE_ENDIAN : ByteOrder.BIG_ENDIAN;
-            flags = bb.get();
-
-            int tagCount = bb.get();
-            int tagsLength = offsetToOpaqueData - 15 /* Fixed part of header */ ;
-            byte[] tagsBuffer = new byte[tagsLength];
-            bb.get(tagsBuffer, 0, tagsLength);
-            String tagsString = new String(tagsBuffer);
-            String[] parts = tagsString.split("~");
-            for (int i = 0; i < (parts.length - 1); i++) {
-                tags.add(parts[i]);
-            }
-            
-            int opaqueLength = totalBlocketteLength - offsetToOpaqueData;
-            opaqueData = new byte[opaqueLength];
-            bb.get(opaqueData, 0, opaqueLength);
-        }
+        bb.position(4);
+        return bb.getShort();
     }
 
-    /** get the resulting blockettes
-     *
-     * @return One or more type 2000 blockettes assembled from the supplied values
-     */
-    public Collection<ByteBuffer> getBlockettes(int maxBlocketteLength)
+    public short getHeaderLength()
     {
-        ArrayList<ByteBuffer> blockettes = new ArrayList<ByteBuffer>();
-
-        short headerLength = 15; // Length of fixed part of header
-        for (String tag: tags) {
-            headerLength += tag.length() + 1;
-        }
-        int maxDataLength = maxBlocketteLength - headerLength;
-        int bytesRemaining = opaqueData.length;
-
-        boolean first = true;
-        while (bytesRemaining > 0) {
-            int dataBytes = Math.min(maxDataLength, bytesRemaining);
-            bytesRemaining -= dataBytes;
-            
-            if (first) {
-            }
-
-            int blocketteLength = headerLength + dataBytes;
-
-            ByteBuffer bb = ByteBuffer.allocate(blocketteLength);
-
-            bb.putShort((short)2000);
-            bb.putShort(nextBlocketteOffset);
-            bb.putShort((short)blocketteLength);
-            bb.putShort(headerLength);
-            bb.putInt(recordNumber);
-            bb.put((byte)((wordOrder == ByteOrder.LITTLE_ENDIAN) ? 0 : 1));
-            bb.put(flags);
-            bb.put((byte)tags.size());
-            for (String tag: tags) {
-                bb.put((tag + "~").getBytes());
-            }
-            bb.put(opaqueData);
-
-            blockettes.add(bb);
-        }
-
-        return blockettes;
+        bb.position(6);
+        return bb.getShort();
     }
 
-    public void setNextBlocketteOffset(short offset)
-    {
-        nextBlocketteOffset = offset;
-    }
-
-    public short getNextBlocketteOffset() {
-        return nextBlocketteOffset;
-    }
-
+// Record number
     public void setRecordNumber(int recordNumber)
     {
-        this.recordNumber = recordNumber;
+        bb.position(8);
+        bb.putInt(recordNumber);
     }
 
     public int getRecordNumber()
     {
-        return recordNumber;
+        bb.position(8);
+        return bb.getInt();
     }
 
-    public void setWordOrder(ByteOrder wordOrder)
+// Opaque data word order
+    public void setOpaqueByteOrder(ByteOrder byteOrder)
     {
-        this.wordOrder = wordOrder;
+        buf[12] = (byte)((byteOrder == ByteOrder.LITTLE_ENDIAN) ? 0 : 1);
     }
 
-    public ByteOrder getWordOrder()
+    public ByteOrder getOpaqueByteOrder()
     {
-        return wordOrder;
+        return (buf[12] == 0) ? ByteOrder.LITTLE_ENDIAN : ByteOrder.BIG_ENDIAN;
     }
 
-    public void setFlags(byte flags)
+// Data uses timestamp from the MiniSEED record
+    public void setStrict(boolean strict)
     {
-        this.flags = flags;
-    }
-
-    public int getFlags()
-    {
-        return flags;
-    }
-
-//  Orientation Flag (Stream or Record)
-    public void setStreamOriented(boolean streamOriented)
-    {
-        if (streamOriented) {
-            flags |= 0x01;
-        }
-        else {
-            flags &= (0xff ^ 0x01);
+        if (strict) {
+            buf[13] |= 0x02;
+        } else {
+            buf[13] &= 0xfd;
         }
     }
 
-    public boolean getStreamOriented()
+    public boolean getStrict()
     {
-        return ((flags & 0x01) == 0x01);
+        return ((buf[13] & 0x02) == 0x02);
     }
 
-
-//  Packaging Flag (If strict, do not re-package opaque data from MiniSEED records with different timestamps
-    public void setStrictPackaging(boolean strictPackaging)
+// States drive the orientation and continuation flags
+    public void setOpaqueState(OpaqueState state)
+    throws OpaqueStateException
     {
-        if (strictPackaging) {
-            flags |= 0x02;
+        // Mask off all state bits
+        buf[13] &= 0xc2;
+        switch (state) {
+            case RECORD       : break; // newFlags |= 0x00
+            case STREAM_START : buf[13] |= 0x05; break;
+            case STREAM_MID   : buf[13] |= 0x0d; break;
+            case STREAM_END   : buf[13] |= 0x09; break;
+            case FILE_START   : buf[13] |= 0x10; break;
+            case FILE_MID     : buf[13] |= 0x20; break;
+            case FILE_END     : buf[13] |= 0x30; break;
+            default   : throw new OpaqueStateException(String.format("State value %s", state));
         }
-        else {
-            flags &= (0xff & 0x02);
+    }
+
+    public OpaqueState getOpaqueState()
+    throws OpaqueStateException
+    {
+        OpaqueState state;
+        switch (buf[13] & 0x3d) {
+            case 0x00 : state = OpaqueState.RECORD; break;
+            case 0x05 : state = OpaqueState.STREAM_START; break;
+            case 0x0d : state = OpaqueState.STREAM_MID; break;
+            case 0x09 : state = OpaqueState.STREAM_END; break;
+            case 0x10 : state = OpaqueState.FILE_START; break;
+            case 0x20 : state = OpaqueState.FILE_MID; break;
+            case 0x30 : state = OpaqueState.FILE_END; break;
+            default   : throw new OpaqueStateException(String.format("State flags 0x%02x", buf[13] & 0x3d));
         }
+        return state;
     }
-
-    public boolean getStrictPackaging()
-    {
-        return ((flags & 0x02) == 0x02);
-    }
-
-// === Fragmentation Flags ===
-
-//  Fragmentation: Single Record - all data for this record id is contained in this blockette
-    public void setFragSingleRecord()
-    {
-        flags &= (0xff & 0x0c);
-    }
-
-    public boolean getFragSingleRecord()
-    {
-        return ((flags & 0x0c) == 0x00);
-    }
-
-//  Fragmentation: First Blockette - first blockette in a stream
-    public void setFragFirstBlockette()
-    {
-        flags &= (0xff & 0x0c);
-        flags |= 0x04;
-    }
-
-    public boolean getFragFirstBlockette()
-    {
-        return ((flags & 0x0c) == 0x04);
-    }
-
-//  Fragmentation: Continuation Blockette - one of the middle blockettes (not first or last) in a stream
-    public void setFragContinuationBlockette()
-    {
-        flags &= (0xff & 0x0c);
-        flags |= 0x0c;
-    }
-
-    public boolean getFragContinuationBlockette()
-    {
-        return ((flags & 0x0c) == 0x0c);
-    }
-
-//  Fragmentation: Last Blockette - last blockette in a stream
-    public void setFragLastBlockette()
-    {
-        flags &= (0xff & 0x0c);
-        flags |= 0x08;
-    }
-
-    public boolean getFragLastBlockette()
-    {
-        return ((flags & 0x0c) == 0x08);
-    }
-
-
-// === File Blockette Flags ===
-
-//  File: Single Record - all data for this record id is contained in this blockette
-    public void setFileSingleRecord()
-    {
-        flags &= (0xff & 0x30);
-    }
-
-    public boolean getFileSingleRecord()
-    {
-        return ((flags & 0x30) == 0x00);
-    }
-
-//  File: First Blockette - first blockette in a stream
-    public void setFileFirstBlockette()
-    {
-        flags &= (0xff & 0x30);
-        flags |= 0x10;
-    }
-
-    public boolean getFileFirstBlockette()
-    {
-        return ((flags & 0x30) == 0x10);
-    }
-
-//  File: Continuation Blockette - one of the middle blockettes (not first or last) in a stream
-    public void setFileContinuationBlockette()
-    {
-        flags &= (0xff & 0x30);
-        flags |= 0x20;
-    }
-
-    public boolean getFileContinuationBlockette()
-    {
-        return ((flags & 0x30) == 0x20);
-    }
-
-//  File: Last Blockette - last blockette in a stream
-    public void setFileLastBlockette()
-    {
-        flags &= (0xff & 0x30);
-        flags |= 0x30;
-    }
-
-    public boolean getFileLastBlockette()
-    {
-        return ((flags & 0x30) == 0x30);
-    }
-
 
 // === Tags ===
-
     public void setTags(Collection<String> tags)
     {
-        this.tags = tags;
+        short opaqueLength = getOpaqueLength();
+        short oldBlocketteLength = getBlocketteLength();
+        short oldHeaderLength = getHeaderLength();
+        short oldTagsLength = (short)(oldHeaderLength - FIXED_LENGTH);
+
+        String tagString = tagsToTagString(tags);
+        byte[] newTagsBuffer = tagStringToByteArray(tagString);
+
+        short newTagsLength = (short)newTagsBuffer.length;
+        short adjustment = (short)(newTagsLength - oldTagsLength);
+        if (adjustment != 0) {
+            short newBlocketteLength = (short)(oldBlocketteLength + adjustment);
+            short newHeaderLength = (short)(oldHeaderLength + adjustment);
+
+            // Move the opaque data so there is just enough room for the new
+            // tags between it and the header
+            reallocateBuffer(newBlocketteLength);
+            System.arraycopy(buf, oldHeaderLength, buf, newHeaderLength, opaqueLength);
+
+            // Update the length of the blockette
+            bb.position(4);
+            bb.putShort(newBlocketteLength);
+
+            // Update the length of the header
+            bb.position(6);
+            bb.putShort(newHeaderLength);
+        }
+        System.arraycopy(newTagsBuffer, 0, buf, FIXED_LENGTH, newTagsLength);
+
+        // Update the number of tags in the blockette
+        bb.position(14);
+        bb.put((byte)tags.size());
     }
 
     public Collection<String> getTags()
     {
+        ArrayList<String> tags = new ArrayList<String>(getTagCount());
+        String[] parts = getTagString().split("~");
+        for (int i = 0; i < getTagCount(); i++) {
+            tags.add(parts[i]);
+        }
         return tags;
     }
 
+    public String getTagString()
+    {
+        return new String(buf, FIXED_LENGTH, getTagsLength(), TAG_CHARSET);
+    }
 
+    public byte getTagCount()
+    {
+        return buf[14];
+    }
+
+    public short getTagsLength()
+    {
+        return (short)(getHeaderLength() - FIXED_LENGTH);
+    }
+
+    public static String tagsToTagString(Collection<String> tags)
+    {
+        String tagString = "";
+        for (String tag: tags) {
+            tagString += tag + "~";
+        }
+        return tagString;
+    }
+
+    public static byte[] tagStringToByteArray(String tagString)
+    {
+        return tagString.getBytes(TAG_CHARSET);
+    }
+
+    public static byte[] tagsToByteArray(Collection<String> tags)
+    {
+        return tagStringToByteArray(tagsToTagString(tags));
+    }
 
 // === Opaque Data ===
     public void setOpaqueData(byte[] data, int offset, int length)
     {
-        opaqueData = Arrays.copyOfRange(data, offset, offset+length);
+        short headerLength = getHeaderLength();
+        short oldBlocketteLength = getBlocketteLength();
+        short oldOpaqueLength = (short)(oldBlocketteLength - headerLength);
+        short adjustment = (short)(length - oldOpaqueLength);
+
+        if (adjustment != 0) {
+            short newBlocketteLength = (short)(oldBlocketteLength + adjustment);
+            bb.position(4);
+            bb.putShort(newBlocketteLength);
+            reallocateBuffer(newBlocketteLength);
+        }
+        System.arraycopy(data, offset, buf, headerLength, length);
     }
 
     public byte[] getOpaqueData()
     {
-        return opaqueData;
+        return Arrays.copyOfRange(buf, getHeaderLength(), getOpaqueLength());
+    }
+
+    public short getOpaqueLength()
+    {
+        return (short)(getBlocketteLength() - getHeaderLength());
     }
 }

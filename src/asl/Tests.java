@@ -63,5 +63,13 @@ public class Tests
         System.out.format(" multi-digest: d1 ^ d3 ^ d2 ^ d2 : %s\n", Hex.byteBufferToHexString(MemberDigest.multiDigest(coll), false));
         coll.add(d4);
         System.out.format(" multi-digest: d1 ^ d3 ^ d4      : %s\n", Hex.byteBufferToHexString(MemberDigest.multiDigest(coll), false));
+
+        String preSplit = "TAG1:TAG2:TAG3:";
+        System.out.format("\nSplitting string \"%s\"\n", preSplit);
+        int idx = 0;
+        for (String part: preSplit.split(":")) {
+            idx++;
+            System.out.format(" part %d: \"%s\"\n", part);
+        }
     }
 }

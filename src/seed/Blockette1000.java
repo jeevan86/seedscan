@@ -49,50 +49,40 @@ import java.nio.ByteBuffer;
  *
  * @author davidketchum
  */
-public class Blockette1000 {
-  
-  byte [] buf;
-  ByteBuffer bb;
-  /** Creates a new instance of Blockette1000
-   * @param b The block of 8 bytes to build this blockette 1000 from*/
-  public Blockette1000(byte [] b) {
-    buf = new byte[b.length];
-    bb = ByteBuffer.wrap(buf);
-    System.arraycopy(b,0, buf, 0, b.length);
-  }
-  public void reload(byte [] b) {System.arraycopy(b, 0, buf, 0, b.length);}
-  /** get the 8 raw bytes
-   *@return The 8 raw bytes in theis 1000 block */
-  public byte [] getBytes() {return buf;}
-  /** get encoding
-   *@return the encodeing 10-steim1, 11=steim2, 19=steim3*/
-  public int getEncoding() {return ((int) buf[4]) & 0xff;}
-  /** get record length is bytes
-   *@return The record length in bytes (512, 4096, etc)*/
-  public int getRecordLength() {return 1<< (int) buf[6];}
-  /** get word order
-   * @return true if bigEndian, false if little endian 
-   */
-  public boolean isBigEndian() {return (buf[5] != 0);}
-  /** set the encoding
-   *@param b The encoding to use (10-steim1, 11=steim2, 19=steim3*/
-  public void setEncoding(byte b) {buf[4] = b;}
-  public void setNextOffset(int i) {bb.position(2); bb.putShort((short) i);}
-  public short getNextOffset() {bb.position(2); return bb.getShort();}
-  /** string rep
-   *@return A string documenting this b1000 contents*/
-  @Override
-  public String toString() {return "(M:e="+getEncoding()+" l="+getRecordLength()+(isBigEndian()?"":"S")+")";}
-  /** set the record length
-   *@param len the record length in bytes */
-  public void setRecordLength(int len) {
-    int i = 0;
-    len = len >> 1;
-    while(len > 0) {
-      i++;
-      len = len >> 1;
+public class Blockette1000
+extends Blockette
+{
+    /** Creates a new instance of Blockette1000
+     * @param b The block of 8 bytes to build this blockette 1000 from*/
+    public Blockette1000(byte [] b) { super(b); }
+
+    @Override public short blocketteNumber() { return 1000; }
+
+    public int getEncoding() {return ((int) buf[4]) & 0xff;}
+    /** get record length is bytes
+     *@return The record length in bytes (512, 4096, etc)*/
+    public int getRecordLength() {return 1<< (int) buf[6];}
+    /** get word order
+     * @return true if bigEndian, false if little endian 
+     */
+    public boolean isBigEndian() {return (buf[5] != 0);}
+    /** set the encoding
+     *@param b The encoding to use (10-steim1, 11=steim2, 19=steim3*/
+    public void setEncoding(byte b) {buf[4] = b;}
+    /** string rep
+     *@return A string documenting this b1000 contents*/
+    @Override
+        public String toString() {return "(M:e="+getEncoding()+" l="+getRecordLength()+(isBigEndian()?"":"S")+")";}
+    /** set the record length
+     *@param len the record length in bytes */
+    public void setRecordLength(int len) {
+        int i = 0;
+        len = len >> 1;
+        while(len > 0) {
+            i++;
+            len = len >> 1;
+        }
+        buf[6] = (byte) i;
     }
-    buf[6] = (byte) i;
-  }
 
 }

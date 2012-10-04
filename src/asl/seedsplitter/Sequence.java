@@ -20,6 +20,7 @@ package asl.seedsplitter;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.GregorianCalendar;
 import java.util.logging.Logger;
 import java.util.TimeZone;
@@ -37,8 +38,8 @@ extends MemberDigest
 
     public static final int BLOCK_SIZE = 4096;
     private static TimeZone m_tz = TimeZone.getTimeZone("GMT");;
-    private BlockPool m_pool = null;
 
+    private BlockPool m_pool = null;
 
     private ArrayList<int[]> m_blocks = null;
     private int[] m_block = null;
@@ -49,6 +50,19 @@ extends MemberDigest
     private double m_sampleRate = 0.0;
     private long m_interval = 0;
 
+
+    public Object clone()
+    {
+        Sequence sequence     = new Sequence();
+        sequence.m_startTime  = m_startTime;
+        sequence.m_sampleRate = m_sampleRate;
+        sequence.m_interval   = m_interval;
+        for (int[] block: m_blocks) {
+            sequence.extend(block, 0, block.length); }
+        sequence.m_length     = m_length;
+        sequence.m_remainder  = m_remainder;
+        return sequence;
+    }
 
     /**
      * Creates a new instance of this object.
@@ -91,9 +105,11 @@ extends MemberDigest
     {
         addToDigest(m_startTime);
         addToDigest(m_sampleRate);
+        int remaining = m_blocks.size();
         for (int[] block: m_blocks) {
-            for (int sample: block) {
-                addToDigest(sample);
+            int numSamples = (--remaining > 0) ? BLOCK_SIZE : (BLOCK_SIZE - m_remainder);
+            for (int i = 0; i < numSamples; i++) {
+                addToDigest(block[i]);
             }
         }
     }
@@ -114,7 +130,7 @@ extends MemberDigest
      * @param   sampleRate  sample rate in Hz
      */
     public void setSampleRate(double sampleRate) 
-        throws IllegalSampleRateException
+    throws IllegalSampleRateException
     {
         try {
             m_interval = sampleRateToInterval(sampleRate);
@@ -148,7 +164,9 @@ extends MemberDigest
      * @throws  NullPointerException - if offset is null.
      */
     public void extend(int[] buffer, int offset, int length)
-        throws IndexOutOfBoundsException, ArrayStoreException, NullPointerException
+    throws IndexOutOfBoundsException,
+           ArrayStoreException,
+           NullPointerException
     {
         int copySize = 0;
         while (length > 0) {
@@ -271,7 +289,9 @@ extends MemberDigest
      *
      */
     public synchronized void mergeInto(Sequence seq) 
-        throws SequenceIntervalMismatchException, SequenceMergeRangeException, SequenceTimingException
+    throws SequenceIntervalMismatchException,
+           SequenceMergeRangeException,
+           SequenceTimingException
     {
         if (m_interval != seq.m_interval) {
             throw new SequenceIntervalMismatchException();
@@ -449,7 +469,7 @@ extends MemberDigest
      * @throws ArrayIndexOutOfBoundsException - index out of range (index < 0 || index >= getLength()).
      */
     public int[] getBlock(int index) 
-        throws ArrayIndexOutOfBoundsException 
+    throws ArrayIndexOutOfBoundsException 
     {
         return m_blocks.get(index);
     }
@@ -463,7 +483,7 @@ extends MemberDigest
      * @throws ArrayIndexOutOfBoundsException - index out of range (index < 0 || index >= getLength()).
      */
     public int getBlockSize(int index) 
-        throws ArrayIndexOutOfBoundsException 
+    throws ArrayIndexOutOfBoundsException 
     { 
         if (index > m_blocks.size()) {
             throw new ArrayIndexOutOfBoundsException();
@@ -500,7 +520,8 @@ extends MemberDigest
      * @return Returns a new Array containing a subset of the data points in this sequence.
      */
     public int[] getSeries(int index, int count)
-        throws IndexOutOfBoundsException, SequenceRangeException
+    throws IndexOutOfBoundsException,
+           SequenceRangeException
     {
         if (index >= m_length) {
             throw new IndexOutOfBoundsException();
@@ -567,7 +588,7 @@ extends MemberDigest
      * @return Returns a new Array containing all of the data points in this sequence.
      */
     public int[] getSeries(long startTime, int count)
-        throws SequenceRangeException
+    throws SequenceRangeException
     {
         int[] series = null;
         int index = 0;
@@ -598,7 +619,7 @@ extends MemberDigest
      * @throws SequenceRangeException 	If the requested window is not contained within this Sequence.
      */
     public int[] getSeries(long startTime, long endTime)
-        throws SequenceRangeException
+    throws SequenceRangeException
     {
         int[] series = null;
         int index = 0;
@@ -624,10 +645,10 @@ extends MemberDigest
 /* comparison methods */
     /**
      * Determines if this Sequence has a start time which is earlier than
-     * the start time of the supplied reference Sequence.
+     * the start time of the supplied reference Sequence (may overlap).
      * 
      * @param seq	The reference Sequence with which to compare this Sequence.
-     * @return	A boolean value; true if this Sequence starts before the reference Sequence, otherwise false.
+     * @return	A boolean value; true if this Sequence starts before the start of the reference Sequence, otherwise false.
      */
     public boolean startsBefore(Sequence seq) 
     {
@@ -635,15 +656,51 @@ extends MemberDigest
     }
 
     /**
-     * Determines if this Sequence has an end time which is later than
-     * the end time of the supplied reference Sequence.
+     * Determines if this Sequence has a start time which is later than
+     * the end time of the supplied reference Sequence (no overlap if true).
      * 
      * @param seq	The reference Sequence with which to compare this Sequence.
-     * @return	A boolean value; true if this Sequence ends after the reference Sequence, otherwise false.
+     * @return	A boolean value; true if this Sequence starts after the end of the reference Sequence, otherwise false.
+     */
+    public boolean startsAfter(Sequence seq) 
+    {
+        return (this.m_startTime > seq.getEndTime());
+    }
+
+    /**
+     * Determines if this Sequence has an end time which is earlier than
+     * the start time of the supplied reference Sequence (no overlap if true).
+     * 
+     * @param seq	The reference Sequence with which to compare this Sequence.
+     * @return	A boolean value; true if this Sequence ends before the start time of the reference Sequence, otherwise false.
+     */
+    public boolean endsBefore(Sequence seq) 
+    {
+        return (this.getEndTime() < seq.m_startTime);
+    }
+
+    /**
+     * Determines if this Sequence has an end time which is later than
+     * the end time of the supplied reference Sequence (may overlap).
+     * 
+     * @param seq	The reference Sequence with which to compare this Sequence.
+     * @return	A boolean value; true if this Sequence ends after the end time of the reference Sequence, otherwise false.
      */
     public boolean endsAfter(Sequence seq) 
     {
         return (this.getEndTime() > seq.getEndTime());
+    }
+
+    /**
+     * Determines if this Sequence has any overlap with the
+     * supplied reference Sequence.
+     * 
+     * @param seq	The reference Sequence with which to compare this Sequence.
+     * @return	A boolean value; true if this Sequence overlaps with the suppplied sequence.
+     */
+    public boolean overlaps(Sequence seq)
+    {
+        return !(this.endsBefore(seq) || this.startsAfter(seq));
     }
 
     /**
@@ -694,7 +751,7 @@ extends MemberDigest
      * @throws SequenceIntervalMismatchException if the reference Sequence's frequency does not match that of this Sequence.
      */
     public boolean subSequenceOf(Sequence seq) 
-        throws SequenceIntervalMismatchException 
+    throws SequenceIntervalMismatchException 
     {
         if (seq.m_interval != m_interval) {
             throw new SequenceIntervalMismatchException();
@@ -711,22 +768,31 @@ extends MemberDigest
      * @throws IllegalSampleRateException if the supplied sample rate is not one of the accpeted values.
      */
     public static long sampleRateToInterval(double sampleRate) 
-        throws IllegalSampleRateException 
+    throws IllegalSampleRateException 
     {
-        if (sampleRate ==    0.01) return 100000000L;
-        if (sampleRate ==    0.1 ) return  10000000L;
-        if (sampleRate ==    1.0 ) return   1000000L;
-        if (sampleRate ==    5.0 ) return    200000L;
-        if (sampleRate ==   10.0 ) return    100000L;
-        if (sampleRate ==   20.0 ) return     50000L;
-        if (sampleRate ==   40.0 ) return     25000L;
-        if (sampleRate ==   50.0 ) return     20000L;
-        if (sampleRate ==  100.0 ) return     10000L;
-        if (sampleRate ==  200.0 ) return      5000L;
-        if (sampleRate ==  500.0 ) return      2000L;
-        if (sampleRate == 1000.0 ) return      1000L;
-        if (sampleRate == 2000.0 ) return       500L;
-        throw new IllegalSampleRateException("The selected sample rate (" + sampleRate + " Hz) is not supported.");
+        long interval;
+        if      (sampleRate ==    0.001) interval = 1000000000L;
+        else if (sampleRate ==    0.01 ) interval =  100000000L;
+        else if (sampleRate ==    0.1  ) interval =   10000000L;
+        else if (sampleRate ==    1.0  ) interval =    1000000L;
+        else if (sampleRate ==    2.5  ) interval =     400000L;
+        else if (sampleRate ==    4.0  ) interval =     250000L;
+        else if (sampleRate ==    5.0  ) interval =     200000L;
+        else if (sampleRate ==   10.0  ) interval =     100000L;
+        else if (sampleRate ==   20.0  ) interval =      50000L;
+        else if (sampleRate ==   40.0  ) interval =      25000L;
+        else if (sampleRate ==   50.0  ) interval =      20000L;
+        else if (sampleRate ==  100.0  ) interval =      10000L;
+        else if (sampleRate ==  200.0  ) interval =       5000L;
+        else if (sampleRate ==  250.0  ) interval =       4000L;
+        else if (sampleRate ==  400.0  ) interval =       2500L;
+        else if (sampleRate ==  500.0  ) interval =       2000L;
+        else if (sampleRate == 1000.0  ) interval =       1000L;
+        else if (sampleRate == 2000.0  ) interval =        500L;
+        else if (sampleRate == 4000.0  ) interval =        250L;
+        else if (sampleRate == 5000.0  ) interval =        200L;
+        else throw new IllegalSampleRateException("The selected sample rate (" + sampleRate + " Hz) is not supported.");
+        return interval;
     }
 
     /**
@@ -750,6 +816,45 @@ extends MemberDigest
                                 cal.get(Calendar.SECOND),
                                (cal.get(Calendar.MILLISECOND) * 1000 + (timestamp % 10)));
         return result;
+    }
+
+    /**
+     * Returns the timestamp of the first data point.
+     *
+     * @param   sequences - a Collection of Sequences which will be collapsed into a single sequence, disregarding gaps and removing duplicates
+     * @return  new sequence containing
+     */
+    public static Sequence collapse(Collection<Sequence> sequences)
+    throws SequenceIntervalMismatchException,
+           SequenceMergeRangeException,
+           SequenceTimingException
+    {
+        Sequence collapsed = null;
+        for (Sequence sequence: sequences) {
+            if (collapsed == null) {
+                collapsed = (Sequence)sequence.clone();
+            }
+            else if (collapsed.overlaps(sequence)) {
+                ((Sequence)sequence.clone()).mergeInto(collapsed);
+            }
+            else {
+                if (collapsed.getInterval() != sequence.getInterval()) {
+                    throw new SequenceIntervalMismatchException();
+                }
+                Sequence source = sequence;
+                if (collapsed.startsAfter(sequence)) {
+                    source = collapsed;
+                    collapsed = (Sequence)sequence.clone();
+                }
+                //append newSeq to collapsed
+                int remaining = source.m_blocks.size();
+                for (int[] block: source.m_blocks) {
+                    int numSamples = (--remaining > 0) ? BLOCK_SIZE : (BLOCK_SIZE - source.m_remainder);
+                    collapsed.extend(block, 0, numSamples);
+                }
+            }
+        }
+        return collapsed;
     }
 }
 

@@ -77,8 +77,12 @@ public abstract class MemberDigest
     }
 
     // Methods for adding member variables' data to the digest
+    protected void addToDigest(byte[] data, int offset, int length) {
+        digest.update(data, offset, length);
+    }
+
     protected void addToDigest(byte[] data) {
-        digest.update(data);
+        addToDigest(data, 0, data.length);
     }
 
     protected void addToDigest(Object data) {

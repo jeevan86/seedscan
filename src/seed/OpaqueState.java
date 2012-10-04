@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, United States Geological Survey or
+ * Copyright 2011, United States Geological Survey or
  * third-party contributors as indicated by the @author tags.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,19 +16,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
  *
  */
-package seed;
 
-public class WrongBlocketteNumberException
-extends Exception
-{
-    public WrongBlocketteNumberException()
-    {
-        super();
-    }
+ package seed;
 
-    public WrongBlocketteNumberException(String message)
-    {
-        super(message);
-    }
-}
-
+ public enum OpaqueState {
+     INIT,
+     RECORD,
+     STREAM_START,
+     STREAM_MID,
+     STREAM_END,
+     FILE_START,
+     FILE_MID,
+     FILE_END
+ }
