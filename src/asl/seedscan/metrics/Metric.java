@@ -37,7 +37,7 @@ public abstract class Metric
     private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.Metric");
 
     private Hashtable<String, String> arguments;
-    private Hashtable<CrossPowerKey, CrossPower> crossPowers;
+    private Hashtable<CrossPowerKey, CrossPower> crossPowerMap;
 
     protected MetricData   metricData   = null;
     protected MetricResult metricResult = null;
@@ -45,15 +45,25 @@ public abstract class Metric
     public Metric()
     {
         arguments = new Hashtable<String, String>();
-        crossPowers = new Hashtable<CrossPowerKey, CrossPower>();
+        crossPowerMap = new Hashtable<CrossPowerKey, CrossPower>();
+    }
+
+    public Hashtable<CrossPowerKey, CrossPower> getCrossPowerMap()
+    {
+        return crossPowerMap;
+    }
+
+    public void setCrossPowerMap(Hashtable<CrossPowerKey, CrossPower> crossPowerMap)
+    {
+        this.crossPowerMap = crossPowerMap;
     }
 
     protected CrossPower getCrossPower(Channel channelA, Channel channelB)
     {
         CrossPowerKey key = new CrossPowerKey(channelA, channelB);
         CrossPower crossPower;
-        if (crossPowers.containsKey(key)) {
-            crossPower = crossPowers.get(key);
+        if (crossPowerMap.containsKey(key)) {
+            crossPower = crossPowerMap.get(key);
         }
         else {
             double[] psd = null;
@@ -65,7 +75,7 @@ public abstract class Metric
             catch (NullPointerException e) {
             }
             crossPower = new CrossPower(psd, df[0]);
-            crossPowers.put(key, crossPower);
+            crossPowerMap.put(key, crossPower);
         }
         return crossPower;
     }
