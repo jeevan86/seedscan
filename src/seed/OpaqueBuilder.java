@@ -39,7 +39,7 @@ import java.util.Hashtable;
  */
 public class OpaqueBuilder
 {
-    private boolean finalized = false;
+    private boolean finished = false;
 
     private OpaqueContext context; 
     private Collection<String> tags;
@@ -85,12 +85,12 @@ public class OpaqueBuilder
 
     // Add new data, creating new Blockettes as necessary
     public void update(byte[] opaqueData, int offset, int length)
-    throws BuilderFinalizedException,
+    throws BuilderFinishedException,
            OpaqueStateException,
            OpaqueStateTransitionException
     {
-        if (finalized) {
-            throw new BuilderFinalizedException("This OpaqueBuilder has been finalized!");
+        if (finished) {
+            throw new BuilderFinishedException("This OpaqueBuilder's finish() method has already been called.");
         }
         if (length == 0) {
             return;
@@ -141,16 +141,16 @@ public class OpaqueBuilder
     }
 
     // Wrap what's left of the data in a blockette
-    public void finalize()
+    public void finish()
     {
-        finalized = true;
+        finished = true;
         // Push out any remaining data into the final blockette,
         // which should be one of RECORD, STREAM_END, or FILE_END
     }
 
-    public boolean isFinalized()
+    public boolean isFinished()
     {
-        return finalized;
+        return finished;
     }
 
     public Blockette2000 pop()
