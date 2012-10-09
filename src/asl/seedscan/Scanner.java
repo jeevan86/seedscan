@@ -169,20 +169,19 @@ public class Scanner
             MetricData metricData = new MetricData(table, stnMeta);
 
             Hashtable<CrossPowerKey, CrossPower> crossPowerMap = null;
-            Boolean crossPowerSet = false;
 
             for (MetricWrapper wrapper: scan.getMetrics()) {
                 Metric metric = wrapper.getNewInstance();
                 metric.setData(metricData);
-System.out.format("== metric: %s\n", metric.getName() );
 
+   // Hand off the crossPowerMap from metric to metric, adding to it each time
                 if (crossPowerMap != null) {
-System.out.format("==== crossPowerMap != null --> set it using map computed from previous metric\n");
                     metric.setCrossPowerMap(crossPowerMap);
                 }
 
                 metric.process();
 
+   // Save the current crossPowerMap for the next metric:
                 crossPowerMap = metric.getCrossPowerMap();
 
    // This is a little convoluted: calibration.getResult() returns a MetricResult, which may contain many values

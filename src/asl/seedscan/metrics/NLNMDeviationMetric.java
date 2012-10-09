@@ -64,6 +64,7 @@ extends PowerBandMetric
         //ChannelArray channelArray = new ChannelArray("00","LHZ", "LH1", "LHZ");
         //ChannelArray channelArray = new ChannelArray("10","BHZ", "BH1", "BH2");
         //ChannelArray channelArray = new ChannelArray("00","BHZ", "BH1", "BH2");
+
         ArrayList<Channel> channels = channelArray.getChannels();
 
         metricResult = new MetricResult();
@@ -83,10 +84,16 @@ extends PowerBandMetric
             }
 
             ArrayList<DataSet>datasets = metricData.getChannelData(channel);
+            String dataHashString = null;
+
             if (datasets == null){ // Skip channel, we have no data for it
                 System.out.format("%s Error: No data for requested channel:%s --> Skipping\n"
                                   ,getName(), channel.getChannel());
                 continue;
+            }
+         // Temp hack to get data hash:
+            else {
+                dataHashString = datasets.get(0).getDigestString();
             }
 
             if (!metricData.hashChanged(channel)) { // Skip channel, we don't need to recompute the metric
@@ -102,22 +109,25 @@ extends PowerBandMetric
             CrossPower crossPower = getCrossPower(channel, channel);
             double[] psd  = crossPower.getSpectrum();
             double df     = crossPower.getSpectrumDeltaF();
+
          // nf = number of positive frequencies + DC (nf = nfft/2 + 1, [f: 0, df, 2df, ...,nfft/2*df] )
             int nf        = psd.length;
             double freq[] = new double[nf];
 
          // Convert the psd to dB and fill freq array
 
-            for (int k = 0; k < nf; k++){
+            for ( int k = 0; k < nf; k++){
                 freq[k] = (double)k * df;
-                psd[k] = 10 * Math.log10(psd[k]);
+                psd[k]  = 10 * Math.log10(psd[k]);
             }
 
+         // Convert psd[f] to psd[T]
          // Reverse freq[] --> per[] where per[0]=shortest T and per[nf-2]=longest T:
 
             double[] per    = new double[nf];
             double[] psdPer = new double[nf];
-            per[nf-1] = 0;  // = 1/freq[0] and we don't want 1/0 = inf
+         // per[nf-1] = 1/freq[0] = 1/0 = inf --> set manually:
+            per[nf-1] = 0;  
             for (int k = 0; k < nf-1; k++){
                 per[k]     = 1./freq[nf-k-1];
                 psdPer[k]  = psd[nf-k-1];
@@ -156,47 +166,76 @@ extends PowerBandMetric
             Double[] octavePowers  = Powers.toArray(new Double[]{});
             Double[] octavePeriods = Tcs.toArray(new Double[]{});
 
-            //Timeseries.timeoutXY(octavePeriods, octavePowers, "psd.10-lhz");
             //Timeseries.timeoutXY(octavePeriods, octavePowers, "psd.00-lhz");
-            //Timeseries.timeoutXY(octavePeriods, octavePowers, "psd.10-bhz");
-            //for (int i=0; i<octavePeriods.length; i++){
-                //System.out.format("%12.6f %12.6f\n", octavePeriods[i], octavePowers[i]);
-            //}
-            //System.exit(0);
  
-       // Interpolate the psd octave-average to the periods of the NLNM Model:
+         // Interpolate the psd octave-average to the periods of the NLNM Model:
             double[] psdInterp;
-            psdInterp = interpolateToNLNM(octavePeriods, octavePowers);
+            int npers  = octavePeriods.length;
+            double[] X = new double[npers];
+            double[] Y = new double[npers];
+            for (int k = 0; k < npers; k++){
+                X[k] = octavePeriods[k];
+                Y[k] = octavePowers[k];
+            }
+            psdInterp = Timeseries.interpolate(X, Y, NLNMPeriods);
 
-            //Timeseries.timeoutXY(NLNMPeriods, psdInterp, "psd.00-lhz.interp");
             //Timeseries.timeoutXY(NLNMPeriods, psdInterp, "psd.00-bhz.interp");
-            //System.exit(0);
 
-         // TODO: Read in (?) NLNM Model
-         //       Interpolate psd[T] to same periods as NLNM
-         //  ---> Loop over periods within requested frequency/period band
-         //       Compute average difference from NLNM in band
+            PowerBand band    = getPowerBand();
+            double lowPeriod  = band.getLow();
+            double highPeriod = band.getHigh();
 
-            //double lowLimit = getLow(); 
-            //double hiLimit = getHigh(); 
+            if (lowPeriod >= highPeriod) {
+                StringBuilder message = new StringBuilder();
+                message.append(String.format("NLNMDeviation Error: Requested band [%f - %f] has lowPeriod >= highPeriod\n"
+                    ,lowPeriod, highPeriod) );
+                throw new RuntimeException(message.toString());
+            }
+        // We should really only compare to NLNM within the range of useable periods/frequencies for this channel
+            if (lowPeriod < Tmin) {
+                StringBuilder message = new StringBuilder();
+                message.append(String.format("NLNMDeviation Error: Requested band [%f - %f] has lowPeriod < Nyquist Tmin=%f\n"
+                    ,lowPeriod, highPeriod, Tmin) );
+                throw new RuntimeException(message.toString());
+            }
+            if (highPeriod > Tmax) {
+                StringBuilder message = new StringBuilder();
+                message.append(String.format("NLNMDeviation Error: Requested band [%f - %f] has highPeriod > Tmax=%f\n"
+                    ,lowPeriod, highPeriod, Tmax) );
+                throw new RuntimeException(message.toString());
+            }
 
-            PowerBand band = getPowerBand();
-            double low     = band.getLow();
-            double high    = band.getHigh();
+        // Compute deviation from NLNM within the requested period band:
+            double deviation = 0;
+            int nPeriods = 0;
+            for (int k = 0; k < NLNMPeriods.length; k++){
+                if (NLNMPeriods[k] >  highPeriod){
+                    break;
+                }
+                else if (NLNMPeriods[k] >= lowPeriod){
+                    double difference = psdInterp[k] - NLNMPowers[k];
+                    //System.out.format("== NLNMPeriods[k=%d]=%.2f psdInterp[k]=%.2f NLNMPowers[k]=%.2f difference=%.2f\n",
+                    //   k, NLNMPeriods[k], psdInterp[k], NLNMPowers[k], difference);
+                    deviation += Math.sqrt( Math.pow(difference, 2) );
+                    nPeriods++;
+                }
+            }
 
-       // Loop over periods/freqs of NLNM that fall within requested band
-       //   Compute diff between psd and NLNM and average in band
+            if (nPeriods == 0) {
+                StringBuilder message = new StringBuilder();
+                message.append(String.format("NLNMDeviation Error: Requested band [%f - %f] contains NO periods within NLNM\n"
+                    ,lowPeriod, highPeriod) );
+                throw new RuntimeException(message.toString());
+            }
+            deviation = deviation/(double)nPeriods;
 
-/**
             String key   = getName() + "+Channel(s)=" + channel.getLocation() + "-" + channel.getChannel();
-            String value = String.format("%.2f",availability);
+            String value = String.format("%.2f",deviation);
             metricResult.addResult(key, value);
 
             System.out.format("%s-%s [%s] %s %s-%s ", stnMeta.getStation(), stnMeta.getNetwork(),
               EpochData.epochToDateString(stnMeta.getTimestamp()), getName(), chanMeta.getLocation(), chanMeta.getName() );
-            System.out.format("ndata:%d (%.0f%%) %s %s\n", ndata, availability, chanMeta.getDigestString(), dataHashString); 
-    1   2   3   4   5   6
-**/
+            System.out.format("nPeriods:%d deviation=%.2f) %s %s\n", nPeriods, deviation, chanMeta.getDigestString(), dataHashString); 
 
         }// end foreach channel
 
@@ -254,33 +293,6 @@ extends PowerBandMetric
 
     } // end readNLNM
 
-
-// Interpolate measured pows[per] to the periods of the NLNM Model
-
-    private double[] interpolateToNLNM(Double[] pers, Double[] pows) {
-
-        double[] interpolatedPowers = new double[NLNMPeriods.length];
-        int n = pers.length;
-        
-        double[] tmpPowers  = new double[n+1];
-        double[] tmpPeriods = new double[n+1];
-
-   // Create offset (+1) arrays to use with Num Recipes interpolation (spline.c)
-        for (int i=0; i<n; i++) {
-            tmpPowers[i+1]  = pows[i];
-            tmpPeriods[i+1] = pers[i];
-        }
-        double[] y2 = new double[n+1];
-        Timeseries.spline(tmpPeriods, tmpPowers, n, 0., 0., y2);
-
-        double[] y = new double[1];
-        for (int i=0; i<NLNMPeriods.length; i++){
-            Timeseries.splint(tmpPeriods, tmpPowers, y2, n, NLNMPeriods[i], y);
-            interpolatedPowers[i] = y[0];
-        }
-
-        return interpolatedPowers;
-    }
 
 } // end class
 

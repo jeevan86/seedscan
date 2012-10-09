@@ -62,6 +62,7 @@ public abstract class Metric
     {
         CrossPowerKey key = new CrossPowerKey(channelA, channelB);
         CrossPower crossPower;
+
         if (crossPowerMap.containsKey(key)) {
             crossPower = crossPowerMap.get(key);
         }
@@ -73,6 +74,7 @@ public abstract class Metric
                 psd = computePSD(channelA, channelB, df);
             }
             catch (NullPointerException e) {
+                System.out.println("== Metric.getCrossPower NullPointerException = " + e);
             }
             crossPower = new CrossPower(psd, df[0]);
             crossPowerMap.put(key, crossPower);
@@ -127,32 +129,49 @@ public abstract class Metric
         return arguments.keys();
     }
 
-
  // Compute/Get the psd[f] using Peterson's algorithm (24 hrs, 13 segments with 75% overlap, etc.)
-
- // TODO: Convert this to handle 2 channels to give crosspectrum when the aren't equal
 
     private final double[] computePSD(Channel channelX, Channel channelY, double[] params) {
 
+        System.out.format("== Metric.computePSD(channelX=%s, channelY=%s)\n", channelX, channelY);
+
         int ndata      = 0;
         double srate   = 0;  // srate = sample frequency, e.g., 20Hz
+/**
         int[] intArray = null;
         String dataHashString = null;
-
         Channel channel = channelX;
-System.out.format("== Inside computePSD\n");
+**/
 
    // Grab station metadata for all channels for this day:
         StationMeta stnMeta        = metricData.getMetaData();
-        ChannelMeta chanMeta       = stnMeta.getChanMeta(channel);
-        ArrayList<DataSet>datasets = metricData.getChannelData(channel);
 
-        for (DataSet dataset : datasets) {
-            ndata     += dataset.getLength();
-            intArray   = dataset.getSeries(); // Need to handle multiple datasets (gaps) !
-            srate      = dataset.getSampleRate();
-            dataHashString = dataset.getDigestString();
-        } // end for each dataset
+   // For now I'm just going to assume we have complete datasets (i.e., 1 dataset per day):
+        ArrayList<DataSet>datasets = metricData.getChannelData(channelX);
+        DataSet dataset = datasets.get(0);
+        int    ndataX   = dataset.getLength();
+        double srateX   = dataset.getSampleRate();
+        int[] intArrayX = dataset.getSeries();
+        ChannelMeta chanMetaX = stnMeta.getChanMeta(channelX);
+
+        datasets = metricData.getChannelData(channelY);
+        dataset  = datasets.get(0);
+        int    ndataY   = dataset.getLength();
+        double srateY   = dataset.getSampleRate();
+        int[] intArrayY = dataset.getSeries();
+        ChannelMeta chanMetaY = stnMeta.getChanMeta(channelY);
+
+        if (srateX != srateY) {
+            String message = "computePSD() ERROR: srateX (=" + srateX + ") != srateY (=" + srateY + ")";
+            throw new RuntimeException(message);
+        }
+        if (ndataX != ndataY) {
+            String message = "computePSD() ERROR: ndataX (=" + ndataX + ") != ndataY (=" + ndataY + ")";
+            throw new RuntimeException(message);
+        }
+
+        ndata = ndataX;
+        srate = srateX;
 
      // Compute PSD for this channel using the following algorithm:
      //   Break up the data (one day) into 13 overlapping segments of 75% 
@@ -184,7 +203,10 @@ System.out.format("== Inside computePSD\n");
         params[0] = df;
 
         double[] xseg = new double[nseg_pnts];
+        double[] yseg = new double[nseg_pnts];
+
         Cmplx[]  xfft = null;
+        Cmplx[]  yfft = null;
         double[] psd  = new double[nf];
         double   wss  = 0.;
 
@@ -196,23 +218,26 @@ System.out.format("== Inside computePSD\n");
         while (ilst < ndata) // ndata needs to come from largest dataset
         {
            for(int k=0; k<nseg_pnts; k++) {     // Load current window
-            xseg[k]=(double)intArray[k+offset]; 
+            xseg[k]=(double)intArrayX[k+offset]; 
+            yseg[k]=(double)intArrayY[k+offset]; 
            }
            //Timeseries.timeout(xseg,"xseg");
            Timeseries.detrend(xseg);
-           //Timeseries.timeout(xseg,"xseg.detrend");
+           Timeseries.detrend(yseg);
            Timeseries.debias(xseg);
-           //Timeseries.timeout(xseg,"xseg.debias");
+           Timeseries.debias(yseg);
 
            wss = Timeseries.costaper(xseg,.10);
-           //Timeseries.timeout(xseg,"xseg.taper");
+           wss = Timeseries.costaper(yseg,.10);
 
         // fft2 returns just the (nf = nfft/2 + 1) positive frequencies
            xfft = Cmplx.fft2(xseg);
+           yfft = Cmplx.fft2(yseg);
 
         // Load up the 1-sided PSD:
            for(int k = 0; k < nf; k++){
-               psd[k]= psd[k] +  Math.pow(xfft[k].mag(),2);
+              //psd[k]= psd[k] + Math.pow(xfft[k].mag(),2);
+                psd[k]= psd[k] + Cmplx.mul(xfft[k], yfft[k].conjg()).mag() ;
            }
 
            iwin ++;
@@ -240,14 +265,17 @@ System.out.format("== Inside computePSD\n");
         }
 
      // Get the instrument response for Acceleration and remove it from the PSD
-        Cmplx[]  instrumentResponse = chanMeta.getResponse(freq, 3);
+        Cmplx[]  instrumentResponseX = chanMetaX.getResponse(freq, 3);
+        Cmplx[]  instrumentResponseY = chanMetaY.getResponse(freq, 3);
+
         double[] responseMag        = new double[nf];
 
      // We're computing the squared magnitude as we did with the FFT above
      //   Start from k=1 to skip DC (k=0) where the response=0
         psd[0]=0; 
         for(int k = 1; k < nf; k++){
-            responseMag[k]  = Math.pow(instrumentResponse[k].mag(),2);
+          //responseMag[k]  = Math.pow(instrumentResponse[k].mag(),2);
+            responseMag[k]  = Cmplx.mul(instrumentResponseX[k], instrumentResponseY[k].conjg()).mag() ;
             if (responseMag[k] == 0) {
                 throw new RuntimeException("NLNMDeviation Error: responseMag[k]=0 --> divide by zero!");
             }

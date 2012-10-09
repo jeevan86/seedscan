@@ -253,8 +253,35 @@ public class Timeseries
     } 
 
 
+// Interpolate measured Y[X] to the Y[Z]
+// We know Y[X] = Y at values of X
+// We want Y[Z] = Y interpolated to values of Z
 
+    public static double[] interpolate(double[] X, double[] Y, double[] Z) {
 
+        double[] interpolatedValues = new double[Z.length];
+
+        int n = X.length;
+
+        double[] tmpY = new double[n+1];
+        double[] tmpX = new double[n+1];
+
+   // Create offset (+1) arrays to use with Num Recipes interpolation (spline.c)
+        for (int i=0; i<n; i++) {
+            tmpY[i+1] = Y[i];
+            tmpX[i+1] = X[i];
+        }
+        double[] y2 = new double[n+1];
+        spline(tmpX, tmpY, n, 0., 0., y2);
+
+        double[] y = new double[1];
+
+        for (int i=0; i<Z.length; i++){
+            splint(tmpX, tmpY, y2, n, Z[i], y);
+            interpolatedValues[i] = y[0];
+        }
+        return interpolatedValues;
+    }
 
 
 }

@@ -19,6 +19,7 @@
 package asl.seedscan.metrics;
 
 import java.util.logging.Logger;
+import java.util.Arrays;
 
 public class CrossPower
 {
@@ -34,7 +35,7 @@ public class CrossPower
         this.spectrumDeltaF = df;
     }
     public double[] getSpectrum(){
-        return powerSpectrum;
+        return Arrays.copyOf(powerSpectrum, powerSpectrum.length);
     }
     public double getSpectrumDeltaF(){
         return spectrumDeltaF;
