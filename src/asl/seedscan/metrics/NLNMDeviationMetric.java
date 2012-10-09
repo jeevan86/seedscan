@@ -61,6 +61,7 @@ extends PowerBandMetric
 
    // Create a 3-channel array to use for loop
         ChannelArray channelArray = new ChannelArray("00","LHZ", "LH1", "LH2");
+        //ChannelArray channelArray = new ChannelArray("00","LHZ", "LH1", "LHZ");
         //ChannelArray channelArray = new ChannelArray("10","BHZ", "BH1", "BH2");
         //ChannelArray channelArray = new ChannelArray("00","BHZ", "BH1", "BH2");
         ArrayList<Channel> channels = channelArray.getChannels();

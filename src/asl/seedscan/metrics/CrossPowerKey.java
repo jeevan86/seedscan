@@ -57,7 +57,9 @@ public class CrossPowerKey
 
     @Override public boolean equals(Object obj)
     {
-        return key.equals((String)obj);
+        CrossPowerKey other = (CrossPowerKey)obj;
+        return toString().equals(other.toString()) ;
+        //return key.equals((String)obj);
     }
 }
 

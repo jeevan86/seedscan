@@ -167,10 +167,24 @@ public class Scanner
 
 // [3] Loop over Metrics to compute, for this station, for this day
             MetricData metricData = new MetricData(table, stnMeta);
+
+            Hashtable<CrossPowerKey, CrossPower> crossPowerMap = null;
+            Boolean crossPowerSet = false;
+
             for (MetricWrapper wrapper: scan.getMetrics()) {
                 Metric metric = wrapper.getNewInstance();
                 metric.setData(metricData);
+System.out.format("== metric: %s\n", metric.getName() );
+
+                if (crossPowerMap != null) {
+System.out.format("==== crossPowerMap != null --> set it using map computed from previous metric\n");
+                    metric.setCrossPowerMap(crossPowerMap);
+                }
+
                 metric.process();
+
+                crossPowerMap = metric.getCrossPowerMap();
+
    // This is a little convoluted: calibration.getResult() returns a MetricResult, which may contain many values
    //   in a Hashtable<String,String> = map.
    //   MetricResult.getResult(id) returns value = String

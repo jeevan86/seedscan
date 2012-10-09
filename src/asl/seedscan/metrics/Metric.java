@@ -140,6 +140,7 @@ public abstract class Metric
         String dataHashString = null;
 
         Channel channel = channelX;
+System.out.format("== Inside computePSD\n");
 
    // Grab station metadata for all channels for this day:
         StationMeta stnMeta        = metricData.getMetaData();
