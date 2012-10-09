@@ -69,7 +69,7 @@ public class Tests
         int idx = 0;
         for (String part: preSplit.split(":")) {
             idx++;
-            System.out.format(" part %d: \"%s\"\n", part);
+            System.out.format(" part %d: \"%s\"\n", idx, part);
         }
     }
 }
