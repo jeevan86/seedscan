@@ -55,13 +55,13 @@ public abstract class Blockette
 
     public Blockette(byte [] b)
     {
-        allocateBuffer(b.length);
-        System.arraycopy(b, 0, buf, 0, b.length);
+        reload(b);
     }
 
     public void reload(byte [] b)
     {
-        if (buf.length != b.length) {
+        assert blocketteNumber() == peekBlocketteType(b);
+        if ((buf == null) || (buf.length != b.length)) {
             allocateBuffer(b.length);
         }
         System.arraycopy(b, 0, buf, 0, b.length);

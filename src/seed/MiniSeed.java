@@ -31,6 +31,8 @@ import java.nio.ByteOrder;
 import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /** This class represents a mini-seed packet.  It can translate binary data in
  * a byte array and break apart the fixed data header and other data blockettes
@@ -127,6 +129,8 @@ public class MiniSeed  implements MiniSeedOutputHandler {
   private ByteBuffer bb1001;
   private Blockette1000 b1000;
   private Blockette1001 b1001;
+
+  private ArrayList<Blockette2000> b2000s;
   
   // Data we need from the type 1000 and 1001
   private byte order;         // 0=little endian, 1 = big endian
@@ -162,6 +166,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     
     cleared=true;
   }
+  public Collection<Blockette2000> getBlk2000s(){return b2000s;}
   public boolean hasBlk1000() {crack(); return hasBlk1000;}
   /** if true, this MiniSeed object is cleared and presumably available for reuse
    */
@@ -791,7 +796,6 @@ public class MiniSeed  implements MiniSeedOutputHandler {
               }
               ms.get(buf500);
               blockettes[blk]=bb500;
-              if(swap) blockettes[blk].order(ByteOrder.LITTLE_ENDIAN);
               blockettes[blk].clear();
               blockettes[blk].getShort();    // type = 500
               next=blockettes[blk].getShort();
@@ -837,6 +841,25 @@ public class MiniSeed  implements MiniSeedOutputHandler {
               if(dbg) prt("MS: Blk 1001 next="+next+" timing="+timingQuality+" uSecOff="+microSecOffset+
                       " nframes="+nframes);
               hasBlk1001=true;
+              break;
+            case 2000:
+              // duplicate the fixed portion of the header and load it
+              byte[] buf2000 = new byte[Blockette2000.FIXED_LENGTH];
+              ms.mark();
+              ms.get(buf2000);
+              Blockette2000 b2000 = new Blockette2000(buf2000);
+              // get the actual size of the blockette, and add the full blockette to the list
+              short actualLength = b2000.getBlocketteLength();
+              if (actualLength != buf2000.length) {
+                buf2000 = new byte[actualLength];
+                ms.reset();
+                ms.get(buf2000);
+                b2000 = new Blockette2000(buf2000);
+              }
+              if (b2000s == null) {
+                  b2000s = new ArrayList<Blockette2000>();
+              }
+              b2000s.add(b2000);
               break;
             default: 
               if(dbg) prt("MS: - unknown blockette type="+type);

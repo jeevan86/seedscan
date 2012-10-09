@@ -100,7 +100,7 @@ extends Blockette
 
         bb.position(4);
         bb.putShort(FIXED_LENGTH); // Blockette length is header length for now
-        bb.putShort(FIXED_LENGTH); // Offset is same is header length with no tags
+        bb.putShort(FIXED_LENGTH); // Offset is same as header length when no tags are present
 
         bb.position(14);
         bb.put((byte)0); // Zero tags to start
