@@ -6,3 +6,4 @@ seedscan.lock
 src/asl/seedscan/config
 *.swp
 logs/*.log
+config.xml

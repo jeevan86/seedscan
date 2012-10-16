@@ -20,7 +20,6 @@ package asl.seedsplitter;
 
 import java.lang.InterruptedException;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.Formatter;
 import java.util.GregorianCalendar;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -52,7 +51,6 @@ public class SeedSplitProcessor
 implements Runnable
 {
     private static final Logger logger = Logger.getLogger("asl.seedsplitter.SeedSplitProcessor");
-    private static final Formatter formatter = new Formatter();
 
     private LinkedBlockingQueue<ByteBlock> m_queue;
     private FallOffQueue<SeedSplitProgress> m_progressQueue;
@@ -268,13 +266,13 @@ implements Runnable
                             interval = DataSet.sampleRateToInterval(sampleRate);
                         } catch (IllegalSampleRateException e) {
                             MiniSeed ms = new MiniSeed(recordBytes);
-                            logger.finer("Illegal Sample Rate: sequence #" + ms.getSequence());
+                            logger.finer(String.format("Illegal Sample Rate: sequence #%d, rate = %f", ms.getSequence(), sampleRate));
                             discarded++;
                             break progress;
                         }
                         kept++;
-                        logger.finer(network + "_" + station + " " + location + "-" + channel);
-                        key = network + "_" + station + " " + location + "-" + channel + String.format(" (%.1f Hz)", sampleRate);
+                        logger.finer(String.format("%s_%s %s-%s", network, station, location, channel));
+                        key = String.format("%s_%s %s-%s (%.1f Hz)", network, station, location, channel, sampleRate);
 
                         if (!recordCounts.containsKey(key)) {
                             recordCounts.put(key, 1);
@@ -335,12 +333,12 @@ implements Runnable
                             //if ((startTime - tempData.getEndTime()) < interval) {
                             // (VIM-HACK) }
                                 replaceDataSet = true;
-                                logger.finer(formatter.format("Found data overlap <%s] - [%s> sequence #%d.!\n",
+                                logger.finer(String.format("Found data overlap <%s] - [%s> sequence #%d.!\n",
                                                  DataSet.timestampToString(tempData.getEndTime()),
                                                  DataSet.timestampToString(startTime),
-                                                 ms.getSequence()).toString());
+                                                 ms.getSequence()));
                                 if (ms.getSequence() <= lastSequenceNumber) {
-                                    logger.finer("Out of sequence last=" + lastSequenceNumber + " current=" + ms.getSequence());
+                                    logger.finer(String.format("Out of sequence last=%d current=%d", lastSequenceNumber, ms.getSequence()));
                                 }
                                 //throw new SeedRecordOverlapException();
                             }
@@ -349,7 +347,11 @@ implements Runnable
                             if (tempData != null) {
                                 tree.add(tempData);
                                 logger.finer("Adding DataSet to TreeSet.");
-                                logger.finer("  Range: " + DataSet.timestampToString(tempData.getStartTime()) + " - " + DataSet.timestampToString(tempData.getEndTime()) + " (" + ((tempData.getEndTime() - tempData.getStartTime()) / tempData.getInterval() + 1) + " data points {CHECK: " + tempData.getLength() + "})");
+                                logger.finer(String.format("  Range: %s - %s (%d data points {CHECK: %d})",
+                                                           DataSet.timestampToString(tempData.getStartTime()),
+                                                           DataSet.timestampToString(tempData.getEndTime()),
+                                                           ((tempData.getEndTime() - tempData.getStartTime()) / tempData.getInterval() + 1),
+                                                           tempData.getLength()));
                                 tempData = null;
                                 temps.remove(key);
                             }
@@ -364,12 +366,12 @@ implements Runnable
                                 tempData.setSampleRate(sampleRate);
                             } catch (RuntimeException e) {
                                 MiniSeed ms = new MiniSeed(recordBytes);
-                                logger.finer("Invalid Start Time: sequence #" + ms.getSequence());
+                                logger.finer(String.format("Invalid Start Time: sequence #%d", ms.getSequence()));
                                 tempData = null;
                                 break progress;
                             } catch (IllegalSampleRateException e) {
                                 MiniSeed ms = new MiniSeed(recordBytes);
-                                logger.finer("Invalid Sample Rate: sequence #" + ms.getSequence());
+                                logger.finer(String.format("Invalid Sample Rate: sequence #%d, rate = %f", ms.getSequence(), ms.getRate()));
                                 tempData = null;
                                 break progress;
                             }
@@ -377,6 +379,7 @@ implements Runnable
                         }
                         record = new MiniSeed(recordBytes);
                         samples = record.decomp();
+                        // blockettes = record.getBlockettes();
                         lastSequenceNumber = record.getSequence();
                         tempData.extend(samples, 0, samples.length);
                     } // end else
@@ -402,7 +405,11 @@ implements Runnable
             if ((tempData != null) && (tree != null)) {
                 tree.add(tempData);
                 logger.finer("Adding DataSet to TreeSet.");
-                logger.finer("  Range: " + DataSet.timestampToString(tempData.getStartTime()) + " - " + DataSet.timestampToString(tempData.getEndTime()) + " (" + ((tempData.getEndTime() - tempData.getStartTime()) / tempData.getInterval() + 1) + " data points {CHECK: " + tempData.getLength() + "})");
+                logger.finer(String.format("  Range: %s - %s (%d data points {CHECK: %d})",
+                                           DataSet.timestampToString(tempData.getStartTime()),
+                                           DataSet.timestampToString(tempData.getEndTime()),
+                                           ((tempData.getEndTime() - tempData.getStartTime()) / tempData.getInterval() + 1),
+                                           tempData.getLength()));
                 tempData = null;
             }
         }
