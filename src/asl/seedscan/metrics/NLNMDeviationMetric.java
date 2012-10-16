@@ -61,7 +61,6 @@ extends PowerBandMetric
 
    // Create a 3-channel array to use for loop
         ChannelArray channelArray = new ChannelArray("00","LHZ", "LH1", "LH2");
-        //ChannelArray channelArray = new ChannelArray("00","LHZ", "LH1", "LHZ");
         //ChannelArray channelArray = new ChannelArray("10","BHZ", "BH1", "BH2");
         //ChannelArray channelArray = new ChannelArray("00","BHZ", "BH1", "BH2");
 
@@ -73,6 +72,8 @@ extends PowerBandMetric
         readNLNM();
 
    // Loop over channels, get metadata & data for channel and Calculate Metric
+
+        String outFile; // Use for spec outs
 
         for (Channel channel : channels){
 
@@ -114,12 +115,12 @@ extends PowerBandMetric
             int nf        = psd.length;
             double freq[] = new double[nf];
 
-         // Convert the psd to dB and fill freq array
-
+         // Fill freq array
             for ( int k = 0; k < nf; k++){
                 freq[k] = (double)k * df;
-                psd[k]  = 10 * Math.log10(psd[k]);
+                //psd[k]  = 10 * Math.log10(psd[k]);
             }
+            //psd[0]  = 0; // Have to reset DC else log10(0) = -Infinity
 
          // Convert psd[f] to psd[T]
          // Reverse freq[] --> per[] where per[0]=shortest T and per[nf-2]=longest T:
@@ -135,51 +136,15 @@ extends PowerBandMetric
             double Tmin  = per[0];    // Should be = 1/fNyq = 2/fs = 0.1 for fs=20Hz
             double Tmax  = per[nf-2]; // Should be = 1/df = Ndt
 
-         // Average over each octave, starting with shortest period
+            outFile = channel.toString() + ".psd.Fsmooth.T";
+            //outFile = channel.toString() + ".psd.T";
+            //Timeseries.timeoutXY(per, psdPer, outFile);
 
-            double T1 = Tmin;
-            double T2 = 2.*T1;
-            double Tc = Math.sqrt(T1*T2);
-            double powerInOctave;
-            int    npersInOctave;
+         // Interpolate the smoothed psd to the periods of the NLNM Model:
+            double psdInterp[] = Timeseries.interpolate(per, psdPer, NLNMPeriods);
 
-            ArrayList<Double> Tcs    = new ArrayList<Double>();
-            ArrayList<Double> Powers = new ArrayList<Double>();
-
-            while (T2 < Tmax) {
-                powerInOctave = 0;
-                npersInOctave = 0;
-                for (int k = 0; k < nf; k++){
-                    if ( (per[k] >= T1) && (per[k] <= T2) ) {
-                        powerInOctave += psdPer[k];
-                        npersInOctave++;
-                    }
-                }
-                powerInOctave = powerInOctave / (double)npersInOctave;
-                Tcs.add(Tc);
-                Powers.add(powerInOctave);
-
-                T1 *= Math.pow(2.0, .125);
-                T2  = 2*T1;
-                Tc  = Math.sqrt(T1*T2);
-            }
-            Double[] octavePowers  = Powers.toArray(new Double[]{});
-            Double[] octavePeriods = Tcs.toArray(new Double[]{});
-
-            //Timeseries.timeoutXY(octavePeriods, octavePowers, "psd.00-lhz");
- 
-         // Interpolate the psd octave-average to the periods of the NLNM Model:
-            double[] psdInterp;
-            int npers  = octavePeriods.length;
-            double[] X = new double[npers];
-            double[] Y = new double[npers];
-            for (int k = 0; k < npers; k++){
-                X[k] = octavePeriods[k];
-                Y[k] = octavePowers[k];
-            }
-            psdInterp = Timeseries.interpolate(X, Y, NLNMPeriods);
-
-            //Timeseries.timeoutXY(NLNMPeriods, psdInterp, "psd.00-bhz.interp");
+            outFile = channel.toString() + ".psd.Fsmooth.T.Interp";
+            //Timeseries.timeoutXY(NLNMPeriods, psdInterp, outFile);
 
             PowerBand band    = getPowerBand();
             double lowPeriod  = band.getLow();
@@ -191,17 +156,11 @@ extends PowerBandMetric
                     ,lowPeriod, highPeriod) );
                 throw new RuntimeException(message.toString());
             }
-        // We should really only compare to NLNM within the range of useable periods/frequencies for this channel
-            if (lowPeriod < Tmin) {
+        // Make sure that we only compare to NLNM within the range of useable periods/frequencies for this channel
+            if (lowPeriod < Tmin || highPeriod > Tmax) {
                 StringBuilder message = new StringBuilder();
-                message.append(String.format("NLNMDeviation Error: Requested band [%f - %f] has lowPeriod < Nyquist Tmin=%f\n"
-                    ,lowPeriod, highPeriod, Tmin) );
-                throw new RuntimeException(message.toString());
-            }
-            if (highPeriod > Tmax) {
-                StringBuilder message = new StringBuilder();
-                message.append(String.format("NLNMDeviation Error: Requested band [%f - %f] has highPeriod > Tmax=%f\n"
-                    ,lowPeriod, highPeriod, Tmax) );
+                message.append(String.format("NLNMDeviation Error: Requested band [%f - %f] lies outside Useable band [%f - %f]\n"
+                    ,lowPeriod, highPeriod, Tmin, Tmax) );
                 throw new RuntimeException(message.toString());
             }
 

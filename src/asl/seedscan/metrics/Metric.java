@@ -279,11 +279,36 @@ public abstract class Metric
             if (responseMag[k] == 0) {
                 throw new RuntimeException("NLNMDeviation Error: responseMag[k]=0 --> divide by zero!");
             }
-            else {   // Divide out (squared)instrument response 
-                //psd[k] = 10*Math.log10(psd[k]/responseMag[k]);
+            else {   // Divide out (squared)instrument response & Convert to dB:
                 psd[k] = psd[k]/responseMag[k];
+                psd[k] = 10*Math.log10(psd[k]);
             }
         }
+
+     // We still have psd[f] so this is a good point to do any smoothing over neighboring frequencies:
+        int nsmooth = 11;
+        int nw = nf - nsmooth;
+        double[] psdFsmooth = new double[nf];
+
+        for (int iw = 0; iw < nw; iw++) {
+            double sum = 0;
+            for (int k =0; k < nsmooth; k++) {
+                sum = sum + psd[k+iw];
+            }
+            psdFsmooth[iw] = sum / (double)nsmooth;
+        }
+     // Copy the remaining point into the smoothed array
+        for (int iw = nw ; iw < nf; iw++) {
+            psdFsmooth[iw] = psd[iw];
+        }
+        //String outFile = channelX.toString() + ".psd.Fsmooth.new";
+        //Timeseries.timeoutXY(freq, psdFsmooth, outFile);
+
+     // Copy Frequency smoothed spectrum back into psd[f] and proceed as before
+        for ( int k = 0; k < nf; k++){
+            psd[k]  = psdFsmooth[k];
+        }
+        psd[0]=0; // Reset DC
 
         return psd;
 
