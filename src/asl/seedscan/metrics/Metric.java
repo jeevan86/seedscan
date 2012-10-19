@@ -133,7 +133,7 @@ public abstract class Metric
 
     private final double[] computePSD(Channel channelX, Channel channelY, double[] params) {
 
-        System.out.format("== Metric.computePSD(channelX=%s, channelY=%s)\n", channelX, channelY);
+        //System.out.format("== Metric.computePSD(channelX=%s, channelY=%s)\n", channelX, channelY);
 
         int ndata      = 0;
         double srate   = 0;  // srate = sample frequency, e.g., 20Hz

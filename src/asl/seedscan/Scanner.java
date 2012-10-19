@@ -190,9 +190,13 @@ public class Scanner
                 
                 MetricResult result = metric.getResult();
                 System.out.format("Results for %s:\n", metric.getClass().getName());
-                for (String id: result.getIdSet()) {
-                    String value = result.getResult(id);
-                    System.out.format("  %s : %s\n", id, value);
+                if (result == null){
+                }
+                else {
+                    for (String id: result.getIdSet()) {
+                        String value = result.getResult(id);
+                        System.out.format("  %s : %s\n", id, value);
+                    }
                 }
             } // end loop over metrics
 

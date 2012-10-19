@@ -26,6 +26,7 @@ import asl.seedscan.metrics.MetricWrapper;
 public class Scan
 {
     private String pathPattern;
+    private String stationModelPathPattern;
     private int startDay;
     private int daysToScan;
     private ArrayList<MetricWrapper> metrics;
@@ -40,7 +41,7 @@ public class Scan
         metrics = new ArrayList<MetricWrapper>();
     }
 
-    // path pattern
+    // (seed file) path pattern
     public void setPathPattern(String pathPattern)
     {
         this.pathPattern = pathPattern;
@@ -49,6 +50,17 @@ public class Scan
     public String getPathPattern()
     {
         return pathPattern;
+    }
+
+    // station (noise) model path pattern
+    public void setStationModelPathPattern(String stationModelPathPattern)
+    {
+        this.stationModelPathPattern = stationModelPathPattern;
+    }
+
+    public String getStationModelPathPattern()
+    {
+        return stationModelPathPattern;
     }
 
     // metrics

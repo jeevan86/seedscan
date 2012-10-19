@@ -49,12 +49,23 @@ extends PowerBandMetric
         return "NLNMDeviationMetric";
     }
 
+    public NLNMDeviationMetric(){
+        super();
+        addArgument("modelfile");
+    }
+
+
     private double[] NLNMPeriods;
     private double[] NLNMPowers;
 
     public void process()
     {
         System.out.format("\n              [ == Metric %s == ]\n", getName() ); 
+
+   // Read in the NLNM
+        if (!readNLNM() ){
+            return;  // Can't do anything if we didn't read in a NLNM model so skip to the next metric
+        }
 
    // Grab station metadata for all channels for this day:
         StationMeta stnMeta = metricData.getMetaData();
@@ -67,9 +78,6 @@ extends PowerBandMetric
         ArrayList<Channel> channels = channelArray.getChannels();
 
         metricResult = new MetricResult();
-
-   // Read in the NLNM
-        readNLNM();
 
    // Loop over channels, get metadata & data for channel and Calculate Metric
 
@@ -201,18 +209,20 @@ extends PowerBandMetric
     } // end process()
 
 
-    private void readNLNM() {
+    private Boolean readNLNM() {
 
-   // Read in the NLNM from local file
-
-        String fileName = "./NLNM.ascii";
-        String path     = "/Users/mth/mth/Projects/asl/src/asl/seedscan/metrics/";
-        fileName = path + fileName;
+        String fileName = null;
+        try {
+            fileName = get("modelfile");
+        } catch (NoSuchFieldException ex) {
+          System.out.format("%s Error: Model Name ('model') was not specified in config.xml!\n", getName());
+          return false;
+        }
 
    // First see if the file exists
         if (!(new File(fileName).exists())) {
             System.out.format("=== %s: NLNM file=%s does NOT exist!\n", getName(), fileName);
-            System.exit(0);
+            return false;
         }
    // Temp ArrayList(s) to read in unknown number of (x,y) pairs:
         ArrayList<Double> tmpPers = new ArrayList<Double>();
@@ -249,6 +259,8 @@ extends PowerBandMetric
             NLNMPeriods[i] = modelPeriods[i];
             NLNMPowers[i]  = modelPowers[i];
         }
+
+        return true;
 
     } // end readNLNM
 

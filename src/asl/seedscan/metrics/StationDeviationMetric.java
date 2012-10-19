@@ -31,13 +31,14 @@ import java.io.File;
 import asl.metadata.*;
 import asl.metadata.meta_new.*;
 import asl.seedsplitter.DataSet;
+import asl.seedscan.ArchivePath;
 
 import timeutils.Timeseries;
 
-public class CoherencePBM
+public class StationDeviationMetric
 extends PowerBandMetric
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.CoherencePBM");
+    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.StationDeviationMetric");
 
     @Override public long getVersion()
     {
@@ -46,7 +47,16 @@ extends PowerBandMetric
 
     @Override public String getBaseName()
     {
-        return "CoherencePBM";
+        return "StationDeviationMetric";
+    }
+
+    private double[] ModelPeriods;
+    private double[] ModelPowers;
+    private String   ModelDir;
+
+    public StationDeviationMetric(){
+        super();
+        addArgument("modelpath");
     }
 
     public void process()
@@ -55,6 +65,17 @@ extends PowerBandMetric
 
    // Grab station metadata for all channels for this day:
         StationMeta stnMeta = metricData.getMetaData();
+
+   // Get the path to the station models that was read in from config.xml
+   //  e.g., <cfg:argument cfg:name="modelpath">/Users/mth/mth/Projects/xs0/stationmodel/${NETWORK}_${STATION}/</cfg:argument>
+        String pathPattern = null;
+        try {
+            pathPattern = get("modelpath");
+        } catch (NoSuchFieldException ex) {
+          System.out.format("Error: Station Model Path ('modelpath') was not specified!\n");
+        }
+        ArchivePath pathEngine = new ArchivePath(new Station(stnMeta.getNetwork(), stnMeta.getStation() ) );
+        ModelDir  = pathEngine.makePath(pathPattern);
 
    // Create a 3-channel array to use for loop
         ChannelArray channelArray = new ChannelArray("00","LHZ", "LH1", "LH2");
@@ -67,10 +88,15 @@ extends PowerBandMetric
 
         String outFile; // Use for spec outs
 
-        //for (Channel channel : channels){
-// Dummy loop
-        for (int i=0; i < 1; i++) {
-            Channel channel = new Channel("00", "LHZ");
+        for (Channel channel : channels){
+
+        // Read in specific noise model for this station+channel          // ../ANMO.00.LH1.90
+            String modelFileName = stnMeta.getStation() + "." + channel.getLocation() + "." + channel.getChannel() + ".90";
+            if (!readModel(modelFileName)) {
+                System.out.format("%s Error: ModelFile=%s not found for requested channel:%s --> Skipping\n"
+                                  ,getName(), modelFileName, channel.getChannel());
+                continue;
+            }
 
             ChannelMeta chanMeta = stnMeta.getChanMeta(channel);
             if (chanMeta == null){ // Skip channel, we have no metadata for it
@@ -98,64 +124,48 @@ extends PowerBandMetric
                 continue;
             }
 
-            Channel channelX = null;
-            Channel channelY = null;
-            if (channel.getChannel() == "LHZ") {
-                channelX = new Channel("00", "LHZ");
-                channelY = new Channel("10", "LHZ");
-            }
-
          // If we're here, it means we need to (re)compute the metric for this channel:
 
          // Compute/Get the 1-sided psd[f] using Peterson's algorithm (24 hrs, 13 segments, etc.)
 
-            CrossPower crossPower = getCrossPower(channelX, channelX);
-            double[] Gxx   = crossPower.getSpectrum();
-            double dfX     = crossPower.getSpectrumDeltaF();
-
-            crossPower     = getCrossPower(channelY, channelY);
-            double[] Gyy   = crossPower.getSpectrum();
-            double dfY     = crossPower.getSpectrumDeltaF();
-
-            crossPower     = getCrossPower(channelX, channelY);
-            double[] Gxy   = crossPower.getSpectrum();
-
-            double df      = dfX;
-
+            CrossPower crossPower = getCrossPower(channel, channel);
+            double[] psd  = crossPower.getSpectrum();
+            double df     = crossPower.getSpectrumDeltaF();
 
          // nf = number of positive frequencies + DC (nf = nfft/2 + 1, [f: 0, df, 2df, ...,nfft/2*df] )
-            int nf        = Gxx.length;
+            int nf        = psd.length;
             double freq[] = new double[nf];
-            double gamma[]= new double[nf];
 
-         // Compute gamma[f] and fill freq array
+         // Fill freq array
             for ( int k = 0; k < nf; k++){
                 freq[k] = (double)k * df;
-                gamma[k]= (Gxy[k]*Gxy[k]) / (Gxx[k]*Gyy[k]);
-                gamma[k]= Math.sqrt(gamma[k]);
+                //psd[k]  = 10 * Math.log10(psd[k]);
             }
-            gamma[0]=0;
-            //Timeseries.timeoutXY(freq, gamma, "Gamma");
-            //Timeseries.timeoutXY(freq, Gxx, "Gxx");
-            //Timeseries.timeoutXY(freq, Gyy, "Gyy");
-            //Timeseries.timeoutXY(freq, Gxy, "Gxy");
-
-// To Do: Figure out why gamma is > 1 and then compute average within powerband (below)
+            //psd[0]  = 0; // Have to reset DC else log10(0) = -Infinity
 
          // Convert psd[f] to psd[T]
          // Reverse freq[] --> per[] where per[0]=shortest T and per[nf-2]=longest T:
 
-/**
-            double[] per      = new double[nf];
-            double[] gammaPer = new double[nf];
+            double[] per    = new double[nf];
+            double[] psdPer = new double[nf];
          // per[nf-1] = 1/freq[0] = 1/0 = inf --> set manually:
             per[nf-1] = 0;  
             for (int k = 0; k < nf-1; k++){
                 per[k]     = 1./freq[nf-k-1];
-                gammaPer[k]  = gamma[nf-k-1];
+                psdPer[k]  = psd[nf-k-1];
             }
             double Tmin  = per[0];    // Should be = 1/fNyq = 2/fs = 0.1 for fs=20Hz
             double Tmax  = per[nf-2]; // Should be = 1/df = Ndt
+
+            outFile = channel.toString() + ".psd.Fsmooth.T";
+            //outFile = channel.toString() + ".psd.T";
+            //Timeseries.timeoutXY(per, psdPer, outFile);
+
+         // Interpolate the smoothed psd to the periods of the Station/Channel Noise Model:
+            double psdInterp[] = Timeseries.interpolate(per, psdPer, ModelPeriods);
+
+            outFile = channel.toString() + ".psd.Fsmooth.T.Interp";
+            //Timeseries.timeoutXY(NLNMPeriods, psdInterp, outFile);
 
             PowerBand band    = getPowerBand();
             double lowPeriod  = band.getLow();
@@ -163,29 +173,27 @@ extends PowerBandMetric
 
             if (lowPeriod >= highPeriod) {
                 StringBuilder message = new StringBuilder();
-                message.append(String.format("CoherencePBM Error: Requested band [%f - %f] has lowPeriod >= highPeriod\n"
-                    ,lowPeriod, highPeriod) );
+                message.append(String.format("%s Error: Requested band [%f - %f] has lowPeriod >= highPeriod\n"
+                    ,getName(),lowPeriod, highPeriod) );
                 throw new RuntimeException(message.toString());
             }
-        // Make sure that we only compare within the range of useable periods/frequencies for this channel
+        // Make sure that we only compare to NLNM within the range of useable periods/frequencies for this channel
             if (lowPeriod < Tmin || highPeriod > Tmax) {
                 StringBuilder message = new StringBuilder();
-                message.append(String.format("CoherencePBM Error: Requested band [%f - %f] lies outside Useable band [%f - %f]\n"
-                    ,lowPeriod, highPeriod, Tmin, Tmax) );
+                message.append(String.format("%s Error: Requested band [%f - %f] lies outside Useable band [%f - %f]\n"
+                    ,getName(),lowPeriod, highPeriod, Tmin, Tmax) );
                 throw new RuntimeException(message.toString());
             }
-**/
 
-/**
-        // Compute deviation from NLNM within the requested period band:
+        // Compute deviation from The Model within the requested period band:
             double deviation = 0;
             int nPeriods = 0;
-            for (int k = 0; k < per.length; k++){
-                if (per[k] >  highPeriod){
+            for (int k = 0; k < ModelPeriods.length; k++){
+                if (ModelPeriods[k] >  highPeriod){
                     break;
                 }
-                else if (per[k] >= lowPeriod){
-                    double difference = psdInterp[k] - NLNMPowers[k];
+                else if (ModelPeriods[k] >= lowPeriod){
+                    double difference = psdInterp[k] - ModelPowers[k];
                     //System.out.format("== NLNMPeriods[k=%d]=%.2f psdInterp[k]=%.2f NLNMPowers[k]=%.2f difference=%.2f\n",
                     //   k, NLNMPeriods[k], psdInterp[k], NLNMPowers[k], difference);
                     deviation += Math.sqrt( Math.pow(difference, 2) );
@@ -195,8 +203,8 @@ extends PowerBandMetric
 
             if (nPeriods == 0) {
                 StringBuilder message = new StringBuilder();
-                message.append(String.format("CoherencePBM Error: Requested band [%f - %f] contains NO periods within NLNM\n"
-                    ,lowPeriod, highPeriod) );
+                message.append(String.format("%s Error: Requested band [%f - %f] contains NO periods within station model\n"
+                    ,getName(),lowPeriod, highPeriod) );
                 throw new RuntimeException(message.toString());
             }
             deviation = deviation/(double)nPeriods;
@@ -208,11 +216,62 @@ extends PowerBandMetric
             System.out.format("%s-%s [%s] %s %s-%s ", stnMeta.getStation(), stnMeta.getNetwork(),
               EpochData.epochToDateString(stnMeta.getTimestamp()), getName(), chanMeta.getLocation(), chanMeta.getName() );
             System.out.format("nPeriods:%d deviation=%.2f) %s %s\n", nPeriods, deviation, chanMeta.getDigestString(), dataHashString); 
-**/
 
         }// end foreach channel
 
     } // end process()
+
+
+    private Boolean readModel(String fName) {
+
+   // ../stationmodel/IU_ANMO/ANMO.00.LHZ.90
+        String fileName = ModelDir + fName;
+
+   // First see if the file exists
+        if (!(new File(fileName).exists())) {
+            //System.out.format("=== %s: ModelFile=%s does NOT exist!\n", getName(), fileName);
+            return false;
+        }
+   // Temp ArrayList(s) to read in unknown number of (x,y) pairs:
+        ArrayList<Double> tmpPers = new ArrayList<Double>();
+        ArrayList<Double> tmpPows = new ArrayList<Double>();
+        BufferedReader br = null;
+        try {
+            String line;
+            br = new BufferedReader(new FileReader(fileName));
+            while ((line = br.readLine()) != null) {
+                String[] args = line.trim().split("\\s+") ;
+// MTH: This is hard-wired for Adam's station model files which have 7 columns:
+                if (args.length != 7) {
+                    String message = "==Error reading NLNM: got " + args.length + " args on one line!";
+                    throw new RuntimeException(message);
+                }
+                tmpPers.add( Double.valueOf(args[0].trim()).doubleValue() );
+                tmpPows.add( Double.valueOf(args[2].trim()).doubleValue() );
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (br != null)br.close();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+        Double[] tmpPeriods  = tmpPers.toArray(new Double[]{});
+        Double[] tmpPowers   = tmpPows.toArray(new Double[]{});
+
+        ModelPeriods = new double[tmpPeriods.length];
+        ModelPowers  = new double[tmpPowers.length];
+
+        for (int i=0; i<tmpPeriods.length; i++){
+            ModelPeriods[i] = tmpPeriods[i];
+            ModelPowers[i]  = tmpPowers[i];
+        }
+
+        return true;
+
+    } // end readModel
 
 
 } // end class

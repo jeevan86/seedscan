@@ -37,6 +37,11 @@ public class ArchivePath
     private Station station = null;
     private Channel channel = null;
 
+    public ArchivePath(Station station)
+    {
+        this.station = station;
+    }
+
     public ArchivePath(GregorianCalendar timestamp, Station station)
     {
         this.timestamp = timestamp;
