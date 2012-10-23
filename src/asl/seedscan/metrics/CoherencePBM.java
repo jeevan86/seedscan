@@ -140,12 +140,9 @@ extends PowerBandMetric
             //Timeseries.timeoutXY(freq, Gyy, "Gyy");
             //Timeseries.timeoutXY(freq, Gxy, "Gxy");
 
-// To Do: Figure out why gamma is > 1 and then compute average within powerband (below)
-
-         // Convert psd[f] to psd[T]
+         // Convert gamma[f] to gamma[T]
          // Reverse freq[] --> per[] where per[0]=shortest T and per[nf-2]=longest T:
 
-/**
             double[] per      = new double[nf];
             double[] gammaPer = new double[nf];
          // per[nf-1] = 1/freq[0] = 1/0 = inf --> set manually:
@@ -161,54 +158,41 @@ extends PowerBandMetric
             double lowPeriod  = band.getLow();
             double highPeriod = band.getHigh();
 
-            if (lowPeriod >= highPeriod) {
-                StringBuilder message = new StringBuilder();
-                message.append(String.format("CoherencePBM Error: Requested band [%f - %f] has lowPeriod >= highPeriod\n"
-                    ,lowPeriod, highPeriod) );
-                throw new RuntimeException(message.toString());
+            if (!checkPowerBand(lowPeriod, highPeriod, Tmin, Tmax)){
+                System.out.format("%s powerBand Error: Skipping channel:%s\n", getName(), channel);
+                continue;
             }
-        // Make sure that we only compare within the range of useable periods/frequencies for this channel
-            if (lowPeriod < Tmin || highPeriod > Tmax) {
-                StringBuilder message = new StringBuilder();
-                message.append(String.format("CoherencePBM Error: Requested band [%f - %f] lies outside Useable band [%f - %f]\n"
-                    ,lowPeriod, highPeriod, Tmin, Tmax) );
-                throw new RuntimeException(message.toString());
-            }
-**/
 
-/**
-        // Compute deviation from NLNM within the requested period band:
-            double deviation = 0;
+        // Compute average Coherence within the requested period band:
+            double averageValue = 0;
             int nPeriods = 0;
             for (int k = 0; k < per.length; k++){
                 if (per[k] >  highPeriod){
                     break;
                 }
                 else if (per[k] >= lowPeriod){
-                    double difference = psdInterp[k] - NLNMPowers[k];
-                    //System.out.format("== NLNMPeriods[k=%d]=%.2f psdInterp[k]=%.2f NLNMPowers[k]=%.2f difference=%.2f\n",
-                    //   k, NLNMPeriods[k], psdInterp[k], NLNMPowers[k], difference);
-                    deviation += Math.sqrt( Math.pow(difference, 2) );
+                    averageValue += gammaPer[k];
                     nPeriods++;
                 }
             }
 
             if (nPeriods == 0) {
                 StringBuilder message = new StringBuilder();
-                message.append(String.format("CoherencePBM Error: Requested band [%f - %f] contains NO periods within NLNM\n"
+                message.append(String.format("CoherencePBM Error: Requested band [%f - %f] contains NO periods --> divide by zero!\n"
                     ,lowPeriod, highPeriod) );
                 throw new RuntimeException(message.toString());
             }
-            deviation = deviation/(double)nPeriods;
+            averageValue /= (double)nPeriods;
 
-            String key   = getName() + "+Channel(s)=" + channel.getLocation() + "-" + channel.getChannel();
-            String value = String.format("%.2f",deviation);
+            String key   = getName() + "+Channel(s)=" + channelX.toString() + channelY.toString();
+            String value = String.format("%.2f",averageValue);
             metricResult.addResult(key, value);
 
-            System.out.format("%s-%s [%s] %s %s-%s ", stnMeta.getStation(), stnMeta.getNetwork(),
-              EpochData.epochToDateString(stnMeta.getTimestamp()), getName(), chanMeta.getLocation(), chanMeta.getName() );
-            System.out.format("nPeriods:%d deviation=%.2f) %s %s\n", nPeriods, deviation, chanMeta.getDigestString(), dataHashString); 
-**/
+            //System.out.format("%s-%s [%s] %s %s-%s ", stnMeta.getStation(), stnMeta.getNetwork(),
+            System.out.format("%s [%s] %s %s ", stnMeta.toString(),
+              EpochData.epochToDateString(stnMeta.getTimestamp()), getName(), key );
+            //EpochData.epochToDateString(stnMeta.getTimestamp()), getName(), chanMeta.getLocation(), chanMeta.getName() );
+            System.out.format("nPeriods:%d averageValue=%.2f) %s %s\n", nPeriods, averageValue, chanMeta.getDigestString(), dataHashString); 
 
         }// end foreach channel
 

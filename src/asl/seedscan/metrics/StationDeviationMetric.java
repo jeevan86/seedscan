@@ -171,18 +171,9 @@ extends PowerBandMetric
             double lowPeriod  = band.getLow();
             double highPeriod = band.getHigh();
 
-            if (lowPeriod >= highPeriod) {
-                StringBuilder message = new StringBuilder();
-                message.append(String.format("%s Error: Requested band [%f - %f] has lowPeriod >= highPeriod\n"
-                    ,getName(),lowPeriod, highPeriod) );
-                throw new RuntimeException(message.toString());
-            }
-        // Make sure that we only compare to NLNM within the range of useable periods/frequencies for this channel
-            if (lowPeriod < Tmin || highPeriod > Tmax) {
-                StringBuilder message = new StringBuilder();
-                message.append(String.format("%s Error: Requested band [%f - %f] lies outside Useable band [%f - %f]\n"
-                    ,getName(),lowPeriod, highPeriod, Tmin, Tmax) );
-                throw new RuntimeException(message.toString());
+            if (!checkPowerBand(lowPeriod, highPeriod, Tmin, Tmax)){
+                System.out.format("%s powerBand Error: Skipping channel:%s\n", getName(), channel);
+                continue;
             }
 
         // Compute deviation from The Model within the requested period band:
@@ -194,8 +185,6 @@ extends PowerBandMetric
                 }
                 else if (ModelPeriods[k] >= lowPeriod){
                     double difference = psdInterp[k] - ModelPowers[k];
-                    //System.out.format("== NLNMPeriods[k=%d]=%.2f psdInterp[k]=%.2f NLNMPowers[k]=%.2f difference=%.2f\n",
-                    //   k, NLNMPeriods[k], psdInterp[k], NLNMPowers[k], difference);
                     deviation += Math.sqrt( Math.pow(difference, 2) );
                     nPeriods++;
                 }

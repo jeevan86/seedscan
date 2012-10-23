@@ -81,7 +81,7 @@ extends PowerBandMetric
 
    // Loop over channels, get metadata & data for channel and Calculate Metric
 
-        String outFile; // Use for spec outs
+        String outFile; // Use for outputting spectra arrays (in testing)
 
         for (Channel channel : channels){
 
@@ -105,7 +105,8 @@ extends PowerBandMetric
                 dataHashString = datasets.get(0).getDigestString();
             }
 
-            if (!metricData.hashChanged(channel)) { // Skip channel, we don't need to recompute the metric
+        // If we've already computed this metric and the data+metadata hasn't changed --> Skip channel
+            if (!metricData.hashChanged(channel)) { 
                 System.out.format("%s INFO: Data and metadata have NOT changed for this channel:%s --> Skipping\n"
                                   ,getName(), channel.getChannel());
                 continue;
@@ -126,9 +127,7 @@ extends PowerBandMetric
          // Fill freq array
             for ( int k = 0; k < nf; k++){
                 freq[k] = (double)k * df;
-                //psd[k]  = 10 * Math.log10(psd[k]);
             }
-            //psd[0]  = 0; // Have to reset DC else log10(0) = -Infinity
 
          // Convert psd[f] to psd[T]
          // Reverse freq[] --> per[] where per[0]=shortest T and per[nf-2]=longest T:
@@ -144,32 +143,22 @@ extends PowerBandMetric
             double Tmin  = per[0];    // Should be = 1/fNyq = 2/fs = 0.1 for fs=20Hz
             double Tmax  = per[nf-2]; // Should be = 1/df = Ndt
 
-            outFile = channel.toString() + ".psd.Fsmooth.T";
             //outFile = channel.toString() + ".psd.T";
             //Timeseries.timeoutXY(per, psdPer, outFile);
 
          // Interpolate the smoothed psd to the periods of the NLNM Model:
             double psdInterp[] = Timeseries.interpolate(per, psdPer, NLNMPeriods);
 
-            outFile = channel.toString() + ".psd.Fsmooth.T.Interp";
+            //outFile = channel.toString() + ".psd.Fsmooth.T.Interp";
             //Timeseries.timeoutXY(NLNMPeriods, psdInterp, outFile);
 
             PowerBand band    = getPowerBand();
             double lowPeriod  = band.getLow();
             double highPeriod = band.getHigh();
 
-            if (lowPeriod >= highPeriod) {
-                StringBuilder message = new StringBuilder();
-                message.append(String.format("NLNMDeviation Error: Requested band [%f - %f] has lowPeriod >= highPeriod\n"
-                    ,lowPeriod, highPeriod) );
-                throw new RuntimeException(message.toString());
-            }
-        // Make sure that we only compare to NLNM within the range of useable periods/frequencies for this channel
-            if (lowPeriod < Tmin || highPeriod > Tmax) {
-                StringBuilder message = new StringBuilder();
-                message.append(String.format("NLNMDeviation Error: Requested band [%f - %f] lies outside Useable band [%f - %f]\n"
-                    ,lowPeriod, highPeriod, Tmin, Tmax) );
-                throw new RuntimeException(message.toString());
+            if (!checkPowerBand(lowPeriod, highPeriod, Tmin, Tmax)){
+                System.out.format("%s powerBand Error: Skipping channel:%s\n", getName(), channel);
+                continue;
             }
 
         // Compute deviation from NLNM within the requested period band:
@@ -181,8 +170,6 @@ extends PowerBandMetric
                 }
                 else if (NLNMPeriods[k] >= lowPeriod){
                     double difference = psdInterp[k] - NLNMPowers[k];
-                    //System.out.format("== NLNMPeriods[k=%d]=%.2f psdInterp[k]=%.2f NLNMPowers[k]=%.2f difference=%.2f\n",
-                    //   k, NLNMPeriods[k], psdInterp[k], NLNMPowers[k], difference);
                     deviation += Math.sqrt( Math.pow(difference, 2) );
                     nPeriods++;
                 }
@@ -208,6 +195,12 @@ extends PowerBandMetric
 
     } // end process()
 
+
+/** readNLNM() - Read in Peterson's NewLowNoiseModel from file specified in config.xml
+ **       e.g., <cfg:argument cfg:name="modelfile">/Users/mth/mth/Projects/xs0/NLNM.ascii/</cfg:argument>
+ **             NLNM Periods will be read into NLNMPeriods[]
+ **             NLNM Powers  will be read into NLNMPowers[]
+ **/
 
     private Boolean readNLNM() {
 
@@ -263,7 +256,6 @@ extends PowerBandMetric
         return true;
 
     } // end readNLNM
-
 
 } // end class
 

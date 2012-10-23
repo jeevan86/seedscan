@@ -175,12 +175,15 @@ public class StationMeta
     }
 
     @Override public String toString() {
+      return network + "_" + name;
+    /**
       StringBuilder result = new StringBuilder();
       String NEW_LINE = System.getProperty("line.separator");
       result.append(String.format("%10s%s\t%15s%.2f\n","Station:",name,"Latitude:",latitude) );
       result.append(String.format("%10s%s\t%15s%.2f\t%15s%.2f\n","Network:",network,"Longitude:",longitude, "Elevation:",elevation) );
       result.append(NEW_LINE);
       return result.toString();
+    **/
     }
 
 }
