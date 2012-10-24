@@ -88,7 +88,9 @@ public class Scanner
         timestamp.set(Calendar.SECOND, 0);      timestamp.set(Calendar.MILLISECOND, 0);
 
      // Read in all metadata for this station (all channels + all days):
-        MetaGenerator metaGen = new MetaGenerator(station);
+        //MetaGenerator metaGen = new MetaGenerator(station);
+        String datalessDir    = scan.getDatalessDir();
+        MetaGenerator metaGen = new MetaGenerator(station, datalessDir);
         if (!metaGen.isLoaded()) {    // No Metadata found for this station --> Skip station == End thread ??
             System.out.format("Scanner Error: No Metadata found for Station:%s_%s --> Skip this Station\n", station.getNetwork(), station.getStation());
             return;

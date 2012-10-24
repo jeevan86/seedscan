@@ -26,7 +26,7 @@ import asl.seedscan.metrics.MetricWrapper;
 public class Scan
 {
     private String pathPattern;
-    private String stationModelPathPattern;
+    private String datalessDir;
     private int startDay;
     private int daysToScan;
     private ArrayList<MetricWrapper> metrics;
@@ -52,16 +52,17 @@ public class Scan
         return pathPattern;
     }
 
-    // station (noise) model path pattern
-    public void setStationModelPathPattern(String stationModelPathPattern)
+    // dataless seed dir
+    public void setDatalessDir(String datalessDir)
     {
-        this.stationModelPathPattern = stationModelPathPattern;
+        this.datalessDir = datalessDir;
     }
 
-    public String getStationModelPathPattern()
+    public String getDatalessDir()
     {
-        return stationModelPathPattern;
+        return datalessDir;
     }
+
 
     // metrics
     public void addMetric(MetricWrapper metric)

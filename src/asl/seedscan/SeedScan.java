@@ -237,8 +237,8 @@ public class SeedScan
 
                 Scan scan = new Scan();
                 scan.setPathPattern(scanCfg.getPath());
-                //scan.setStationModelPathPattern(scanCfg.getStationmodelpath());
-//System.out.format("==== stationModelPathPattern=%s\n", scanCfg.getStationmodelpath());
+                scan.setDatalessDir(scanCfg.getDatalessDir());
+
                 scan.setStartDay(scanCfg.getStartDay().intValue());
                 scan.setDaysToScan(scanCfg.getDaysToScan().intValue());
                 for (MetricT met: scanCfg.getMetrics().getMetric()) {

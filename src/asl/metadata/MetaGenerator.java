@@ -40,9 +40,15 @@ public class MetaGenerator
     private ArrayList<String> strings = null;
     private StationData stationData = null;
     private Boolean successfullyLoaded = false;
+    private String datalessDir = null;
 
     public MetaGenerator(Station station)
     {
+        loadDataless(station);
+    }
+    public MetaGenerator(Station station, String datalessDir)
+    {
+        this.datalessDir = datalessDir;
         loadDataless(station);
     }
 
@@ -58,7 +64,9 @@ public class MetaGenerator
 
       Dataless dataless   = null;
      // MTH: This is a param we should likely read in from config.xml:
-      String datalessPath = "/Users/mth/mth/Projects/dcc/metadata/dataless/";
+     // Done!
+      //String datalessPath = "/Users/mth/mth/Projects/dcc/metadata/dataless/";
+      String datalessPath = datalessDir;
       String datalessFile = datalessPath + "DATALESS." + station.getNetwork() + "_" + station.getStation() + ".seed"; 
       ProcessBuilder pb = new ProcessBuilder("rdseed", "-s", "-f", datalessFile);
       //pb.redirectErrorStream(true);
