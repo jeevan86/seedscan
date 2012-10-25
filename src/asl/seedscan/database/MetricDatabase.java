@@ -61,7 +61,9 @@ public class MetricDatabase
         } catch (SQLException e) {
             System.err.print(e);
             logger.severe("Could not open station database.");
+/** MTH
             throw new RuntimeException("Could not open station database.");
+**/
         }
     }
     
