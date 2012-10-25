@@ -27,11 +27,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.logging.Logger;
 
 import asl.security.*;
 import asl.seedscan.*;
 import asl.seedscan.config.*;
+import asl.seedscan.metrics.*;
 import asl.metadata.*;
 
 public class MetricDatabase
@@ -44,7 +46,6 @@ public class MetricDatabase
     private String password;
     
     private CallableStatement callStatement;
-    private String result;
 
     public MetricDatabase(DatabaseT config) {
         this(config.getUri(), config.getUsername(), config.getPassword().toString());
@@ -64,7 +65,30 @@ public class MetricDatabase
         }
     }
     
+    public Connection getConnection()
+    {
+    	return connection;
+    }
+    
+    public int insertMetricData(Station station, Calendar date, Metric metric) {
+    	int result = -1;
+        try {
+            ResultSet resultSet = null;
+            callStatement = connection.prepareCall("CALL fnMetricInject(?, ?, ?, ?, ?, ?)");
+            callStatement.setString(1, station.toString());
+            callStatement.setString(2, date.toString());
+            callStatement.registerOutParameter(7, java.sql.Types.INTEGER);
+            resultSet = callStatement.executeQuery();
+            result = callStatement.getInt(7);
+        }
+        catch (SQLException e) {
+            System.out.print(e);
+        }
+        return result;
+    }
+    
     public String selectAll(String startDate, String endDate){
+    	String result = "";
         try {
             ResultSet resultSet = null;
             callStatement = connection.prepareCall("CALL spGetAll(?, ?, ?)");
