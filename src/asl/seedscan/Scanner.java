@@ -38,7 +38,7 @@ import asl.concurrent.FallOffQueue;
 import asl.seedsplitter.DataSet;
 import asl.seedsplitter.SeedSplitProgress;
 import asl.seedsplitter.SeedSplitter;
-import asl.seedscan.database.StationDatabase;
+import asl.seedscan.database.MetricDatabase;
 import asl.metadata.*;
 import asl.metadata.meta_new.*;
 import asl.seedscan.metrics.*;
@@ -50,12 +50,12 @@ public class Scanner
     public long dayMilliseconds = 1000 * 60 * 60 * 24;
 
     private Station station;
-    private StationDatabase database;
+    private MetricDatabase database;
     private Scan scan;
 
     private FallOffQueue<SeedSplitProgress> progressQueue;
 
-    public Scanner(StationDatabase database, Station station, Scan scan)
+    public Scanner(MetricDatabase database, Station station, Scan scan)
     {
         this.station  = station;
         this.database = database;

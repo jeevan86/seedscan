@@ -218,7 +218,7 @@ public class SeedScan
         }
 
      // ===== CONFIG: DATABASE =====
-        StationDatabase database = new StationDatabase(config.getDatabase());
+        MetricDatabase database = new MetricDatabase(config.getDatabase());
 
 
      // ===== CONFIG: SCANS =====
