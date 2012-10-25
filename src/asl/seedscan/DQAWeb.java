@@ -65,7 +65,7 @@ public class DQAWeb
     private static Handler consoleHandler;
     private static Handler logDatabaseHandler;
     private static Handler logFileHandler;
-    private static StationDatabase db; 
+    private static MetricDatabase db; 
 
     public static void findConsoleHandler()
     {
@@ -128,7 +128,7 @@ public class DQAWeb
 
     public static void main(String args[])
     {
-        db = new StationDatabase();
+        db = new MetricDatabase("", "", "");
         findConsoleHandler();
         consoleHandler.setLevel(Level.ALL);
         Logger.getLogger("").setLevel(Level.CONFIG);

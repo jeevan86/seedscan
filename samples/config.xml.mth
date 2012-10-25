@@ -77,7 +77,7 @@
 -->
             <cfg:path>/Users/mth/mth/Projects/xs0/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}</cfg:path>
             <cfg:dataless_dir>/Users/mth/mth/Projects/dcc/metadata/dataless/</cfg:dataless_dir>
-            <cfg:start_day>138</cfg:start_day>
+            <cfg:start_day>140</cfg:start_day>
             <cfg:days_to_scan>1</cfg:days_to_scan>
             <cfg:metrics>
 <!--

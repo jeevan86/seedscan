@@ -27,44 +27,68 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.logging.Logger;
 
 import asl.security.*;
 import asl.seedscan.*;
 import asl.seedscan.config.*;
+import asl.seedscan.metrics.*;
 import asl.metadata.*;
 
-public class StationDatabase
+public class MetricDatabase
 {
-    public static final Logger logger = Logger.getLogger("asl.seedscan.database.StationDatabase");
+    public static final Logger logger = Logger.getLogger("asl.seedscan.database.MetricDatabase");
 
-    private Connection connection = null;
-    private DatabaseT config = null;
-    private String conString = "jdbc:mysql://asltrans.cr.usgs.gov:3306/metricsDev?useInformationSchema=true&noAccessToProcedureBodies=true";
-    private String user = "dev";
-    private String password = "asldev";
-    private CallableStatement callStatement = null;
-    private String result;
+    private Connection connection;
+    private String URI;
+    private String username;
+    private String password;
+    
+    private CallableStatement callStatement;
 
-    public StationDatabase(DatabaseT config) {
-        this.config = config;
-System.out.println("StationDatabase Constructor(): This is where we would make the connection to the dbase");
-/**
+    public MetricDatabase(DatabaseT config) {
+        this(config.getUri(), config.getUsername(), config.getPassword().toString());
+    }
+    
+    public MetricDatabase(String URI, String username, String password) {
+    	this.URI = URI;
+    	this.username = username;
+    	this.password = password;
+        System.out.println("MetricDatabase Constructor(): This is where we make the connection to the dbase");
         try {
-            connection = DriverManager.getConnection(conString, user, password);
+            connection = DriverManager.getConnection(URI, username, password);
         } catch (SQLException e) {
             System.err.print(e);
             logger.severe("Could not open station database.");
             throw new RuntimeException("Could not open station database.");
         }
-**/
     }
-
-    public StationDatabase() {
-	this(null);
+    
+    public Connection getConnection()
+    {
+    	return connection;
+    }
+    
+    public int insertMetricData(Station station, Calendar date, Metric metric) {
+    	int result = -1;
+        try {
+            ResultSet resultSet = null;
+            callStatement = connection.prepareCall("CALL fnMetricInject(?, ?, ?, ?, ?, ?)");
+            callStatement.setString(1, station.toString());
+            callStatement.setString(2, date.toString());
+            callStatement.registerOutParameter(7, java.sql.Types.INTEGER);
+            resultSet = callStatement.executeQuery();
+            result = callStatement.getInt(7);
+        }
+        catch (SQLException e) {
+            System.out.print(e);
+        }
+        return result;
     }
     
     public String selectAll(String startDate, String endDate){
+    	String result = "";
         try {
             ResultSet resultSet = null;
             callStatement = connection.prepareCall("CALL spGetAll(?, ?, ?)");
