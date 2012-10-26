@@ -57,10 +57,11 @@
   
     <cfg:database>
         <!--cfg:uri>jdbc:mysql://catbox2.cr.usgs.gov/stations</cfg:uri-->
-        <cfg:uri>jdbc:mysql://136.177.121.210:54321/seedscan</cfg:uri>
-        <cfg:username>seedscan_write</cfg:username>
+        <!--cfg:uri>jdbc:mysql://136.177.121.210:54321/seedscan</cfg:uri-->
+        <cfg:uri>jdbc:postgresql://136.177.121.210:5432/dataq_dev</cfg:uri>
+        <cfg:username>devwrite</cfg:username>
         <cfg:password>
-            <cfg:plain>S33dSc@nWr1t3r!</cfg:plain>
+            <cfg:plain>asldev</cfg:plain>
             <!--cfg:encrypted>
                 <cfg:salt>952bf002cc030243</cfg:salt>
                 <cfg:iv>952bf002cc030243952bf002cc030243</cfg:iv>
@@ -74,7 +75,7 @@
         <cfg:scan cfg:name="daily">
             <cfg:path>/xs0/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}</cfg:path>
             <cfg:dataless_dir>/dcc/metadata/dataless/</cfg:dataless_dir>
-            <cfg:start_day>139</cfg:start_day>
+            <cfg:start_day>140</cfg:start_day>
             <cfg:days_to_scan>1</cfg:days_to_scan>
             <cfg:metrics>
 <!--
@@ -89,6 +90,7 @@
                     <cfg:class_name>asl.seedscan.metrics.GapCountMetric</cfg:class_name>
                 </cfg:metric>
 <!-- PowerBand Metrics:  -->
+<!--
                 <cfg:metric>
                     <cfg:class_name>asl.seedscan.metrics.CoherencePBM</cfg:class_name>
                     <cfg:argument cfg:name="lower-limit">4</cfg:argument>
@@ -99,6 +101,7 @@
                     <cfg:argument cfg:name="lower-limit">2</cfg:argument>
                     <cfg:argument cfg:name="upper-limit">4</cfg:argument>
                 </cfg:metric>
+-->
                 <cfg:metric>
                     <cfg:class_name>asl.seedscan.metrics.NLNMDeviationMetric</cfg:class_name>
                     <cfg:argument cfg:name="lower-limit">4</cfg:argument>
