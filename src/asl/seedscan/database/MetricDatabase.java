@@ -49,7 +49,7 @@ public class MetricDatabase
     private CallableStatement callStatement;
 
     public MetricDatabase(DatabaseT config) {
-        this(config.getUri(), config.getUsername(), config.getPassword().toString());
+        this(config.getUri(), config.getUsername(), config.getPassword().getPlain());
     }
     
     public MetricDatabase(String URI, String username, String password) {
@@ -58,6 +58,7 @@ public class MetricDatabase
     	this.password = password;
         System.out.println("MetricDatabase Constructor(): This is where we make the connection to the dbase");
         try {
+            logger.info(String.format("Connection String = \"%s\", User = \"%s\", Pass = \"%s\"", URI, username, password));
             connection = DriverManager.getConnection(URI, username, password);
         } catch (SQLException e) {
             System.err.print(e);
