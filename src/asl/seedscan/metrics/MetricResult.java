@@ -19,6 +19,7 @@
 package asl.seedscan.metrics;
 
 import asl.seedsplitter.DataSet;
+import asl.metadata.Channel;
 import asl.metadata.StationData;
 
 import java.util.ArrayList;
@@ -38,6 +39,16 @@ public class MetricResult
         this.map = new Hashtable<String, String>();
     }
 
+    public void addResult(Channel channel, String value)
+    {
+        map.put(createResultId(channel), value);
+    }
+    
+    public void addResult(Channel channelA, Channel channelB, String value)
+    {
+        map.put(createResultId(channelA, channelB), value);
+    }
+    
     public void addResult(String id, String value)
     {
         map.put(id, value);
@@ -56,6 +67,18 @@ public class MetricResult
     public Set<String> getIdSet()
     {
         return map.keySet();
+    }
+
+ // Static methods
+    public static String createResultId(Channel channel)
+    {
+    	return String.format("%s,%s", channel.getLocation(), channel.getChannel());
+    }
+    
+    public static String createResultId(Channel channelA, Channel channelB)
+    {
+    	return String.format("%s-%s,%s-%s", channelA.getLocation(), channelB.getLocation(),
+    										channelA.getChannel(),  channelB.getChannel());
     }
 }
 

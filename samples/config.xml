@@ -67,6 +67,7 @@
     <cfg:scans>
         <cfg:scan cfg:name="daily">
             <cfg:path>/xs0/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}</cfg:path>
+            <cfg:dataless_dir>/dcc/metadata/dataless/</cfg:dataless_dir>
             <cfg:start_day>1</cfg:start_day>
             <cfg:days_to_scan>2</cfg:days_to_scan>
             <cfg:metrics>
@@ -86,6 +87,7 @@
 
         <cfg:scan cfg:name="yearly">
             <cfg:path>/xs0/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}</cfg:path>
+            <cfg:dataless_dir>/dcc/metadata/dataless/</cfg:dataless_dir>
             <cfg:start_day>1</cfg:start_day>
             <cfg:days_to_scan>366</cfg:days_to_scan>
             <cfg:metrics>
