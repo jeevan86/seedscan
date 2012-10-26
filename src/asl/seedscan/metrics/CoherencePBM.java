@@ -184,13 +184,18 @@ extends PowerBandMetric
             }
             averageValue /= (double)nPeriods;
 
-            String key   = getName() + "+Channel(s)=" + channelX.toString() + channelY.toString();
-            String value = String.format("%.2f",averageValue);
-            metricResult.addResult(key, value);
+            // Naming for rotated channels:
+            // ---------------------------
+            // LHZ
+            // LHND
+            // LHED
+            String id = MetricResult.createResultId(channelX, channelY);
+            String value = String.format("%.6f",averageValue);
+            metricResult.addResult(id, value);
 
             //System.out.format("%s-%s [%s] %s %s-%s ", stnMeta.getStation(), stnMeta.getNetwork(),
             System.out.format("%s [%s] %s %s ", stnMeta.toString(),
-              EpochData.epochToDateString(stnMeta.getTimestamp()), getName(), key );
+              EpochData.epochToDateString(stnMeta.getTimestamp()), getName(), id );
             //EpochData.epochToDateString(stnMeta.getTimestamp()), getName(), chanMeta.getLocation(), chanMeta.getName() );
             System.out.format("nPeriods:%d averageValue=%.2f) %s %s\n", nPeriods, averageValue, chanMeta.getDigestString(), dataHashString); 
 
