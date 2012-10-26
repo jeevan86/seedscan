@@ -20,9 +20,13 @@ package asl.seedscan.metrics;
 
 import asl.seedsplitter.DataSet;
 import asl.metadata.Channel;
+import asl.metadata.Station;
 import asl.metadata.StationData;
+import asl.metadata.meta_new.StationMeta;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Set;
@@ -32,41 +36,53 @@ public class MetricResult
 {
     private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.MetricResult");
 
-    private Hashtable<String, String> map;
+    private Calendar date;
+    private Station station;
+    private Hashtable<String, Double> valueMap;
+    private Hashtable<String, ByteBuffer> digestMap;
 
-    public MetricResult()
+    public MetricResult(StationMeta stationInfo)
     {
-        this.map = new Hashtable<String, String>();
-    }
-
-    public void addResult(Channel channel, String value)
-    {
-        map.put(createResultId(channel), value);
+    	this.date = stationInfo.getTimestamp();
+    	this.station = new Station(stationInfo.getNetwork(), stationInfo.getStation());
+        this.valueMap = new Hashtable<String, Double>();
+        this.digestMap = new Hashtable<String, ByteBuffer>();
     }
     
-    public void addResult(Channel channelA, Channel channelB, String value)
+    public void addResult(Channel channel, Double value, ByteBuffer digest)
     {
-        map.put(createResultId(channelA, channelB), value);
+        addResult(createResultId(channel), value, digest);
     }
     
-    public void addResult(String id, String value)
+    public void addResult(Channel channelA, Channel channelB, Double value, ByteBuffer digest)
     {
-        map.put(id, value);
+        addResult(createResultId(channelA, channelB), value, digest);
+    }
+    
+    public void addResult(String id, Double value, ByteBuffer digest)
+    {
+        valueMap.put(id, value);
+        digestMap.put(id, digest);
     }
 
-    public String getResult(String id)
+    public Double getResult(String id)
     {
-        return map.get(id);
+        return valueMap.get(id);
+    }
+    
+    public ByteBuffer getDigest(String id)
+    {
+    	return digestMap.get(id);
     }
 
     public Enumeration<String> getIds()
     {
-        return map.keys();
+        return valueMap.keys();
     }
 
     public Set<String> getIdSet()
     {
-        return map.keySet();
+        return valueMap.keySet();
     }
 
  // Static methods

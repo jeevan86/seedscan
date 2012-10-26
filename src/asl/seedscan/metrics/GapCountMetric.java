@@ -18,6 +18,7 @@
  */
 package asl.seedscan.metrics;
 
+import java.nio.ByteBuffer;
 import java.util.logging.Logger;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
@@ -53,7 +54,7 @@ extends Metric
            ChannelArray channelArray = new ChannelArray("00","BHZ", "BH1", "BH2");
            ArrayList<Channel> channels = channelArray.getChannels();
 
-           metricResult = new MetricResult();
+           metricResult = new MetricResult(stnMeta);
 
    // Loop over channels, get metadata & data for channel and Calculate Metric
 
@@ -82,9 +83,8 @@ extends Metric
                dataHashString = dataset.getDigestString();
              } // end for each dataset
 
-             String key   = getName() + "+Channel(s)=" + channel.getLocation() + "-" + channel.getChannel();
-             String value = String.format("%d",gapCount);
-             metricResult.addResult(key, value);
+             ByteBuffer digest = ByteBuffer.allocate(16);
+             metricResult.addResult(channel, (double)gapCount, digest);
 
              System.out.format("%s-%s [%s] %s %s-%s ", stnMeta.getStation(), stnMeta.getNetwork(),  
                EpochData.epochToDateString(stnMeta.getTimestamp()), getName(), chanMeta.getLocation(), chanMeta.getName() );

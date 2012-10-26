@@ -196,8 +196,8 @@ public class Scanner
                 }
                 else {
                     for (String id: result.getIdSet()) {
-                        String value = result.getResult(id);
-                        System.out.format("  %s : %s\n", id, value);
+                        double value = result.getResult(id);
+                        System.out.format("  %s : %.2f\n", id, value);
                     }
                 }
             } // end loop over metrics

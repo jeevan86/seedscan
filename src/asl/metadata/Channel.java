@@ -53,8 +53,8 @@ public class Channel
             throw new RuntimeException("channel cannot be null");
         }
     //  I don't know of any channels that aren't exactly 3-characters long (??)
-        if (channel.length() != 3) {
-            throw new RuntimeException("channel name MUST be 3-characters long");
+        if (channel.length() < 3 || channel.length() > 4) {
+            throw new RuntimeException("channel name MUST be 3 or 4 characters long");
         }
         this.channel = channel;
     }

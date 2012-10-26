@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.File;
+import java.nio.ByteBuffer;
 
 import asl.metadata.*;
 import asl.metadata.meta_new.*;
@@ -77,7 +78,7 @@ extends PowerBandMetric
 
         ArrayList<Channel> channels = channelArray.getChannels();
 
-        metricResult = new MetricResult();
+        metricResult = new MetricResult(stnMeta);
 
    // Loop over channels, get metadata & data for channel and Calculate Metric
 
@@ -183,9 +184,8 @@ extends PowerBandMetric
             }
             deviation = deviation/(double)nPeriods;
 
-            String key   = getName() + "+Channel(s)=" + channel.getLocation() + "-" + channel.getChannel();
-            String value = String.format("%.2f",deviation);
-            metricResult.addResult(key, value);
+            ByteBuffer digest = ByteBuffer.allocate(16);
+            metricResult.addResult(channel, deviation, digest);
 
             System.out.format("%s-%s [%s] %s %s-%s ", stnMeta.getStation(), stnMeta.getNetwork(),
               EpochData.epochToDateString(stnMeta.getTimestamp()), getName(), chanMeta.getLocation(), chanMeta.getName() );

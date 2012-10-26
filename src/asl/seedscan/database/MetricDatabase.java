@@ -88,7 +88,7 @@ public class MetricDatabase
 	            callStatement.setString(4, station.getStation());
 	            callStatement.setString(5, location);
 	            callStatement.setString(6, channel);
-	            callStatement.setString(7, metricResult.getResult(id));
+	            callStatement.setDouble(7, metricResult.getResult(id));
 	            //callStatement.registerOutParameter(8, java.sql.Types.INTEGER);
 	            resultSet = callStatement.executeQuery();
 	            //result = callStatement.getInt(8);

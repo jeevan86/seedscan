@@ -59,6 +59,12 @@ implements Runnable
     {
         return unit;
     }
+    
+    public void addTask(String command, T data)
+    throws InterruptedException
+    {
+    	queue.put(new Task<T>(command, data));
+    }
 
  // implements Runnable's run() method 
     public void run()

@@ -18,6 +18,7 @@
  */
 package asl.seedscan.metrics;
 
+import java.nio.ByteBuffer;
 import java.util.logging.Logger;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
@@ -53,7 +54,7 @@ extends Metric
            ChannelArray channelArray = new ChannelArray("00","VMZ", "VM1", "VM2");
            ArrayList<Channel> channels = channelArray.getChannels();
 
-           metricResult = new MetricResult();
+           metricResult = new MetricResult(stnMeta);
 
    // Loop over channels, get metadata & data for channel and Calculate Metric
 
@@ -123,9 +124,8 @@ extends Metric
              double massCenter = lowerBound + massRange;
              double massPercent= 100 * Math.abs(massPosition - massCenter) / massRange;
 
-             String key   = getName() + "+Channel(s)=" + channel.getLocation() + "-" + channel.getChannel();
-             String value = String.format("%.2f",massPercent);
-             metricResult.addResult(key, value);
+             ByteBuffer digest = ByteBuffer.allocate(16);
+             metricResult.addResult(channel, massPercent, digest);
 
              System.out.format("%s-%s [%s] %s %s-%s ", stnMeta.getStation(), stnMeta.getNetwork(), 
                EpochData.epochToDateString(stnMeta.getTimestamp()), getName(), chanMeta.getLocation(), chanMeta.getName() );

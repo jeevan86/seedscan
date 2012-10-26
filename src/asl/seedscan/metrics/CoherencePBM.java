@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.File;
+import java.nio.ByteBuffer;
 
 import asl.metadata.*;
 import asl.metadata.meta_new.*;
@@ -61,7 +62,7 @@ extends PowerBandMetric
 
         ArrayList<Channel> channels = channelArray.getChannels();
 
-        metricResult = new MetricResult();
+        metricResult = new MetricResult(stnMeta);
 
    // Loop over channels, get metadata & data for channel and Calculate Metric
 
@@ -184,18 +185,17 @@ extends PowerBandMetric
             }
             averageValue /= (double)nPeriods;
 
+            ByteBuffer digest = ByteBuffer.allocate(16);
             // Naming for rotated channels:
             // ---------------------------
             // LHZ
             // LHND
             // LHED
-            String id = MetricResult.createResultId(channelX, channelY);
-            String value = String.format("%.6f",averageValue);
-            metricResult.addResult(id, value);
+            metricResult.addResult(channelX, channelY, averageValue, digest);
 
             //System.out.format("%s-%s [%s] %s %s-%s ", stnMeta.getStation(), stnMeta.getNetwork(),
             System.out.format("%s [%s] %s %s ", stnMeta.toString(),
-              EpochData.epochToDateString(stnMeta.getTimestamp()), getName(), id );
+              EpochData.epochToDateString(stnMeta.getTimestamp()), getName(), MetricResult.createResultId(channelX, channelY) );
             //EpochData.epochToDateString(stnMeta.getTimestamp()), getName(), chanMeta.getLocation(), chanMeta.getName() );
             System.out.format("nPeriods:%d averageValue=%.2f) %s %s\n", nPeriods, averageValue, chanMeta.getDigestString(), dataHashString); 
 
