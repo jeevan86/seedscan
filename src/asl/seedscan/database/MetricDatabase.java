@@ -22,6 +22,7 @@ package asl.seedscan.database;
 import java.io.File;
 import java.sql.CallableStatement;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -72,23 +73,24 @@ public class MetricDatabase
     	return connection;
     }
     
-    public int insertMetricData(Station station, Calendar date, Metric metric) {
+    public int insertMetricData(Metric metric) {
     	int result = -1;
         try {
-        	MetricResult metricResult = metric.getResult();
-            for (String id: metricResult.getIdSet()) {
+        	MetricResult results = metric.getResult();
+            for (String id: results.getIdSet()) {
             	ResultSet resultSet = null;
             	String[] parts = id.split(",");
             	String location = parts[0];
             	String channel = parts[1];
 	            callStatement = connection.prepareCall("SELECT spInsertMetricData(?, ?, ?, ?, ?, ?, ?)");
-	            callStatement.setString(1, date.toString());
+	            java.sql.Date date = new java.sql.Date(results.getDate().getTimeInMillis());
+	            callStatement.setDate(1, date);
 	            callStatement.setString(2, metric.getName());
-	            callStatement.setString(3, station.getNetwork());
-	            callStatement.setString(4, station.getStation());
+	            callStatement.setString(3, results.getStation().getNetwork());
+	            callStatement.setString(4, results.getStation().getStation());
 	            callStatement.setString(5, location);
 	            callStatement.setString(6, channel);
-	            callStatement.setDouble(7, metricResult.getResult(id));
+	            callStatement.setDouble(7, results.getResult(id));
 	            //callStatement.registerOutParameter(8, java.sql.Types.INTEGER);
 	            resultSet = callStatement.executeQuery();
 	            //result = callStatement.getInt(8);

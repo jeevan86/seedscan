@@ -49,6 +49,16 @@ public class MetricResult
         this.digestMap = new Hashtable<String, ByteBuffer>();
     }
     
+    public Calendar getDate()
+    {
+    	return date;
+    }
+    
+    public Station getStation()
+    {
+    	return station;
+    }
+    
     public void addResult(Channel channel, Double value, ByteBuffer digest)
     {
         addResult(createResultId(channel), value, digest);
