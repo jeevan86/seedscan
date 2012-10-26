@@ -33,10 +33,10 @@
                 <cfg:handler_level>CONFIG</cfg:handler_level>
                 <cfg:database>
                     <!--cfg:uri>jdbc:mysql://catbox2.cr.usgs.gov/stations</cfg:uri-->
-                    <cfg:uri>jdbc:mysql://136.177.121.210:54321/seedscan</cfg:uri>
-                    <cfg:username>seedscan_write</cfg:username>
+                    <cfg:uri>jdbc:postgresql://136.177.121.210:5432/dataq_dev</cfg:uri>
+                    <cfg:username>devwrite</cfg:username>
                     <cfg:password>
-                        <cfg:plain>S33dSc@nWr1t3r!</cfg:plain>
+                        <cfg:plain>asldev</cfg:plain>
                         <!--cfg:encrypted>
                             <cfg:salt>952bf002cc030243</cfg:salt>
                             <cfg:iv>952bf002cc030243952bf002cc030243</cfg:iv>
@@ -51,10 +51,10 @@
   
     <cfg:database>
         <!--cfg:uri>jdbc:mysql://catbox2.cr.usgs.gov/stations</cfg:uri-->
-        <cfg:uri>jdbc:postgresql://136.177.121.210:5432/dqa</cfg:uri>
-        <cfg:username>dqa_write</cfg:username>
+        <cfg:uri>jdbc:postgresql://136.177.121.210:5432/dataq_dev</cfg:uri>
+        <cfg:username>devwrite</cfg:username>
         <cfg:password>
-            <cfg:plain>DQ@Wr1t3r!</cfg:plain>
+            <cfg:plain>asldev</cfg:plain>
             <!--cfg:encrypted>
                 <cfg:salt>952bf002cc030243</cfg:salt>
                 <cfg:iv>952bf002cc030243952bf002cc030243</cfg:iv>
