@@ -68,9 +68,6 @@ extends PowerBandMetric
             return;  // Can't do anything if we didn't read in a NLNM model so skip to the next metric
         }
 
-   // Grab station metadata for all channels for this day:
-        StationMeta stnMeta = metricData.getMetaData();
-
    // Create a 3-channel array to use for loop
         ChannelArray channelArray = new ChannelArray("00","LHZ", "LH1", "LH2");
         //ChannelArray channelArray = new ChannelArray("10","BHZ", "BH1", "BH2");
@@ -78,15 +75,13 @@ extends PowerBandMetric
 
         ArrayList<Channel> channels = channelArray.getChannels();
 
-        metricResult = new MetricResult(stnMeta);
-
    // Loop over channels, get metadata & data for channel and Calculate Metric
 
         String outFile; // Use for outputting spectra arrays (in testing)
 
         for (Channel channel : channels){
 
-            ChannelMeta chanMeta = stnMeta.getChanMeta(channel);
+            ChannelMeta chanMeta = stationMeta.getChanMeta(channel);
             if (chanMeta == null){ // Skip channel, we have no metadata for it
                 System.out.format("%s Error: metadata not found for requested channel:%s --> Skipping\n"
                                   ,getName(), channel.getChannel());
@@ -187,8 +182,8 @@ extends PowerBandMetric
             ByteBuffer digest = ByteBuffer.allocate(16);
             metricResult.addResult(channel, deviation, digest);
 
-            System.out.format("%s-%s [%s] %s %s-%s ", stnMeta.getStation(), stnMeta.getNetwork(),
-              EpochData.epochToDateString(stnMeta.getTimestamp()), getName(), chanMeta.getLocation(), chanMeta.getName() );
+            System.out.format("%s-%s [%s] %s %s-%s ", stationMeta.getStation(), stationMeta.getNetwork(),
+              EpochData.epochToDateString(stationMeta.getTimestamp()), getName(), chanMeta.getLocation(), chanMeta.getName() );
             System.out.format("nPeriods:%d deviation=%.2f) %s %s\n", nPeriods, deviation, chanMeta.getDigestString(), dataHashString); 
 
         }// end foreach channel

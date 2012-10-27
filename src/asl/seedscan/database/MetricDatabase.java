@@ -19,24 +19,15 @@
 
 package asl.seedscan.database;
 
-import java.io.File;
 import java.sql.CallableStatement;
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.PreparedStatement;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
 import java.util.logging.Logger;
 
-import asl.security.*;
-import asl.seedscan.*;
 import asl.seedscan.config.*;
 import asl.seedscan.metrics.*;
-import asl.metadata.*;
 
 public class MetricDatabase
 {
@@ -73,10 +64,9 @@ public class MetricDatabase
     	return connection;
     }
     
-    public int insertMetricData(Metric metric) {
+    public int insertMetricData(MetricResult results) {
     	int result = -1;
         try {
-        	MetricResult results = metric.getResult();
             for (String id: results.getIdSet()) {
             	ResultSet resultSet = null;
             	String[] parts = id.split(",");
@@ -85,7 +75,7 @@ public class MetricDatabase
 	            callStatement = connection.prepareCall("SELECT spInsertMetricData(?, ?, ?, ?, ?, ?, ?)");
 	            java.sql.Date date = new java.sql.Date(results.getDate().getTimeInMillis());
 	            callStatement.setDate(1, date);
-	            callStatement.setString(2, metric.getName());
+	            callStatement.setString(2, results.getMetricName());
 	            callStatement.setString(3, results.getStation().getNetwork());
 	            callStatement.setString(4, results.getStation().getStation());
 	            callStatement.setString(5, location);

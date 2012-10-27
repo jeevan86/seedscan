@@ -18,14 +18,11 @@
  */
 package asl.seedscan.metrics;
 
-import asl.seedsplitter.DataSet;
 import asl.metadata.Channel;
 import asl.metadata.Station;
-import asl.metadata.StationData;
 import asl.metadata.meta_new.StationMeta;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -36,17 +33,24 @@ public class MetricResult
 {
     private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.MetricResult");
 
+    private String metricName;
     private Calendar date;
     private Station station;
     private Hashtable<String, Double> valueMap;
     private Hashtable<String, ByteBuffer> digestMap;
 
-    public MetricResult(StationMeta stationInfo)
+    public MetricResult(StationMeta stationInfo, String metricName)
     {
+    	this.metricName = metricName;
     	this.date = stationInfo.getTimestamp();
     	this.station = new Station(stationInfo.getNetwork(), stationInfo.getStation());
         this.valueMap = new Hashtable<String, Double>();
         this.digestMap = new Hashtable<String, ByteBuffer>();
+    }
+    
+    public String getMetricName()
+    {
+    	return metricName;
     }
     
     public Calendar getDate()

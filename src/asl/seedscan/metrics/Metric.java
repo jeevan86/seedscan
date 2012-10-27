@@ -25,8 +25,6 @@ import asl.seedsplitter.DataSet;
 import freq.Cmplx;
 import timeutils.Timeseries;
 
-import java.io.IOException;
-
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.ArrayList;
@@ -39,6 +37,7 @@ public abstract class Metric
     private Hashtable<String, String> arguments;
     private Hashtable<CrossPowerKey, CrossPower> crossPowerMap;
 
+    protected StationMeta  stationMeta  = null;
     protected MetricData   metricData   = null;
     protected MetricResult metricResult = null;
 
@@ -85,6 +84,8 @@ public abstract class Metric
     public void setData(MetricData metricData)
     {
         this.metricData = metricData;
+        stationMeta = metricData.getMetaData();
+        metricResult = new MetricResult(stationMeta, getName());
     }
 
     public MetricResult getResult()
@@ -143,23 +144,20 @@ public abstract class Metric
         Channel channel = channelX;
 **/
 
-   // Grab station metadata for all channels for this day:
-        StationMeta stnMeta        = metricData.getMetaData();
-
    // For now I'm just going to assume we have complete datasets (i.e., 1 dataset per day):
         ArrayList<DataSet>datasets = metricData.getChannelData(channelX);
         DataSet dataset = datasets.get(0);
         int    ndataX   = dataset.getLength();
         double srateX   = dataset.getSampleRate();
         int[] intArrayX = dataset.getSeries();
-        ChannelMeta chanMetaX = stnMeta.getChanMeta(channelX);
+        ChannelMeta chanMetaX = stationMeta.getChanMeta(channelX);
 
         datasets = metricData.getChannelData(channelY);
         dataset  = datasets.get(0);
         int    ndataY   = dataset.getLength();
         double srateY   = dataset.getSampleRate();
         int[] intArrayY = dataset.getSeries();
-        ChannelMeta chanMetaY = stnMeta.getChanMeta(channelY);
+        ChannelMeta chanMetaY = stationMeta.getChanMeta(channelY);
 
         if (srateX != srateY) {
             String message = "computePSD() ERROR: srateX (=" + srateX + ") != srateY (=" + srateY + ")";

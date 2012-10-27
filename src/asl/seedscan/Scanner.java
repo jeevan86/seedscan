@@ -191,17 +191,17 @@ public class Scanner
    //   in a Hashtable<String,String> = map.
    //   MetricResult.getResult(id) returns value = String
                 
-                MetricResult result = metric.getResult();
+                MetricResult results = metric.getResult();
                 System.out.format("Results for %s:\n", metric.getClass().getName());
-                if (result == null){
+                if (results == null){
                 }
                 else {
-                    for (String id: result.getIdSet()) {
-                        double value = result.getResult(id);
+                    for (String id: results.getIdSet()) {
+                        double value = results.getResult(id);
                         System.out.format("  %s : %.2f\n", id, value);
                     }
                     try {
-                    	injector.inject(metric);
+                    	injector.inject(results);
                     } catch (InterruptedException ex) {
                     	logger.warning(String.format("Interrupted while trying to inject metric [%s]", metric.toString()));
                     }

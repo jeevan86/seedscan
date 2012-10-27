@@ -7,14 +7,14 @@ import java.util.logging.Logger;
 
 import asl.concurrent.Task;
 import asl.concurrent.TaskThread;
-import asl.seedscan.metrics.Metric;
+import asl.seedscan.metrics.MetricResult;
 
 /**
  * @author Joel D. Edwards <jdedwards@usgs.gov>
  *
  */
 public class MetricInjector
-extends TaskThread<Metric>
+extends TaskThread<MetricResult>
 {
     private static final Logger logger = Logger.getLogger("asl.seedscan.database.MetricInjector");
     
@@ -48,12 +48,12 @@ extends TaskThread<Metric>
 	 * @see asl.concurrent.TaskThread#performTask(asl.concurrent.Task)
 	 */
 	@Override
-	protected void performTask(Task<Metric> task) {
+	protected void performTask(Task<MetricResult> task) {
 		String command = task.getCommand();
-		Metric metric = task.getData();
+		MetricResult results = task.getData();
 		
 		if (command.equals("INJECT")) {
-			metricDB.insertMetricData(metric);
+			metricDB.insertMetricData(results);
 		}
 	}
 
@@ -65,9 +65,9 @@ extends TaskThread<Metric>
 		// Post-run logic goes here
 	}
 
-	public void inject(Metric metric)
+	public void inject(MetricResult results)
 	throws InterruptedException
 	{
-		addTask("INJECT", metric);
+		addTask("INJECT", results);
 	}
 }
