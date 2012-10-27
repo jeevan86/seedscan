@@ -219,6 +219,7 @@ public class SeedScan
 
      // ===== CONFIG: DATABASE =====
         MetricDatabase database = new MetricDatabase(config.getDatabase());
+    	MetricInjector injector = new MetricInjector(database);
 
 
      // ===== CONFIG: SCANS =====
@@ -326,9 +327,20 @@ System.out.println(" Java total memory=" + runtime.totalMemory() );
         //stations.add( new Station("IC","KMI") );
         //stations.add( new Station("IC","XXXX") );
 
+        Thread injectorThread = new Thread(injector);
+        injectorThread.start();
+        logger.info("Injector thread started. Processing stations...");
         for (Station station: stations) {
-            Scanner scanner = new Scanner(database, station, scan);
+            Scanner scanner = new Scanner(injector, station, scan);
             scanner.scan();
+        }
+        try {
+	        injector.halt();
+	        logger.info("All stations processed. Waiting for injector thread to finish...");
+	        injectorThread.wait();
+	        logger.info("Halted.");
+        } catch (InterruptedException ex) {
+        	logger.warning("The injector thread was interrupted while attempting to complete requests.");
         }
         ////Scanner scanner = new Scanner(database,station,scan);
         //scanner.scan();

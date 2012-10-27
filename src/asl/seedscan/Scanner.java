@@ -39,6 +39,7 @@ import asl.seedsplitter.DataSet;
 import asl.seedsplitter.SeedSplitProgress;
 import asl.seedsplitter.SeedSplitter;
 import asl.seedscan.database.MetricDatabase;
+import asl.seedscan.database.MetricInjector;
 import asl.metadata.*;
 import asl.metadata.meta_new.*;
 import asl.seedscan.metrics.*;
@@ -50,15 +51,15 @@ public class Scanner
     public long dayMilliseconds = 1000 * 60 * 60 * 24;
 
     private Station station;
-    private MetricDatabase database;
+    private MetricInjector injector;
     private Scan scan;
 
     private FallOffQueue<SeedSplitProgress> progressQueue;
 
-    public Scanner(MetricDatabase database, Station station, Scan scan)
+    public Scanner(MetricInjector injector, Station station, Scan scan)
     {
         this.station  = station;
-        this.database = database;
+        this.injector = injector;
         this.scan = scan;
         this.progressQueue = new FallOffQueue<SeedSplitProgress>(8);
     }
@@ -198,6 +199,11 @@ public class Scanner
                     for (String id: result.getIdSet()) {
                         double value = result.getResult(id);
                         System.out.format("  %s : %.2f\n", id, value);
+                    }
+                    try {
+                    	injector.inject(metric);
+                    } catch (InterruptedException ex) {
+                    	logger.warning(String.format("Interrupted while trying to inject metric [%s]", metric.toString()));
                     }
                 }
             } // end loop over metrics
