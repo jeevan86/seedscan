@@ -76,7 +76,7 @@ public class MetricDatabase
     	ByteBuffer digest = null;
     	
         try {
-	        callStatement = connection.prepareCall("SELECT spGetDigest(?, ?, ?, ?)");
+	        callStatement = connection.prepareCall("SELECT spGetMetricDigest(?, ?, ?, ?)");
 	        java.sql.Date sqlDate = new java.sql.Date(date.getTimeInMillis());
 	        callStatement.setDate(1, sqlDate);
 	        callStatement.setString(2, metricName);
@@ -102,7 +102,7 @@ public class MetricDatabase
     	ByteBuffer digest = null;
     	
         try {
-	        callStatement = connection.prepareCall("SELECT spGetDigest(?, ?, ?, ?, ?, ?)");
+	        callStatement = connection.prepareCall("SELECT spGetMetricValueDigest(?, ?, ?, ?, ?, ?)");
 	        java.sql.Date sqlDate = new java.sql.Date(date.getTimeInMillis());
 	        callStatement.setDate(1, sqlDate);
 	        callStatement.setString(2, metricName);
