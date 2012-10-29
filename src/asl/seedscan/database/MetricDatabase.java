@@ -72,7 +72,7 @@ public class MetricDatabase
             	String[] parts = id.split(",");
             	String location = parts[0];
             	String channel = parts[1];
-	            callStatement = connection.prepareCall("SELECT spInsertMetricData(?, ?, ?, ?, ?, ?, ?)");
+	            callStatement = connection.prepareCall("SELECT spInsertMetricData(?, ?, ?, ?, ?, ?, ?, ?)");
 	            java.sql.Date date = new java.sql.Date(results.getDate().getTimeInMillis());
 	            callStatement.setDate(1, date);
 	            callStatement.setString(2, results.getMetricName());
@@ -81,9 +81,10 @@ public class MetricDatabase
 	            callStatement.setString(5, location);
 	            callStatement.setString(6, channel);
 	            callStatement.setDouble(7, results.getResult(id));
-	            //callStatement.registerOutParameter(8, java.sql.Types.INTEGER);
+	            callStatement.setBytes(8, results.getDigest(id).array());
+	            //callStatement.registerOutParameter(9, java.sql.Types.INTEGER);
 	            resultSet = callStatement.executeQuery();
-	            //result = callStatement.getInt(8);
+	            //result = callStatement.getInt(9);
             }
             result = 0;
         }
