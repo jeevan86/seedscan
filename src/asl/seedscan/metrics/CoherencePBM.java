@@ -86,13 +86,10 @@ extends PowerBandMetric
                 channelY = new Channel("10", "LH2");
             }
 
-            byte[] byteArray    = new byte[16];
-            Boolean hashChanged = metricData.hashChanged(channelX, channelY, byteArray);
-            ByteBuffer digest   = ByteBuffer.wrap(byteArray);
-            System.out.format("== Multi DataDigest string=%s\n", Hex.byteArrayToHexString(digest.array()) );
+         // Check to see that we have data + metadata & see if the digest has changed wrt the database:
+            ByteBuffer digest = metricData.hashChanged(channelX, channelY);
 
-         // If we've already computed this metric and the data+metadata hasn't changed --> Skip channel
-            if (!hashChanged) { 
+            if (digest == null) { 
                 System.out.format("%s INFO: Data and metadata have NOT changed for channelX=%s + channelY=%s --> Skipping\n"
                                   ,getName(), channelX, channelY);
                 continue;

@@ -90,20 +90,20 @@ public class MetricData
     }
 
 
- // byteArray is used to pass the digest (as byte array) back to the metric
-    public Boolean hashChanged(Channel channel, byte[] byteArray)
+
+    public ByteBuffer hashChanged(Channel channel)
     {
         ChannelArray channelArray = new ChannelArray(channel.getLocation(), channel.getChannel());
-        return hashChanged(channelArray, byteArray);
+        return hashChanged(channelArray);
     }
 
-    public Boolean hashChanged(Channel channelA, Channel channelB, byte[] byteArray)
+    public ByteBuffer hashChanged(Channel channelA, Channel channelB)
     {
         ChannelArray channelArray = new ChannelArray(channelA, channelB);
-        return hashChanged(channelArray, byteArray);
+        return hashChanged(channelArray);
     }
 
-    public Boolean hashChanged(ChannelArray channelArray, byte[] byteArray)
+    public ByteBuffer hashChanged(ChannelArray channelArray)
     {
         ArrayList<ByteBuffer> digests = new ArrayList<ByteBuffer>();
 
@@ -112,7 +112,7 @@ public class MetricData
             ChannelMeta chanMeta  = getMetaData().getChanMeta(channel);
             if (chanMeta == null){
                 System.out.format("MetricData.hashChanged() Error: metadata not found for requested channel:%s\n",channel);
-                return false;
+                return null;
             }
             else {
                 digests.add(chanMeta.getDigestBytes());
@@ -121,23 +121,27 @@ public class MetricData
             ArrayList<DataSet>datasets = getChannelData(channel);
             if (datasets == null){
                 System.out.format("MetricData.hashChanged() Error: Data not found for requested channel:%s\n",channel);
-                return false;
+                return null;
             }
             else {
                 digests.add(datasets.get(0).getDigestBytes());
             }
         }
-        ByteBuffer digest = MemberDigest.multiBuffer(digests);
-        digest.clear();
-        digest.get(byteArray, 0, byteArray.length);
+        ByteBuffer newDigest = MemberDigest.multiBuffer(digests);
 
-        //String multiDigestString = Hex.byteArrayToHexString(digest.array());
-        //System.out.format("== Multi DataDigest string=%s\n", multiDigestString);
+        //ByteBuffer oldDigest = newDigest.flip();     // This will be replaced by lookup to database
+        ByteBuffer oldDigest = ByteBuffer.allocate(16);
 
-      // Here's where we need to check this digest against a stored value
-      // If the digest hasn't changed then return false
+        System.out.format("=== hashChanged(): newDigest=%s\n", Hex.byteArrayToHexString(newDigest.array()) );
 
-        return true;
+        if (newDigest.compareTo(oldDigest) == 0){
+System.out.format("=== ByteBuffers are Equal !!\n");
+            return null;
+        }
+        else {
+            return newDigest;
+        }
+
     }
 
 }
