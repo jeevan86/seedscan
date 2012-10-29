@@ -30,17 +30,22 @@ public class ChannelArray
 
     public ChannelArray (String location, String channel1, String channel2, String channel3)
     {
-        channels = new ArrayList();
+        channels = new ArrayList<Channel>();
         channels.add(new Channel(location,channel1) );
         channels.add(new Channel(location,channel2) );
         channels.add(new Channel(location,channel3) );
     }
     public ChannelArray (String location, String channel1) // For testing
     {
-        channels = new ArrayList();
+        channels = new ArrayList<Channel>();
         channels.add(new Channel(location,channel1) );
     }
-
+    public ChannelArray (Channel channelA, Channel channelB)
+    {
+        channels = new ArrayList<Channel>();
+        channels.add(channelA);
+        channels.add(channelB);
+    }
 
     public ArrayList<Channel> getChannels() {
         return channels;

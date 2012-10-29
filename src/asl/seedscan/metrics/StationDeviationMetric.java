@@ -34,6 +34,8 @@ import asl.metadata.meta_new.*;
 import asl.seedsplitter.DataSet;
 import asl.seedscan.ArchivePath;
 
+import asl.util.Hex;
+
 import timeutils.Timeseries;
 
 public class StationDeviationMetric
@@ -94,29 +96,15 @@ extends PowerBandMetric
                 continue;
             }
 
-            ChannelMeta chanMeta = stationMeta.getChanMeta(channel);
-            if (chanMeta == null){ // Skip channel, we have no metadata for it
-                System.out.format("%s Error: metadata not found for requested channel:%s --> Skipping\n"
-                                  ,getName(), channel.getChannel());
-                continue;
-            }
+            byte[] byteArray    = new byte[16];
+            Boolean hashChanged = metricData.hashChanged(channel, byteArray);
+            ByteBuffer digest   = ByteBuffer.wrap(byteArray);
+            System.out.format("== Multi DataDigest string=%s\n", Hex.byteArrayToHexString(digest.array()) );
 
-            ArrayList<DataSet>datasets = metricData.getChannelData(channel);
-            String dataHashString = null;
-
-            if (datasets == null){ // Skip channel, we have no data for it
-                System.out.format("%s Error: No data for requested channel:%s --> Skipping\n"
-                                  ,getName(), channel.getChannel());
-                continue;
-            }
-         // Temp hack to get data hash:
-            else {
-                dataHashString = datasets.get(0).getDigestString();
-            }
-
-            if (!metricData.hashChanged(channel)) { // Skip channel, we don't need to recompute the metric
+         // If we've already computed this metric and the data+metadata hasn't changed --> Skip channel
+            if (!hashChanged) {
                 System.out.format("%s INFO: Data and metadata have NOT changed for this channel:%s --> Skipping\n"
-                                  ,getName(), channel.getChannel());
+                                  ,getName(), channel);
                 continue;
             }
 
@@ -194,12 +182,13 @@ extends PowerBandMetric
             }
             deviation = deviation/(double)nPeriods;
 
-            ByteBuffer digest = ByteBuffer.allocate(16);
             metricResult.addResult(channel, deviation, digest);
 
-            System.out.format("%s-%s [%s] %s %s-%s ", stationMeta.getStation(), stationMeta.getNetwork(),
-              EpochData.epochToDateString(stationMeta.getTimestamp()), getName(), chanMeta.getLocation(), chanMeta.getName() );
+/**
+            System.out.format("%s-%s [%s] %s %s-%s ", stnMeta.getStation(), stnMeta.getNetwork(),
+              EpochData.epochToDateString(stnMeta.getTimestamp()), getName(), chanMeta.getLocation(), chanMeta.getName() );
             System.out.format("nPeriods:%d deviation=%.2f) %s %s\n", nPeriods, deviation, chanMeta.getDigestString(), dataHashString); 
+**/
 
         }// end foreach channel
 

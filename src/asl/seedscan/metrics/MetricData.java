@@ -23,11 +23,13 @@ import asl.metadata.ChannelArray;
 import asl.metadata.meta_new.StationMeta;
 import asl.metadata.meta_new.ChannelMeta;
 import asl.seedsplitter.DataSet;
+import asl.security.MemberDigest;
+import asl.util.Hex;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Set;
-
 import java.util.logging.Logger;
 
 public class MetricData
@@ -88,40 +90,54 @@ public class MetricData
     }
 
 
-//  Get/Compute both the metadata and data digests for this channel
-//  If either have changed, return true
-
-    public Boolean hashChanged(Channel channel)
+ // byteArray is used to pass the digest (as byte array) back to the metric
+    public Boolean hashChanged(Channel channel, byte[] byteArray)
     {
-        ChannelMeta chanMeta = getMetaData().getChanMeta(channel);
-        String chanMetaDigestString = null;
-        if (chanMeta == null){
-          System.out.format("==Error: MetricData.hashChanged() channelMeta returned null for channel=%s\n", channel.getChannel());
-        }
-        else {
-          chanMetaDigestString = chanMeta.getDigestString();
-        //System.out.format("%s-%s: metaHash=%s\n", channel.getLocation(), channel.getChannel(), chanMetaDigestString);
-        }
-      // Here's where we need to check this digest against a stored value
-        return true;
+        ChannelArray channelArray = new ChannelArray(channel.getLocation(), channel.getChannel());
+        return hashChanged(channelArray, byteArray);
     }
 
-// Loop over array of channels needed for this metric calculation.
-//  If metadata or data has changed for ANY channel, return true
-    public Boolean hashChanged(ChannelArray channelArray)
+    public Boolean hashChanged(Channel channelA, Channel channelB, byte[] byteArray)
     {
+        ChannelArray channelArray = new ChannelArray(channelA, channelB);
+        return hashChanged(channelArray, byteArray);
+    }
+
+    public Boolean hashChanged(ChannelArray channelArray, byte[] byteArray)
+    {
+        ArrayList<ByteBuffer> digests = new ArrayList<ByteBuffer>();
+
         ArrayList<Channel> channels = channelArray.getChannels();
         for (Channel channel : channels){
-            if (hashChanged(channel)) {
-               return true;
+            ChannelMeta chanMeta  = getMetaData().getChanMeta(channel);
+            if (chanMeta == null){
+                System.out.format("MetricData.hashChanged() Error: metadata not found for requested channel:%s\n",channel);
+                return false;
             }
-        } //end for each channel
-     // We made it to here so there must not be any changes
-        //return false;
-// This is for testing so we make it into compute the metric(s):
+            else {
+                digests.add(chanMeta.getDigestBytes());
+            }
+
+            ArrayList<DataSet>datasets = getChannelData(channel);
+            if (datasets == null){
+                System.out.format("MetricData.hashChanged() Error: Data not found for requested channel:%s\n",channel);
+                return false;
+            }
+            else {
+                digests.add(datasets.get(0).getDigestBytes());
+            }
+        }
+        ByteBuffer digest = MemberDigest.multiBuffer(digests);
+        digest.clear();
+        digest.get(byteArray, 0, byteArray.length);
+
+        //String multiDigestString = Hex.byteArrayToHexString(digest.array());
+        //System.out.format("== Multi DataDigest string=%s\n", multiDigestString);
+
+      // Here's where we need to check this digest against a stored value
+      // If the digest hasn't changed then return false
+
         return true;
     }
-
-
 
 }

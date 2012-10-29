@@ -35,6 +35,10 @@ import asl.seedsplitter.DataSet;
 
 import timeutils.Timeseries;
 
+import java.nio.ByteBuffer;
+import asl.util.Hex;
+
+
 public class CoherencePBM
 extends PowerBandMetric
 {
@@ -66,39 +70,32 @@ extends PowerBandMetric
         //for (Channel channel : channels){
 // Dummy loop
         for (int i=0; i < 1; i++) {
-            Channel channel = new Channel("00", "LHZ");
-
-            ChannelMeta chanMeta = stationMeta.getChanMeta(channel);
-            if (chanMeta == null){ // Skip channel, we have no metadata for it
-                System.out.format("%s Error: metadata not found for requested channel:%s --> Skipping\n"
-                                  ,getName(), channel.getChannel());
-                continue;
-            }
-
-            ArrayList<DataSet>datasets = metricData.getChannelData(channel);
-            String dataHashString = null;
-
-            if (datasets == null){ // Skip channel, we have no data for it
-                System.out.format("%s Error: No data for requested channel:%s --> Skipping\n"
-                                  ,getName(), channel.getChannel());
-                continue;
-            }
-         // Temp hack to get data hash:
-            else {
-                dataHashString = datasets.get(0).getDigestString();
-            }
-
-            if (!metricData.hashChanged(channel)) { // Skip channel, we don't need to recompute the metric
-                System.out.format("%s INFO: Data and metadata have NOT changed for this channel:%s --> Skipping\n"
-                                  ,getName(), channel.getChannel());
-                continue;
-            }
-
             Channel channelX = null;
             Channel channelY = null;
-            if (channel.getChannel() == "LHZ") {
+
+            if (i==0) {
                 channelX = new Channel("00", "LHZ");
                 channelY = new Channel("10", "LHZ");
+            }
+            else if (i==1) {
+                channelX = new Channel("00", "LH1");
+                channelY = new Channel("10", "LH1");
+            }
+            else if (i==2) {
+                channelX = new Channel("00", "LH2");
+                channelY = new Channel("10", "LH2");
+            }
+
+            byte[] byteArray    = new byte[16];
+            Boolean hashChanged = metricData.hashChanged(channelX, channelY, byteArray);
+            ByteBuffer digest   = ByteBuffer.wrap(byteArray);
+            System.out.format("== Multi DataDigest string=%s\n", Hex.byteArrayToHexString(digest.array()) );
+
+         // If we've already computed this metric and the data+metadata hasn't changed --> Skip channel
+            if (!hashChanged) { 
+                System.out.format("%s INFO: Data and metadata have NOT changed for channelX=%s + channelY=%s --> Skipping\n"
+                                  ,getName(), channelX, channelY);
+                continue;
             }
 
          // If we're here, it means we need to (re)compute the metric for this channel:
@@ -155,7 +152,7 @@ extends PowerBandMetric
             double highPeriod = band.getHigh();
 
             if (!checkPowerBand(lowPeriod, highPeriod, Tmin, Tmax)){
-                System.out.format("%s powerBand Error: Skipping channel:%s\n", getName(), channel);
+                System.out.format("%s powerBand Error: Skipping channel:%s\n", getName(), channelX);
                 continue;
             }
 
@@ -180,19 +177,23 @@ extends PowerBandMetric
             }
             averageValue /= (double)nPeriods;
 
-            ByteBuffer digest = ByteBuffer.allocate(16);
             // Naming for rotated channels:
             // ---------------------------
             // LHZ
             // LHND
             // LHED
+// MTH: TODO: If we're using LH1 or LH2 channels, need to rotate these to N/E and create
+// A named channel = LHND or LHED and pass these (e.g., 00-LHND, 10-LHND) to addResult
+
             metricResult.addResult(channelX, channelY, averageValue, digest);
 
-            //System.out.format("%s-%s [%s] %s %s-%s ", stationMeta.getStation(), stationMeta.getNetwork(),
-            System.out.format("%s [%s] %s %s ", stationMeta.toString(),
-              EpochData.epochToDateString(stationMeta.getTimestamp()), getName(), MetricResult.createResultId(channelX, channelY) );
-            //EpochData.epochToDateString(stationMeta.getTimestamp()), getName(), chanMeta.getLocation(), chanMeta.getName() );
+/**
+            //System.out.format("%s-%s [%s] %s %s-%s ", stnMeta.getStation(), stnMeta.getNetwork(),
+            System.out.format("%s [%s] %s %s ", stnMeta.toString(),
+              EpochData.epochToDateString(stnMeta.getTimestamp()), getName(), MetricResult.createResultId(channelX, channelY) );
+            //EpochData.epochToDateString(stnMeta.getTimestamp()), getName(), chanMeta.getLocation(), chanMeta.getName() );
             System.out.format("nPeriods:%d averageValue=%.2f) %s %s\n", nPeriods, averageValue, chanMeta.getDigestString(), dataHashString); 
+**/
 
         }// end foreach channel
 
