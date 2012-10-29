@@ -25,6 +25,7 @@ public class Task<T>
 
     public Task(String command, T data)
     {
+    	this.command = command;
         this.data = data;
     }
 

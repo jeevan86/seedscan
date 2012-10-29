@@ -52,6 +52,8 @@ extends TaskThread<MetricResult>
 		String command = task.getCommand();
 		MetricResult results = task.getData();
 		
+		logger.info("performTask: command=" + command + " results=" + results);
+		
 		if (command.equals("INJECT")) {
 			metricDB.insertMetricData(results);
 		}

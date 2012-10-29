@@ -50,9 +50,36 @@ extends Metric
         PowerBand band = getPowerBand();
         //This gives a runtime error: I think it will left-justify by default anyway ...
         //return getBaseName() + String.format("-%0.6f-%0.6f", band.getLow(), band.getHigh());
-        return getBaseName() + String.format(":%.6f-%.6f", band.getLow(), band.getHigh());
+        return getBaseName() + String.format(":%s-%s",
+        									  smartNumberFormat(band.getLow(), 6),
+        									  smartNumberFormat(band.getHigh(), 6));
     }
 
+    protected static String smartNumberFormat(double value, int precision)
+    {
+    	String formatted;
+    	if (value == Math.rint(value)) {
+    		formatted = String.format("%d", Math.round(value));
+    	} else {
+    		formatted = String.format(String.format("%%.%df", precision), value);
+    		int clipCount = 0;
+    		for (int i = formatted.length() - 1; i >= 0; i--) {
+    			char c = formatted.charAt(i);
+    			if (c == '0') {
+    				clipCount++;
+    			} else {
+    				if (c == '.') {
+	    				clipCount++;
+    				}
+    				break;
+    			}
+    		}
+    		if (clipCount > 0) {
+    			formatted = formatted.substring(0, formatted.length() - clipCount);
+    		}
+    	}
+    	return formatted;
+    }
 
     protected static Boolean checkPowerBand(double lowPeriod, double highPeriod, double Tmin, double Tmax) {
 
