@@ -49,9 +49,6 @@ extends Metric
     public void process()
     {
         System.out.format("\n              [ == Metric %s == ]\n", getName() ); 
-   // Grab station metadata for all channels for this day:
-        StationMeta stnMeta = metricData.getMetaData();
-
    // Create a 3-channel array to use for loop
         ChannelArray channelArray = new ChannelArray("00","BHZ", "BH1", "BH2");
         ArrayList<Channel> channels = channelArray.getChannels();
@@ -71,7 +68,7 @@ extends Metric
 
          // If we're here, it means we need to (re)compute the metric for this channel:
 
-            ChannelMeta chanMeta = stnMeta.getChanMeta(channel);
+            ChannelMeta chanMeta = stationMeta.getChanMeta(channel);
             ArrayList<DataSet>datasets = metricData.getChannelData(channel);
 
             int ndata    = 0;

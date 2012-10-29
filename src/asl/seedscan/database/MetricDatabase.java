@@ -19,13 +19,16 @@
 
 package asl.seedscan.database;
 
+import java.nio.ByteBuffer;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Calendar;
 import java.util.logging.Logger;
 
+import asl.metadata.Station;
 import asl.seedscan.config.*;
 import asl.seedscan.metrics.*;
 
@@ -65,7 +68,59 @@ public class MetricDatabase
     	return connection;
     }
     
-    public int insertMetricData(MetricResult results) {
+    
+    public ByteBuffer getMetricDigest(	Calendar date,
+    									String metricName,
+    									Station station)
+    {
+    	ByteBuffer digest = null;
+    	
+        try {
+	        callStatement = connection.prepareCall("SELECT spGetMetricDigest(?, ?, ?, ?)");
+	        java.sql.Date sqlDate = new java.sql.Date(date.getTimeInMillis());
+	        callStatement.setDate(1, sqlDate);
+	        callStatement.setString(2, metricName);
+	        callStatement.setString(3, station.getNetwork());
+	        callStatement.setString(4, station.getStation());
+	        ResultSet resultSet = callStatement.executeQuery();
+	        digest = ByteBuffer.wrap(resultSet.getBytes(0));
+        }
+        catch (SQLException e) {
+            System.out.print(e);
+        }
+    	return digest;
+    }
+    
+    public ByteBuffer getMetricValueDigest(	Calendar date,
+    										String metricName,
+    										Station station,
+    										String channelId)
+    {
+    	String[] parts = channelId.split(",");
+    	String location = parts[0];
+    	String channel = parts[1];
+    	ByteBuffer digest = null;
+    	
+        try {
+	        callStatement = connection.prepareCall("SELECT spGetMetricValueDigest(?, ?, ?, ?, ?, ?)");
+	        java.sql.Date sqlDate = new java.sql.Date(date.getTimeInMillis());
+	        callStatement.setDate(1, sqlDate);
+	        callStatement.setString(2, metricName);
+	        callStatement.setString(3, station.getNetwork());
+	        callStatement.setString(4, station.getStation());
+	        callStatement.setString(5, location);
+	        callStatement.setString(6, channel);
+	        ResultSet resultSet = callStatement.executeQuery();
+	        digest = ByteBuffer.wrap(resultSet.getBytes(0));
+        }
+        catch (SQLException e) {
+            System.out.print(e);
+        }
+    	return digest;
+    }
+    
+    public int insertMetricData(MetricResult results)
+    {
     	int result = -1;
         try {
             for (String id: results.getIdSet()) {

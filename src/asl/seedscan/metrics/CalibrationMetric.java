@@ -49,9 +49,6 @@ extends Metric
     public void process()
     {
         System.out.format("\n              [ == Metric %s == ]\n", getName() ); 
-   // Grab station metadata for all channels for this day:
-        StationMeta stnMeta = metricData.getMetaData();
-
    // Create a 3-channel array to use for loop
         ChannelArray channelArray = new ChannelArray("00","BHZ", "BH1", "BH2");
         ArrayList<Channel> channels = channelArray.getChannels();
@@ -81,8 +78,8 @@ extends Metric
             metricResult.addResult(channel, (double)gapCount, digest);
 
 /**
-            System.out.format("%s-%s [%s] %s %s-%s ", stnMeta.getStation(), stnMeta.getNetwork(),  
-              EpochData.epochToDateString(stnMeta.getTimestamp()), getName(), chanMeta.getLocation(), chanMeta.getName() );
+            System.out.format("%s-%s [%s] %s %s-%s ", stationMeta.getStation(), stationMeta.getNetwork(),  
+              EpochData.epochToDateString(stationMeta.getTimestamp()), getName(), chanMeta.getLocation(), chanMeta.getName() );
             System.out.format("Gap Count:%d %s %s\n", gapCount, chanMeta.getDigestString(), dataHashString );
 **/
         }// end foreach channel
