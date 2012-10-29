@@ -58,26 +58,22 @@ extends Metric
     protected static String smartNumberFormat(double value, int precision)
     {
     	String formatted;
-    	if (value == Math.rint(value)) {
-    		formatted = String.format("%d", Math.round(value));
-    	} else {
-    		formatted = String.format(String.format("%%.%df", precision), value);
-    		int clipCount = 0;
-    		for (int i = formatted.length() - 1; i >= 0; i--) {
-    			char c = formatted.charAt(i);
-    			if (c == '0') {
+		formatted = String.format(String.format("%%.%df", precision), value);
+		int clipCount = 0;
+		for (int i = formatted.length() - 1; i >= 0; i--) {
+			char c = formatted.charAt(i);
+			if (c == '0') {
+				clipCount++;
+			} else {
+				if (c == '.') {
     				clipCount++;
-    			} else {
-    				if (c == '.') {
-	    				clipCount++;
-    				}
-    				break;
-    			}
-    		}
-    		if (clipCount > 0) {
-    			formatted = formatted.substring(0, formatted.length() - clipCount);
-    		}
-    	}
+				}
+				break;
+			}
+		}
+		if (clipCount > 0) {
+			formatted = formatted.substring(0, formatted.length() - clipCount);
+		}
     	return formatted;
     }
 
