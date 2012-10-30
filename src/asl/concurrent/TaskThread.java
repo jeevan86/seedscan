@@ -84,10 +84,12 @@ implements Runnable
 
                 // If we received a halt command, wrap-up the thread
                 if ((task != null) && (task.getCommand() == "HALT")) {
+                    logger.fine("Halt requested.");
                     running = false;
                 }
                 // Otherwise hand off the task
                 else {
+                    logger.fine(String.format("Performing task %s : %s", task.getCommand(), (task.getData() == null) ? "null" : task.getData()));
                     performTask(task);
                 }
             } catch (InterruptedException exception) {

@@ -218,9 +218,10 @@ public class SeedScan
         }
 
      // ===== CONFIG: DATABASE =====
-        MetricDatabase database = new MetricDatabase(config.getDatabase());
-    	MetricInjector injector = new MetricInjector(database);
-    	MetricReader reader 	= new MetricReader(database); // Should this be a separate connection?
+        MetricDatabase readDB = new MetricDatabase(config.getDatabase());
+        MetricDatabase writeDB = new MetricDatabase(config.getDatabase());
+    	MetricReader reader 	= new MetricReader(readDB); // Should this be a separate connection?
+    	MetricInjector injector = new MetricInjector(writeDB);
 
 
      // ===== CONFIG: SCANS =====
@@ -345,7 +346,9 @@ System.out.println(" Java total memory=" + runtime.totalMemory() );
         try {
 	        injector.halt();
 	        logger.info("All stations processed. Waiting for injector thread to finish...");
-	        injectorThread.wait();
+            synchronized(injectorThread) {
+	            injectorThread.wait();
+            }
 	        logger.info("Injector thread halted.");
         } catch (InterruptedException ex) {
         	logger.warning("The injector thread was interrupted while attempting to complete requests.");
@@ -354,11 +357,14 @@ System.out.println(" Java total memory=" + runtime.totalMemory() );
         try {
 	        reader.halt();
 	        logger.info("All stations processed. Waiting for reader thread to finish...");
-	        readerThread.wait();
+            synchronized(readerThread) {
+	            readerThread.wait();
+            }
 	        logger.info("Reader thread halted.");
         } catch (InterruptedException ex) {
         	logger.warning("The reader thread was interrupted while attempting to complete requests.");
         }
+
         ////Scanner scanner = new Scanner(database,station,scan);
         //scanner.scan();
 /**
