@@ -84,8 +84,8 @@ public class MetricDatabase
 	        callStatement.setString(3, station.getNetwork());
 	        callStatement.setString(4, station.getStation());
 	        ResultSet resultSet = callStatement.executeQuery();
-	        if (resultSet.first()) {
-	        	digest = ByteBuffer.wrap(resultSet.getBytes(0));
+	        if (resultSet.next()) {
+	        	digest = ByteBuffer.wrap(resultSet.getBytes(1));
 	        }
         }
         catch (SQLException e) {
@@ -111,8 +111,8 @@ public class MetricDatabase
 	        callStatement.setString(5, channel.getLocation());
 	        callStatement.setString(6, channel.getChannel());
 	        ResultSet resultSet = callStatement.executeQuery();
-	        if (resultSet.first()) {
-	        	digest = ByteBuffer.wrap(resultSet.getBytes(0));
+	        if (resultSet.next()) {
+	        	digest = ByteBuffer.wrap(resultSet.getBytes(1));
 	        }
         }
         catch (SQLException e) {
@@ -137,8 +137,8 @@ public class MetricDatabase
 	        callStatement.setString(5, channel.getLocation());
 	        callStatement.setString(6, channel.getChannel());
 	        ResultSet resultSet = callStatement.executeQuery();
-	        if (resultSet.first()) {
-	        	value = resultSet.getDouble(0);
+	        if (resultSet.next()) {
+	        	value = resultSet.getDouble(1);
 	        }
         }
         catch (SQLException e) {
