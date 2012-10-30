@@ -4,13 +4,13 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class QueryContext<T>
 {
-	private LinkedBlockingQueue<T> replyQueue;
+	private LinkedBlockingQueue<QueryResult<T>> replyQueue;
 
 	public QueryContext() {
-		this.replyQueue = new LinkedBlockingQueue<T>();
+		this.replyQueue = new LinkedBlockingQueue<QueryResult<T>>();
 	}
 	
-	public LinkedBlockingQueue<T> getReplyQueue()
+	public LinkedBlockingQueue<QueryResult<T>> getReplyQueue()
 	{
 		return replyQueue;
 	}

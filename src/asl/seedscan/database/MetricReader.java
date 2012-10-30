@@ -59,19 +59,22 @@ extends TaskThread<QueryContext<? extends Object>>
 				MetricContext<ByteBuffer> context = (MetricContext<ByteBuffer>)task.getData(); 
 				MetricValueIdentifier id = context.getId();
 				ByteBuffer digest = metricDB.getMetricDigest(id.getDate(), id.getMetricName(), id.getStation());
-				context.getReplyQueue().put(digest);
+				QueryResult<ByteBuffer> result = new QueryResult<ByteBuffer>(digest);
+				context.getReplyQueue().put(result);
 			}
 			else if (command.equals("GET-METRIC-VALUE-DIGEST")) {
 				MetricContext<ByteBuffer> context = (MetricContext<ByteBuffer>)task.getData(); 
 				MetricValueIdentifier id = context.getId();
 				ByteBuffer digest = metricDB.getMetricValueDigest(id.getDate(), id.getMetricName(), id.getStation(), id.getChannel());
-				context.getReplyQueue().put(digest);
+				QueryResult<ByteBuffer> result = new QueryResult<ByteBuffer>(digest);
+				context.getReplyQueue().put(result);
 			}
 			else if (command.equals("GET-METRIC-VALUE")) {
 				MetricContext<Double> context = (MetricContext<Double>)task.getData(); 
 				MetricValueIdentifier id = context.getId();
-				Double digest = metricDB.getMetricValue(id.getDate(), id.getMetricName(), id.getStation(), id.getChannel());
-				context.getReplyQueue().put(digest);
+				Double value = metricDB.getMetricValue(id.getDate(), id.getMetricName(), id.getStation(), id.getChannel());
+				QueryResult<Double> result = new QueryResult<Double>(value);
+				context.getReplyQueue().put(result);
 			}
 		} catch (InterruptedException ex) {
 			logger.warning("Interrupted while attempting to send reply. This may have caused a station thread to hang!");
@@ -92,7 +95,7 @@ extends TaskThread<QueryContext<? extends Object>>
 		try {
 			MetricContext<Double> context = new MetricContext<Double>(id);
 			addTask("GET-METRIC-VALUE", context);
-			value = context.getReplyQueue().take();
+			value = context.getReplyQueue().take().getResult();
 		} catch (InterruptedException ex) {
 			logger.warning("Interrupted while awaiting reply from database reader thread.");
 		}
@@ -105,7 +108,7 @@ extends TaskThread<QueryContext<? extends Object>>
 		try {
 			MetricContext<ByteBuffer> context = new MetricContext<ByteBuffer>(id);
 			addTask("GET-METRIC-DIGEST", context);
-			digest = context.getReplyQueue().take();
+			digest = context.getReplyQueue().take().getResult();
 		} catch (InterruptedException ex) {
 			logger.warning("Interrupted while awaiting reply from database reader thread.");
 		}
@@ -118,7 +121,7 @@ extends TaskThread<QueryContext<? extends Object>>
 		try {
 			MetricContext<ByteBuffer> context = new MetricContext<ByteBuffer>(id);
 			addTask("GET-METRIC-VALUE-DIGEST", context);
-			digest = context.getReplyQueue().take();
+			digest = context.getReplyQueue().take().getResult();
 		} catch (InterruptedException ex) {
 			logger.warning("Interrupted while awaiting reply from database reader thread.");
 		}

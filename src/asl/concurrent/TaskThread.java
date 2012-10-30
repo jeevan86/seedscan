@@ -74,12 +74,11 @@ implements Runnable
         running = true;
         while (running) {
             try {
-                // Wait indefinately if timeout is not specified
                 if (timeout < 0) {
+                	// Wait indefinitely if timeout is not specified
                     task = queue.take();
-                }
-                // Otherwise wait for the duration specified
-                else {
+                } else {
+                	// Otherwise wait for the duration specified
                     task = queue.poll(timeout, unit);
                 }
 
