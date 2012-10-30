@@ -328,20 +328,36 @@ System.out.println(" Java total memory=" + runtime.totalMemory() );
         //stations.add( new Station("IC","KMI") );
         //stations.add( new Station("IC","XXXX") );
 
+        Thread readerThread = new Thread(reader);
+        readerThread.start();
+        logger.info("Reader thread started.");
+        
         Thread injectorThread = new Thread(injector);
         injectorThread.start();
-        logger.info("Injector thread started. Processing stations...");
+        logger.info("Injector thread started.");
+        
+        logger.info("Processing stations...");
         for (Station station: stations) {
             Scanner scanner = new Scanner(reader, injector, station, scan);
             scanner.scan();
         }
+        
         try {
 	        injector.halt();
 	        logger.info("All stations processed. Waiting for injector thread to finish...");
 	        injectorThread.wait();
-	        logger.info("Halted.");
+	        logger.info("Injector thread halted.");
         } catch (InterruptedException ex) {
         	logger.warning("The injector thread was interrupted while attempting to complete requests.");
+        }
+        
+        try {
+	        reader.halt();
+	        logger.info("All stations processed. Waiting for reader thread to finish...");
+	        readerThread.wait();
+	        logger.info("Reader thread halted.");
+        } catch (InterruptedException ex) {
+        	logger.warning("The reader thread was interrupted while attempting to complete requests.");
         }
         ////Scanner scanner = new Scanner(database,station,scan);
         //scanner.scan();
