@@ -59,9 +59,8 @@ extends PowerBandMetric
         System.out.format("\n              [ == Metric %s == ]\n", getName() ); 
 
    // Create a 3-channel array to use for loop
-        ChannelArray channelArray = new ChannelArray("00","LHZ", "LH1", "LH2");
-
-        ArrayList<Channel> channels = channelArray.getChannels();
+        //ChannelArray channelArray = new ChannelArray("00","LHZ", "LH1", "LH2");
+        //ArrayList<Channel> channels = channelArray.getChannels();
 
    // Loop over channels, get metadata & data for channel and Calculate Metric
 
@@ -87,7 +86,15 @@ extends PowerBandMetric
             }
 
          // Check to see that we have data + metadata & see if the digest has changed wrt the database:
-            ByteBuffer digest = metricData.hashChanged(channelX, channelY);
+            //ByteBuffer digest = metricData.hashChanged(channelX, channelY);
+            //ByteBuffer digest = ByteBuffer.allocate(16);
+
+            ChannelArray channelArray = new ChannelArray(channelX, channelY);
+            String channelId = MetricResult.createResultId(new Channel(channelX.getLocation(), "LHND")
+                                                          ,new Channel(channelY.getLocation(), "LHND") );
+            ByteBuffer digest = metricData.hashChanged(channelArray, getResult(), channelId);
+
+            System.out.format("== %s: digest=%s\n", getName(), Hex.byteArrayToHexString(digest.array()) );
 
             if (digest == null) { 
                 System.out.format("%s INFO: Data and metadata have NOT changed for channelX=%s + channelY=%s --> Skipping\n"

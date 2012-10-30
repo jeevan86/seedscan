@@ -18,8 +18,12 @@
  */
 package asl.seedscan.metrics;
 
+import asl.seedscan.database.*;
+
 import asl.metadata.Channel;
 import asl.metadata.ChannelArray;
+import asl.metadata.EpochData;
+import asl.metadata.Station;
 import asl.metadata.meta_new.StationMeta;
 import asl.metadata.meta_new.ChannelMeta;
 import asl.seedsplitter.DataSet;
@@ -31,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.Calendar;
 
 public class MetricData
 {
@@ -90,20 +95,44 @@ public class MetricData
     }
 
 
+    public ByteBuffer hashChanged(Channel channel, MetricResult metricResult)
+    {
+        ChannelArray channelArray = new ChannelArray(channel.getLocation(), channel.getChannel());
+        String channelId = MetricResult.createResultId(channel);
+        return hashChanged(channelArray, metricResult, channelId);
+    }
+
+    public ByteBuffer hashChanged(ChannelArray channelArray, MetricResult metricResult, String channelId)
+    {
+        String metricName = metricResult.getMetricName();
+        Station station   = metricResult.getStation();
+        Calendar date     = metricResult.getDate();
+
+        //ByteBuffer oldDigest = getMetricValueDigest(date, metricName, station, channelId);
+        ByteBuffer oldDigest = ByteBuffer.allocate(16);
+        ByteBuffer newDigest = getHash(channelArray);
+        System.out.format("== hashChanged() --> oldDigest = getMetricValueDigest(%s, %s, %s, %s)\n", EpochData.epochToDateString(date), 
+                            metricName, station, channelId);
+
+        if (newDigest.compareTo(oldDigest) == 0){
+            System.out.format("=== ByteBuffers are Equal !!\n");
+            return null;
+        }
+        else {
+            return newDigest;
+        }
+
+    }
+
 
     public ByteBuffer hashChanged(Channel channel)
     {
         ChannelArray channelArray = new ChannelArray(channel.getLocation(), channel.getChannel());
-        return hashChanged(channelArray);
+        //return hashChanged(channelArray);
+        return null;
     }
 
-    public ByteBuffer hashChanged(Channel channelA, Channel channelB)
-    {
-        ChannelArray channelArray = new ChannelArray(channelA, channelB);
-        return hashChanged(channelArray);
-    }
-
-    public ByteBuffer hashChanged(ChannelArray channelArray)
+    private ByteBuffer getHash(ChannelArray channelArray)
     {
         ArrayList<ByteBuffer> digests = new ArrayList<ByteBuffer>();
 
@@ -127,21 +156,10 @@ public class MetricData
                 digests.add(datasets.get(0).getDigestBytes());
             }
         }
-        ByteBuffer newDigest = MemberDigest.multiBuffer(digests);
 
-        //ByteBuffer oldDigest = newDigest.flip();     // This will be replaced by lookup to database
-        ByteBuffer oldDigest = ByteBuffer.allocate(16);
+        return MemberDigest.multiBuffer(digests);
 
-        System.out.format("=== hashChanged(): newDigest=%s\n", Hex.byteArrayToHexString(newDigest.array()) );
-
-        if (newDigest.compareTo(oldDigest) == 0){
-System.out.format("=== ByteBuffers are Equal !!\n");
-            return null;
-        }
-        else {
-            return newDigest;
-        }
-
+        //System.out.format("=== hashChanged(): newDigest=%s\n", Hex.byteArrayToHexString(newDigest.array()) );
     }
 
 }
