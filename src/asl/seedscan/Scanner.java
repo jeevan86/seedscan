@@ -194,7 +194,7 @@ public class Scanner
    //   in a Hashtable<String,String> = map.
    //   MetricResult.getResult(id) returns value = String
                 
-                MetricResult results = metric.getResult();
+                MetricResult results = metric.getMetricResult();
                 System.out.format("Results for %s:\n", metric.getClass().getName());
                 if (results == null){
                 }

@@ -38,8 +38,8 @@ public class Channel
 
     public void setLocation(String location) {
         if (location != null) {
-            if (location.length() != 2) {
-                throw new RuntimeException("location name MUST be 2-characters long");
+            if (location.length() < 2) {
+                throw new RuntimeException("location name MUST be at least 2-characters long");
             }
             this.location = location;
         }
@@ -53,8 +53,8 @@ public class Channel
             throw new RuntimeException("channel cannot be null");
         }
     //  I don't know of any channels that aren't exactly 3-characters long (??)
-        if (channel.length() < 3 || channel.length() > 4) {
-            throw new RuntimeException("channel name MUST be 3 or 4 characters long");
+        if (channel.length() < 3) {
+            throw new RuntimeException("channel name MUST be at least 3-characters long");
         }
         this.channel = channel;
     }

@@ -100,7 +100,7 @@ public abstract class Metric
         metricResult = new MetricResult(stationMeta, getName());
     }
 
-    public MetricResult getResult()
+    public MetricResult getMetricResult()
     {
         return metricResult;
     }
