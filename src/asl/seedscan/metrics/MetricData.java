@@ -116,16 +116,19 @@ public class MetricData
         //ByteBuffer oldDigest = getMetricValueDigest(date, metricName, station, channelId);
         ByteBuffer oldDigest = metricReader.getMetricValueDigest(id);
         ByteBuffer newDigest = getHash(channelArray);
-        System.out.format("== hashChanged() --> oldDigest = getMetricValueDigest(%s, %s, %s, %s)\n", EpochData.epochToDateString(date), 
-                            metricName, station, channelId);
-
-        if (newDigest.compareTo(oldDigest) == 0){
-            System.out.format("=== ByteBuffers are Equal !!\n");
-            return null;
+        logger.fine(String.format(  "valueDigestChanged() --> oldDigest = getMetricValueDigest(%s, %s, %s, %s)",
+                                    EpochData.epochToDateString(date), metricName, station, channelId));
+        if (newDigest == null) {
+            logger.warning("New digest is null!");
         }
-        else {
-            return newDigest;
+        else if (oldDigest == null) {
+            logger.fine("Old digest is null.");
         }
+        else if (newDigest.compareTo(oldDigest) == 0) {
+            logger.fine("Digests are Equal !!");
+            newDigest = null;
+        }
+        return newDigest;
 
     }
 
