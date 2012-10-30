@@ -112,6 +112,10 @@ public class MetricData
         Station station   = id.getStation();
         Calendar date     = id.getDate();
         String channelId  = MetricResult.createResultId(id.getChannel());
+        logger.fine(String.format(  "MetricValueIdentifier --> date=%04d-%02d-%02d (%03d) %02d:%02d:%02d | metricName=%s station=%s channel=%s",
+                                    date.get(Calendar.YEAR), date.get(Calendar.MONTH), date.get(Calendar.DAY_OF_MONTH), date.get(Calendar.DAY_OF_YEAR),
+                                    date.get(Calendar.HOUR), date.get(Calendar.MINUTE), date.get(Calendar.SECOND),
+                                    id.getMetricName(), id.getStation(), id.getChannel()));
 
         //ByteBuffer oldDigest = getMetricValueDigest(date, metricName, station, channelId);
         ByteBuffer oldDigest = metricReader.getMetricValueDigest(id);
