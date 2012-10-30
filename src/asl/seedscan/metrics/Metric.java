@@ -20,6 +20,7 @@ package asl.seedscan.metrics;
 
 import asl.metadata.*;
 import asl.metadata.meta_new.*;
+import asl.seedscan.database.MetricValueIdentifier;
 import asl.seedsplitter.DataSet;
 
 import freq.Cmplx;
@@ -45,6 +46,17 @@ public abstract class Metric
     {
         arguments = new Hashtable<String, String>();
         crossPowerMap = new Hashtable<CrossPowerKey, CrossPower>();
+    }
+    
+    public MetricValueIdentifier createIdentifier(Channel channel)
+    {
+    	return new MetricValueIdentifier(	metricResult.getDate(), metricResult.getMetricName(),
+    										metricResult.getStation(), channel);
+    }
+    
+    public MetricValueIdentifier createIdentifier(Channel channelA, Channel channelB)
+    {
+    	return createIdentifier(MetricResult.createChannel(MetricResult.createResultId(channelA, channelB)));
     }
 
     public Hashtable<CrossPowerKey, CrossPower> getCrossPowerMap()

@@ -40,6 +40,7 @@ import asl.seedsplitter.SeedSplitProgress;
 import asl.seedsplitter.SeedSplitter;
 import asl.seedscan.database.MetricDatabase;
 import asl.seedscan.database.MetricInjector;
+import asl.seedscan.database.MetricReader;
 import asl.metadata.*;
 import asl.metadata.meta_new.*;
 import asl.seedscan.metrics.*;
@@ -52,14 +53,16 @@ public class Scanner
 
     private Station station;
     private MetricInjector injector;
+    private MetricReader reader;
     private Scan scan;
 
     private FallOffQueue<SeedSplitProgress> progressQueue;
 
-    public Scanner(MetricInjector injector, Station station, Scan scan)
+    public Scanner(MetricReader reader, MetricInjector injector, Station station, Scan scan)
     {
-        this.station  = station;
+        this.reader = reader;
         this.injector = injector;
+        this.station  = station;
         this.scan = scan;
         this.progressQueue = new FallOffQueue<SeedSplitProgress>(8);
     }
@@ -169,7 +172,7 @@ public class Scanner
             System.out.println(" Java total memory=" + runtime.totalMemory() );
 
 // [3] Loop over Metrics to compute, for this station, for this day
-            MetricData metricData = new MetricData(table, stnMeta);
+            MetricData metricData = new MetricData(reader, table, stnMeta);
 
             Hashtable<CrossPowerKey, CrossPower> crossPowerMap = null;
 

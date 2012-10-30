@@ -58,7 +58,7 @@ extends Metric
         for (Channel channel : channels){
 
          // Check to see that we have data + metadata & see if the digest has changed wrt the database:
-            ByteBuffer digest = metricData.hashChanged(channel, getResult());
+            ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel));
             System.out.format("== %s: digest=%s\n", getName(), Hex.byteArrayToHexString(digest.array()) );
 
             if (digest == null) { 

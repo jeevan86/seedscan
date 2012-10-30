@@ -45,26 +45,31 @@ public class MetricData
     //private Hashtable<String, StationData> metadata;
     private StationMeta metadata;
     private Hashtable<String, String> synthetics;
+    private MetricReader metricReader;
 
   //constructor(s)
-    public MetricData(Hashtable<String, ArrayList<DataSet>> data, 
-                      StationMeta metadata,
-                      Hashtable<String, String> synthetics)
+    public MetricData(	MetricReader metricReader, Hashtable<String,
+    					ArrayList<DataSet>> data, StationMeta metadata,
+    					Hashtable<String, String> synthetics)
     {
+    	this.metricReader = metricReader;
         this.data = data;
         this.metadata = metadata;
         this.synthetics = synthetics;
     }
 
-    public MetricData(Hashtable<String, ArrayList<DataSet>> data, 
-                      StationMeta metadata)
+    public MetricData(	MetricReader metricReader, Hashtable<String,
+    					ArrayList<DataSet>> data, StationMeta metadata)
     {
+    	this.metricReader = metricReader;
         this.data = data;
         this.metadata = metadata;
     }
 
-    public MetricData(Hashtable<String, ArrayList<DataSet>> data)
+    public MetricData(	MetricReader metricReader,
+    					Hashtable<String, ArrayList<DataSet>> data)
     {
+    	this.metricReader = metricReader;
         this.data = data;
     }
 
@@ -95,21 +100,21 @@ public class MetricData
     }
 
 
-    public ByteBuffer hashChanged(Channel channel, MetricResult metricResult)
+    public ByteBuffer valueDigestChanged(Channel channel, MetricValueIdentifier id)
     {
         ChannelArray channelArray = new ChannelArray(channel.getLocation(), channel.getChannel());
-        String channelId = MetricResult.createResultId(channel);
-        return hashChanged(channelArray, metricResult, channelId);
+        return valueDigestChanged(channelArray, id);
     }
 
-    public ByteBuffer hashChanged(ChannelArray channelArray, MetricResult metricResult, String channelId)
+    public ByteBuffer valueDigestChanged(ChannelArray channelArray, MetricValueIdentifier id)
     {
-        String metricName = metricResult.getMetricName();
-        Station station   = metricResult.getStation();
-        Calendar date     = metricResult.getDate();
+        String metricName = id.getMetricName();
+        Station station   = id.getStation();
+        Calendar date     = id.getDate();
+        String channelId  = MetricResult.createResultId(id.getChannel());
 
         //ByteBuffer oldDigest = getMetricValueDigest(date, metricName, station, channelId);
-        ByteBuffer oldDigest = ByteBuffer.allocate(16);
+        ByteBuffer oldDigest = metricReader.getMetricValueDigest(id);
         ByteBuffer newDigest = getHash(channelArray);
         System.out.format("== hashChanged() --> oldDigest = getMetricValueDigest(%s, %s, %s, %s)\n", EpochData.epochToDateString(date), 
                             metricName, station, channelId);

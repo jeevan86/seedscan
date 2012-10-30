@@ -92,7 +92,7 @@ extends PowerBandMetric
             ChannelArray channelArray = new ChannelArray(channelX, channelY);
             String channelId = MetricResult.createResultId(new Channel(channelX.getLocation(), "LHND")
                                                           ,new Channel(channelY.getLocation(), "LHND") );
-            ByteBuffer digest = metricData.hashChanged(channelArray, getResult(), channelId);
+            ByteBuffer digest = metricData.valueDigestChanged(channelArray, createIdentifier(channelX, channelY));
 
             System.out.format("== %s: digest=%s\n", getName(), Hex.byteArrayToHexString(digest.array()) );
 

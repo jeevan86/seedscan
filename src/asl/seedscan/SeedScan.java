@@ -220,6 +220,7 @@ public class SeedScan
      // ===== CONFIG: DATABASE =====
         MetricDatabase database = new MetricDatabase(config.getDatabase());
     	MetricInjector injector = new MetricInjector(database);
+    	MetricReader reader 	= new MetricReader(database); // Should this be a separate connection?
 
 
      // ===== CONFIG: SCANS =====
@@ -331,7 +332,7 @@ System.out.println(" Java total memory=" + runtime.totalMemory() );
         injectorThread.start();
         logger.info("Injector thread started. Processing stations...");
         for (Station station: stations) {
-            Scanner scanner = new Scanner(injector, station, scan);
+            Scanner scanner = new Scanner(reader, injector, station, scan);
             scanner.scan();
         }
         try {

@@ -110,5 +110,15 @@ public class MetricResult
     	return String.format("%s-%s,%s-%s", channelA.getLocation(), channelB.getLocation(),
     										channelA.getChannel(),  channelB.getChannel());
     }
+    
+    public static Channel createChannel(String id)
+    {
+    	Channel channel = null;
+    	String[] parts = id.split(",");
+    	if (parts.length == 2) {
+    		channel = new Channel(parts[0], parts[1]);
+    	}
+    	return channel;
+    }
 }
 
