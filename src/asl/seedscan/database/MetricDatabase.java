@@ -112,7 +112,9 @@ public class MetricDatabase
 	        callStatement.setString(6, channel.getChannel());
 	        ResultSet resultSet = callStatement.executeQuery();
 	        if (resultSet.next()) {
-	        	digest = ByteBuffer.wrap(resultSet.getBytes(1));
+	        	byte[] digestIn = resultSet.getBytes(1);
+                if(digestIn != null)
+                    digest = ByteBuffer.wrap(digestIn);
 	        }
         }
         catch (SQLException e) {
