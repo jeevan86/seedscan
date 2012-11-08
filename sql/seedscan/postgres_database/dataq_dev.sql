@@ -2,9 +2,9 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.1.4
--- Dumped by pg_dump version 9.1.4
--- Started on 2012-08-06 12:34:02 MDT
+-- Dumped from database version 9.1.5
+-- Dumped by pg_dump version 9.1.6
+-- Started on 2012-11-07 17:51:48 MST
 
 SET statement_timeout = 0;
 SET client_encoding = 'UTF8';
@@ -13,7 +13,7 @@ SET check_function_bodies = false;
 SET client_min_messages = warning;
 
 --
--- TOC entry 187 (class 3079 OID 11677)
+-- TOC entry 187 (class 3079 OID 11681)
 -- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
 --
 
@@ -21,7 +21,7 @@ CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 
 
 --
--- TOC entry 2057 (class 0 OID 0)
+-- TOC entry 2079 (class 0 OID 0)
 -- Dependencies: 187
 -- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
 --
@@ -32,8 +32,8 @@ COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 SET search_path = public, pg_catalog;
 
 --
--- TOC entry 207 (class 1255 OID 17397)
--- Dependencies: 573 5
+-- TOC entry 206 (class 1255 OID 16641)
+-- Dependencies: 582 6
 -- Name: fnsclgetchanneldata(integer[], integer, date, date); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -97,8 +97,8 @@ $_$;
 ALTER FUNCTION public.fnsclgetchanneldata(integer[], integer, date, date) OWNER TO postgres;
 
 --
--- TOC entry 208 (class 1255 OID 17393)
--- Dependencies: 5 573
+-- TOC entry 207 (class 1255 OID 16642)
+-- Dependencies: 582 6
 -- Name: fnsclgetchannelplotdata(integer, integer, date, date); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -163,8 +163,8 @@ $_$;
 ALTER FUNCTION public.fnsclgetchannelplotdata(integer, integer, date, date) OWNER TO postgres;
 
 --
--- TOC entry 204 (class 1255 OID 17475)
--- Dependencies: 573 5
+-- TOC entry 201 (class 1255 OID 16643)
+-- Dependencies: 6 582
 -- Name: fnsclgetchannels(integer[]); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -202,8 +202,8 @@ $_$;
 ALTER FUNCTION public.fnsclgetchannels(integer[]) OWNER TO postgres;
 
 --
--- TOC entry 199 (class 1255 OID 17282)
--- Dependencies: 573 5
+-- TOC entry 203 (class 1255 OID 16644)
+-- Dependencies: 6 582
 -- Name: fnsclgetdates(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -240,8 +240,8 @@ $$;
 ALTER FUNCTION public.fnsclgetdates() OWNER TO postgres;
 
 --
--- TOC entry 201 (class 1255 OID 17456)
--- Dependencies: 573 5
+-- TOC entry 200 (class 1255 OID 16645)
+-- Dependencies: 582 6
 -- Name: fnsclgetgroups(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -282,8 +282,8 @@ $$;
 ALTER FUNCTION public.fnsclgetgroups() OWNER TO postgres;
 
 --
--- TOC entry 203 (class 1255 OID 17473)
--- Dependencies: 5 573
+-- TOC entry 202 (class 1255 OID 16646)
+-- Dependencies: 6 582
 -- Name: fnsclgetgrouptypes(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -295,23 +295,32 @@ DECLARE
 BEGIN
 
 
-	
-	SELECT 
-	INTO groupTypeString
-		string_agg( 
-			CONCAT(
-				  'T,'
-				, "pkGroupTypeID"
-				, ','
-				, name
-
-			    
-			)
-			, E'\n' 
-		)
-	FROM "tblGroupType";
-
-	RETURN groupTypeString;
+         SELECT                                                              
+         INTO groupTypeString                                                
+                 string_agg( groupTypeData                                   
+                         , E'\n'                                             
+                 )                                                           
+                 FROM                                                        
+                         (SELECT                                             
+                                 CONCAT(                                     
+                                           'T,'                              
+                                         , "pkGroupTypeID"                   
+                                         , ','                               
+                                         , "tblGroupType".name               
+                                         ,','                                
+                                         , string_agg(                       
+                                                   "tblGroup".pkGroupID::text
+                                                 , ','                       
+                                                 ORDER BY "tblGroup".name)   
+                                 ) AS groupTypeData                          
+                         FROM "tblGroupType"                                 
+                         Join "tblGroup"                                     
+                                 ON "fkGroupTypeID" = "pkGroupTypeID"        
+                         GROUP BY "pkGroupTypeID"                            
+                         ORDER BY "tblGroupType".name) AS grouptypes         
+         ;                                                                   
+                                                                             
+         RETURN groupTypeString;
 	
 END;
 $$;
@@ -320,8 +329,8 @@ $$;
 ALTER FUNCTION public.fnsclgetgrouptypes() OWNER TO postgres;
 
 --
--- TOC entry 202 (class 1255 OID 17472)
--- Dependencies: 573 5
+-- TOC entry 199 (class 1255 OID 16647)
+-- Dependencies: 6 582
 -- Name: fnsclgetmetrics(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -339,7 +348,10 @@ BEGIN
 		string_agg( 
 			CONCAT(
 				  'M,'
-				, DisplayName
+				, pkMetricID
+				, ','
+				, name -- We only want the name during testing to prevent confusion to groups are created.
+				--coalesce(DisplayName, name, 'No name')
 
 			    
 			)
@@ -356,8 +368,8 @@ $$;
 ALTER FUNCTION public.fnsclgetmetrics() OWNER TO postgres;
 
 --
--- TOC entry 205 (class 1255 OID 17390)
--- Dependencies: 5 573
+-- TOC entry 208 (class 1255 OID 16648)
+-- Dependencies: 6 582
 -- Name: fnsclgetstationdata(integer[], integer, date, date); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -459,7 +471,7 @@ GROUP BY sen1.fkStationID, semisum.metricID
 			select '5' into stationData;
 		WHEN 6 THEN
 			--Average across number of values
-			select '6' into stationData;
+			select NULL into stationData;
 		ELSE
 			--Insert error into error log
 			select 'Error' into stationData;
@@ -474,8 +486,8 @@ $_$;
 ALTER FUNCTION public.fnsclgetstationdata(integer[], integer, date, date) OWNER TO postgres;
 
 --
--- TOC entry 206 (class 1255 OID 17392)
--- Dependencies: 5 573
+-- TOC entry 205 (class 1255 OID 16649)
+-- Dependencies: 582 6
 -- Name: fnsclgetstationplotdata(integer, integer, date, date); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -550,8 +562,8 @@ $_$;
 ALTER FUNCTION public.fnsclgetstationplotdata(integer, integer, date, date) OWNER TO postgres;
 
 --
--- TOC entry 200 (class 1255 OID 17433)
--- Dependencies: 573 5
+-- TOC entry 204 (class 1255 OID 16650)
+-- Dependencies: 582 6
 -- Name: fnsclgetstations(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -597,13 +609,322 @@ $$;
 
 ALTER FUNCTION public.fnsclgetstations() OWNER TO postgres;
 
+--
+-- TOC entry 210 (class 1255 OID 16963)
+-- Dependencies: 6 582
+-- Name: spcomparehash(date, character varying, character varying, character varying, character varying, character varying, bytea); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION spcomparehash(date, character varying, character varying, character varying, character varying, character varying, bytea) RETURNS boolean
+    LANGUAGE plpgsql STABLE
+    AS $_$
+DECLARE
+	nDate alias for $1;
+	metricName alias for $2;
+	networkName alias for $3;
+	stationName alias for $4;
+	locationName alias for $5;
+	channelName alias for $6;
+	hashIN alias for $7;
+	hashID int;
+	debug text;
+
+BEGIN
+--select name from tblStation into debug;
+--RAISE NOTICE 'stationID(%)', debug;
+
+	SELECT 
+	  tblhash."pkHashID"
+	FROM 
+	  public.tblhash, 
+	  public.tblmetricdata, 
+	  public.tblmetric, 
+	  public.tblchannel, 
+	  public.tblsensor, 
+	  public.tblstation, 
+	  public."tblGroup"
+	WHERE 
+	  --JOINS
+	  tblhash."pkHashID" = tblmetricdata."fkHashID" AND
+	  tblmetricdata.fkmetricid = tblmetric.pkmetricid AND
+	  tblmetricdata.fkchannelid = tblchannel.pkchannelid AND
+	  tblchannel.fksensorid = tblsensor.pksensorid AND
+	  tblsensor.fkstationid = tblstation.pkstationid AND
+	  tblstation.fknetworkid = "tblGroup".pkgroupid AND
+	  --Criteria
+	  tblMetric.name = metricName AND
+	  "tblGroup".name = networkName AND
+	  tblStation.name = stationName AND
+	  tblSensor.location = locationName AND
+	  tblChannel.name = channelName
+	  
+	INTO hashID;
+
+	IF hashID IS NOT NULL THEN
+		RETURN 1;
+	ELSE
+		RETURN 0;
+	END IF;
+        
+    END;
+$_$;
+
+
+ALTER FUNCTION public.spcomparehash(date, character varying, character varying, character varying, character varying, character varying, bytea) OWNER TO postgres;
+
+--
+-- TOC entry 211 (class 1255 OID 24811)
+-- Dependencies: 6 582
+-- Name: spgetmetricvalue(date, character varying, character varying, character varying, character varying, character varying); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION spgetmetricvalue(date, character varying, character varying, character varying, character varying, character varying) RETURNS double precision
+    LANGUAGE plpgsql STABLE
+    AS $_$
+DECLARE
+	nDate alias for $1;
+	metricName alias for $2;
+	networkName alias for $3;
+	stationName alias for $4;
+	locationName alias for $5;
+	channelName alias for $6;
+	value double precision;
+	debug text;
+
+BEGIN
+--select name from tblStation into debug;
+--RAISE NOTICE 'stationID(%)', debug;
+
+	SELECT 
+	  tblMetricData.value
+	FROM 
+	  
+	  public.tblmetricdata, 
+	  public.tblmetric, 
+	  public.tblchannel, 
+	  public.tblsensor, 
+	  public.tblstation, 
+	  public."tblGroup"
+	WHERE 
+	  --JOINS
+	   tblmetricdata.fkmetricid = tblmetric.pkmetricid AND
+	  tblmetricdata.fkchannelid = tblchannel.pkchannelid AND
+	  tblchannel.fksensorid = tblsensor.pksensorid AND
+	  tblsensor.fkstationid = tblstation.pkstationid AND
+	  tblstation.fknetworkid = "tblGroup".pkgroupid AND
+	  --Criteria
+	  tblMetric.name = metricName AND
+	  "tblGroup".name = networkName AND
+	  tblStation.name = stationName AND
+	  tblSensor.location = locationName AND
+	  tblChannel.name = channelName AND
+	  tblMetricData.date = to_char(nDate, 'J')::INT
+	INTO value;
+	RETURN value;
+        
+    END;
+$_$;
+
+
+ALTER FUNCTION public.spgetmetricvalue(date, character varying, character varying, character varying, character varying, character varying) OWNER TO postgres;
+
+--
+-- TOC entry 212 (class 1255 OID 24813)
+-- Dependencies: 582 6
+-- Name: spgetmetricvaluedigest(date, character varying, character varying, character varying, character varying, character varying); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION spgetmetricvaluedigest(date, character varying, character varying, character varying, character varying, character varying, OUT bytea) RETURNS bytea
+    LANGUAGE plpgsql STABLE
+    AS $_$
+DECLARE
+	nDate alias for $1;
+	metricName alias for $2;
+	networkName alias for $3;
+	stationName alias for $4;
+	locationName alias for $5;
+	channelName alias for $6;
+	hash alias for $7;
+	debug text;
+
+BEGIN
+--select name from tblStation into debug;
+--RAISE NOTICE 'stationID(%)', debug;
+
+--SELECT to_char('2012-06-19'::DATE, 'J')::INT;
+	SELECT 
+	  tblHash.hash
+	FROM 
+	  public.tblhash,
+	  public.tblmetricdata, 
+	  public.tblmetric, 
+	  public.tblchannel, 
+	  public.tblsensor, 
+	  public.tblstation, 
+	  public."tblGroup"
+	WHERE 
+	  --JOINS
+	  tblmetricdata."fkHashID" = tblHash."pkHashID" AND
+	  tblmetricdata.fkmetricid = tblmetric.pkmetricid AND
+	  tblmetricdata.fkchannelid = tblchannel.pkchannelid AND
+	  tblchannel.fksensorid = tblsensor.pksensorid AND
+	  tblsensor.fkstationid = tblstation.pkstationid AND
+	  tblstation.fknetworkid = "tblGroup".pkgroupid AND
+	  --Criteria
+	  tblMetric.name = metricName AND
+	  "tblGroup".name = networkName AND
+	  tblStation.name = stationName AND
+	  tblSensor.location = locationName AND
+	  tblChannel.name = channelName AND
+	  tblMetricData.date = to_char(nDate, 'J')::INT
+	INTO hash;
+	
+        
+    END;
+$_$;
+
+
+ALTER FUNCTION public.spgetmetricvaluedigest(date, character varying, character varying, character varying, character varying, character varying, OUT bytea) OWNER TO postgres;
+
+--
+-- TOC entry 209 (class 1255 OID 16924)
+-- Dependencies: 6 582
+-- Name: spinsertmetricdata(date, character varying, character varying, character varying, character varying, character varying, double precision, bytea); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION spinsertmetricdata(date, character varying, character varying, character varying, character varying, character varying, double precision, bytea) RETURNS void
+    LANGUAGE plpgsql
+    AS $_$
+DECLARE
+	nDate alias for $1;
+	metricName alias for $2;
+	networkName alias for $3;
+	stationName alias for $4;
+	locationName alias for $5;
+	channelName alias for $6;
+	valueIN alias for $7;
+	hashIN alias for $8;
+	networkID int;
+	stationID int;
+	sensorID int;
+	channelID int;
+	metricID int;
+	hashID int;
+	debug text;
+
+BEGIN
+--select name from tblStation into debug;
+--RAISE NOTICE 'stationID(%)', debug;
+
+--Insert network if doesn't exist then get ID
+    BEGIN
+        INSERT INTO "tblGroup" (name,"fkGroupTypeID") VALUES (networkName, 1); --Group Type 1 is Network
+    EXCEPTION WHEN unique_violation THEN
+        --Do nothing, it already exists
+    END;
+    SELECT pkGroupID
+        FROM "tblGroup"
+        WHERE name = networkName
+    INTO networkID;
+
+--Insert station if doesn't exist then get ID
+    BEGIN
+        INSERT INTO tblStation(name,fkNetworkID) VALUES (stationName, networkID);
+    EXCEPTION WHEN unique_violation THEN
+        --Do nothing, it already exists
+    END;
+    SELECT pkStationID
+        FROM tblStation
+        WHERE name = stationName AND fkNetworkID = networkID
+    INTO stationID;
+    
+    BEGIN --Ties the Station to its Network for the GUI to use.
+        INSERT INTO "tblStationGroupTie" ("fkGroupID", "fkStationID")
+		VALUES (networkID, stationID);
+    EXCEPTION WHEN unique_violation THEN
+        --Do nothing, it already exists
+    END;
+
+--Insert sensor if doesn't exist then get ID
+    BEGIN
+        INSERT INTO tblSensor(location,fkStationID) VALUES (locationName, stationID); 
+    EXCEPTION WHEN unique_violation THEN
+        --Do nothing, it already exists
+    END;
+    SELECT pkSensorID
+        FROM tblSensor
+        WHERE location = locationName AND fkStationID = stationID
+    INTO sensorID;
+--Insert channel if doesn't exist then get ID
+    BEGIN
+        INSERT INTO tblChannel(name,fkSensorID) VALUES (channelName, sensorID); 
+    EXCEPTION WHEN unique_violation THEN
+        --Do nothing, it already exists
+    END;
+    SELECT pkChannelID
+        FROM tblChannel
+        WHERE name = channelName AND fkSensorID = sensorID
+    INTO channelID;
+--Insert metric if doesn't exist then get ID
+    BEGIN
+        INSERT INTO tblMetric(name, fkComputeTypeID, displayName) VALUES (metricName, 1, metricName); --Compute Type 1 is averaged over channel and days.
+    EXCEPTION WHEN unique_violation THEN
+        --Do nothing, it already exists
+    END;
+    SELECT pkMetricID
+        FROM tblMetric
+        WHERE name = metricName
+    INTO metricID;
+
+--Insert hash if doesn't exist then get ID
+    BEGIN
+        INSERT INTO tblHash(hash) VALUES (hashIN); 
+    EXCEPTION WHEN unique_violation THEN
+        --Do nothing, it already exists
+    END;
+   --select pkHashID from tblStation into debug;
+--RAISE NOTICE 'stationID(%)', debug;
+    SELECT "pkHashID"
+        FROM tblHash
+        WHERE hash = hashIN
+    INTO hashID;
+    
+--Insert date into tblDate
+    BEGIN
+        INSERT INTO tblDate (pkDateID, date)
+	    VALUES (to_char(nDate, 'J')::INT, nDate);
+    EXCEPTION WHEN unique_violation THEN
+        --Do nothing, it already exists
+    END;
+--Insert/Update metric value for day
+    UPDATE tblMetricData 
+	SET value = valueIN, "fkHashID" = hashID 
+	WHERE date = to_char(nDate, 'J')::INT AND fkMetricID = metricID AND fkChannelID = channelID;
+    IF NOT found THEN
+    BEGIN
+	INSERT INTO tblMetricData (fkChannelID, date, fkMetricID, value, "fkHashID") 
+	    VALUES (channelID, to_char(nDate, 'J')::INT, metricID, valueIN, hashID);
+    EXCEPTION WHEN unique_violation THEN
+	INSERT INTO tblErrorLog (errortime, errormessage)
+	    VALUES (CURRENT_TIMESTAMP, "Multiple simultaneous data inserts for metric:"+metricID+
+	    " date:"+to_char(nDate, 'J')::INT);
+    END;
+    END IF;
+    
+        
+    END;
+$_$;
+
+
+ALTER FUNCTION public.spinsertmetricdata(date, character varying, character varying, character varying, character varying, character varying, double precision, bytea) OWNER TO postgres;
+
 SET default_tablespace = '';
 
 SET default_with_oids = false;
 
 --
--- TOC entry 169 (class 1259 OID 17084)
--- Dependencies: 1975 5
+-- TOC entry 161 (class 1259 OID 16651)
+-- Dependencies: 1985 6
 -- Name: tblGroup; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -618,8 +939,8 @@ CREATE TABLE "tblGroup" (
 ALTER TABLE public."tblGroup" OWNER TO postgres;
 
 --
--- TOC entry 186 (class 1259 OID 17417)
--- Dependencies: 5
+-- TOC entry 162 (class 1259 OID 16655)
+-- Dependencies: 6
 -- Name: tblGroupType; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -632,8 +953,8 @@ CREATE TABLE "tblGroupType" (
 ALTER TABLE public."tblGroupType" OWNER TO postgres;
 
 --
--- TOC entry 185 (class 1259 OID 17415)
--- Dependencies: 186 5
+-- TOC entry 163 (class 1259 OID 16658)
+-- Dependencies: 6 162
 -- Name: tblGroupType_pkGroupTypeID_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -648,8 +969,8 @@ CREATE SEQUENCE "tblGroupType_pkGroupTypeID_seq"
 ALTER TABLE public."tblGroupType_pkGroupTypeID_seq" OWNER TO postgres;
 
 --
--- TOC entry 2070 (class 0 OID 0)
--- Dependencies: 185
+-- TOC entry 2096 (class 0 OID 0)
+-- Dependencies: 163
 -- Name: tblGroupType_pkGroupTypeID_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -657,8 +978,8 @@ ALTER SEQUENCE "tblGroupType_pkGroupTypeID_seq" OWNED BY "tblGroupType"."pkGroup
 
 
 --
--- TOC entry 184 (class 1259 OID 17398)
--- Dependencies: 5
+-- TOC entry 164 (class 1259 OID 16660)
+-- Dependencies: 6
 -- Name: tblStationGroupTie; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -671,8 +992,8 @@ CREATE TABLE "tblStationGroupTie" (
 ALTER TABLE public."tblStationGroupTie" OWNER TO postgres;
 
 --
--- TOC entry 167 (class 1259 OID 17074)
--- Dependencies: 5
+-- TOC entry 165 (class 1259 OID 16663)
+-- Dependencies: 6
 -- Name: tblcalibrationdata; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -696,8 +1017,8 @@ CREATE TABLE tblcalibrationdata (
 ALTER TABLE public.tblcalibrationdata OWNER TO postgres;
 
 --
--- TOC entry 166 (class 1259 OID 17072)
--- Dependencies: 5 167
+-- TOC entry 166 (class 1259 OID 16666)
+-- Dependencies: 6 165
 -- Name: tblcalibrationdata_pkcalibrationdataid_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -712,7 +1033,7 @@ CREATE SEQUENCE tblcalibrationdata_pkcalibrationdataid_seq
 ALTER TABLE public.tblcalibrationdata_pkcalibrationdataid_seq OWNER TO postgres;
 
 --
--- TOC entry 2073 (class 0 OID 0)
+-- TOC entry 2100 (class 0 OID 0)
 -- Dependencies: 166
 -- Name: tblcalibrationdata_pkcalibrationdataid_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -721,8 +1042,8 @@ ALTER SEQUENCE tblcalibrationdata_pkcalibrationdataid_seq OWNED BY tblcalibratio
 
 
 --
--- TOC entry 181 (class 1259 OID 17153)
--- Dependencies: 1985 5
+-- TOC entry 167 (class 1259 OID 16668)
+-- Dependencies: 1989 1991 6
 -- Name: tblchannel; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -730,7 +1051,7 @@ CREATE TABLE tblchannel (
     pkchannelid integer NOT NULL,
     fksensorid integer NOT NULL,
     name character varying(16) NOT NULL,
-    derived integer NOT NULL,
+    derived integer DEFAULT 0 NOT NULL,
     "isIgnored" boolean DEFAULT false NOT NULL
 );
 
@@ -738,8 +1059,8 @@ CREATE TABLE tblchannel (
 ALTER TABLE public.tblchannel OWNER TO postgres;
 
 --
--- TOC entry 180 (class 1259 OID 17151)
--- Dependencies: 181 5
+-- TOC entry 168 (class 1259 OID 16672)
+-- Dependencies: 6 167
 -- Name: tblchannel_pkchannelid_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -754,8 +1075,8 @@ CREATE SEQUENCE tblchannel_pkchannelid_seq
 ALTER TABLE public.tblchannel_pkchannelid_seq OWNER TO postgres;
 
 --
--- TOC entry 2076 (class 0 OID 0)
--- Dependencies: 180
+-- TOC entry 2103 (class 0 OID 0)
+-- Dependencies: 168
 -- Name: tblchannel_pkchannelid_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -763,8 +1084,8 @@ ALTER SEQUENCE tblchannel_pkchannelid_seq OWNED BY tblchannel.pkchannelid;
 
 
 --
--- TOC entry 164 (class 1259 OID 17052)
--- Dependencies: 1971 1972 5
+-- TOC entry 169 (class 1259 OID 16674)
+-- Dependencies: 1992 1993 6
 -- Name: tblcomputetype; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -779,8 +1100,8 @@ CREATE TABLE tblcomputetype (
 ALTER TABLE public.tblcomputetype OWNER TO postgres;
 
 --
--- TOC entry 163 (class 1259 OID 17050)
--- Dependencies: 164 5
+-- TOC entry 170 (class 1259 OID 16682)
+-- Dependencies: 169 6
 -- Name: tblcomputetype_pkcomputetypeid_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -795,8 +1116,8 @@ CREATE SEQUENCE tblcomputetype_pkcomputetypeid_seq
 ALTER TABLE public.tblcomputetype_pkcomputetypeid_seq OWNER TO postgres;
 
 --
--- TOC entry 2079 (class 0 OID 0)
--- Dependencies: 163
+-- TOC entry 2106 (class 0 OID 0)
+-- Dependencies: 170
 -- Name: tblcomputetype_pkcomputetypeid_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -804,8 +1125,8 @@ ALTER SEQUENCE tblcomputetype_pkcomputetypeid_seq OWNED BY tblcomputetype.pkcomp
 
 
 --
--- TOC entry 165 (class 1259 OID 17065)
--- Dependencies: 5
+-- TOC entry 171 (class 1259 OID 16684)
+-- Dependencies: 6
 -- Name: tbldate; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -818,8 +1139,8 @@ CREATE TABLE tbldate (
 ALTER TABLE public.tbldate OWNER TO postgres;
 
 --
--- TOC entry 179 (class 1259 OID 17141)
--- Dependencies: 1983 5
+-- TOC entry 172 (class 1259 OID 16687)
+-- Dependencies: 1995 6
 -- Name: tblerrorlog; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -833,8 +1154,8 @@ CREATE TABLE tblerrorlog (
 ALTER TABLE public.tblerrorlog OWNER TO postgres;
 
 --
--- TOC entry 178 (class 1259 OID 17139)
--- Dependencies: 5 179
+-- TOC entry 173 (class 1259 OID 16694)
+-- Dependencies: 6 172
 -- Name: tblerrorlog_pkerrorlogid_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -849,8 +1170,8 @@ CREATE SEQUENCE tblerrorlog_pkerrorlogid_seq
 ALTER TABLE public.tblerrorlog_pkerrorlogid_seq OWNER TO postgres;
 
 --
--- TOC entry 2083 (class 0 OID 0)
--- Dependencies: 178
+-- TOC entry 2110 (class 0 OID 0)
+-- Dependencies: 173
 -- Name: tblerrorlog_pkerrorlogid_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -858,8 +1179,47 @@ ALTER SEQUENCE tblerrorlog_pkerrorlogid_seq OWNED BY tblerrorlog.pkerrorlogid;
 
 
 --
--- TOC entry 177 (class 1259 OID 17130)
--- Dependencies: 1981 5
+-- TOC entry 185 (class 1259 OID 16875)
+-- Dependencies: 6
+-- Name: tblhash; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE tblhash (
+    "pkHashID" bigint NOT NULL,
+    hash bytea NOT NULL
+);
+
+
+ALTER TABLE public.tblhash OWNER TO postgres;
+
+--
+-- TOC entry 186 (class 1259 OID 16903)
+-- Dependencies: 6 185
+-- Name: tblhash_pkHashID_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE "tblhash_pkHashID_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public."tblhash_pkHashID_seq" OWNER TO postgres;
+
+--
+-- TOC entry 2113 (class 0 OID 0)
+-- Dependencies: 186
+-- Name: tblhash_pkHashID_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE "tblhash_pkHashID_seq" OWNED BY tblhash."pkHashID";
+
+
+--
+-- TOC entry 174 (class 1259 OID 16696)
+-- Dependencies: 1997 6
 -- Name: tblmetadata; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -874,8 +1234,8 @@ CREATE TABLE tblmetadata (
 ALTER TABLE public.tblmetadata OWNER TO postgres;
 
 --
--- TOC entry 171 (class 1259 OID 17095)
--- Dependencies: 1977 1978 5
+-- TOC entry 175 (class 1259 OID 16703)
+-- Dependencies: 1998 1999 6
 -- Name: tblmetric; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -892,8 +1252,8 @@ CREATE TABLE tblmetric (
 ALTER TABLE public.tblmetric OWNER TO postgres;
 
 --
--- TOC entry 170 (class 1259 OID 17093)
--- Dependencies: 171 5
+-- TOC entry 176 (class 1259 OID 16708)
+-- Dependencies: 6 175
 -- Name: tblmetric_pkmetricid_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -908,8 +1268,8 @@ CREATE SEQUENCE tblmetric_pkmetricid_seq
 ALTER TABLE public.tblmetric_pkmetricid_seq OWNER TO postgres;
 
 --
--- TOC entry 2087 (class 0 OID 0)
--- Dependencies: 170
+-- TOC entry 2117 (class 0 OID 0)
+-- Dependencies: 176
 -- Name: tblmetric_pkmetricid_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -917,8 +1277,8 @@ ALTER SEQUENCE tblmetric_pkmetricid_seq OWNED BY tblmetric.pkmetricid;
 
 
 --
--- TOC entry 174 (class 1259 OID 17115)
--- Dependencies: 5
+-- TOC entry 177 (class 1259 OID 16710)
+-- Dependencies: 6
 -- Name: tblmetricdata; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -927,15 +1287,15 @@ CREATE TABLE tblmetricdata (
     date integer NOT NULL,
     fkmetricid integer NOT NULL,
     value double precision NOT NULL,
-    fkparentprecomputedid integer
+    "fkHashID" bigint NOT NULL
 );
 
 
 ALTER TABLE public.tblmetricdata OWNER TO postgres;
 
 --
--- TOC entry 2089 (class 0 OID 0)
--- Dependencies: 174
+-- TOC entry 2119 (class 0 OID 0)
+-- Dependencies: 177
 -- Name: COLUMN tblmetricdata.date; Type: COMMENT; Schema: public; Owner: postgres
 --
 
@@ -943,8 +1303,8 @@ COMMENT ON COLUMN tblmetricdata.date IS 'Julian date (number of days from Midnig
 
 
 --
--- TOC entry 168 (class 1259 OID 17082)
--- Dependencies: 169 5
+-- TOC entry 178 (class 1259 OID 16713)
+-- Dependencies: 161 6
 -- Name: tblnetwork_pknetworkid_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -959,8 +1319,8 @@ CREATE SEQUENCE tblnetwork_pknetworkid_seq
 ALTER TABLE public.tblnetwork_pknetworkid_seq OWNER TO postgres;
 
 --
--- TOC entry 2091 (class 0 OID 0)
--- Dependencies: 168
+-- TOC entry 2121 (class 0 OID 0)
+-- Dependencies: 178
 -- Name: tblnetwork_pknetworkid_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -968,8 +1328,8 @@ ALTER SEQUENCE tblnetwork_pknetworkid_seq OWNED BY "tblGroup".pkgroupid;
 
 
 --
--- TOC entry 173 (class 1259 OID 17107)
--- Dependencies: 5
+-- TOC entry 179 (class 1259 OID 16715)
+-- Dependencies: 6
 -- Name: tblprecomputed; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -988,8 +1348,8 @@ CREATE TABLE tblprecomputed (
 ALTER TABLE public.tblprecomputed OWNER TO postgres;
 
 --
--- TOC entry 172 (class 1259 OID 17105)
--- Dependencies: 5 173
+-- TOC entry 180 (class 1259 OID 16718)
+-- Dependencies: 6 179
 -- Name: tblprecomputed_pkprecomputedid_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -1004,8 +1364,8 @@ CREATE SEQUENCE tblprecomputed_pkprecomputedid_seq
 ALTER TABLE public.tblprecomputed_pkprecomputedid_seq OWNER TO postgres;
 
 --
--- TOC entry 2094 (class 0 OID 0)
--- Dependencies: 172
+-- TOC entry 2124 (class 0 OID 0)
+-- Dependencies: 180
 -- Name: tblprecomputed_pkprecomputedid_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -1013,8 +1373,8 @@ ALTER SEQUENCE tblprecomputed_pkprecomputedid_seq OWNED BY tblprecomputed.pkprec
 
 
 --
--- TOC entry 183 (class 1259 OID 17164)
--- Dependencies: 5
+-- TOC entry 181 (class 1259 OID 16720)
+-- Dependencies: 6
 -- Name: tblsensor; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -1028,8 +1388,8 @@ CREATE TABLE tblsensor (
 ALTER TABLE public.tblsensor OWNER TO postgres;
 
 --
--- TOC entry 182 (class 1259 OID 17162)
--- Dependencies: 5 183
+-- TOC entry 182 (class 1259 OID 16723)
+-- Dependencies: 181 6
 -- Name: tblsensor_pksensorid_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -1044,7 +1404,7 @@ CREATE SEQUENCE tblsensor_pksensorid_seq
 ALTER TABLE public.tblsensor_pksensorid_seq OWNER TO postgres;
 
 --
--- TOC entry 2097 (class 0 OID 0)
+-- TOC entry 2127 (class 0 OID 0)
 -- Dependencies: 182
 -- Name: tblsensor_pksensorid_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -1053,8 +1413,8 @@ ALTER SEQUENCE tblsensor_pksensorid_seq OWNED BY tblsensor.pksensorid;
 
 
 --
--- TOC entry 176 (class 1259 OID 17122)
--- Dependencies: 5
+-- TOC entry 183 (class 1259 OID 16725)
+-- Dependencies: 6
 -- Name: tblstation; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -1068,8 +1428,8 @@ CREATE TABLE tblstation (
 ALTER TABLE public.tblstation OWNER TO postgres;
 
 --
--- TOC entry 175 (class 1259 OID 17120)
--- Dependencies: 176 5
+-- TOC entry 184 (class 1259 OID 16728)
+-- Dependencies: 6 183
 -- Name: tblstation_pkstationid_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -1084,8 +1444,8 @@ CREATE SEQUENCE tblstation_pkstationid_seq
 ALTER TABLE public.tblstation_pkstationid_seq OWNER TO postgres;
 
 --
--- TOC entry 2100 (class 0 OID 0)
--- Dependencies: 175
+-- TOC entry 2130 (class 0 OID 0)
+-- Dependencies: 184
 -- Name: tblstation_pkstationid_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -1093,8 +1453,8 @@ ALTER SEQUENCE tblstation_pkstationid_seq OWNED BY tblstation.pkstationid;
 
 
 --
--- TOC entry 1974 (class 2604 OID 17087)
--- Dependencies: 169 168 169
+-- TOC entry 1986 (class 2604 OID 16730)
+-- Dependencies: 178 161
 -- Name: pkgroupid; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -1102,8 +1462,8 @@ ALTER TABLE ONLY "tblGroup" ALTER COLUMN pkgroupid SET DEFAULT nextval('tblnetwo
 
 
 --
--- TOC entry 1987 (class 2604 OID 17420)
--- Dependencies: 185 186 186
+-- TOC entry 1987 (class 2604 OID 16731)
+-- Dependencies: 163 162
 -- Name: pkGroupTypeID; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -1111,8 +1471,8 @@ ALTER TABLE ONLY "tblGroupType" ALTER COLUMN "pkGroupTypeID" SET DEFAULT nextval
 
 
 --
--- TOC entry 1973 (class 2604 OID 17077)
--- Dependencies: 167 166 167
+-- TOC entry 1988 (class 2604 OID 16732)
+-- Dependencies: 166 165
 -- Name: pkcalibrationdataid; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -1120,8 +1480,8 @@ ALTER TABLE ONLY tblcalibrationdata ALTER COLUMN pkcalibrationdataid SET DEFAULT
 
 
 --
--- TOC entry 1984 (class 2604 OID 17156)
--- Dependencies: 180 181 181
+-- TOC entry 1990 (class 2604 OID 16733)
+-- Dependencies: 168 167
 -- Name: pkchannelid; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -1129,8 +1489,8 @@ ALTER TABLE ONLY tblchannel ALTER COLUMN pkchannelid SET DEFAULT nextval('tblcha
 
 
 --
--- TOC entry 1970 (class 2604 OID 17055)
--- Dependencies: 164 163 164
+-- TOC entry 1994 (class 2604 OID 16734)
+-- Dependencies: 170 169
 -- Name: pkcomputetypeid; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -1138,8 +1498,8 @@ ALTER TABLE ONLY tblcomputetype ALTER COLUMN pkcomputetypeid SET DEFAULT nextval
 
 
 --
--- TOC entry 1982 (class 2604 OID 17144)
--- Dependencies: 179 178 179
+-- TOC entry 1996 (class 2604 OID 16735)
+-- Dependencies: 173 172
 -- Name: pkerrorlogid; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -1147,8 +1507,17 @@ ALTER TABLE ONLY tblerrorlog ALTER COLUMN pkerrorlogid SET DEFAULT nextval('tble
 
 
 --
--- TOC entry 1976 (class 2604 OID 17098)
--- Dependencies: 171 170 171
+-- TOC entry 2004 (class 2604 OID 16909)
+-- Dependencies: 186 185
+-- Name: pkHashID; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY tblhash ALTER COLUMN "pkHashID" SET DEFAULT nextval('"tblhash_pkHashID_seq"'::regclass);
+
+
+--
+-- TOC entry 2000 (class 2604 OID 16736)
+-- Dependencies: 176 175
 -- Name: pkmetricid; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -1156,8 +1525,8 @@ ALTER TABLE ONLY tblmetric ALTER COLUMN pkmetricid SET DEFAULT nextval('tblmetri
 
 
 --
--- TOC entry 1979 (class 2604 OID 17110)
--- Dependencies: 173 172 173
+-- TOC entry 2001 (class 2604 OID 16737)
+-- Dependencies: 180 179
 -- Name: pkprecomputedid; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -1165,8 +1534,8 @@ ALTER TABLE ONLY tblprecomputed ALTER COLUMN pkprecomputedid SET DEFAULT nextval
 
 
 --
--- TOC entry 1986 (class 2604 OID 17167)
--- Dependencies: 183 182 183
+-- TOC entry 2002 (class 2604 OID 16738)
+-- Dependencies: 182 181
 -- Name: pksensorid; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -1174,8 +1543,8 @@ ALTER TABLE ONLY tblsensor ALTER COLUMN pksensorid SET DEFAULT nextval('tblsenso
 
 
 --
--- TOC entry 1980 (class 2604 OID 17125)
--- Dependencies: 176 175 176
+-- TOC entry 2003 (class 2604 OID 16739)
+-- Dependencies: 184 183
 -- Name: pkstationid; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -1183,8 +1552,8 @@ ALTER TABLE ONLY tblstation ALTER COLUMN pkstationid SET DEFAULT nextval('tblsta
 
 
 --
--- TOC entry 2031 (class 2606 OID 17414)
--- Dependencies: 184 184 184
+-- TOC entry 2014 (class 2606 OID 16741)
+-- Dependencies: 164 164 164 2073
 -- Name: Primary_tblstationGrouptie; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -1193,8 +1562,18 @@ ALTER TABLE ONLY "tblStationGroupTie"
 
 
 --
--- TOC entry 2013 (class 2606 OID 17389)
--- Dependencies: 174 174 174 174
+-- TOC entry 2054 (class 2606 OID 16917)
+-- Dependencies: 185 185 2073
+-- Name: pkTblHash; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY tblhash
+    ADD CONSTRAINT "pkTblHash" PRIMARY KEY ("pkHashID");
+
+
+--
+-- TOC entry 2040 (class 2606 OID 16743)
+-- Dependencies: 177 177 177 177 2073
 -- Name: pk_metric_date_channel; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -1203,8 +1582,8 @@ ALTER TABLE ONLY tblmetricdata
 
 
 --
--- TOC entry 2033 (class 2606 OID 17422)
--- Dependencies: 186 186
+-- TOC entry 2010 (class 2606 OID 16745)
+-- Dependencies: 162 162 2073
 -- Name: primary_tblGroupType; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -1213,8 +1592,8 @@ ALTER TABLE ONLY "tblGroupType"
 
 
 --
--- TOC entry 1997 (class 2606 OID 17081)
--- Dependencies: 167 167 167 167 167 167 167 167 167
+-- TOC entry 2016 (class 2606 OID 16747)
+-- Dependencies: 165 165 165 165 165 165 165 165 165 2073
 -- Name: tblcalibrationdata_fkchannelid_fkmetcaltypeid_calday_calmon_key; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -1223,8 +1602,8 @@ ALTER TABLE ONLY tblcalibrationdata
 
 
 --
--- TOC entry 1999 (class 2606 OID 17079)
--- Dependencies: 167 167
+-- TOC entry 2018 (class 2606 OID 16749)
+-- Dependencies: 165 165 2073
 -- Name: tblcalibrationdata_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -1233,8 +1612,8 @@ ALTER TABLE ONLY tblcalibrationdata
 
 
 --
--- TOC entry 2023 (class 2606 OID 17161)
--- Dependencies: 181 181 181
+-- TOC entry 2020 (class 2606 OID 16751)
+-- Dependencies: 167 167 167 2073
 -- Name: tblchannel_fksensorid_name_key; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -1243,8 +1622,8 @@ ALTER TABLE ONLY tblchannel
 
 
 --
--- TOC entry 2025 (class 2606 OID 17159)
--- Dependencies: 181 181
+-- TOC entry 2022 (class 2606 OID 16753)
+-- Dependencies: 167 167 2073
 -- Name: tblchannel_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -1253,8 +1632,8 @@ ALTER TABLE ONLY tblchannel
 
 
 --
--- TOC entry 1989 (class 2606 OID 17064)
--- Dependencies: 164 164
+-- TOC entry 2024 (class 2606 OID 16755)
+-- Dependencies: 169 169 2073
 -- Name: tblcomputetype_name_key; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -1263,8 +1642,8 @@ ALTER TABLE ONLY tblcomputetype
 
 
 --
--- TOC entry 1991 (class 2606 OID 17062)
--- Dependencies: 164 164
+-- TOC entry 2026 (class 2606 OID 16757)
+-- Dependencies: 169 169 2073
 -- Name: tblcomputetype_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -1273,8 +1652,8 @@ ALTER TABLE ONLY tblcomputetype
 
 
 --
--- TOC entry 1993 (class 2606 OID 17071)
--- Dependencies: 165 165
+-- TOC entry 2028 (class 2606 OID 16759)
+-- Dependencies: 171 171 2073
 -- Name: tbldate_date_key; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -1283,8 +1662,8 @@ ALTER TABLE ONLY tbldate
 
 
 --
--- TOC entry 1995 (class 2606 OID 17069)
--- Dependencies: 165 165
+-- TOC entry 2030 (class 2606 OID 16761)
+-- Dependencies: 171 171 2073
 -- Name: tbldate_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -1293,8 +1672,8 @@ ALTER TABLE ONLY tbldate
 
 
 --
--- TOC entry 2021 (class 2606 OID 17150)
--- Dependencies: 179 179
+-- TOC entry 2032 (class 2606 OID 16763)
+-- Dependencies: 172 172 2073
 -- Name: tblerrorlog_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -1303,8 +1682,8 @@ ALTER TABLE ONLY tblerrorlog
 
 
 --
--- TOC entry 2019 (class 2606 OID 17138)
--- Dependencies: 177 177 177
+-- TOC entry 2034 (class 2606 OID 16765)
+-- Dependencies: 174 174 174 2073
 -- Name: tblmetadata_fkchannelid_epoch_key; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -1313,18 +1692,8 @@ ALTER TABLE ONLY tblmetadata
 
 
 --
--- TOC entry 2005 (class 2606 OID 17104)
--- Dependencies: 171 171 171
--- Name: tblmetric_name_fkparentmetricid_key; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
---
-
-ALTER TABLE ONLY tblmetric
-    ADD CONSTRAINT tblmetric_name_fkparentmetricid_key UNIQUE (name, fkparentmetricid);
-
-
---
--- TOC entry 2007 (class 2606 OID 17102)
--- Dependencies: 171 171
+-- TOC entry 2036 (class 2606 OID 16769)
+-- Dependencies: 175 175 2073
 -- Name: tblmetric_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -1333,8 +1702,8 @@ ALTER TABLE ONLY tblmetric
 
 
 --
--- TOC entry 2001 (class 2606 OID 17090)
--- Dependencies: 169 169
+-- TOC entry 2006 (class 2606 OID 16771)
+-- Dependencies: 161 161 2073
 -- Name: tblnetwork_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -1343,8 +1712,8 @@ ALTER TABLE ONLY "tblGroup"
 
 
 --
--- TOC entry 2009 (class 2606 OID 17112)
--- Dependencies: 173 173
+-- TOC entry 2042 (class 2606 OID 16773)
+-- Dependencies: 179 179 2073
 -- Name: tblprecomputed_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -1353,8 +1722,8 @@ ALTER TABLE ONLY tblprecomputed
 
 
 --
--- TOC entry 2011 (class 2606 OID 17114)
--- Dependencies: 173 173 173 173 173
+-- TOC entry 2044 (class 2606 OID 16775)
+-- Dependencies: 179 179 179 179 179 2073
 -- Name: tblprecomputed_start_end_fkmetricid_fkchannelid_key; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -1363,8 +1732,8 @@ ALTER TABLE ONLY tblprecomputed
 
 
 --
--- TOC entry 2027 (class 2606 OID 17171)
--- Dependencies: 183 183 183
+-- TOC entry 2046 (class 2606 OID 16777)
+-- Dependencies: 181 181 181 2073
 -- Name: tblsensor_fkstationid_location_key; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -1373,8 +1742,8 @@ ALTER TABLE ONLY tblsensor
 
 
 --
--- TOC entry 2029 (class 2606 OID 17169)
--- Dependencies: 183 183
+-- TOC entry 2048 (class 2606 OID 16779)
+-- Dependencies: 181 181 2073
 -- Name: tblsensor_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -1383,8 +1752,8 @@ ALTER TABLE ONLY tblsensor
 
 
 --
--- TOC entry 2015 (class 2606 OID 17129)
--- Dependencies: 176 176 176
+-- TOC entry 2050 (class 2606 OID 16781)
+-- Dependencies: 183 183 183 2073
 -- Name: tblstation_fknetworkid_name_key; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -1393,8 +1762,8 @@ ALTER TABLE ONLY tblstation
 
 
 --
--- TOC entry 2017 (class 2606 OID 17127)
--- Dependencies: 176 176
+-- TOC entry 2052 (class 2606 OID 16783)
+-- Dependencies: 183 183 2073
 -- Name: tblstation_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -1403,8 +1772,8 @@ ALTER TABLE ONLY tblstation
 
 
 --
--- TOC entry 2035 (class 2606 OID 17424)
--- Dependencies: 186 186
+-- TOC entry 2012 (class 2606 OID 16785)
+-- Dependencies: 162 162 2073
 -- Name: un_name; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -1413,8 +1782,8 @@ ALTER TABLE ONLY "tblGroupType"
 
 
 --
--- TOC entry 2003 (class 2606 OID 17460)
--- Dependencies: 169 169 169
+-- TOC entry 2008 (class 2606 OID 16787)
+-- Dependencies: 161 161 161 2073
 -- Name: un_name_fkGroupType; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -1423,8 +1792,28 @@ ALTER TABLE ONLY "tblGroup"
 
 
 --
--- TOC entry 2036 (class 2606 OID 17187)
--- Dependencies: 181 167 2024
+-- TOC entry 2056 (class 2606 OID 16919)
+-- Dependencies: 185 185 2073
+-- Name: un_tblHash_hash; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY tblhash
+    ADD CONSTRAINT "un_tblHash_hash" UNIQUE (hash);
+
+
+--
+-- TOC entry 2038 (class 2606 OID 16894)
+-- Dependencies: 175 175 2073
+-- Name: un_tblMetric_name; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY tblmetric
+    ADD CONSTRAINT "un_tblMetric_name" UNIQUE (name);
+
+
+--
+-- TOC entry 2060 (class 2606 OID 16788)
+-- Dependencies: 2021 165 167 2073
 -- Name: fk_tblCalibrationData_tblChannel; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1433,8 +1822,8 @@ ALTER TABLE ONLY tblcalibrationdata
 
 
 --
--- TOC entry 2037 (class 2606 OID 17192)
--- Dependencies: 171 167 2006
+-- TOC entry 2061 (class 2606 OID 16793)
+-- Dependencies: 165 175 2035 2073
 -- Name: fk_tblCalibrationData_tblMetric; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1443,8 +1832,8 @@ ALTER TABLE ONLY tblcalibrationdata
 
 
 --
--- TOC entry 2043 (class 2606 OID 17262)
--- Dependencies: 181 2024 173
+-- TOC entry 2067 (class 2606 OID 16798)
+-- Dependencies: 167 179 2021 2073
 -- Name: fk_tblChannel; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1453,8 +1842,8 @@ ALTER TABLE ONLY tblprecomputed
 
 
 --
--- TOC entry 2044 (class 2606 OID 17373)
--- Dependencies: 174 181 2024
+-- TOC entry 2065 (class 2606 OID 16803)
+-- Dependencies: 2021 167 177 2073
 -- Name: fk_tblChannel; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1463,8 +1852,8 @@ ALTER TABLE ONLY tblmetricdata
 
 
 --
--- TOC entry 2039 (class 2606 OID 17212)
--- Dependencies: 164 171 1990
+-- TOC entry 2063 (class 2606 OID 16808)
+-- Dependencies: 2025 169 175 2073
 -- Name: fk_tblComputeType; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1473,8 +1862,8 @@ ALTER TABLE ONLY tblmetric
 
 
 --
--- TOC entry 2051 (class 2606 OID 17408)
--- Dependencies: 184 2000 169
+-- TOC entry 2058 (class 2606 OID 16813)
+-- Dependencies: 164 2005 161 2073
 -- Name: fk_tblGroup; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1483,8 +1872,8 @@ ALTER TABLE ONLY "tblStationGroupTie"
 
 
 --
--- TOC entry 2040 (class 2606 OID 17217)
--- Dependencies: 171 2006 171
+-- TOC entry 2064 (class 2606 OID 16818)
+-- Dependencies: 175 175 2035 2073
 -- Name: fk_tblMetric; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1493,8 +1882,8 @@ ALTER TABLE ONLY tblmetric
 
 
 --
--- TOC entry 2042 (class 2606 OID 17257)
--- Dependencies: 171 2006 173
+-- TOC entry 2068 (class 2606 OID 16823)
+-- Dependencies: 2035 179 175 2073
 -- Name: fk_tblMetric; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1503,8 +1892,8 @@ ALTER TABLE ONLY tblprecomputed
 
 
 --
--- TOC entry 2045 (class 2606 OID 17378)
--- Dependencies: 2006 174 171
+-- TOC entry 2066 (class 2606 OID 16828)
+-- Dependencies: 177 175 2035 2073
 -- Name: fk_tblMetric; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1513,8 +1902,8 @@ ALTER TABLE ONLY tblmetricdata
 
 
 --
--- TOC entry 2047 (class 2606 OID 17272)
--- Dependencies: 176 169 2000
+-- TOC entry 2071 (class 2606 OID 16833)
+-- Dependencies: 183 161 2005 2073
 -- Name: fk_tblNetwork; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1523,8 +1912,8 @@ ALTER TABLE ONLY tblstation
 
 
 --
--- TOC entry 2041 (class 2606 OID 17252)
--- Dependencies: 173 2008 173
+-- TOC entry 2069 (class 2606 OID 16838)
+-- Dependencies: 179 179 2041 2073
 -- Name: fk_tblPreComputed; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1533,18 +1922,8 @@ ALTER TABLE ONLY tblprecomputed
 
 
 --
--- TOC entry 2046 (class 2606 OID 17383)
--- Dependencies: 2008 174 173
--- Name: fk_tblPreComputed; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY tblmetricdata
-    ADD CONSTRAINT "fk_tblPreComputed" FOREIGN KEY (fkparentprecomputedid) REFERENCES tblprecomputed(pkprecomputedid) ON DELETE SET NULL;
-
-
---
--- TOC entry 2048 (class 2606 OID 17277)
--- Dependencies: 2028 183 181
+-- TOC entry 2062 (class 2606 OID 16848)
+-- Dependencies: 167 2047 181 2073
 -- Name: fk_tblSensor; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1553,8 +1932,8 @@ ALTER TABLE ONLY tblchannel
 
 
 --
--- TOC entry 2049 (class 2606 OID 17267)
--- Dependencies: 2016 176 183
+-- TOC entry 2070 (class 2606 OID 16853)
+-- Dependencies: 183 181 2051 2073
 -- Name: fk_tblStation; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1563,8 +1942,8 @@ ALTER TABLE ONLY tblsensor
 
 
 --
--- TOC entry 2050 (class 2606 OID 17403)
--- Dependencies: 176 2016 184
+-- TOC entry 2059 (class 2606 OID 16858)
+-- Dependencies: 164 2051 183 2073
 -- Name: fk_tblStation; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1573,8 +1952,8 @@ ALTER TABLE ONLY "tblStationGroupTie"
 
 
 --
--- TOC entry 2038 (class 2606 OID 17466)
--- Dependencies: 186 169 2032
+-- TOC entry 2057 (class 2606 OID 16863)
+-- Dependencies: 161 2009 162 2073
 -- Name: fk_tblgrouptype; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1583,8 +1962,8 @@ ALTER TABLE ONLY "tblGroup"
 
 
 --
--- TOC entry 2056 (class 0 OID 0)
--- Dependencies: 5
+-- TOC entry 2078 (class 0 OID 0)
+-- Dependencies: 6
 -- Name: public; Type: ACL; Schema: -; Owner: postgres
 --
 
@@ -1595,8 +1974,8 @@ GRANT ALL ON SCHEMA public TO PUBLIC;
 
 
 --
--- TOC entry 2058 (class 0 OID 0)
--- Dependencies: 207
+-- TOC entry 2080 (class 0 OID 0)
+-- Dependencies: 206
 -- Name: fnsclgetchanneldata(integer[], integer, date, date); Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -1607,8 +1986,8 @@ GRANT ALL ON FUNCTION fnsclgetchanneldata(integer[], integer, date, date) TO PUB
 
 
 --
--- TOC entry 2059 (class 0 OID 0)
--- Dependencies: 208
+-- TOC entry 2081 (class 0 OID 0)
+-- Dependencies: 207
 -- Name: fnsclgetchannelplotdata(integer, integer, date, date); Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -1619,8 +1998,8 @@ GRANT ALL ON FUNCTION fnsclgetchannelplotdata(integer, integer, date, date) TO P
 
 
 --
--- TOC entry 2060 (class 0 OID 0)
--- Dependencies: 204
+-- TOC entry 2082 (class 0 OID 0)
+-- Dependencies: 201
 -- Name: fnsclgetchannels(integer[]); Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -1631,8 +2010,8 @@ GRANT ALL ON FUNCTION fnsclgetchannels(integer[]) TO PUBLIC;
 
 
 --
--- TOC entry 2061 (class 0 OID 0)
--- Dependencies: 199
+-- TOC entry 2083 (class 0 OID 0)
+-- Dependencies: 203
 -- Name: fnsclgetdates(); Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -1643,8 +2022,8 @@ GRANT ALL ON FUNCTION fnsclgetdates() TO PUBLIC;
 
 
 --
--- TOC entry 2062 (class 0 OID 0)
--- Dependencies: 201
+-- TOC entry 2084 (class 0 OID 0)
+-- Dependencies: 200
 -- Name: fnsclgetgroups(); Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -1655,8 +2034,8 @@ GRANT ALL ON FUNCTION fnsclgetgroups() TO PUBLIC;
 
 
 --
--- TOC entry 2063 (class 0 OID 0)
--- Dependencies: 203
+-- TOC entry 2085 (class 0 OID 0)
+-- Dependencies: 202
 -- Name: fnsclgetgrouptypes(); Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -1667,8 +2046,8 @@ GRANT ALL ON FUNCTION fnsclgetgrouptypes() TO PUBLIC;
 
 
 --
--- TOC entry 2064 (class 0 OID 0)
--- Dependencies: 202
+-- TOC entry 2086 (class 0 OID 0)
+-- Dependencies: 199
 -- Name: fnsclgetmetrics(); Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -1679,8 +2058,8 @@ GRANT ALL ON FUNCTION fnsclgetmetrics() TO PUBLIC;
 
 
 --
--- TOC entry 2065 (class 0 OID 0)
--- Dependencies: 205
+-- TOC entry 2087 (class 0 OID 0)
+-- Dependencies: 208
 -- Name: fnsclgetstationdata(integer[], integer, date, date); Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -1691,8 +2070,8 @@ GRANT ALL ON FUNCTION fnsclgetstationdata(integer[], integer, date, date) TO PUB
 
 
 --
--- TOC entry 2066 (class 0 OID 0)
--- Dependencies: 206
+-- TOC entry 2088 (class 0 OID 0)
+-- Dependencies: 205
 -- Name: fnsclgetstationplotdata(integer, integer, date, date); Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -1703,8 +2082,8 @@ GRANT ALL ON FUNCTION fnsclgetstationplotdata(integer, integer, date, date) TO P
 
 
 --
--- TOC entry 2067 (class 0 OID 0)
--- Dependencies: 200
+-- TOC entry 2089 (class 0 OID 0)
+-- Dependencies: 204
 -- Name: fnsclgetstations(); Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -1715,8 +2094,60 @@ GRANT ALL ON FUNCTION fnsclgetstations() TO PUBLIC;
 
 
 --
--- TOC entry 2068 (class 0 OID 0)
--- Dependencies: 169
+-- TOC entry 2090 (class 0 OID 0)
+-- Dependencies: 210
+-- Name: spcomparehash(date, character varying, character varying, character varying, character varying, character varying, bytea); Type: ACL; Schema: public; Owner: postgres
+--
+
+REVOKE ALL ON FUNCTION spcomparehash(date, character varying, character varying, character varying, character varying, character varying, bytea) FROM PUBLIC;
+REVOKE ALL ON FUNCTION spcomparehash(date, character varying, character varying, character varying, character varying, character varying, bytea) FROM postgres;
+GRANT ALL ON FUNCTION spcomparehash(date, character varying, character varying, character varying, character varying, character varying, bytea) TO postgres;
+GRANT ALL ON FUNCTION spcomparehash(date, character varying, character varying, character varying, character varying, character varying, bytea) TO PUBLIC;
+GRANT ALL ON FUNCTION spcomparehash(date, character varying, character varying, character varying, character varying, character varying, bytea) TO "dataqInsert";
+
+
+--
+-- TOC entry 2091 (class 0 OID 0)
+-- Dependencies: 211
+-- Name: spgetmetricvalue(date, character varying, character varying, character varying, character varying, character varying); Type: ACL; Schema: public; Owner: postgres
+--
+
+REVOKE ALL ON FUNCTION spgetmetricvalue(date, character varying, character varying, character varying, character varying, character varying) FROM PUBLIC;
+REVOKE ALL ON FUNCTION spgetmetricvalue(date, character varying, character varying, character varying, character varying, character varying) FROM postgres;
+GRANT ALL ON FUNCTION spgetmetricvalue(date, character varying, character varying, character varying, character varying, character varying) TO postgres;
+GRANT ALL ON FUNCTION spgetmetricvalue(date, character varying, character varying, character varying, character varying, character varying) TO PUBLIC;
+GRANT ALL ON FUNCTION spgetmetricvalue(date, character varying, character varying, character varying, character varying, character varying) TO "dataqInsert";
+
+
+--
+-- TOC entry 2092 (class 0 OID 0)
+-- Dependencies: 212
+-- Name: spgetmetricvaluedigest(date, character varying, character varying, character varying, character varying, character varying); Type: ACL; Schema: public; Owner: postgres
+--
+
+REVOKE ALL ON FUNCTION spgetmetricvaluedigest(date, character varying, character varying, character varying, character varying, character varying, OUT bytea) FROM PUBLIC;
+REVOKE ALL ON FUNCTION spgetmetricvaluedigest(date, character varying, character varying, character varying, character varying, character varying, OUT bytea) FROM postgres;
+GRANT ALL ON FUNCTION spgetmetricvaluedigest(date, character varying, character varying, character varying, character varying, character varying, OUT bytea) TO postgres;
+GRANT ALL ON FUNCTION spgetmetricvaluedigest(date, character varying, character varying, character varying, character varying, character varying, OUT bytea) TO PUBLIC;
+GRANT ALL ON FUNCTION spgetmetricvaluedigest(date, character varying, character varying, character varying, character varying, character varying, OUT bytea) TO "dataqInsert";
+
+
+--
+-- TOC entry 2093 (class 0 OID 0)
+-- Dependencies: 209
+-- Name: spinsertmetricdata(date, character varying, character varying, character varying, character varying, character varying, double precision, bytea); Type: ACL; Schema: public; Owner: postgres
+--
+
+REVOKE ALL ON FUNCTION spinsertmetricdata(date, character varying, character varying, character varying, character varying, character varying, double precision, bytea) FROM PUBLIC;
+REVOKE ALL ON FUNCTION spinsertmetricdata(date, character varying, character varying, character varying, character varying, character varying, double precision, bytea) FROM postgres;
+GRANT ALL ON FUNCTION spinsertmetricdata(date, character varying, character varying, character varying, character varying, character varying, double precision, bytea) TO postgres;
+GRANT ALL ON FUNCTION spinsertmetricdata(date, character varying, character varying, character varying, character varying, character varying, double precision, bytea) TO PUBLIC;
+GRANT ALL ON FUNCTION spinsertmetricdata(date, character varying, character varying, character varying, character varying, character varying, double precision, bytea) TO "dataqInsert";
+
+
+--
+-- TOC entry 2094 (class 0 OID 0)
+-- Dependencies: 161
 -- Name: tblGroup; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -1724,11 +2155,12 @@ REVOKE ALL ON TABLE "tblGroup" FROM PUBLIC;
 REVOKE ALL ON TABLE "tblGroup" FROM postgres;
 GRANT ALL ON TABLE "tblGroup" TO postgres;
 GRANT SELECT,REFERENCES,TRIGGER ON TABLE "tblGroup" TO PUBLIC;
+GRANT ALL ON TABLE "tblGroup" TO "dataqInsert";
 
 
 --
--- TOC entry 2069 (class 0 OID 0)
--- Dependencies: 186
+-- TOC entry 2095 (class 0 OID 0)
+-- Dependencies: 162
 -- Name: tblGroupType; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -1736,11 +2168,24 @@ REVOKE ALL ON TABLE "tblGroupType" FROM PUBLIC;
 REVOKE ALL ON TABLE "tblGroupType" FROM postgres;
 GRANT ALL ON TABLE "tblGroupType" TO postgres;
 GRANT ALL ON TABLE "tblGroupType" TO PUBLIC;
+GRANT ALL ON TABLE "tblGroupType" TO "dataqInsert";
 
 
 --
--- TOC entry 2071 (class 0 OID 0)
--- Dependencies: 184
+-- TOC entry 2097 (class 0 OID 0)
+-- Dependencies: 163
+-- Name: tblGroupType_pkGroupTypeID_seq; Type: ACL; Schema: public; Owner: postgres
+--
+
+REVOKE ALL ON SEQUENCE "tblGroupType_pkGroupTypeID_seq" FROM PUBLIC;
+REVOKE ALL ON SEQUENCE "tblGroupType_pkGroupTypeID_seq" FROM postgres;
+GRANT ALL ON SEQUENCE "tblGroupType_pkGroupTypeID_seq" TO postgres;
+GRANT ALL ON SEQUENCE "tblGroupType_pkGroupTypeID_seq" TO "dataqInsert";
+
+
+--
+-- TOC entry 2098 (class 0 OID 0)
+-- Dependencies: 164
 -- Name: tblStationGroupTie; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -1748,11 +2193,12 @@ REVOKE ALL ON TABLE "tblStationGroupTie" FROM PUBLIC;
 REVOKE ALL ON TABLE "tblStationGroupTie" FROM postgres;
 GRANT ALL ON TABLE "tblStationGroupTie" TO postgres;
 GRANT ALL ON TABLE "tblStationGroupTie" TO PUBLIC;
+GRANT ALL ON TABLE "tblStationGroupTie" TO "dataqInsert";
 
 
 --
--- TOC entry 2072 (class 0 OID 0)
--- Dependencies: 167
+-- TOC entry 2099 (class 0 OID 0)
+-- Dependencies: 165
 -- Name: tblcalibrationdata; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -1760,10 +2206,11 @@ REVOKE ALL ON TABLE tblcalibrationdata FROM PUBLIC;
 REVOKE ALL ON TABLE tblcalibrationdata FROM postgres;
 GRANT ALL ON TABLE tblcalibrationdata TO postgres;
 GRANT SELECT,REFERENCES,TRIGGER ON TABLE tblcalibrationdata TO PUBLIC;
+GRANT ALL ON TABLE tblcalibrationdata TO "dataqInsert";
 
 
 --
--- TOC entry 2074 (class 0 OID 0)
+-- TOC entry 2101 (class 0 OID 0)
 -- Dependencies: 166
 -- Name: tblcalibrationdata_pkcalibrationdataid_seq; Type: ACL; Schema: public; Owner: postgres
 --
@@ -1772,11 +2219,12 @@ REVOKE ALL ON SEQUENCE tblcalibrationdata_pkcalibrationdataid_seq FROM PUBLIC;
 REVOKE ALL ON SEQUENCE tblcalibrationdata_pkcalibrationdataid_seq FROM postgres;
 GRANT ALL ON SEQUENCE tblcalibrationdata_pkcalibrationdataid_seq TO postgres;
 GRANT SELECT ON SEQUENCE tblcalibrationdata_pkcalibrationdataid_seq TO PUBLIC;
+GRANT ALL ON SEQUENCE tblcalibrationdata_pkcalibrationdataid_seq TO "dataqInsert";
 
 
 --
--- TOC entry 2075 (class 0 OID 0)
--- Dependencies: 181
+-- TOC entry 2102 (class 0 OID 0)
+-- Dependencies: 167
 -- Name: tblchannel; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -1784,11 +2232,12 @@ REVOKE ALL ON TABLE tblchannel FROM PUBLIC;
 REVOKE ALL ON TABLE tblchannel FROM postgres;
 GRANT ALL ON TABLE tblchannel TO postgres;
 GRANT SELECT,REFERENCES,TRIGGER ON TABLE tblchannel TO PUBLIC;
+GRANT ALL ON TABLE tblchannel TO "dataqInsert";
 
 
 --
--- TOC entry 2077 (class 0 OID 0)
--- Dependencies: 180
+-- TOC entry 2104 (class 0 OID 0)
+-- Dependencies: 168
 -- Name: tblchannel_pkchannelid_seq; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -1796,11 +2245,12 @@ REVOKE ALL ON SEQUENCE tblchannel_pkchannelid_seq FROM PUBLIC;
 REVOKE ALL ON SEQUENCE tblchannel_pkchannelid_seq FROM postgres;
 GRANT ALL ON SEQUENCE tblchannel_pkchannelid_seq TO postgres;
 GRANT SELECT ON SEQUENCE tblchannel_pkchannelid_seq TO PUBLIC;
+GRANT ALL ON SEQUENCE tblchannel_pkchannelid_seq TO "dataqInsert";
 
 
 --
--- TOC entry 2078 (class 0 OID 0)
--- Dependencies: 164
+-- TOC entry 2105 (class 0 OID 0)
+-- Dependencies: 169
 -- Name: tblcomputetype; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -1808,11 +2258,12 @@ REVOKE ALL ON TABLE tblcomputetype FROM PUBLIC;
 REVOKE ALL ON TABLE tblcomputetype FROM postgres;
 GRANT ALL ON TABLE tblcomputetype TO postgres;
 GRANT SELECT,REFERENCES,TRIGGER ON TABLE tblcomputetype TO PUBLIC;
+GRANT ALL ON TABLE tblcomputetype TO "dataqInsert";
 
 
 --
--- TOC entry 2080 (class 0 OID 0)
--- Dependencies: 163
+-- TOC entry 2107 (class 0 OID 0)
+-- Dependencies: 170
 -- Name: tblcomputetype_pkcomputetypeid_seq; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -1820,11 +2271,12 @@ REVOKE ALL ON SEQUENCE tblcomputetype_pkcomputetypeid_seq FROM PUBLIC;
 REVOKE ALL ON SEQUENCE tblcomputetype_pkcomputetypeid_seq FROM postgres;
 GRANT ALL ON SEQUENCE tblcomputetype_pkcomputetypeid_seq TO postgres;
 GRANT SELECT ON SEQUENCE tblcomputetype_pkcomputetypeid_seq TO PUBLIC;
+GRANT ALL ON SEQUENCE tblcomputetype_pkcomputetypeid_seq TO "dataqInsert";
 
 
 --
--- TOC entry 2081 (class 0 OID 0)
--- Dependencies: 165
+-- TOC entry 2108 (class 0 OID 0)
+-- Dependencies: 171
 -- Name: tbldate; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -1832,11 +2284,12 @@ REVOKE ALL ON TABLE tbldate FROM PUBLIC;
 REVOKE ALL ON TABLE tbldate FROM postgres;
 GRANT ALL ON TABLE tbldate TO postgres;
 GRANT SELECT,REFERENCES,TRIGGER ON TABLE tbldate TO PUBLIC;
+GRANT ALL ON TABLE tbldate TO "dataqInsert";
 
 
 --
--- TOC entry 2082 (class 0 OID 0)
--- Dependencies: 179
+-- TOC entry 2109 (class 0 OID 0)
+-- Dependencies: 172
 -- Name: tblerrorlog; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -1844,11 +2297,12 @@ REVOKE ALL ON TABLE tblerrorlog FROM PUBLIC;
 REVOKE ALL ON TABLE tblerrorlog FROM postgres;
 GRANT ALL ON TABLE tblerrorlog TO postgres;
 GRANT SELECT,REFERENCES,TRIGGER ON TABLE tblerrorlog TO PUBLIC;
+GRANT ALL ON TABLE tblerrorlog TO "dataqInsert";
 
 
 --
--- TOC entry 2084 (class 0 OID 0)
--- Dependencies: 178
+-- TOC entry 2111 (class 0 OID 0)
+-- Dependencies: 173
 -- Name: tblerrorlog_pkerrorlogid_seq; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -1856,11 +2310,37 @@ REVOKE ALL ON SEQUENCE tblerrorlog_pkerrorlogid_seq FROM PUBLIC;
 REVOKE ALL ON SEQUENCE tblerrorlog_pkerrorlogid_seq FROM postgres;
 GRANT ALL ON SEQUENCE tblerrorlog_pkerrorlogid_seq TO postgres;
 GRANT SELECT ON SEQUENCE tblerrorlog_pkerrorlogid_seq TO PUBLIC;
+GRANT ALL ON SEQUENCE tblerrorlog_pkerrorlogid_seq TO "dataqInsert";
 
 
 --
--- TOC entry 2085 (class 0 OID 0)
--- Dependencies: 177
+-- TOC entry 2112 (class 0 OID 0)
+-- Dependencies: 185
+-- Name: tblhash; Type: ACL; Schema: public; Owner: postgres
+--
+
+REVOKE ALL ON TABLE tblhash FROM PUBLIC;
+REVOKE ALL ON TABLE tblhash FROM postgres;
+GRANT ALL ON TABLE tblhash TO postgres;
+GRANT SELECT,REFERENCES,TRIGGER ON TABLE tblhash TO PUBLIC;
+GRANT ALL ON TABLE tblhash TO "dataqInsert";
+
+
+--
+-- TOC entry 2114 (class 0 OID 0)
+-- Dependencies: 186
+-- Name: tblhash_pkHashID_seq; Type: ACL; Schema: public; Owner: postgres
+--
+
+REVOKE ALL ON SEQUENCE "tblhash_pkHashID_seq" FROM PUBLIC;
+REVOKE ALL ON SEQUENCE "tblhash_pkHashID_seq" FROM postgres;
+GRANT ALL ON SEQUENCE "tblhash_pkHashID_seq" TO postgres;
+GRANT ALL ON SEQUENCE "tblhash_pkHashID_seq" TO "dataqInsert";
+
+
+--
+-- TOC entry 2115 (class 0 OID 0)
+-- Dependencies: 174
 -- Name: tblmetadata; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -1868,11 +2348,12 @@ REVOKE ALL ON TABLE tblmetadata FROM PUBLIC;
 REVOKE ALL ON TABLE tblmetadata FROM postgres;
 GRANT ALL ON TABLE tblmetadata TO postgres;
 GRANT SELECT,REFERENCES,TRIGGER ON TABLE tblmetadata TO PUBLIC;
+GRANT ALL ON TABLE tblmetadata TO "dataqInsert";
 
 
 --
--- TOC entry 2086 (class 0 OID 0)
--- Dependencies: 171
+-- TOC entry 2116 (class 0 OID 0)
+-- Dependencies: 175
 -- Name: tblmetric; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -1880,11 +2361,12 @@ REVOKE ALL ON TABLE tblmetric FROM PUBLIC;
 REVOKE ALL ON TABLE tblmetric FROM postgres;
 GRANT ALL ON TABLE tblmetric TO postgres;
 GRANT SELECT,REFERENCES,TRIGGER ON TABLE tblmetric TO PUBLIC;
+GRANT ALL ON TABLE tblmetric TO "dataqInsert";
 
 
 --
--- TOC entry 2088 (class 0 OID 0)
--- Dependencies: 170
+-- TOC entry 2118 (class 0 OID 0)
+-- Dependencies: 176
 -- Name: tblmetric_pkmetricid_seq; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -1892,11 +2374,12 @@ REVOKE ALL ON SEQUENCE tblmetric_pkmetricid_seq FROM PUBLIC;
 REVOKE ALL ON SEQUENCE tblmetric_pkmetricid_seq FROM postgres;
 GRANT ALL ON SEQUENCE tblmetric_pkmetricid_seq TO postgres;
 GRANT SELECT ON SEQUENCE tblmetric_pkmetricid_seq TO PUBLIC;
+GRANT ALL ON SEQUENCE tblmetric_pkmetricid_seq TO "dataqInsert";
 
 
 --
--- TOC entry 2090 (class 0 OID 0)
--- Dependencies: 174
+-- TOC entry 2120 (class 0 OID 0)
+-- Dependencies: 177
 -- Name: tblmetricdata; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -1904,11 +2387,12 @@ REVOKE ALL ON TABLE tblmetricdata FROM PUBLIC;
 REVOKE ALL ON TABLE tblmetricdata FROM postgres;
 GRANT ALL ON TABLE tblmetricdata TO postgres;
 GRANT SELECT,REFERENCES,TRIGGER ON TABLE tblmetricdata TO PUBLIC;
+GRANT ALL ON TABLE tblmetricdata TO "dataqInsert";
 
 
 --
--- TOC entry 2092 (class 0 OID 0)
--- Dependencies: 168
+-- TOC entry 2122 (class 0 OID 0)
+-- Dependencies: 178
 -- Name: tblnetwork_pknetworkid_seq; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -1916,11 +2400,12 @@ REVOKE ALL ON SEQUENCE tblnetwork_pknetworkid_seq FROM PUBLIC;
 REVOKE ALL ON SEQUENCE tblnetwork_pknetworkid_seq FROM postgres;
 GRANT ALL ON SEQUENCE tblnetwork_pknetworkid_seq TO postgres;
 GRANT SELECT ON SEQUENCE tblnetwork_pknetworkid_seq TO PUBLIC;
+GRANT ALL ON SEQUENCE tblnetwork_pknetworkid_seq TO "dataqInsert";
 
 
 --
--- TOC entry 2093 (class 0 OID 0)
--- Dependencies: 173
+-- TOC entry 2123 (class 0 OID 0)
+-- Dependencies: 179
 -- Name: tblprecomputed; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -1928,11 +2413,12 @@ REVOKE ALL ON TABLE tblprecomputed FROM PUBLIC;
 REVOKE ALL ON TABLE tblprecomputed FROM postgres;
 GRANT ALL ON TABLE tblprecomputed TO postgres;
 GRANT SELECT,REFERENCES,TRIGGER ON TABLE tblprecomputed TO PUBLIC;
+GRANT ALL ON TABLE tblprecomputed TO "dataqInsert";
 
 
 --
--- TOC entry 2095 (class 0 OID 0)
--- Dependencies: 172
+-- TOC entry 2125 (class 0 OID 0)
+-- Dependencies: 180
 -- Name: tblprecomputed_pkprecomputedid_seq; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -1940,11 +2426,12 @@ REVOKE ALL ON SEQUENCE tblprecomputed_pkprecomputedid_seq FROM PUBLIC;
 REVOKE ALL ON SEQUENCE tblprecomputed_pkprecomputedid_seq FROM postgres;
 GRANT ALL ON SEQUENCE tblprecomputed_pkprecomputedid_seq TO postgres;
 GRANT SELECT ON SEQUENCE tblprecomputed_pkprecomputedid_seq TO PUBLIC;
+GRANT ALL ON SEQUENCE tblprecomputed_pkprecomputedid_seq TO "dataqInsert";
 
 
 --
--- TOC entry 2096 (class 0 OID 0)
--- Dependencies: 183
+-- TOC entry 2126 (class 0 OID 0)
+-- Dependencies: 181
 -- Name: tblsensor; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -1952,10 +2439,11 @@ REVOKE ALL ON TABLE tblsensor FROM PUBLIC;
 REVOKE ALL ON TABLE tblsensor FROM postgres;
 GRANT ALL ON TABLE tblsensor TO postgres;
 GRANT SELECT,REFERENCES,TRIGGER ON TABLE tblsensor TO PUBLIC;
+GRANT ALL ON TABLE tblsensor TO "dataqInsert";
 
 
 --
--- TOC entry 2098 (class 0 OID 0)
+-- TOC entry 2128 (class 0 OID 0)
 -- Dependencies: 182
 -- Name: tblsensor_pksensorid_seq; Type: ACL; Schema: public; Owner: postgres
 --
@@ -1964,11 +2452,12 @@ REVOKE ALL ON SEQUENCE tblsensor_pksensorid_seq FROM PUBLIC;
 REVOKE ALL ON SEQUENCE tblsensor_pksensorid_seq FROM postgres;
 GRANT ALL ON SEQUENCE tblsensor_pksensorid_seq TO postgres;
 GRANT SELECT ON SEQUENCE tblsensor_pksensorid_seq TO PUBLIC;
+GRANT ALL ON SEQUENCE tblsensor_pksensorid_seq TO "dataqInsert";
 
 
 --
--- TOC entry 2099 (class 0 OID 0)
--- Dependencies: 176
+-- TOC entry 2129 (class 0 OID 0)
+-- Dependencies: 183
 -- Name: tblstation; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -1976,11 +2465,12 @@ REVOKE ALL ON TABLE tblstation FROM PUBLIC;
 REVOKE ALL ON TABLE tblstation FROM postgres;
 GRANT ALL ON TABLE tblstation TO postgres;
 GRANT SELECT,REFERENCES,TRIGGER ON TABLE tblstation TO PUBLIC;
+GRANT ALL ON TABLE tblstation TO "dataqInsert";
 
 
 --
--- TOC entry 2101 (class 0 OID 0)
--- Dependencies: 175
+-- TOC entry 2131 (class 0 OID 0)
+-- Dependencies: 184
 -- Name: tblstation_pkstationid_seq; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -1988,11 +2478,12 @@ REVOKE ALL ON SEQUENCE tblstation_pkstationid_seq FROM PUBLIC;
 REVOKE ALL ON SEQUENCE tblstation_pkstationid_seq FROM postgres;
 GRANT ALL ON SEQUENCE tblstation_pkstationid_seq TO postgres;
 GRANT SELECT ON SEQUENCE tblstation_pkstationid_seq TO PUBLIC;
+GRANT ALL ON SEQUENCE tblstation_pkstationid_seq TO "dataqInsert";
 
 
 --
--- TOC entry 1501 (class 826 OID 17290)
--- Dependencies: 5
+-- TOC entry 1510 (class 826 OID 16868)
+-- Dependencies: 6 2073
 -- Name: DEFAULT PRIVILEGES FOR TABLES; Type: DEFAULT ACL; Schema: public; Owner: postgres
 --
 
@@ -2001,7 +2492,30 @@ ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public REVOKE ALL ON TABLES
 ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON TABLES  TO PUBLIC;
 
 
--- Completed on 2012-08-06 12:34:03 MDT
+--
+-- TOC entry 1511 (class 826 OID 16897)
+-- Dependencies: 2073
+-- Name: DEFAULT PRIVILEGES FOR TABLES; Type: DEFAULT ACL; Schema: -; Owner: jholland
+--
+
+ALTER DEFAULT PRIVILEGES FOR ROLE jholland REVOKE ALL ON TABLES  FROM PUBLIC;
+ALTER DEFAULT PRIVILEGES FOR ROLE jholland REVOKE ALL ON TABLES  FROM jholland;
+ALTER DEFAULT PRIVILEGES FOR ROLE jholland GRANT ALL ON TABLES  TO jholland;
+ALTER DEFAULT PRIVILEGES FOR ROLE jholland GRANT SELECT,INSERT,DELETE,UPDATE ON TABLES  TO "dataqInsert";
+
+
+--
+-- TOC entry 1512 (class 826 OID 16898)
+-- Dependencies: 6 2073
+-- Name: DEFAULT PRIVILEGES FOR TABLES; Type: DEFAULT ACL; Schema: public; Owner: jholland
+--
+
+ALTER DEFAULT PRIVILEGES FOR ROLE jholland IN SCHEMA public REVOKE ALL ON TABLES  FROM PUBLIC;
+ALTER DEFAULT PRIVILEGES FOR ROLE jholland IN SCHEMA public REVOKE ALL ON TABLES  FROM jholland;
+ALTER DEFAULT PRIVILEGES FOR ROLE jholland IN SCHEMA public GRANT ALL ON TABLES  TO "dataqInsert";
+
+
+-- Completed on 2012-11-07 17:51:48 MST
 
 --
 -- PostgreSQL database dump complete
