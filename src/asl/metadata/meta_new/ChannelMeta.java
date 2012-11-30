@@ -19,13 +19,14 @@
 
 package asl.metadata.meta_new;
 
-import asl.metadata.ChannelKey;
+import asl.metadata.*;
 import freq.Cmplx;
 import asl.security.MemberDigest;
 import java.util.ArrayList;
 import java.util.TreeSet;
 import java.util.Hashtable;
 import java.util.Calendar;
+
 
 /** A ChannelMeta consists of a series of ResponseStages.
     Typically there will be 3 ResponseStages, numbered 0, 1 and 2.
@@ -53,6 +54,10 @@ public class ChannelMeta extends MemberDigest
     private Calendar metaTimestamp = null; // This should be same as the stationMeta metaTimestamp
     private Boolean dayBreak = false;      // This will be set to true if channelMeta changes during requested day
     private Hashtable<Integer, ResponseStage> stages;
+
+// MTH: In order to add these, need to somehow get them into EpochData ... from higher ref
+    private String knet = null;
+    private String kstn = null;
 
     public void addDigestMembers() {
 
@@ -210,34 +215,57 @@ public class ChannelMeta extends MemberDigest
 //  Return true if any errors found in loaded ResponseStages
     public boolean invalidResponse()
     {
-      if (getNumberOfStages() == 0) {
-        System.out.format("ChannelMeta.invalidResponse(): Error: No stages have been loaded for chan-loc=%s-%s\n",
-                                    this.getLocation(), this.getName() );
-        return true;
-      }
-      if (!hasStage(1) || !hasStage(2)){
-        System.out.format("ChannelMeta.invalidResponse(): Error: Stages 1 & 2 have NOT been loaded for chan-loc=%s-%s\n",
-                                    this.getLocation(), this.getName() );
-        return true;
-      }
-      double stageGain1 = stages.get(1).getStageGain();
-      double stageGain2 = stages.get(2).getStageGain();
+//  If we have a seismic channel we need to ensure a valid response
 
-      if (stageGain1 <=0 || stageGain2 <=0 ) {
-        System.out.format("ChannelMeta.invalidResponse(): Error: Gain =0 for either stages 1 or 2 for chan-loc=%s-%s\n",
-                                    this.getLocation(), this.getName() );
-        return true;
-      }
+        Boolean isSeismicChannel = false;
+        Boolean isMassPosition   = false;
 
-   // Check stage1Gain * stage2Gain against the mid-level sensitivity (=stage0Gain):
-      if (hasStage(0)){ 
-        double stageGain0 = stages.get(0).getStageGain();
-        double diff = (stageGain0 - (stageGain1 * stageGain2)) / stageGain0;
-        diff *= 100;
-        if (diff > 10) { // Alert user that difference is > 1% of Sensitivity
-          System.out.format("Alert: stageGain0=%f VS. stage1=%f * stage2=%f (diff=%f%%)\n", stageGain0, stageGain1, stageGain2, diff);
+        String seismicCodes = "HN"; // The 2nd char of channels: BH?, LH?, UH?, VH?, EH?, HH?, EN?, LN?, HN?
+        if (seismicCodes.contains(this.getName().substring(1,2))) {
+            isSeismicChannel = true;
         }
-      }
+
+        if (this.getName().substring(1,2).equals("M") ){
+            isMassPosition = true;
+        }
+/**
+    String excludeCodes = "MDIKRW"; // Channel codes that we DON'T expect to have a stage 0 (e.g., VM?, LD?, LIO, etc.)
+    if (excludeCodes.contains(this.getName().substring(1,2))) {
+        expectChannel0 = false;
+    }
+**/
+        if (getNumberOfStages() == 0) {
+            System.out.format("ChannelMeta.invalidResponse(): Error: No stages have been loaded for chan-loc=%s-%s\n"
+                               ,this.getLocation(), this.getName() );
+            return true;
+        }
+
+        if (isSeismicChannel) {
+            if (!hasStage(0) || !hasStage(1) || !hasStage(2)){
+                System.out.format("ChannelMeta.invalidResponse(): Error: All Stages[=0,1,2] have NOT been loaded for chan-loc=%s-%s\n"
+                                   ,this.getLocation(), this.getName() );
+                return true;
+            }
+            double stageGain0 = stages.get(0).getStageGain(); // Really this is the Sensitivity
+            double stageGain1 = stages.get(1).getStageGain();
+            double stageGain2 = stages.get(2).getStageGain();
+
+            if (stageGain0 <= 0 || stageGain1 <=0 || stageGain2 <=0 ) {
+                System.out.format("ChannelMeta.invalidResponse(): Error: Gain =0 for either stages 0, 1 or 2 for chan-loc=%s-%s\n"
+                                   ,this.getLocation(), this.getName() );
+                return true;
+            }
+   // Check stage1Gain * stage2Gain against the mid-level sensitivity (=stage0Gain):
+            double diff = (stageGain0 - (stageGain1 * stageGain2)) / stageGain0;
+            diff *= 100;
+            if (diff > 10) { // Alert user that difference is > 1% of Sensitivity
+                System.out.format("***Alert: stageGain0=%f VS. stage1=%f * stage2=%f (diff=%f%%)\n", stageGain0, stageGain1, stageGain2, diff);
+            }
+
+   // MTH: We could also check here that the PoleZero stage(s) was properly loaded 
+   //      But currently this is done when PoleZero.getResponse() is called (it will throw an Exception)
+        }
+
    // If we made it to here then we must have a loaded response
 
       return false;
@@ -304,7 +332,6 @@ public class ChannelMeta extends MemberDigest
             }
         } // end mul by (iw)^n
 
-        //pz.print();
       }
       else {
         throw new RuntimeException("getResponse(): Stage1 is NOT a PoleZeroStage!");
@@ -323,6 +350,7 @@ public class ChannelMeta extends MemberDigest
 }
 
     public void print() {
+      System.out.println("####### ChannelMeta.print() -- START ################################");
       System.out.println(this);
       for (Integer stageID : stages.keySet() ){
         ResponseStage stage = stages.get(stageID);
@@ -332,7 +360,8 @@ public class ChannelMeta extends MemberDigest
            //pz.print();
         }
       }
-      System.out.println();
+      System.out.println("####### ChannelMeta.print() -- STOP  ################################");
+      //System.out.println();
     }
 
     @Override public String toString() {
@@ -344,6 +373,147 @@ public class ChannelMeta extends MemberDigest
       //result.append(NEW_LINE);
       return result.toString();
     }
+
+/**
+  * processEpochData 
+  * Convert EpochData = Hashtable<StageNumber, StageData> for this Channel + Epoch
+  * Into a sequence of ResponseStages, one for each StageNumber 
+  * For now we're just pulling/saving the first 3 stages
+  *
+  * For each stageNumber, check for a B058 and if present, grab Gain + freqOfGain
+  * Then, if you see a B054 --> create a new DigitalStage  & add to ChannelMeta
+  * else, if you see a B053 --> create a new PoleZeroStage & add to ChannelMeta
+  * else ...
+**/
+    public void processEpochData(EpochData epochData){
+
+        for (int stageNumber = 0; stageNumber < 3; stageNumber++){
+            if (epochData.hasStage(stageNumber)) {
+                StageData stage = epochData.getStage(stageNumber);
+                double Gain = 0;
+                double frequencyOfGain = 0;
+             // Process Blockette B058:
+                if (stage.hasBlockette(58)) {
+                    Blockette blockette = stage.getBlockette(58);
+                    Gain = Double.parseDouble(blockette.getFieldValue(4, 0));
+                    String temp[] = blockette.getFieldValue(5, 0).split(" ");
+                    frequencyOfGain = Double.parseDouble(temp[0]);
+                    if (stageNumber == 0) { // Only stage 0 may consist of solely a B058 block
+                                            // In this case Gain=Sensitivity
+                        DigitalStage digitalStage = new DigitalStage(stageNumber, 'D', Gain, frequencyOfGain);
+                        this.addStage(stageNumber, digitalStage);
+                    }
+                }
+                //else { // No B058: What we do here depends on the stageNumber and the channel name
+                //}
+
+             // Process Blockette B053:
+                if (stage.hasBlockette(53)) {
+                    Blockette blockette = stage.getBlockette(53);
+                    //blockette.print();
+                    String TransferFunctionType = blockette.getFieldValue(3, 0);
+                    String ResponseInUnits = blockette.getFieldValue(5, 0);
+                    String ResponseOutUnits = blockette.getFieldValue(6, 0);
+                    Double A0Normalization = Double.parseDouble(blockette.getFieldValue(7, 0));
+                    Double frequencyOfNormalization = Double.parseDouble(blockette.getFieldValue(8, 0));
+                    int numberOfZeros = Integer.parseInt(blockette.getFieldValue(9, 0));
+                    int numberOfPoles = Integer.parseInt(blockette.getFieldValue(14, 0));
+                    ArrayList<String> RealPoles = blockette.getFieldValues(15);
+                    ArrayList<String> ImagPoles = blockette.getFieldValues(16);
+                    ArrayList<String> RealZeros = blockette.getFieldValues(10);
+                    ArrayList<String> ImagZeros = blockette.getFieldValues(11);
+                    char[] respType  = TransferFunctionType.toCharArray();
+
+                    PoleZeroStage pz = new PoleZeroStage(stageNumber, respType[0], Gain, frequencyOfGain);
+                    pz.setNormalization(A0Normalization);
+                    pz.setInputUnits(ResponseInUnits);
+                    pz.setOutputUnits(ResponseOutUnits);
+
+                    for (int i=0; i<numberOfPoles; i++){
+                        Double pole_re = Double.parseDouble(RealPoles.get(i));
+                        Double pole_im = Double.parseDouble(ImagPoles.get(i));
+                        Cmplx pole_complex = new Cmplx(pole_re, pole_im);
+                        pz.addPole(pole_complex);
+                    }
+                    for (int i=0; i<numberOfZeros; i++){
+                        Double zero_re = Double.parseDouble(RealZeros.get(i));
+                        Double zero_im = Double.parseDouble(ImagZeros.get(i));
+                        Cmplx zero_complex = new Cmplx(zero_re, zero_im);
+                        pz.addZero(zero_complex);
+                    }
+
+                    this.addStage(stageNumber, pz);
+                } // end B053
+
+             // Process Blockette B062:
+
+                if (stage.hasBlockette(62)) {        // This is a polynomial stage, e.g., ANMO_IU_00_VMZ
+                    Blockette blockette = stage.getBlockette(62);
+                    //blockette.print();
+                    String TransferFunctionType = blockette.getFieldValue(3, 0); // Should be "P [Polynomial]"
+                    String ResponseInUnits  = blockette.getFieldValue(5, 0);
+                    String ResponseOutUnits = blockette.getFieldValue(6, 0);
+                    String PolynomialApproximationType = blockette.getFieldValue(7, 0); // e.g., "M [MacLaurin]"
+                    Double lowerFrequencyBound = Double.parseDouble(blockette.getFieldValue(9, 0));
+                    Double upperFrequencyBound = Double.parseDouble(blockette.getFieldValue(10, 0));
+                    Double lowerApproximationBound = Double.parseDouble(blockette.getFieldValue(11, 0));
+                    Double upperApproximationBound = Double.parseDouble(blockette.getFieldValue(12, 0));
+                    int numberOfCoefficients = Integer.parseInt(blockette.getFieldValue(14, 0));
+                    ArrayList<String> RealCoefficients = blockette.getFieldValues(15);
+                    ArrayList<String> ImagCoefficients = blockette.getFieldValues(16);
+                    char[] respType  = TransferFunctionType.toCharArray();
+
+                    PolynomialStage polyStage = new PolynomialStage(stageNumber, respType[0], Gain, frequencyOfGain);
+
+                    polyStage.setInputUnits(ResponseInUnits);
+                    polyStage.setOutputUnits(ResponseOutUnits);
+                    polyStage.setLowerFrequencyBound(lowerFrequencyBound);
+                    polyStage.setUpperFrequencyBound(upperFrequencyBound);
+                    polyStage.setLowerApproximationBound(lowerApproximationBound);
+                    polyStage.setUpperApproximationBound(upperApproximationBound);
+                    polyStage.setPolynomialApproximationType(PolynomialApproximationType);
+                    for (int i=0; i<numberOfCoefficients; i++){
+                        Double coeff_re = Double.parseDouble(RealCoefficients.get(i));
+                        Double coeff_im = Double.parseDouble(ImagCoefficients.get(i));
+                        Cmplx coefficient = new Cmplx(coeff_re, coeff_im);
+                        polyStage.addCoefficient(coefficient);
+                    }
+                    this.addStage(stageNumber, polyStage);
+                } // end B062
+
+             // Process Blockette B054:
+
+                if (stage.hasBlockette(54)) { 
+                    Blockette blockette = stage.getBlockette(54);
+                    //blockette.print();
+                    char[] respType=null;
+                    String ResponseInUnits = null;
+                    String ResponseOutUnits = null;
+
+                    String TransferFunctionType = blockette.getFieldValue(3, 0);
+                    respType  = TransferFunctionType.toCharArray();
+                    ResponseInUnits = blockette.getFieldValue(5, 0);
+                    ResponseOutUnits = blockette.getFieldValue(6, 0);
+
+                    DigitalStage digitalStage = new DigitalStage(stageNumber, 'D', Gain, frequencyOfGain);
+                    digitalStage.setInputUnits(ResponseInUnits);
+                    digitalStage.setOutputUnits(ResponseOutUnits);
+
+                    this.addStage(stageNumber, digitalStage);
+                } // end B054
+
+            }
+            else { // No Stage stageNumber: What we do here ...      
+            }
+        } // end Loop stageNumber
+
+        this.setAzimuth(epochData.getAzimuth() );
+        this.setDepth(epochData.getDepth() );
+        this.setDip(epochData.getDip() );
+        this.setSampleRate(epochData.getSampleRate() );
+        this.setInstrumentType(epochData.getInstrumentType() );
+
+    } // end processEpochData
 
 }
 

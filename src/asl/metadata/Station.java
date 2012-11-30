@@ -60,8 +60,8 @@ public class Station
         if (station == null) {
             throw new RuntimeException("station cannot be null");
         }
-        if (station.length() < 3 || station.length() > 4)  {
-            throw new RuntimeException("station name MUST be either 3 or 4 characters long");
+        if (station.length() < 3 || station.length() > 5)  {
+            throw new RuntimeException("Error: Station name MUST be between 3 and 5 characters long");
         }
         this.station = station;
     }

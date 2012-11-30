@@ -40,8 +40,8 @@ public abstract class ResponseStage implements Comparable<ResponseStage>
  * ----------------------------------------------------------
  * A [Analog Response rad/sec]  B053        PoleZeroStage
  * B [Analog Response Hz]       B053        PoleZeroStage
- * D [Digital]                  B062        PolynomialStage
- * P [Polynomial]               B054, B057  DigitalStage
+ * P [Polynomial]               B062        PolynomialStage
+ * D [Digital]                  B054, B057  DigitalStage
  *
 **/
 
@@ -151,7 +151,7 @@ public abstract class ResponseStage implements Comparable<ResponseStage>
       StringBuilder result = new StringBuilder();
       String NEW_LINE = System.getProperty("line.separator");
       result.append(String.format("Stage:%d  [Type='%1s'] Gain=%.2f FreqOfGain=%.2f\n",stageNumber,stageType,stageGain,stageGainFrequency) );
-      result.append(String.format("Units In:[%s]  Units Out:[%s]\n",inputUnitsString, outputUnits) );
+      result.append(String.format("Units In:[%s]  Units Out:[%s]\n",inputUnitsString, outputUnitsString) );
       return result.toString();
     }
 

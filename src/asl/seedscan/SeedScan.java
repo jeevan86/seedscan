@@ -24,6 +24,7 @@ import java.io.BufferedInputStream;
 import java.io.Console;
 import java.io.DataInputStream;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -322,12 +323,22 @@ System.out.println(" Java total memory=" + runtime.totalMemory() );
 
  // Really the scan for each station will be handled by ScanManager using thread pools
  // For now we're just going to do it here:
+
+        String datalessDir = scan.getDatalessDir();
+ // We probably want to set some filters (e.g., only grab network=IU, etc.) so we
+ //    don't get every weird/old station that has a dataless seed in the dir
+/**
+        ArrayList<Station> stations = getStationList(datalessDir);
+
+        for (Station station : stations){
+            System.out.format("== Got station:%s\n", station);
+        }
+**/
+
         ArrayList<Station> stations = new ArrayList<Station>();
+        //stations.add( new Station("IC","BJT") );
         stations.add( new Station("IU","ANMO") );
         //stations.add( new Station("IU","ANTO") );
-        //stations.add( new Station("IU","SNZO") );
-        //stations.add( new Station("IC","KMI") );
-        //stations.add( new Station("IC","XXXX") );
 
         Thread readerThread = new Thread(reader);
         readerThread.start();
@@ -380,4 +391,54 @@ System.out.println(" Java total memory=" + runtime.totalMemory() );
             lock = null;
         }
     } // main()
+
+
+/** getStationList()
+  * Scan directory (=path) for dataless files of the form: DATALESS.IU_ANMO.seed
+  * If found, add to ArrayList<Station> stations
+  * return null if no matching dataless files found
+ */ 
+
+    private static ArrayList<Station> getStationList( String path ){
+        File dir = new File(path);
+        if (!dir.exists()) {
+            logger.info("Path '" +dir+ "' does not exist.");
+        }
+        else if (!dir.isDirectory()) {
+            logger.info("Path '" +dir+ "' is not a directory.");
+        }
+
+        FilenameFilter textFilter = new FilenameFilter() {
+          public boolean accept(File dir, String name) {
+              String lowercaseName = name.toLowerCase();
+              if ( name.startsWith("DATALESS") && lowercaseName.endsWith(".seed")) {
+                  return true;
+              } else {
+                  return false;
+              }
+          }
+        };
+
+        String[] files = dir.list(textFilter);
+
+        ArrayList<Station> stations = null;
+
+        for (int i=0; i<files.length; i++){
+        //  files[i]=DATALESS.IU_ANMO.seed
+            String[] tmp  = files[i].split("\\.");
+            if (tmp.length == 3){
+                String[] foo = tmp[1].split("_");
+                if (foo.length == 2){
+                    String knet  = foo[0];
+                    String kstn  = foo[1];
+                    if (stations == null) stations = new ArrayList<Station>();
+                    stations.add( new Station(knet, kstn) );
+                }
+            }
+        }
+        return stations;
+    }
+
+
+
 } // class SeedScan

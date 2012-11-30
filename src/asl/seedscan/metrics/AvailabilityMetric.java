@@ -73,6 +73,9 @@ extends Metric
          // If we're here, it means we need to (re)compute the metric for this channel:
 
             ChannelMeta chanMeta = stationMeta.getChanMeta(channel);
+chanMeta.print();
+System.exit(0);
+
             ArrayList<DataSet>datasets = metricData.getChannelData(channel);
 
             int ndata    = 0;
