@@ -323,8 +323,18 @@ System.out.println(" Java total memory=" + runtime.totalMemory() );
  // Really the scan for each station will be handled by ScanManager using thread pools
  // For now we're just going to do it here:
         ArrayList<Station> stations = new ArrayList<Station>();
+        //Adam suggest I use these stations for testing
+        stations.add( new Station("IU","WAKE") );
         stations.add( new Station("IU","ANMO") );
-        //stations.add( new Station("IU","ANTO") );
+        stations.add( new Station("IU","MAJO") );
+        //stations.add( new Station("IU","KEV") ); //KEV gives an divide by 0 error when included
+        stations.add( new Station("IU","KIP" ) );
+        stations.add( new Station("IU","ANTO") );
+        stations.add( new Station("IU","DWPF") );
+        stations.add( new Station("IU","PMSA") );
+        stations.add( new Station("IU","OTAV" ) );
+        stations.add( new Station("IU","HRV") );
+        //End Adam's suggestion
         //stations.add( new Station("IU","SNZO") );
         //stations.add( new Station("IC","KMI") );
         //stations.add( new Station("IC","XXXX") );
