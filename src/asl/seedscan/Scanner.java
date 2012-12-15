@@ -94,6 +94,7 @@ public class Scanner
      // Read in all metadata for this station (all channels + all days):
         //MetaGenerator metaGen = new MetaGenerator(station);
         String datalessDir    = scan.getDatalessDir();
+//System.out.format("== Scanner: call MetaGenerator(station=%s)\n", station);
         MetaGenerator metaGen = new MetaGenerator(station, datalessDir);
         if (!metaGen.isLoaded()) {    // No Metadata found for this station --> Skip station == End thread ??
             System.out.format("Scanner Error: No Metadata found for Station:%s_%s --> Skip this Station\n", station.getNetwork(), station.getStation());
@@ -112,7 +113,7 @@ public class Scanner
 // [1] Get all the channel metadata for this station, for this day
             StationMeta stnMeta = metaGen.getStationMeta(station, timestamp); 
             if (stnMeta == null) { // No Metadata found for this station + this day --> skip day
-               System.out.format("Scanner Error: No Metadata found for Station:%s_%s + Day:%s --> Skipping\n", station.getNetwork(), station.getStation(),
+               System.out.format("Scanner: No Metadata found for Station:%s_%s + Day:%s --> Skipping\n", station.getNetwork(), station.getStation(),
                                   EpochData.epochToDateString(timestamp) );
                continue;
             }
@@ -159,14 +160,11 @@ public class Scanner
             SeedSplitter splitter = new SeedSplitter(files, progressQueue);
             table = splitter.doInBackground();
 
-/** These digests are empty:
-            String DigestStrings[] = splitter.getDigests();
-            System.out.format("==Scanner: got %d digestString(s)\n", DigestStrings.length );
-
-            for (String digestString : DigestStrings) {
-              System.out.format("==Scanner: digestString=%s\n", digestString );
-            }
-**/
+            //String DigestStrings[] = splitter.getDigests();
+            //System.out.format("==Scanner: got %d digestString(s)\n", DigestStrings.length );
+            //for (String digestString : DigestStrings) {
+              //System.out.format("==Scanner: digestString=%s\n", digestString );
+            //}
 
             Runtime runtime = Runtime.getRuntime();
             System.out.println(" Java total memory=" + runtime.totalMemory() );
@@ -203,10 +201,15 @@ public class Scanner
                         double value = results.getResult(id);
                         System.out.format("  %s : %.2f\n", id, value);
                     }
-                    try {
-                    	injector.inject(results);
-                    } catch (InterruptedException ex) {
-                    	logger.warning(String.format("Interrupted while trying to inject metric [%s]", metric.toString()));
+                    if (injector.isConnected()) {
+                        try {
+                    	    injector.inject(results);
+                        } catch (InterruptedException ex) {
+                    	    logger.warning(String.format("Interrupted while trying to inject metric [%s]", metric.toString()));
+                        }
+                    }
+                    else {
+                        System.out.println("== Scanner: injector *IS NOT* connected --> Don't inject");
                     }
                 }
             } // end loop over metrics

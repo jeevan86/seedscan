@@ -43,6 +43,19 @@ public class MetricWrapper
         arguments.add(name, value);
     }
 
+/**
+ * if forceUpdate is set then we will compute this metric even if if
+ *    the metric digests haven't changed
+*/
+    public void setForceUpdate(String forceUpdateString){
+        if (forceUpdateString == null) 
+            return;
+        if (forceUpdateString.toLowerCase().equals("yes") || 
+            forceUpdateString.toLowerCase().equals("true") ) {
+                 arguments.setForceUpdate();
+        }
+    }
+
     public String get(String name)
     throws NoSuchFieldException
     {
@@ -58,6 +71,9 @@ public class MetricWrapper
                 String name = names.nextElement();
                 metric.add(name, arguments.get(name));
             }
+// MTH: Not sure why, but we have to reset this for this particular instance of the metric ??
+            if (arguments.getForceUpdate())
+                metric.setForceUpdate();
             return metric;
         } catch (InstantiationException ex) {
             String message = ex.getClass().getName() + " in MetricWrapper.getNewInstance(), should never happen!";

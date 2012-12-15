@@ -242,13 +242,16 @@ public class SeedScan
                 Scan scan = new Scan();
                 scan.setPathPattern(scanCfg.getPath());
                 scan.setDatalessDir(scanCfg.getDatalessDir());
-
                 scan.setStartDay(scanCfg.getStartDay().intValue());
                 scan.setDaysToScan(scanCfg.getDaysToScan().intValue());
+
                 for (MetricT met: scanCfg.getMetrics().getMetric()) {
                     try {
                         Class metricClass = Class.forName(met.getClassName());
                         MetricWrapper wrapper = new MetricWrapper(metricClass);
+                    // MTH: met.getForceUpdate may equal null, "yes"/"no", "true"/"false", etc.
+                        wrapper.setForceUpdate(met.getForceUpdate());
+
                         for (ArgumentT arg: met.getArgument()) {
                             wrapper.add(arg.getName(), arg.getValue());
                         }
@@ -310,7 +313,7 @@ public class SeedScan
         */
 
 // ==== Perform Scans ====
-        System.out.println("MTH: HERE WE GO");
+        System.out.format("\n\n==SeedScan: Load StationList and Begin Scan\n\n");
 
 Runtime runtime = Runtime.getRuntime();
 System.out.println(" Java total memory=" + runtime.totalMemory() );
@@ -324,21 +327,29 @@ System.out.println(" Java total memory=" + runtime.totalMemory() );
  // Really the scan for each station will be handled by ScanManager using thread pools
  // For now we're just going to do it here:
 
+        Boolean useList = true;
+        ArrayList<Station> stations;
+
+if (useList){
         String datalessDir = scan.getDatalessDir();
- // We probably want to set some filters (e.g., only grab network=IU, etc.) so we
- //    don't get every weird/old station that has a dataless seed in the dir
-/**
-        ArrayList<Station> stations = getStationList(datalessDir);
+        //ArrayList<Station> stations = getStationList(datalessDir);
+        stations = getStationList(datalessDir);
 
         for (Station station : stations){
             System.out.format("== Got station:%s\n", station);
         }
-**/
-
-        ArrayList<Station> stations = new ArrayList<Station>();
-        //stations.add( new Station("IC","BJT") );
+}
+else {
+        stations = new ArrayList<Station>();
+        //ArrayList<Station> stations = new ArrayList<Station>();
+        //stations.add( new Station("IC","MDJ") );
         stations.add( new Station("IU","ANMO") );
+        //stations.add( new Station("IC","BJT") );
+        //stations.add( new Station("IU","SNZO") );
+        stations.add( new Station("IW","LKWY") );
+        //stations.add( new Station("US","LKWY") );
         //stations.add( new Station("IU","ANTO") );
+}
 
         Thread readerThread = new Thread(reader);
         readerThread.start();
@@ -358,7 +369,8 @@ System.out.println(" Java total memory=" + runtime.totalMemory() );
 	        injector.halt();
 	        logger.info("All stations processed. Waiting for injector thread to finish...");
             synchronized(injectorThread) {
-	            injectorThread.wait();
+	            //injectorThread.wait();
+	            injectorThread.interrupt();
             }
 	        logger.info("Injector thread halted.");
         } catch (InterruptedException ex) {
@@ -369,7 +381,8 @@ System.out.println(" Java total memory=" + runtime.totalMemory() );
 	        reader.halt();
 	        logger.info("All stations processed. Waiting for reader thread to finish...");
             synchronized(readerThread) {
-	            readerThread.wait();
+	            //readerThread.wait();
+	            readerThread.interrupt();
             }
 	        logger.info("Reader thread halted.");
         } catch (InterruptedException ex) {

@@ -27,20 +27,20 @@ import java.util.TreeSet;
 import java.util.Hashtable;
 import java.util.Calendar;
 
-
-/** A ChannelMeta consists of a series of ResponseStages.
-    Typically there will be 3 ResponseStages, numbered 0, 1 and 2.
-    ResponseStages 0 and 2 will likely contain only gain and frequencyOfgain info (e.g., Blockette B058)
-    ResponseStage 1 will contain this info + specific instrument response (e.g., PoleZero, Polynomial) info,
-    so that the complete channel response can be obtained by scaling ResponseStage1 response
-    by the gains in ResponseStage1 and ResponseStage2.
-
-    In the future, we may wish to read in higher Stages (3, 4, ...) that are 'D'igital stages
-    with non-zero coefficients (numerator and denominator), so DigitalStage has been left
-    general in order to be able to read and store these coefficients.
-**/
-
-
+/** 
+ * A ChannelMeta consists of a series of ResponseStages.
+ * Typically there will be 3 ResponseStages, numbered 0, 1 and 2.
+ * ResponseStages 0 and 2 will likely contain only gain and frequencyOfgain info (e.g., Blockette B058)
+ * ResponseStage 1 will contain this info + specific instrument response (e.g., PoleZero, Polynomial) info,
+ * so that the complete channel response can be obtained by scaling ResponseStage1 response
+ * by the gains in ResponseStage1 and ResponseStage2.
+ *
+ * In the future, we may wish to read in higher Stages (3, 4, ...) that are 'D'igital stages
+ * with non-zero coefficients (numerator and denominator), so DigitalStage has been left
+ * general in order to be able to read and store these coefficients.
+ *
+ * @author Mike Hagerty    <hagertmb@bc.edu>
+ */
 public class ChannelMeta extends MemberDigest
 {
     private String name = null;

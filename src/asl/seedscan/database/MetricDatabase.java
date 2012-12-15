@@ -47,28 +47,37 @@ public class MetricDatabase
     public MetricDatabase(DatabaseT config) {
         this(config.getUri(), config.getUsername(), config.getPassword().getPlain());
     }
-    
     public MetricDatabase(String URI, String username, String password) {
     	this.URI = URI;
     	this.username = username;
     	this.password = password;
-        System.out.println("MetricDatabase Constructor(): This is where we make the connection to the dbase");
+
+        System.out.println("MetricDatabase Constructor(): Attempt to connect to the dbase");
         try {
             logger.info(String.format("Connection String = \"%s\", User = \"%s\", Pass = \"%s\"", URI, username, password));
             connection = DriverManager.getConnection(URI, username, password);
         } catch (SQLException e) {
             System.err.print(e);
             logger.severe("Could not open station database.");
-//MTH:
-        //    throw new RuntimeException("Could not open station database.");
+// MTH: For now let's continue
+            //throw new RuntimeException("Could not open station database.");
         }
+    }
+
+    public Boolean isConnected()
+    {
+    	Connection foo = getConnection();
+        if (foo == null) 
+            return false;
+        else 
+            return true;
     }
     
     public Connection getConnection()
     {
     	return connection;
     }
-    
+
     
     public ByteBuffer getMetricDigest(	Calendar date,
     									String metricName,

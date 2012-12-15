@@ -60,12 +60,14 @@ extends Metric
 
          // Check to see that we have data + metadata & see if the digest has changed wrt the database:
             ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel));
-            System.out.format("== %s: digest=%s\n", getName(), Hex.byteArrayToHexString(digest.array()) );
 
             if (digest == null) { 
                 System.out.format("%s INFO: Data and metadata have NOT changed for this channel:%s --> Skipping\n"
                                   ,getName(), channel);
                 continue;
+            }
+            else {
+                System.out.format("%s: digest=%s\n", getName(), Hex.byteArrayToHexString(digest.array()) );
             }
 
          // If we're here, it means we need to (re)compute the metric for this channel:
@@ -103,7 +105,6 @@ extends Metric
 
             double massPosition  = 0;
             int ndata = 0;
-            String dataHashString = null;
 
             for (DataSet dataset : datasets) {
                 int intArray[] = dataset.getSeries();
@@ -111,7 +112,6 @@ extends Metric
                     massPosition += Math.pow( (a0 + intArray[i] * a1), 2);
                 }
                 ndata += dataset.getLength();
-                dataHashString = dataset.getDigestString();
             } // end for each dataset
 
             massPosition = Math.sqrt( massPosition / (double)ndata );
@@ -121,12 +121,6 @@ extends Metric
             double massPercent= 100 * Math.abs(massPosition - massCenter) / massRange;
 
             metricResult.addResult(channel, massPercent, digest);
-
-/**
-            System.out.format("%s-%s [%s] %s %s-%s ", stationMeta.getStation(), stationMeta.getNetwork(), 
-              EpochData.epochToDateString(stationMeta.getTimestamp()), getName(), chanMeta.getLocation(), chanMeta.getName() );
-            System.out.format("RMS-Volts:%.2f (%.0f%%) %s %s\n", massPosition, massPercent, chanMeta.getDigestString(), dataHashString); 
-**/
 
         }// end foreach channel
     } // end process()

@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
  *
  */
-
 package asl.metadata.meta_new;
 
 import java.util.ArrayList;
@@ -25,6 +24,15 @@ import java.util.Collections;
 import java.util.Calendar;
 import asl.metadata.*;
 
+
+/**
+ * Our internal representation of a station's metadata
+ * Holds all channel metadata for a single station for a specified day
+ *
+ * @author Mike Hagerty <hagertmb@bc.edu>
+ *
+ * @param timestamp     the date (exact day) for which we want the station's metadata
+ */
 public class StationMeta
 {
     private String network = null;

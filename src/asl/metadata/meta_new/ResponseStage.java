@@ -19,16 +19,6 @@
 
 package asl.metadata.meta_new;
 
-public abstract class ResponseStage implements Comparable<ResponseStage>
-{
-    protected int    stageNumber;
-    protected char   stageType;
-    protected double stageGain; 
-    protected double stageGainFrequency; 
-    protected int    inputUnits; 
-    protected int    outputUnits; 
-    protected String inputUnitsString; 
-    protected String outputUnitsString; 
 /** 
  * Every response stage type will contain generic info from SEED 
  *  Blockette B058 (e.g., Stage Gain, Frequency of Gain) here.
@@ -43,7 +33,18 @@ public abstract class ResponseStage implements Comparable<ResponseStage>
  * P [Polynomial]               B062        PolynomialStage
  * D [Digital]                  B054, B057  DigitalStage
  *
-**/
+ * @author Mike Hagerty <hagertmb@bc.edu>
+ */
+public abstract class ResponseStage implements Comparable<ResponseStage>
+{
+    protected int    stageNumber;
+    protected char   stageType;
+    protected double stageGain; 
+    protected double stageGainFrequency; 
+    protected int    inputUnits; 
+    protected int    outputUnits; 
+    protected String inputUnitsString; 
+    protected String outputUnitsString; 
 
     // constructor(s)
     public ResponseStage(int number, char type, double gain, double frequency)
@@ -54,21 +55,23 @@ public abstract class ResponseStage implements Comparable<ResponseStage>
         stageGainFrequency   = frequency;
     }
 
+/**
+ * Set inputUnits of this stage:
+ *     0 = Unknown 
+ *     1 = Displacement (m)
+ *     2 = Velocity (m/s)
+ *     3 = Acceleration (m/s^2)
+ *     4 = Pressure (Pa) 
+ *     5 = Pressure (KPa) 
+ *     6 = Magnetic Flux Density (Teslas - T)
+ *     7 = Magnetic Flux Density (nanoTeslas - NT)
+ *     8 = Degrees Centigrade (C)
+ *     9 = Degrees Orientation 0-360 (theta)
+ *    10 = Volts (V)
+ */
     public void setInputUnits(String inputUnitsString){
       this.inputUnitsString = inputUnitsString;
 
-   // Set inputUnits of this stage:
-   //     0 = Unknown 
-   //     1 = Displacement (m)
-   //     2 = Velocity (m/s)
-   //     3 = Acceleration (m/s^2)
-   //     4 = Pressure (Pa) 
-   //     5 = Pressure (KPa) 
-   //     6 = Magnetic Flux Density (Teslas - T)
-   //     7 = Magnetic Flux Density (nanoTeslas - NT)
-   //     8 = Degrees Centigrade (C)
-   //     9 = Degrees Orientation 0-360 (theta)
-   //    10 = Volts (V)
 
       if (inputUnitsString.contains("Displacement")      || inputUnitsString.contains("displacement") ){
           inputUnits = 1;

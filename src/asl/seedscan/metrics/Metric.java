@@ -38,6 +38,8 @@ public abstract class Metric
     private Hashtable<String, String> arguments;
     private Hashtable<CrossPowerKey, CrossPower> crossPowerMap;
 
+    private Boolean forceUpdate = false;
+
     protected StationMeta  stationMeta  = null;
     protected MetricData   metricData   = null;
     protected MetricResult metricResult = null;
@@ -109,6 +111,18 @@ public abstract class Metric
     public abstract String getName();
     public abstract void process();
 
+/**
+ * MTH
+ */
+    public final void setForceUpdate()
+    {
+        this.forceUpdate = true;
+    } 
+    public Boolean getForceUpdate(){
+        return forceUpdate;
+    }
+
+
 // Dynamic argumemnt managment
     protected final void addArgument(String name)
     {
@@ -150,11 +164,6 @@ public abstract class Metric
 
         int ndata      = 0;
         double srate   = 0;  // srate = sample frequency, e.g., 20Hz
-/**
-        int[] intArray = null;
-        String dataHashString = null;
-        Channel channel = channelX;
-**/
 
    // For now I'm just going to assume we have complete datasets (i.e., 1 dataset per day):
         ArrayList<DataSet>datasets = metricData.getChannelData(channelX);

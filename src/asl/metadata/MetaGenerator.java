@@ -32,11 +32,8 @@ import java.io.*;
 import asl.metadata.meta_new.*;
 
 /**
- * @author Mike Hagerty <hagertmb@bc.edu> 
- *
  * MetaGenerator - Holds metadata for all channels + epochs for a single station
  *                 Currently reads metadata in from a dataless seed file
- * @datalessDir  - Path to dataless seed files is passed in via config.xml 
  *
  * Currently we are searching for a single dataless seed file for each station
  *   (e.g., dataless = DATALESS.IU_ANMO.seed), however,
@@ -45,8 +42,11 @@ import asl.metadata.meta_new.*;
  * Note that if the station/network masks ever get implemented in Dataless.processVolume(),
  * then it will no longer be possible to use a single dataless seed file with multiple 
  * station metadata.
+ *
+ * @author Mike Hagerty <hagertmb@bc.edu> 
+ *
+ * @param  datalessDir  path to dataless seed files is passed in via config.xml 
  */
-
 public class MetaGenerator
 {
     private static final Logger logger = Logger.getLogger("asl.metadata.MetaGenerator");
@@ -135,8 +135,8 @@ public class MetaGenerator
       StationKey stnkey = new StationKey(station);
       StationData stationData = volume.getStation(stnkey);
       if (stationData == null) {
-         System.out.println("stationData is null ! Exitting!!");
-         System.exit(0);
+         System.out.println("stationData is null ==> This COULD be caused by incorrect network code INSIDE seedfile ...");
+         return null;
       }
       return stationData;
     }
@@ -146,6 +146,7 @@ public class MetaGenerator
  * Calls getStationData to get the metadata for all epochs for this station,
  * Then scans through the epochs to find and return the requested epoch
  * metadata.
+ *
  * @station   - The station for which metadata is requested
  * @timestamp - The (epoch) timestamp for which metadata is requested
  * 
@@ -162,6 +163,9 @@ public class MetaGenerator
       System.out.format("===== getStationMeta(): station=%s net=%s epoch date=%s\n",stnkey.getName(),stnkey.getNetwork(),EpochData.epochToDateString(timestamp));
 
       StationData stationData = getStationData(station);
+      if (stationData == null) { // This can happen if the file DATALESS.IW_LKWY.seed doesn't match
+        return null;             //   the name INSIDE the dataless (= US_LKWY) ... so the keys don't match
+      }
  // Scan stationData for the correct station blockette (050) for this timestamp - return null if it isn't found
       Blockette blockette     = stationData.getBlockette(timestamp);
 

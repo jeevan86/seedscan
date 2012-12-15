@@ -58,9 +58,11 @@ extends Metric
         for (Channel channel : channels){
 
          // Check to see that we have data + metadata & see if the digest has changed wrt the database:
-            ByteBuffer digest = metricData.hashChanged(channel);
 
-            if (digest == null) { 
+            ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel));
+            logger.fine(String.format("%s: digest=%s\n", getName(), (digest == null) ? "null" : Hex.byteArrayToHexString(digest.array())));
+
+            if (digest == null) {
                 System.out.format("%s INFO: Data and metadata have NOT changed for this channel:%s --> Skipping\n"
                                   ,getName(), channel);
                 continue;
@@ -69,19 +71,11 @@ extends Metric
          // If we're here, it means we need to (re)compute the metric for this channel:
 
             ArrayList<DataSet>datasets = metricData.getChannelData(channel);
-            int gapCount = datasets.size()-1;
-            String dataHashString = null;
-            for (DataSet dataset : datasets) {
-                dataHashString = dataset.getDigestString();
-            } // end for each dataset
+            int someCalibrationMeasurement;
+// How do we compute the calibration(s) ?
 
-            metricResult.addResult(channel, (double)gapCount, digest);
+            //metricResult.addResult(channel, (double)gapCount, digest);
 
-/**
-            System.out.format("%s-%s [%s] %s %s-%s ", stationMeta.getStation(), stationMeta.getNetwork(),  
-              EpochData.epochToDateString(stationMeta.getTimestamp()), getName(), chanMeta.getLocation(), chanMeta.getName() );
-            System.out.format("Gap Count:%d %s %s\n", gapCount, chanMeta.getDigestString(), dataHashString );
-**/
         }// end foreach channel
     } // end process()
 }

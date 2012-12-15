@@ -20,7 +20,7 @@ extends TaskThread<QueryContext<? extends Object>>
     private static final Logger logger = Logger.getLogger("asl.seedscan.database.MetricInjector");
     
 	MetricDatabase metricDB;
-	
+
 	/**
 	 * 
 	 */
@@ -28,6 +28,11 @@ extends TaskThread<QueryContext<? extends Object>>
 		super();
 		this.metricDB = metricDB;
 	}
+
+    public Boolean isConnected() {
+System.out.println("== MetricReader.isConnected() = " + metricDB.isConnected() );
+        return metricDB.isConnected();
+    }
 
 	/**
 	 * @param capacity

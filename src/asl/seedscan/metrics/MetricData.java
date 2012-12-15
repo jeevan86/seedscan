@@ -42,7 +42,6 @@ public class MetricData
     private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.MetricData");
 
     private Hashtable<String, ArrayList<DataSet>> data;
-    //private Hashtable<String, StationData> metadata;
     private StationMeta metadata;
     private Hashtable<String, String> synthetics;
     private MetricReader metricReader;
@@ -78,9 +77,38 @@ public class MetricData
         return metadata;
     }
 
-  // getChannelData()
-  // Returns ArrayList<DataSet> = All DataSets for a given channel (e.g., "00-BHZ")
+    public Boolean hasChannelArrayData(ChannelArray channelArray)
+    {
+        for (Channel channel : channelArray.getChannels() ) {
+            if (!hasChannelData(channel) )
+                return false;
+        }
+        return true;
+    }
 
+    public Boolean hasChannelData(Channel channel)
+    {
+        return hasChannelData(channel.getLocation(), channel.getChannel() );           
+    }
+
+    public Boolean hasChannelData(String location, String name)
+    {
+        Boolean hasChannel = false;
+        String locationName = location + "-" + name;
+        Set<String> keys = data.keySet();
+        for (String key : keys){          // key looks like "IU_ANMO 00-BHZ (20.0 Hz)"
+            if (key.contains(locationName) ){
+                hasChannel = true;
+            }
+        }
+        return hasChannel;           
+    }
+
+/**
+ *
+ * @ return ArrayList<DataSet> = All DataSets for a given channel (e.g., "00-BHZ")
+ *
+*/
     public ArrayList<DataSet> getChannelData(String location, String name)
     {
         String locationName = location + "-" + name;
@@ -112,37 +140,55 @@ public class MetricData
         Station station   = id.getStation();
         Calendar date     = id.getDate();
         String channelId  = MetricResult.createResultId(id.getChannel());
-        logger.fine(String.format(  "MetricValueIdentifier --> date=%04d-%02d-%02d (%03d) %02d:%02d:%02d | metricName=%s station=%s channel=%s",
-                                    date.get(Calendar.YEAR), date.get(Calendar.MONTH), date.get(Calendar.DAY_OF_MONTH), date.get(Calendar.DAY_OF_YEAR),
-                                    date.get(Calendar.HOUR), date.get(Calendar.MINUTE), date.get(Calendar.SECOND),
-                                    id.getMetricName(), id.getStation(), id.getChannel()));
+        logger.fine(String.format(
+                    "MetricValueIdentifier --> date=%04d-%02d-%02d (%03d) %02d:%02d:%02d | metricName=%s station=%s channel=%s",
+                    date.get(Calendar.YEAR), date.get(Calendar.MONTH), date.get(Calendar.DAY_OF_MONTH), date.get(Calendar.DAY_OF_YEAR),
+                    date.get(Calendar.HOUR), date.get(Calendar.MINUTE), date.get(Calendar.SECOND),
+                    id.getMetricName(), id.getStation(), id.getChannel()
+        ));
 
-        //ByteBuffer oldDigest = getMetricValueDigest(date, metricName, station, channelId);
-        ByteBuffer oldDigest = metricReader.getMetricValueDigest(id);
+    // Make sure we have metadata + data for all channels of channelArray before attempting to compute the digest
+        if (!metadata.hasChannels(channelArray)) { 
+                System.out.format("MetricData.valueDigestChanged() Error: We don't have metadata to compute digest for this channelArray\n");
+                return null;
+        }
+        if (!hasChannelArrayData(channelArray)) { 
+                System.out.format("MetricData.valueDigestChanged() Error: We don't have data to compute digest for this channelArray\n");
+                return null;
+        }
+        
         ByteBuffer newDigest = getHash(channelArray);
-        logger.fine(String.format(  "valueDigestChanged() --> oldDigest = getMetricValueDigest(%s, %s, %s, %s)",
-                                    EpochData.epochToDateString(date), metricName, station, channelId));
         if (newDigest == null) {
             logger.warning("New digest is null!");
         }
-        else if (oldDigest == null) {
-            logger.fine("Old digest is null.");
-        }
-        else if (newDigest.compareTo(oldDigest) == 0) {
-            logger.fine("Digests are Equal !!");
-            newDigest = null;
-        }
-        return newDigest;
 
+        if (metricReader.isConnected()) {
+            System.out.println("=== MetricData.metricReader *IS* connected");
+            ByteBuffer oldDigest = metricReader.getMetricValueDigest(id);
+            if (oldDigest == null) {
+                logger.fine("Old digest is null.");
+            }
+            else if (newDigest.compareTo(oldDigest) == 0) {
+                logger.fine("Digests are Equal !!");
+                newDigest = null;
+            }
+            logger.fine(String.format( "valueDigestChanged() --> oldDigest = getMetricValueDigest(%s, %s, %s, %s)",
+                                       EpochData.epochToDateString(date), metricName, station, channelId));
+        }
+        else {
+            System.out.println("=== MetricData.metricReader *IS NOT* connected");
+        }
+
+        return newDigest;
     }
 
 
-    public ByteBuffer hashChanged(Channel channel)
+    public ByteBuffer getHash(Channel channel)
     {
         ChannelArray channelArray = new ChannelArray(channel.getLocation(), channel.getChannel());
-        //return hashChanged(channelArray);
-        return null;
+        return getHash(channelArray);
     }
+
 
     private ByteBuffer getHash(ChannelArray channelArray)
     {
@@ -152,7 +198,7 @@ public class MetricData
         for (Channel channel : channels){
             ChannelMeta chanMeta  = getMetaData().getChanMeta(channel);
             if (chanMeta == null){
-                System.out.format("MetricData.hashChanged() Error: metadata not found for requested channel:%s\n",channel);
+                System.out.format("MetricData.getHash() Error: metadata not found for requested channel:%s\n",channel);
                 return null;
             }
             else {
@@ -161,7 +207,7 @@ public class MetricData
 
             ArrayList<DataSet>datasets = getChannelData(channel);
             if (datasets == null){
-                System.out.format("MetricData.hashChanged() Error: Data not found for requested channel:%s\n",channel);
+                System.out.format("MetricData.getHash() Error: Data not found for requested channel:%s\n",channel);
                 return null;
             }
             else {
@@ -171,7 +217,16 @@ public class MetricData
 
         return MemberDigest.multiBuffer(digests);
 
-        //System.out.format("=== hashChanged(): newDigest=%s\n", Hex.byteArrayToHexString(newDigest.array()) );
+        //System.out.format("=== getHash(): newDigest=%s\n", Hex.byteArrayToHexString(newDigest.array()) );
+    }
+
+
+//MTH: I think this is now obsolete:
+    public ByteBuffer hashChanged(Channel channel)
+    {
+        ChannelArray channelArray = new ChannelArray(channel.getLocation(), channel.getChannel());
+        //return hashChanged(channelArray);
+        return null;
     }
 
 }

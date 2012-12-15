@@ -85,10 +85,11 @@ extends PowerBandMetric
         for (Channel channel : channels){
 
          // Check to see that we have data + metadata & see if the digest has changed wrt the database:
-            ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel));
-            System.out.format("== %s: digest=%s\n", getName(), Hex.byteArrayToHexString(digest.array()) );
 
-            if (digest == null) { 
+            ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel));
+            logger.fine(String.format("%s: digest=%s\n", getName(), (digest == null) ? "null" : Hex.byteArrayToHexString(digest.array())));
+
+            if (digest == null) {
                 System.out.format("%s INFO: Data and metadata have NOT changed for this channel:%s --> Skipping\n"
                                   ,getName(), channel);
                 continue;
@@ -166,12 +167,6 @@ extends PowerBandMetric
             deviation = deviation/(double)nPeriods;
 
             metricResult.addResult(channel, deviation, digest);
-
-/**
-            System.out.format("%s-%s [%s] %s %s-%s ", stnMeta.getStation(), stnMeta.getNetwork(),
-              EpochData.epochToDateString(stnMeta.getTimestamp()), getName(), chanMeta.getLocation(), chanMeta.getName() );
-            System.out.format("nPeriods:%d deviation=%.2f) %s %s\n", nPeriods, deviation, chanMeta.getDigestString(), dataHashString); 
-**/
 
         }// end foreach channel
 

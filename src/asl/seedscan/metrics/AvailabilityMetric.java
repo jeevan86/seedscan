@@ -49,6 +49,7 @@ extends Metric
     public void process()
     {
         System.out.format("\n              [ == Metric %s == ]\n", getName() ); 
+
    // Create a 3-channel array to use for loop
         ChannelArray channelArray = new ChannelArray("00","BHZ", "BH1", "BH2");
         ArrayList<Channel> channels = channelArray.getChannels();
@@ -57,12 +58,19 @@ extends Metric
 
         for (Channel channel : channels){
 
+/**
+            if (getForceUpdate()) {
+                digest = metricData.getHash(channel);
+            }
+            else {
+                digest = metricData.valueDigestChanged(channel, createIdentifier(channel));
+            }
+**/
+
          // Check to see that we have data + metadata & see if the digest has changed wrt the database:
 
             ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel));
             logger.fine(String.format("%s: digest=%s\n", getName(), (digest == null) ? "null" : Hex.byteArrayToHexString(digest.array())));
-
-            //ByteBuffer digest = metricData.hashChanged(channel);
 
             if (digest == null) { 
                 System.out.format("%s INFO: Data and metadata have NOT changed for this channel:%s --> Skipping\n"
@@ -73,29 +81,18 @@ extends Metric
          // If we're here, it means we need to (re)compute the metric for this channel:
 
             ChannelMeta chanMeta = stationMeta.getChanMeta(channel);
-chanMeta.print();
-System.exit(0);
-
             ArrayList<DataSet>datasets = metricData.getChannelData(channel);
 
             int ndata    = 0;
-            String dataHashString = null;
 
             for (DataSet dataset : datasets) {
                 ndata   += dataset.getLength();
-                dataHashString = dataset.getDigestString();
             } // end for each dataset
 
             int expectedPoints  = (int)chanMeta.getSampleRate() * 24 * 60 * 60; 
             double availability = 100 * ndata/expectedPoints;
 
             metricResult.addResult(channel, availability, digest);
-
-/**
-            System.out.format("%s-%s [%s] %s %s-%s ", stnMeta.getStation(), stnMeta.getNetwork(),
-              EpochData.epochToDateString(stnMeta.getTimestamp()), getName(), chanMeta.getLocation(), chanMeta.getName() );
-            System.out.format("ndata:%d (%.0f%%) %s %s\n", ndata, availability, chanMeta.getDigestString(), dataHashString); 
-**/
 
         }// end foreach channel
     } // end process()

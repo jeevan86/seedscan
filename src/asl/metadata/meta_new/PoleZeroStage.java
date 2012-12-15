@@ -22,6 +22,10 @@ package asl.metadata.meta_new;
 import java.util.ArrayList;
 import freq.Cmplx;
 
+/**
+ * Our internal representation of a PoleZero Stage
+ * includes the analog polezero info + the stage gain & frequency of gain
+ */
 public class PoleZeroStage extends ResponseStage
 {
     private ArrayList<Cmplx> poles;

@@ -182,12 +182,6 @@ extends PowerBandMetric
 
             metricResult.addResult(channel, deviation, digest);
 
-/**
-            System.out.format("%s-%s [%s] %s %s-%s ", stnMeta.getStation(), stnMeta.getNetwork(),
-              EpochData.epochToDateString(stnMeta.getTimestamp()), getName(), chanMeta.getLocation(), chanMeta.getName() );
-            System.out.format("nPeriods:%d deviation=%.2f) %s %s\n", nPeriods, deviation, chanMeta.getDigestString(), dataHashString); 
-**/
-
         }// end foreach channel
 
     } // end process()

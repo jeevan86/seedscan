@@ -71,18 +71,9 @@ extends Metric
 
             ArrayList<DataSet>datasets = metricData.getChannelData(channel);
             int gapCount = datasets.size()-1;
-            String dataHashString = null;
-            for (DataSet dataset : datasets) {
-                dataHashString = dataset.getDigestString();
-            } // end for each dataset
 
             metricResult.addResult(channel, (double)gapCount, digest);
 
-/**
-            System.out.format("%s-%s [%s] %s %s-%s ", stationMeta.getStation(), stationMeta.getNetwork(),  
-              EpochData.epochToDateString(stationMeta.getTimestamp()), getName(), chanMeta.getLocation(), chanMeta.getName() );
-            System.out.format("Gap Count:%d %s %s\n", gapCount, chanMeta.getDigestString(), dataHashString );
-**/
         }// end foreach channel
     } // end process()
 }
