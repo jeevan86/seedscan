@@ -156,8 +156,21 @@ public abstract class Metric
         return arguments.keys();
     }
 
- // Compute/Get the psd[f] using Peterson's algorithm (24 hrs, 13 segments with 75% overlap, etc.)
 
+/**
+ * computePSD - Done here so that it can be passed from metric to metric,
+ *              rather than re-computing it for each metric that needs it
+ *
+ * Use Peterson's algorithm (24 hrs = 13 segments with 75% overlap, etc.)
+ *
+ * @param channelX - X-channel used for power-spectral-density computation
+ * @param channelY - Y-channel used for power-spectral-density computation
+ * @param params[] - Dummy array used to pass df (frequency spacing) back up 
+ * 
+ * @return psd[f] - Contains smoothed crosspower-spectral density (dB)
+ *                  computed for nf = nfft/2 + 1 frequencies (+ve freqs + DC + Nyq)
+ * @author Mike Hagerty
+*/
     private final double[] computePSD(Channel channelX, Channel channelY, double[] params) {
 
         //System.out.format("== Metric.computePSD(channelX=%s, channelY=%s)\n", channelX, channelY);
@@ -184,13 +197,16 @@ public abstract class Metric
             String message = "computePSD() ERROR: srateX (=" + srateX + ") != srateY (=" + srateY + ")";
             throw new RuntimeException(message);
         }
+        srate = srateX;
+
+        ndata = (ndataX < ndataY) ? ndataX : ndataY;
+/**
         if (ndataX != ndataY) {
             String message = "computePSD() ERROR: ndataX (=" + ndataX + ") != ndataY (=" + ndataY + ")";
             throw new RuntimeException(message);
         }
-
         ndata = ndataX;
-        srate = srateX;
+**/
 
      // Compute PSD for this channel using the following algorithm:
      //   Break up the data (one day) into 13 overlapping segments of 75% 
@@ -248,6 +264,7 @@ public abstract class Metric
 
            wss = Timeseries.costaper(xseg,.10);
            wss = Timeseries.costaper(yseg,.10);
+// MTH: Maybe want to assert here that wss > 0 to avoid divide-by-zero below ??
 
         // fft2 returns just the (nf = nfft/2 + 1) positive frequencies
            xfft = Cmplx.fft2(xseg);

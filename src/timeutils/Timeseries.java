@@ -57,17 +57,19 @@ public class Timeseries
 
     public static void debias(double[] timeseries)
     {
-       double mean=0;
-       for (int i=0; i<timeseries.length; i++){
-         mean += timeseries[i];
-       }
-       mean /= (double)timeseries.length;
-       if (mean == 0.) { // Should we check for abs(mean) < someThreshold instead ... ?
-         throw new RuntimeException("Error: debias: mean=0 --> divide by zero!");
-       }
-       for (int i=0; i<timeseries.length; i++){
-         timeseries[i] -= mean;
-       }
+        double mean=0;
+        for (int i=0; i<timeseries.length; i++){
+            mean += timeseries[i];
+        }
+        if (timeseries.length == 0) {
+            throw new RuntimeException("Error: debias: timeseries.length=0 --> No data!");
+        }
+        else {
+            mean /= (double)timeseries.length;
+            for (int i=0; i<timeseries.length; i++){
+                timeseries[i] -= mean;
+            }
+        }
     }
 
     public static double costaper(double[] timeseries, double width)
