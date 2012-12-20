@@ -31,10 +31,6 @@ BEGIN
 		WHEN 'CoherencePBM:200-500' THEN
 			SELECT (100 * power(valueIn, 0.107)) INTO percent;
 
-		--Station Deviation add formula once created
-		WHEN 'StationDeviationMetric:4-8' THEN
-			SELECT FALSE INTO isNum;
-
 		--Power Difference Does not exist when added, name may need changed.
 		WHEN 'PowerDifferencePBM:4-8' THEN
 			SELECT (100 - 12.85*log(abs(valueIn) + 1)) INTO percent;
@@ -45,14 +41,14 @@ BEGIN
 		WHEN 'PowerDifferencePBM:200-500' THEN
 			SELECT (100 - 5.07*log(abs(valueIn) + 1)) INTO percent;
 
-		--Noise Does not exist when added, name may need changed
-		WHEN 'NoisePBM:4-8' THEN
+		--Noise/StationDeviationMetric
+		WHEN 'StationDeviationMetric:4-8' THEN
 			SELECT (100 - 12.85*log(abs(valueIn) + 1)) INTO percent;
-		WHEN 'NoisePBM:18-22' THEN
+		WHEN 'StationDeviationMetric:18-22' THEN
 			SELECT (100 - 8.94*log(abs(valueIn) + 1)) INTO percent;
-		WHEN 'NoisePBM:90-110' THEN
+		WHEN 'StationDeviationMetric:90-110' THEN
 			SELECT (100 - 7.56*log(abs(valueIn) + 1)) INTO percent;
-		WHEN 'NoisePBM:200-500' THEN
+		WHEN 'StationDeviationMetric:200-500' THEN
 			SELECT (100 - 7.21*log(abs(valueIn) + 1)) INTO percent;
 
 		--Calibrations Does not exist when added, name may need changed.
