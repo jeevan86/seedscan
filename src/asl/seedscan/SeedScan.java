@@ -327,18 +327,15 @@ System.out.println(" Java total memory=" + runtime.totalMemory() );
  // Really the scan for each station will be handled by ScanManager using thread pools
  // For now we're just going to do it here:
 
-// Set useList = false if you want to manually control the StationList below ...
-        Boolean useList = true;
+// Set getStationList = false if you want to manually control the StationList below ...
+        Boolean getStationList = true;
+        getStationList = false;
         ArrayList<Station> stations;
 
-    if (useList){
+    if (getStationList){
         String datalessDir = scan.getDatalessDir();
         //ArrayList<Station> stations = getStationList(datalessDir);
         stations = getStationList(datalessDir);
-
-        for (Station station : stations){
-            System.out.format("== Got station:%s\n", station);
-        }
     }
     else {
         stations = new ArrayList<Station>();
@@ -347,22 +344,28 @@ System.out.println(" Java total memory=" + runtime.totalMemory() );
         stations.add( new Station("IU","ANMO") );
         //stations.add( new Station("IC","BJT") );
         //Adam suggest I use these stations for testing
-        stations.add( new Station("IU","WAKE") );
-        stations.add( new Station("IU","ANMO") );
-        stations.add( new Station("IU","MAJO") );
+        //stations.add( new Station("IU","WAKE") );
+        //stations.add( new Station("IU","ANMO") );
+        //stations.add( new Station("IU","MAJO") );
         //stations.add( new Station("IU","KEV") ); //KEV gives an divide by 0 error when included
-        stations.add( new Station("IU","KIP" ) );
-        stations.add( new Station("IU","ANTO") );
-        stations.add( new Station("IU","DWPF") );
-        stations.add( new Station("IU","PMSA") );
-        stations.add( new Station("IU","OTAV" ) );
-        stations.add( new Station("IU","HRV") );
+        //stations.add( new Station("IU","KIP" ) );
+        //stations.add( new Station("IU","ANTO") );
+        //stations.add( new Station("IU","DWPF") );
+        //stations.add( new Station("IU","PMSA") );
+        //stations.add( new Station("IU","OTAV" ) );
+        //stations.add( new Station("IU","HRV") );
         //End Adam's suggestion
         //stations.add( new Station("IU","SNZO") );
-        stations.add( new Station("IW","LKWY") );
+        //stations.add( new Station("IW","LKWY") );
         //stations.add( new Station("US","LKWY") );
         //stations.add( new Station("IU","ANTO") );
+        //stations.add( new Station("GT","LPAZ") );
+        //stations.add( new Station("IC","KMI") );
     }
+
+        for (Station station : stations){
+            System.out.format("== Got station:%s\n", station);
+        }
 
         Thread readerThread = new Thread(reader);
         readerThread.start();

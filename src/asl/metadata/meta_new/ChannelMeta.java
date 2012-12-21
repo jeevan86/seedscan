@@ -27,6 +27,13 @@ import java.util.TreeSet;
 import java.util.Hashtable;
 import java.util.Calendar;
 
+import java.io.Serializable;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.IOException;
+
 /** 
  * A ChannelMeta consists of a series of ResponseStages.
  * Typically there will be 3 ResponseStages, numbered 0, 1 and 2.
@@ -41,7 +48,8 @@ import java.util.Calendar;
  *
  * @author Mike Hagerty    <hagertmb@bc.edu>
  */
-public class ChannelMeta extends MemberDigest
+public class ChannelMeta extends MemberDigest 
+                         implements Serializable, Cloneable
 {
     private String name = null;
     private String location = null;
@@ -58,6 +66,62 @@ public class ChannelMeta extends MemberDigest
 // MTH: In order to add these, need to somehow get them into EpochData ... from higher ref
     private String knet = null;
     private String kstn = null;
+
+/**
+ *  Deep copy
+ */
+    public ChannelMeta copy() {
+        return copy(this.name);
+    }
+    public ChannelMeta copy(Channel channel) {
+        return copy(channel.getChannel());
+    }
+    public ChannelMeta copy(String name) {
+        String useName = null;
+        if (name != null) {
+            useName = name;
+        }
+        else {
+            useName = this.getName();
+        }
+        ChannelMeta copyChan = new ChannelMeta(this.getLocation(), useName, this.getTimestamp() );
+        //ChannelMeta copyChan = new ChannelMeta(this.getLocation(), this.getName(), this.getTimestamp() );
+        copyChan.sampleRate     = this.sampleRate;
+        copyChan.dip            = this.dip;
+        copyChan.azimuth        = this.azimuth;
+        copyChan.depth          = this.depth;
+        copyChan.dayBreak       = this.dayBreak;
+        copyChan.instrumentType = this.instrumentType;
+
+        for (Integer stageID : this.stages.keySet() ){
+            ResponseStage stage = this.getStage(stageID);
+            ResponseStage copyStage = stage.copy();
+            copyChan.addStage(stageID, copyStage);
+        }
+        return copyChan;
+    }
+
+/**
+ *  Shallow copy
+ */
+/**
+    public ChannelMeta clone() {
+        ChannelMeta newChanMeta = new ChannelMeta(this.getLocation(), this.getName(), this.getTimestamp() );
+        for (Integer stageID : stages.keySet() ){
+            ResponseStage stage = getStage(stageID);
+            if (stage instanceof PoleZeroStage){
+                PoleZeroStage pz = (PoleZeroStage)stage.clone();
+            //newChanMeta.addStage(stageID, stage);
+            }
+        }
+        return newChanMeta;
+        try {
+            return (ChannelMeta) super.clone();
+        } catch (CloneNotSupportedException e) {
+            return null;
+        }
+    }
+**/
 
     public void addDigestMembers() {
 
@@ -105,6 +169,26 @@ public class ChannelMeta extends MemberDigest
     } // end addDigestMembers()
 
     // constructor(s)
+
+    public ChannelMeta deepClone() {
+        //ChannelKey channelKey = new ChannelKey(location, name);
+        //Calendar timestamp    = this.getTimestamp();
+        //return new ChannelMeta(channelKey, timestamp);
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            oos.writeObject(this);
+
+            ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+            ObjectInputStream ois = new ObjectInputStream(bais);
+            return (ChannelMeta) ois.readObject();
+        } catch (IOException e) {
+            return null;
+        } catch (ClassNotFoundException e) {
+            return null;
+        }
+    }
+
 
     public ChannelMeta(ChannelKey channel, Calendar metaTimestamp)
     {

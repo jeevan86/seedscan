@@ -52,6 +52,11 @@ implements Comparable<ChannelKey>
         setLocation(location);
         setChannel(name);
     }
+    public ChannelKey(Channel channel)
+    {
+        this(channel.getLocation(), channel.getChannel());
+    }
+
 
 // Valid locations: "--", "00", "10", "20", ...
 //       Should we allow no location to be given here and use default="--" ?
@@ -82,12 +87,12 @@ implements Comparable<ChannelKey>
         if (channel == null) {
             throw new RuntimeException("channel cannot be null");
         }
-        if (channel.length() != 3) { // For now let's just allow channel codes = 3 chars
-            throw new RuntimeException("station name is too short");
+    // MTH: For now we'll allow either 3-char ("LHZ") or 4-char ("LHND") channels
+        if (channel.length() < 3 || channel.length() > 4) { 
+            throw new RuntimeException("ChannelKey.setChannel(): We only allow 3 or 4 character channels!");
         }
         this.name = channel;
     }
-
 
 
     // identifiers

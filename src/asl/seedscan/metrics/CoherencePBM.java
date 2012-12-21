@@ -18,10 +18,26 @@
  */
 package asl.seedscan.metrics;
 
-import java.util.logging.Logger;
-import java.util.ArrayList;
-import java.util.GregorianCalendar;
-import java.util.Calendar;
+import org.jfree.chart.*;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.axis.LogarithmicAxis;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.renderer.xy.*;
+import org.jfree.chart.plot.*;
+import org.jfree.chart.title.TextTitle;
+import org.jfree.chart.axis.NumberTickUnit;
+import org.jfree.data.xy.*;
+import org.jfree.data.Range;
+import org.jfree.util.ShapeUtilities;
+
+import freq.Cmplx;
+
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.Color;
+import java.awt.Stroke;
+import java.awt.BasicStroke;
+import java.awt.Paint;
 
 import java.io.IOException;
 import java.io.BufferedReader;
@@ -29,15 +45,17 @@ import java.io.FileReader;
 import java.io.File;
 import java.nio.ByteBuffer;
 
+import java.util.logging.Logger;
+import java.util.ArrayList;
+import java.util.GregorianCalendar;
+import java.util.Calendar;
+
 import asl.metadata.*;
 import asl.metadata.meta_new.*;
 import asl.seedsplitter.DataSet;
-
-import timeutils.Timeseries;
-
-import java.nio.ByteBuffer;
 import asl.util.Hex;
 
+import timeutils.Timeseries;
 
 public class CoherencePBM
 extends PowerBandMetric
@@ -68,30 +86,26 @@ extends PowerBandMetric
 
         //for (Channel channel : channels){
         // Dummy loop
-        for (int i=0; i < 1; i++) {
+        for (int i=1; i < 2; i++) {
             Channel channelX = null;
             Channel channelY = null;
 
             if (i==0) {
                 channelX = new Channel("00", "LHZ");
-                channelY = new Channel("10", "LHZ");
+                channelY = new Channel("10", "LH1");
+                //channelY = new Channel("10", "LHZ");
             }
             else if (i==1) {
-                channelX = new Channel("00", "LH1");
-                channelY = new Channel("10", "LH1");
+                channelX = new Channel("00", "LHND");
+                channelY = new Channel("10", "LHND");
             }
             else if (i==2) {
-                channelX = new Channel("00", "LH2");
-                channelY = new Channel("10", "LH2");
+                channelX = new Channel("00", "LHED");
+                channelY = new Channel("10", "LHED");
             }
 
-            // Check to see that we have data + metadata & see if the digest has changed wrt the database:
-            //ByteBuffer digest = metricData.hashChanged(channelX, channelY);
-            //ByteBuffer digest = ByteBuffer.allocate(16);
-
             ChannelArray channelArray = new ChannelArray(channelX, channelY);
-            String channelId = MetricResult.createResultId(new Channel(channelX.getLocation(), "LHND")
-                    ,new Channel(channelY.getLocation(), "LHND") );
+
             ByteBuffer digest = metricData.valueDigestChanged(channelArray, createIdentifier(channelX, channelY));
 
             System.out.format("== %s: digest=%s\n", getName(), (digest == null) ? "null" : Hex.byteArrayToHexString(digest.array()) );
@@ -101,6 +115,8 @@ extends PowerBandMetric
                         ,getName(), channelX, channelY);
                 continue;
             }
+
+System.exit(0);
 
             // If we're here, it means we need to (re)compute the metric for this channel:
 
@@ -117,8 +133,10 @@ extends PowerBandMetric
             crossPower     = getCrossPower(channelX, channelY);
             double[] Gxy   = crossPower.getSpectrum();
 
+            if (dfX != dfY) {  // Oops - spectra have different frequency sampling!
+                throw new RuntimeException("CoherencePBM Error: dfX != dfY --> Can't continue");
+            }
             double df      = dfX;
-
 
             // nf = number of positive frequencies + DC (nf = nfft/2 + 1, [f: 0, df, 2df, ...,nfft/2*df] )
             int nf        = Gxx.length;
@@ -191,18 +209,70 @@ extends PowerBandMetric
 
             metricResult.addResult(channelX, channelY, averageValue, digest);
 
-            /**
-            //System.out.format("%s-%s [%s] %s %s-%s ", stnMeta.getStation(), stnMeta.getNetwork(),
-            System.out.format("%s [%s] %s %s ", stnMeta.toString(),
-            EpochData.epochToDateString(stnMeta.getTimestamp()), getName(), MetricResult.createResultId(channelX, channelY) );
-            //EpochData.epochToDateString(stnMeta.getTimestamp()), getName(), chanMeta.getLocation(), chanMeta.getName() );
-            System.out.format("nPeriods:%d averageValue=%.2f) %s %s\n", nPeriods, averageValue, chanMeta.getDigestString(), dataHashString); 
-             **/
+Boolean DEBUG = true;
+            if (DEBUG){
+                plotCoherence(channelX, channelY, per, gammaPer);
+            }
 
         }// end foreach channel
 
     } // end process()
 
 
-    } // end class
+    private void plotCoherence(Channel channelX, Channel channelY, double[] period, double[] gamma) {
+
+        Station station        = metricResult.getStation();
+        Calendar date          = metricResult.getDate();
+        final String plotTitle = String.format("%04d%03d.%s.%s-%s", date.get(Calendar.YEAR), date.get(Calendar.DAY_OF_YEAR)
+                                                ,station, channelX, channelY);
+        //final String pngName   = String.format("tests/%04d%03d.%s.%s-%s.png", date.get(Calendar.YEAR), date.get(Calendar.DAY_OF_YEAR)
+        final String pngName   = String.format("%04d%03d.%s.%s-%s.png", date.get(Calendar.YEAR), date.get(Calendar.DAY_OF_YEAR)
+                                                ,station, channelX, channelY);
+
+        final String legend    = String.format("%s--%s",channelX, channelY);
+        final XYSeries series1 = new XYSeries(legend);
+
+        for (int k = 0; k < gamma.length; k++){
+            series1.add( period[k], gamma[k] );
+        }
+
+        //final XYItemRenderer renderer1 = new StandardXYItemRenderer();
+        final XYLineAndShapeRenderer renderer1 = new XYLineAndShapeRenderer();
+        Rectangle rectangle = new Rectangle(3, 3);
+        renderer1.setSeriesShape(0, rectangle);
+        renderer1.setSeriesShapesVisible(0, true);
+        renderer1.setSeriesLinesVisible(0, false);
+
+        Paint[] paints = new Paint[] { Color.red, Color.black };
+        renderer1.setSeriesPaint(0, paints[0]);
+
+        final NumberAxis rangeAxis1 = new NumberAxis("Coherence, Gamma");
+        rangeAxis1.setRange( new Range(0, 1.2));
+        rangeAxis1.setTickUnit( new NumberTickUnit(0.1) );
+
+        final LogarithmicAxis horizontalAxis = new LogarithmicAxis("Period (sec)");
+        horizontalAxis.setRange( new Range(0.05 , 10000) );
+
+        final XYSeriesCollection seriesCollection = new XYSeriesCollection();
+        seriesCollection.addSeries(series1);
+
+        final XYPlot xyplot = new XYPlot((XYDataset)seriesCollection, horizontalAxis, rangeAxis1, renderer1);
+
+        xyplot.setDomainGridlinesVisible(true);  
+        xyplot.setRangeGridlinesVisible(true);  
+        xyplot.setRangeGridlinePaint(Color.black);  
+        xyplot.setDomainGridlinePaint(Color.black);  
+
+        final JFreeChart chart = new JFreeChart(xyplot);
+        chart.setTitle( new TextTitle(plotTitle) );
+
+        try { 
+            ChartUtilities.saveChartAsPNG(new File(pngName), chart, 500, 300);
+        } catch (IOException e) { 
+            System.err.println("Problem occurred creating chart.");
+
+        }
+    } // end plotCoherence
+
+} // end class
 

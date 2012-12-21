@@ -27,6 +27,7 @@ import freq.Cmplx;
  * includes the analog polezero info + the stage gain & frequency of gain
  */
 public class PoleZeroStage extends ResponseStage
+                           implements Cloneable
 {
     private ArrayList<Cmplx> poles;
     private ArrayList<Cmplx> zeros;
@@ -34,6 +35,35 @@ public class PoleZeroStage extends ResponseStage
     private boolean poleAdded = false;
     private boolean zeroAdded = false;
     private boolean normalizationSet = false;
+
+/**
+ *  Return a deep copy of this PoleZeroStage
+ */
+    public PoleZeroStage copy() {
+        PoleZeroStage stageCopy = 
+           new PoleZeroStage(this.stageNumber, this.stageType,this.stageGain, this.stageGainFrequency);
+        for (int i=0; i<poles.size(); i++){
+           stageCopy.addPole( this.poles.get(i) );
+        }
+        for (int i=0; i<zeros.size(); i++){
+           stageCopy.addZero( this.zeros.get(i) );
+        }
+        stageCopy.setNormalization( this.normalizationConstant );
+        stageCopy.setInputUnits( this.inputUnitsString );
+        stageCopy.setOutputUnits( this.outputUnitsString );
+        return stageCopy;
+    }
+
+/**
+ *  Return a shallow copy of this PoleZeroStage
+ */
+    public PoleZeroStage clone() {
+        try {
+            return (PoleZeroStage) super.clone();
+        } catch (CloneNotSupportedException e) {
+            return null;
+        }
+    }
 
     // constructor(s)
     public PoleZeroStage(int stageNumber, char stageType, double stageGain, double stageFrequency)

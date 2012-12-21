@@ -31,6 +31,10 @@ public class PolynomialStage extends ResponseStage
     private String polynomialApproximationType;
     private ArrayList<Cmplx> coefficients;
 
+    public PolynomialStage copy() {
+        return this;
+    }
+
     // constructor(s)
     public PolynomialStage(int stageNumber, char stageType, double stageGain, double stageFrequency)
     {

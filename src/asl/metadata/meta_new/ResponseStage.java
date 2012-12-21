@@ -19,6 +19,8 @@
 
 package asl.metadata.meta_new;
 
+import java.io.Serializable;
+
 /** 
  * Every response stage type will contain generic info from SEED 
  *  Blockette B058 (e.g., Stage Gain, Frequency of Gain) here.
@@ -45,6 +47,8 @@ public abstract class ResponseStage implements Comparable<ResponseStage>
     protected int    outputUnits; 
     protected String inputUnitsString; 
     protected String outputUnitsString; 
+
+    abstract public ResponseStage copy();
 
     // constructor(s)
     public ResponseStage(int number, char type, double gain, double frequency)

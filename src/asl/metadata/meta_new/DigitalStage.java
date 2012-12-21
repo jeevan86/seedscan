@@ -22,6 +22,7 @@ package asl.metadata.meta_new;
 import java.util.ArrayList;
 
 public class DigitalStage extends ResponseStage
+                          implements Cloneable
 {
     private int decimationFactor = 1;
     private int numberOfNumerators;
@@ -29,6 +30,27 @@ public class DigitalStage extends ResponseStage
     private int numberOfCoefficients;
     private double inputSampleRate;
     private ArrayList<Double> coefficients;
+
+
+/**
+ *  This is here to implement the abstract method copy() in ResponseStage,
+ *    but it's just implementing the shallow copy (=clone) below
+ */
+    public DigitalStage copy() {
+        return this.clone();
+    }
+
+/**
+ *  Shallow copy - this will work for the primitives, but NOT the ArrayList coeff's
+ *                 (it will only copy *references* to the coeffs ...)
+ */
+    public DigitalStage clone() {
+        try {
+            return (DigitalStage) super.clone();
+        } catch (CloneNotSupportedException e) {
+            return null;
+        }
+    }
 
 /** Relevant SEED Blockettes 
  *

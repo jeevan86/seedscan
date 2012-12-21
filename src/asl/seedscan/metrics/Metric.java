@@ -205,7 +205,6 @@ public abstract class Metric
             String message = "computePSD() ERROR: ndataX (=" + ndataX + ") != ndataY (=" + ndataY + ")";
             throw new RuntimeException(message);
         }
-        ndata = ndataX;
 **/
 
      // Compute PSD for this channel using the following algorithm:

@@ -18,13 +18,24 @@
  */
 package asl.seedscan.metrics;
 
-import java.util.logging.Logger;
-import java.util.ArrayList;
-import java.util.GregorianCalendar;
-import java.util.Calendar;
+import org.jfree.chart.*;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.axis.LogarithmicAxis;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.renderer.xy.*;
+import org.jfree.chart.plot.*;
+import org.jfree.chart.title.TextTitle;
+import org.jfree.chart.axis.NumberTickUnit;
+import org.jfree.data.xy.*;
+import org.jfree.data.Range;
+import org.jfree.util.ShapeUtilities;
 
-import asl.util.Hex;
-
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.Color;
+import java.awt.Stroke;
+import java.awt.BasicStroke;
+import java.awt.Paint;
 
 import java.io.IOException;
 import java.io.BufferedReader;
@@ -32,14 +43,24 @@ import java.io.FileReader;
 import java.io.File;
 import java.nio.ByteBuffer;
 
+import java.util.logging.Logger;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.GregorianCalendar;
+import java.util.Calendar;
+
 import asl.metadata.*;
 import asl.metadata.meta_new.*;
+import asl.security.MemberDigest;
 import asl.seedsplitter.DataSet;
+import asl.util.Hex;
 
 import timeutils.Timeseries;
 
-import asl.security.MemberDigest;
-
+/**
+ * NLNMDeviationMetric - Compute Difference (over specified range of periods = powerband) between
+ *                       the power spectral density (psd) of a channel and the NLNM.
+ */
 public class NLNMDeviationMetric
 extends PowerBandMetric
 {
@@ -70,12 +91,12 @@ extends PowerBandMetric
 
    // Read in the NLNM
         if (!readNLNM() ){
+            System.out.format("%s: Did not read in NLNM model --> Do Nothing!\n", getName());
             return;  // Can't do anything if we didn't read in a NLNM model so skip to the next metric
         }
 
    // Create a 3-channel array to use for loop
         ChannelArray channelArray = new ChannelArray("00","LHZ", "LH1", "LH2");
-
         ArrayList<Channel> channels = channelArray.getChannels();
 
    // Loop over channels, get metadata & data for channel and Calculate Metric
@@ -168,6 +189,13 @@ extends PowerBandMetric
 
             metricResult.addResult(channel, deviation, digest);
 
+Boolean DEBUG = true;
+
+            if (DEBUG) {   // Output files like 2012160.IU_ANMO.00-LHZ.png = psd
+                plotPSD(channel, psdInterp);
+            }
+
+
         }// end foreach channel
 
     } // end process()
@@ -233,6 +261,71 @@ extends PowerBandMetric
         return true;
 
     } // end readNLNM
+
+
+    private void plotPSD(Channel channel, double[] psdInterp) {
+
+        Station station        = metricResult.getStation();
+        Calendar date          = metricResult.getDate();
+        final String plotTitle = String.format("%04d%03d.%s.%s", date.get(Calendar.YEAR), date.get(Calendar.DAY_OF_YEAR)
+                                                ,station, channel);
+        final String pngName   = String.format("tests/%04d%03d.%s.%s.png", date.get(Calendar.YEAR), date.get(Calendar.DAY_OF_YEAR)
+                                                ,station, channel);
+
+        final XYSeries series1 = new XYSeries(channel.toString());
+        final XYSeries series2 = new XYSeries("NLNM");
+
+        for (int k = 0; k < NLNMPeriods.length; k++){
+            series1.add( NLNMPeriods[k], psdInterp[k] );
+            series2.add( NLNMPeriods[k], NLNMPowers[k] );
+        }
+
+        //final XYItemRenderer renderer = new StandardXYItemRenderer();
+        final XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
+        Rectangle rectangle = new Rectangle(3, 3);
+        renderer.setSeriesShape(0, rectangle);
+        renderer.setSeriesShapesVisible(0, true);
+        renderer.setSeriesLinesVisible(0, false);
+
+        renderer.setSeriesShape(1, rectangle);
+        renderer.setSeriesShapesVisible(1, true);
+        renderer.setSeriesLinesVisible(1, false);
+
+        Paint[] paints = new Paint[] { Color.red, Color.black };
+        renderer.setSeriesPaint(0, paints[0]);
+        renderer.setSeriesPaint(1, paints[1]);
+
+        final NumberAxis rangeAxis1 = new NumberAxis("PSD 10log10(m**2/s**4)/Hz dB");
+        rangeAxis1.setRange( new Range(-190, -120));
+        rangeAxis1.setTickUnit( new NumberTickUnit(5.0) );
+
+        final LogarithmicAxis horizontalAxis = new LogarithmicAxis("Period (sec)");
+        horizontalAxis.setRange( new Range(0.05 , 10000) );
+
+        final XYSeriesCollection seriesCollection = new XYSeriesCollection();
+        seriesCollection.addSeries(series1);
+        seriesCollection.addSeries(series2);
+
+        final XYPlot xyplot = new XYPlot((XYDataset)seriesCollection, horizontalAxis, rangeAxis1, renderer);
+
+        xyplot.setDomainGridlinesVisible(true);  
+        xyplot.setRangeGridlinesVisible(true);  
+        xyplot.setRangeGridlinePaint(Color.black);  
+        xyplot.setDomainGridlinePaint(Color.black);  
+
+        final JFreeChart chart = new JFreeChart(xyplot);
+        chart.setTitle( new TextTitle(plotTitle) );
+
+// Here we need to see if test dir exists and create it if necessary ...
+        try { 
+            //ChartUtilities.saveChartAsJPEG(new File("chart.jpg"), chart, 500, 300);
+            ChartUtilities.saveChartAsPNG(new File(pngName), chart, 500, 300);
+        } catch (IOException e) { 
+            System.err.println("Problem occurred creating chart.");
+
+        }
+    } // end plotPSD
+
 
 } // end class
 
