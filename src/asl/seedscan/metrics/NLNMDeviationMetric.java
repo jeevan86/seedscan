@@ -97,6 +97,7 @@ extends PowerBandMetric
 
    // Create a 3-channel array to use for loop
         ChannelArray channelArray = new ChannelArray("00","LHZ", "LH1", "LH2");
+        //ChannelArray channelArray = new ChannelArray("00","LHZ");
         ArrayList<Channel> channels = channelArray.getChannels();
 
    // Loop over channels, get metadata & data for channel and Calculate Metric
@@ -128,9 +129,10 @@ extends PowerBandMetric
             int nf        = psd.length;
             double freq[] = new double[nf];
 
-         // Fill freq array
+         // Fill freq array & Convert spectrum to dB
             for ( int k = 0; k < nf; k++){
                 freq[k] = (double)k * df;
+                psd[k]  = 10.*Math.log10(psd[k]);
             }
 
          // Convert psd[f] to psd[T]

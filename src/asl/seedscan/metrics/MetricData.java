@@ -137,26 +137,23 @@ public class MetricData
             // These are channels we know how to rotate, so continue
         }
         else {
-            // Unknown channel ?
+            // Unknown channel reqeuested ?
             System.out.format("== createRotatedChannelData: Error -- Don't know how to make channel=[%s]\n", derivedChannel);
             return;
         }
-        String location    = derivedChannel.getLocation();
-        String channelBand = derivedChannel.getChannel().substring(0,1);
-        String chan1 = String.format("%sH1", channelBand);
-        String chan2 = String.format("%sH2", channelBand);
 
     // Use the channelBand to decide which horizontal channels to use for rotation
-        Channel channel1 = new Channel(location, chan1);
-        Channel channel2 = new Channel(location, chan2);
+        String location    = derivedChannel.getLocation();
+        String channelBand = derivedChannel.getChannel().substring(0,1); // e.g., "L", "B", etc.
+        Channel channel1 = new Channel(location, String.format("%sH1", channelBand) );
+        Channel channel2 = new Channel(location, String.format("%sH2", channelBand) );
 
         if (hasChannelData(channel1)==false || hasChannelData(channel2)==false){
             System.out.format("== createRotatedChannelData: Error -- Request for rotated channel=[%s] "
-            + "but can't find chan1=[%s] and/or chan2=[%s]\n",
-                               derivedChannel, channel1, channel2);
+            + "but can't find data for channel1=[%s] and/or channel2=[%s]\n",derivedChannel, channel1, channel2);
             return;
         }
-
+    // The (new) derived channels (e.g., 00-LHND,00-LHED -or- 10-BHND,10-BHED, etc.)
         Channel channelN = new Channel(location, channel1.getChannel().replace("H1", "HND") );
         Channel channelE = new Channel(location, channel1.getChannel().replace("H1", "HED") );
 
@@ -181,6 +178,7 @@ public class MetricData
         double srate2   = dataset2.getSampleRate();
         if (srate1 != srate2) {
             System.out.format("== MetricData.createRotatedChannels: chan1 srate=%f BUT chan2 srate=%f\n", srate1, srate2);
+            return;
         }
 
         int[] intArray1 = dataset1.getSeries();
@@ -192,6 +190,8 @@ public class MetricData
         double[] chN = new double[ndata];
         double[] chE = new double[ndata];
 
+    // az1 = azimuth of the H1 channel/vector.  az2 = azimuth of the H2 channel/vector
+    // Find the smallest (<= 180) angle between them --> This *should* be 90 (=orthogonal channels)
         double az1 = (metadata.getChanMeta( channel1 )).getAzimuth(); 
         double az2 = (metadata.getChanMeta( channel2 )).getAzimuth(); 
         double azDiff = Math.abs(az1 - az2);
@@ -204,6 +204,10 @@ System.out.format("== createRotatedChannels: az1=%f az2=%f azDiff=%f\n", az1, az
                                Math.abs(az1 - az2) );
         }
 
+// Convert azimuths to radians
+        az1 = az1 * Math.PI/180.;
+        az2 = az2 * Math.PI/180.;
+
 // This should work even if the 2 channels are not perpendicular
 // If the channels are perpendicular then az2 = 90 - az1 and the normal 2D rotation matrix follows
 //  We should really be checking for and only using
@@ -214,6 +218,8 @@ System.out.format("== createRotatedChannels: az1=%f az2=%f azDiff=%f\n", az1, az
             //intArrayN[i] = intArray1[i] * Math.cos( az1 ) + intArray2[i] * Math.cos( az2 );
             //intArrayE[i] = intArray1[i] * Math.sin( az1 ) + intArray2[i] * Math.sin( az2 );
         }
+
+// Here we need to convert the Series intArray[] into a DataSet with header, etc ...
 
 // Make new channelData keys based on existing ones
 

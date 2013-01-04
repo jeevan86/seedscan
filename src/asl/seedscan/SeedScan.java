@@ -329,7 +329,7 @@ System.out.println(" Java total memory=" + runtime.totalMemory() );
 
 // Set getStationList = false if you want to manually control the StationList below ...
         Boolean getStationList = true;
-        getStationList = false;
+        //getStationList = false;
         ArrayList<Station> stations;
 
     if (getStationList){

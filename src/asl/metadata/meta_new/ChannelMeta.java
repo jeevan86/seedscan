@@ -342,6 +342,7 @@ public class ChannelMeta extends MemberDigest
    // Check stage1Gain * stage2Gain against the mid-level sensitivity (=stage0Gain):
             double diff = (stageGain0 - (stageGain1 * stageGain2)) / stageGain0;
             diff *= 100;
+// MTH: Adam says that some Q680's have this problem and we should use the Sensitivity (stageGain0) instead:
             if (diff > 10) { // Alert user that difference is > 1% of Sensitivity
                 System.out.format("***Alert: stageGain0=%f VS. stage1=%f * stage2=%f (diff=%f%%)\n", stageGain0, stageGain1, stageGain2, diff);
             }
@@ -422,10 +423,29 @@ public class ChannelMeta extends MemberDigest
       }
 
  // Scale polezero response by stage1Gain * stage2Gain:
+ // Unless stage1Gain*stage2Gain is different from stage0Gain (=Sensitivity) by more than 10%,
+ //   in which case, use the Sensitivity (Adam says this is a problem with Q680's, e.g., IC_ENH
+      double stage0Gain = stages.get(0).getStageGain();
       double stage1Gain = stages.get(1).getStageGain();
       double stage2Gain = stages.get(2).getStageGain();
-      //Cmplx scale = new Cmplx(stage1Gain*stage2Gain, 0);
-      double scale = stage1Gain*stage2Gain;
+
+   // Check stage1Gain * stage2Gain against the mid-level sensitivity (=stage0Gain):
+      double diff = 100 * (stage0Gain - (stage1Gain * stage2Gain)) / stage0Gain;
+
+      double scale;
+      if (diff > 10) { 
+        System.out.println("== ChannelMeta.getResponse(): WARNING: Sensitivity != Stage1Gain * Stage2Gain "
+                           + "--> Use Sensitivity to scale!");
+        scale = stage0Gain;
+      }
+      else {
+        scale = stage1Gain*stage2Gain;
+      }
+
+      if (scale <= 0.) {
+        System.out.println("== ChannelMeta.getResponse(): WARNING: Channel response scale <= 0 !!");
+      }
+
       for (int i=0; i<freqs.length; i++){
         response[i] = Cmplx.mul(scale, response[i]);
       }

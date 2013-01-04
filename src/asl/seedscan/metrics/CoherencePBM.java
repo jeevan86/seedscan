@@ -86,14 +86,13 @@ extends PowerBandMetric
 
         //for (Channel channel : channels){
         // Dummy loop
-        for (int i=1; i < 2; i++) {
+        for (int i=0; i < 1; i++) {
             Channel channelX = null;
             Channel channelY = null;
 
             if (i==0) {
                 channelX = new Channel("00", "LHZ");
-                channelY = new Channel("10", "LH1");
-                //channelY = new Channel("10", "LHZ");
+                channelY = new Channel("10", "LHZ");
             }
             else if (i==1) {
                 channelX = new Channel("00", "LHND");
@@ -116,8 +115,6 @@ extends PowerBandMetric
                 continue;
             }
 
-System.exit(0);
-
             // If we're here, it means we need to (re)compute the metric for this channel:
 
             // Compute/Get the 1-sided psd[f] using Peterson's algorithm (24 hrs, 13 segments, etc.)
@@ -138,7 +135,10 @@ System.exit(0);
             }
             double df      = dfX;
 
-            // nf = number of positive frequencies + DC (nf = nfft/2 + 1, [f: 0, df, 2df, ...,nfft/2*df] )
+            if (Gxx.length != Gyy.length || Gxx.length != Gxy.length) {  // Something's wrong ...
+                throw new RuntimeException("CoherencePBM Error: Gxx.length != Gyy.length --> Can't continue");
+            }
+         // nf = number of positive frequencies + DC (nf = nfft/2 + 1, [f: 0, df, 2df, ...,nfft/2*df] )
             int nf        = Gxx.length;
             double freq[] = new double[nf];
             double gamma[]= new double[nf];
@@ -199,15 +199,8 @@ System.exit(0);
             }
             averageValue /= (double)nPeriods;
 
-            // Naming for rotated channels:
-            // ---------------------------
-            // LHZ
-            // LHND
-            // LHED
-            // MTH: TODO: If we're using LH1 or LH2 channels, need to rotate these to N/E and create
-            // A named channel = LHND or LHED and pass these (e.g., 00-LHND, 10-LHND) to addResult
-
             metricResult.addResult(channelX, channelY, averageValue, digest);
+
 
 Boolean DEBUG = true;
             if (DEBUG){
@@ -217,6 +210,7 @@ Boolean DEBUG = true;
         }// end foreach channel
 
     } // end process()
+
 
 
     private void plotCoherence(Channel channelX, Channel channelY, double[] period, double[] gamma) {
@@ -275,4 +269,3 @@ Boolean DEBUG = true;
     } // end plotCoherence
 
 } // end class
-

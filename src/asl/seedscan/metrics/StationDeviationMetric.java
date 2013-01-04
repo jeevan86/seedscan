@@ -118,12 +118,11 @@ extends PowerBandMetric
             int nf        = psd.length;
             double freq[] = new double[nf];
 
-         // Fill freq array
+         // Fill freq array & Convert spectrum to dB
             for ( int k = 0; k < nf; k++){
                 freq[k] = (double)k * df;
-                //psd[k]  = 10 * Math.log10(psd[k]);
+                psd[k]  = 10.*Math.log10(psd[k]);
             }
-            //psd[0]  = 0; // Have to reset DC else log10(0) = -Infinity
 
          // Convert psd[f] to psd[T]
          // Reverse freq[] --> per[] where per[0]=shortest T and per[nf-2]=longest T:

@@ -31,6 +31,14 @@ import java.util.Hashtable;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
+import asl.seedsplitter.BlockLocator;
+import asl.seedsplitter.ContiguousBlock;
+import asl.seedsplitter.DataSet;
+import asl.seedsplitter.SeedSplitter;
+import asl.seedsplitter.Sequence;
+import asl.seedsplitter.SequenceRangeException;
+
+
 public abstract class Metric
 {
     private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.Metric");
@@ -84,6 +92,7 @@ public abstract class Metric
             double[] df  = new double[1];            // Dummy array to get params out of computePSD()
             for (int i=0; i<df.length; i++) df[i]=0;
             try {
+System.out.println("== Metric.getCrossPower --> computePSD");
                 psd = computePSD(channelA, channelB, df);
             }
             catch (NullPointerException e) {
@@ -163,25 +172,45 @@ public abstract class Metric
  *
  * Use Peterson's algorithm (24 hrs = 13 segments with 75% overlap, etc.)
  *
+ * From Bendat & Piersol p.328:
+ *  time segment averaging --> reduces the normalized standard error by sqrt (1 / nsegs)
+ *                             and increases the resolution bandwidth to nsegs * df
+ *  frequency smoothing --> has same effect with nsegs replaced by nfrequencies to smooth
+ *  The combination of both will reduce error by sqrt(1 / nfreqs * nsegs)
+ *
  * @param channelX - X-channel used for power-spectral-density computation
  * @param channelY - Y-channel used for power-spectral-density computation
  * @param params[] - Dummy array used to pass df (frequency spacing) back up 
  * 
- * @return psd[f] - Contains smoothed crosspower-spectral density (dB)
+ * @return psd[f] - Contains smoothed crosspower-spectral density
  *                  computed for nf = nfft/2 + 1 frequencies (+ve freqs + DC + Nyq)
  * @author Mike Hagerty
 */
     private final double[] computePSD(Channel channelX, Channel channelY, double[] params) {
 
-        //System.out.format("== Metric.computePSD(channelX=%s, channelY=%s)\n", channelX, channelY);
+        System.out.format("== Metric.computePSD(channelX=%s, channelY=%s)\n", channelX, channelY);
 
         int ndata      = 0;
         double srate   = 0;  // srate = sample frequency, e.g., 20Hz
 
-   // For now I'm just going to assume we have complete datasets (i.e., 1 dataset per day):
+System.out.println("== Metric.computePSD --> getChannelOverlap");
+        double[][] channelOverlap = getChannelOverlap(channelX, channelY);
+        double[]   chanXData = channelOverlap[0];
+        double[]   chanYData = channelOverlap[1];
+// At this point chanXData and chanYData should have the SAME number of (overlapping) points
+
+        ndata = chanXData.length; 
+
+        double srateX = metricData.getChannelData(channelX).get(0).getSampleRate();
+        double srateY = metricData.getChannelData(channelY).get(0).getSampleRate();
+        ChannelMeta chanMetaX = stationMeta.getChanMeta(channelX);
+        ChannelMeta chanMetaY = stationMeta.getChanMeta(channelY);
+
+/**
         ArrayList<DataSet>datasets = metricData.getChannelData(channelX);
         DataSet dataset = datasets.get(0);
         int    ndataX   = dataset.getLength();
+        int ndataX = metricData.getChannelData(channelX).get(0).getLength();
         double srateX   = dataset.getSampleRate();
         int[] intArrayX = dataset.getSeries();
         ChannelMeta chanMetaX = stationMeta.getChanMeta(channelX);
@@ -192,6 +221,7 @@ public abstract class Metric
         double srateY   = dataset.getSampleRate();
         int[] intArrayY = dataset.getSeries();
         ChannelMeta chanMetaY = stationMeta.getChanMeta(channelY);
+**/
 
         if (srateX != srateY) {
             String message = "computePSD() ERROR: srateX (=" + srateX + ") != srateY (=" + srateY + ")";
@@ -199,13 +229,7 @@ public abstract class Metric
         }
         srate = srateX;
 
-        ndata = (ndataX < ndataY) ? ndataX : ndataY;
-/**
-        if (ndataX != ndataY) {
-            String message = "computePSD() ERROR: ndataX (=" + ndataX + ") != ndataY (=" + ndataY + ")";
-            throw new RuntimeException(message);
-        }
-**/
+        //ndata = (ndataX < ndataY) ? ndataX : ndataY;
 
      // Compute PSD for this channel using the following algorithm:
      //   Break up the data (one day) into 13 overlapping segments of 75% 
@@ -242,6 +266,7 @@ public abstract class Metric
         Cmplx[]  xfft = null;
         Cmplx[]  yfft = null;
         double[] psd  = new double[nf];
+        Cmplx[]  psdC = new Cmplx[nf];
         double   wss  = 0.;
 
         int iwin=0;
@@ -249,11 +274,18 @@ public abstract class Metric
         int ilst=nseg_pnts-1;
         int offset = 0;
 
+// Initialize the Cmplx array
+       for(int k = 0; k < nf; k++){
+            psdC[k] = new Cmplx(0., 0.);
+        }
+
         while (ilst < ndata) // ndata needs to come from largest dataset
         {
            for(int k=0; k<nseg_pnts; k++) {     // Load current window
-            xseg[k]=(double)intArrayX[k+offset]; 
-            yseg[k]=(double)intArrayY[k+offset]; 
+            xseg[k] = chanXData[k+offset]; 
+            yseg[k] = chanYData[k+offset]; 
+            //xseg[k]=(double)intArrayX[k+offset]; 
+            //yseg[k]=(double)intArrayY[k+offset]; 
            }
            //Timeseries.timeout(xseg,"xseg");
            Timeseries.detrend(xseg);
@@ -271,8 +303,14 @@ public abstract class Metric
 
         // Load up the 1-sided PSD:
            for(int k = 0; k < nf; k++){
-              //psd[k]= psd[k] + Math.pow(xfft[k].mag(),2);
-                psd[k]= psd[k] + Cmplx.mul(xfft[k], yfft[k].conjg()).mag() ;
+// Follow psd[k] through to see how averaging over magnitude (purely real) looks like
+// Follow psdC[k] through to see how averaging over Re and Im (Gxy(f) = C + iQ) looks like 
+// i.e., psd[k] = psdC[k].mag()
+// When X=Y --> psd == psdC
+
+            // when X=Y, X*Y.conjg is Real and (X*Y.conjg).mag() simply returns the Real part as a double 
+                psd[k] = psd[k] + Cmplx.mul(xfft[k], yfft[k].conjg()).mag() ;
+                psdC[k]= Cmplx.add(psdC[k], Cmplx.mul(xfft[k], yfft[k].conjg()) );
            }
 
            iwin ++;
@@ -281,7 +319,6 @@ public abstract class Metric
            ifst   += noff;
         } //end while
         int nwin = iwin;    // Should have nwin = 13
-
 
      // Divide the summed psd[]'s by the number of windows (=13) AND
      //   Normalize the PSD ala Bendat & Piersol, to units of (time series)^2 / Hz AND
@@ -296,6 +333,7 @@ public abstract class Metric
 
         for(int k = 0; k < nf; k++){
             psd[k]  = psd[k]*psdNormalization;
+            psdC[k]  = Cmplx.mul(psdC[k], psdNormalization);
             freq[k] = (double)k * df;
         }
 
@@ -304,50 +342,181 @@ public abstract class Metric
         Cmplx[]  instrumentResponseY = chanMetaY.getResponse(freq, 3);
 
         double[] responseMag        = new double[nf];
+        Cmplx[] responseMagC        = new Cmplx[nf];
 
      // We're computing the squared magnitude as we did with the FFT above
      //   Start from k=1 to skip DC (k=0) where the response=0
         psd[0]=0; 
         for(int k = 1; k < nf; k++){
-          //responseMag[k]  = Math.pow(instrumentResponse[k].mag(),2);
+
             responseMag[k]  = Cmplx.mul(instrumentResponseX[k], instrumentResponseY[k].conjg()).mag() ;
+            responseMagC[k] = Cmplx.mul(instrumentResponseX[k], instrumentResponseY[k].conjg()) ;
             if (responseMag[k] == 0) {
                 throw new RuntimeException("NLNMDeviation Error: responseMag[k]=0 --> divide by zero!");
             }
             else {   // Divide out (squared)instrument response & Convert to dB:
+                psdC[k] = Cmplx.div(psdC[k], responseMagC[k]);
                 psd[k] = psd[k]/responseMag[k];
-                psd[k] = 10*Math.log10(psd[k]);
+// Can't take log here as it will ruin the Coherence calcs
+                //psd[k] = 10*Math.log10(psd[k]);
             }
         }
 
      // We still have psd[f] so this is a good point to do any smoothing over neighboring frequencies:
         int nsmooth = 11;
+        int nhalf   = 5;
         int nw = nf - nsmooth;
         double[] psdFsmooth = new double[nf];
+        Cmplx[] psdCFsmooth = new Cmplx[nf];
 
-        for (int iw = 0; iw < nw; iw++) {
+        int iw=0;
+
+        for (iw = 0; iw < nhalf; iw++) {
+            psdFsmooth[iw] = psd[iw];
+            psdCFsmooth[iw]= psdC[iw];
+        }
+
+        // iw is really icenter of nsmooth point window
+        for (; iw < nf - nhalf; iw++) {
+            int k1 = iw - nhalf;
+            int k2 = iw + nhalf;
+
             double sum = 0;
-            for (int k =0; k < nsmooth; k++) {
-                sum = sum + psd[k+iw];
+            Cmplx sumC = new Cmplx(0., 0.);
+            for (int k = k1; k < k2; k++) {
+                sum  = sum + psd[k];
+                sumC = Cmplx.add(sumC, psdC[k]);
             }
             psdFsmooth[iw] = sum / (double)nsmooth;
+            psdCFsmooth[iw]= Cmplx.div(sumC, (double)nsmooth);
         }
+
      // Copy the remaining point into the smoothed array
-        for (int iw = nw ; iw < nf; iw++) {
+        for (; iw < nf; iw++) {
             psdFsmooth[iw] = psd[iw];
+            psdCFsmooth[iw]= psdC[iw];
         }
-        //String outFile = channelX.toString() + ".psd.Fsmooth.new";
-        //Timeseries.timeoutXY(freq, psdFsmooth, outFile);
 
      // Copy Frequency smoothed spectrum back into psd[f] and proceed as before
         for ( int k = 0; k < nf; k++){
-            psd[k]  = psdFsmooth[k];
+            //psd[k]  = psdFsmooth[k];
+            psd[k]  = psdCFsmooth[k].mag();
+            //psd[k]  = psdC[k].mag();
         }
         psd[0]=0; // Reset DC
 
         return psd;
 
     } // end computePSD
+
+
+
+    public double[][] getChannelOverlap(Channel channelX, Channel channelY) {
+
+        ArrayList<ArrayList<DataSet>> dataLists = new ArrayList<ArrayList<DataSet>>();
+
+        ArrayList<DataSet> channelXData = metricData.getChannelData(channelX);
+        ArrayList<DataSet> channelYData = metricData.getChannelData(channelY);
+        if (channelXData == null) {
+            System.out.format("== getChannelOverlap: Error --> No DataSets found for Channel=%s\n", channelX);
+        }
+        if (channelYData == null) {
+            System.out.format("== getChannelOverlap: Error --> No DataSets found for Channel=%s\n", channelY);
+        }
+        dataLists.add(channelXData);
+        dataLists.add(channelYData);
+
+/**
+        for (int i = 0; i < dataLists.size(); i++) {
+            System.out.println("ArrayList " + i);
+            ArrayList<DataSet> dataList = dataLists.get(i);
+            for (int j = 0; j < dataList.size(); j++) {
+                DataSet dataSet = dataList.get(j);
+                System.out.println("  DataSet " + j);
+                System.out.println("    " + dataSet.getNetwork() + "_" + dataSet.getStation() + " " + dataSet.getLocation() + "-" + dataSet.getChannel() + "(" + dataSet.getLength() + " data points)");
+                System.out.println("    " + Sequence.timestampToString(dataSet.getStartTime()) + " - " + Sequence.timestampToString(dataSet.getEndTime()));
+            }
+        }
+        System.out.println("Locating contiguous blocks...");
+**/
+
+        ArrayList<ContiguousBlock> blocks = null;
+        BlockLocator locator = new BlockLocator(dataLists);
+        //Thread blockThread = new Thread(locator);
+        //blockThread.start();
+        locator.doInBackground();
+        blocks = locator.getBlocks();
+
+        //System.out.println("Found " + blocks.size() + " Contiguous Blocks");
+
+        ContiguousBlock largestBlock = null;
+        ContiguousBlock lastBlock = null;
+        for (ContiguousBlock block: blocks) {
+            if ((largestBlock == null) || (largestBlock.getRange() < block.getRange())) {
+                largestBlock = block;
+            }
+            if (lastBlock != null) {
+                System.out.println("    Gap: " + ((block.getStartTime() - lastBlock.getEndTime()) / block.getInterval()) + " data points (" + (block.getStartTime() - lastBlock.getEndTime()) + " microseconds)");
+            }
+            //System.out.println("  Time Range: " + Sequence.timestampToString(block.getStartTime()) + " - " + Sequence.timestampToString(block.getEndTime()) + " (" + ((block.getEndTime() - block.getStartTime()) / block.getInterval() + 1) + " data points)");
+            lastBlock = block;
+        }
+        //System.out.println("");
+        //System.out.println("Largest Block:");
+        //System.out.println("  Time Range: " + Sequence.timestampToString(largestBlock.getStartTime()) + " - " + Sequence.timestampToString(largestBlock.getEndTime()) + " (" + ((largestBlock.getEndTime() - largestBlock.getStartTime()) / largestBlock.getInterval() + 1) + " data points)");
+
+        double[][] channels = {null, null};
+        int[] channel = null;
+
+        for (int i = 0; i < 2; i++) {
+            boolean found = false;
+            for (DataSet set: dataLists.get(i)) {
+                if ((!found) && set.containsRange(largestBlock.getStartTime(), largestBlock.getEndTime())) {
+                    try {
+                        System.out.println("  DataSet[" +i+ "]: " + Sequence.timestampToString(set.getStartTime()) + " - " + Sequence.timestampToString(set.getEndTime()) + " (" + ((set.getEndTime() - set.getStartTime()) / set.getInterval() + 1) + " data points)");
+                        channel = set.getSeries(largestBlock.getStartTime(), largestBlock.getEndTime());
+                        channels[i] = intArrayToDoubleArray(channel);
+                    } catch (SequenceRangeException e) {
+                        //System.out.println("SequenceRangeException");
+                        e.printStackTrace();
+                    }
+                    // Add if we decide to clean up memory as we go.
+                    // Might not want to if we wish to allow the user to 
+                    // pick a different block without re-scanning.
+                    found = true;
+                    break;
+                }
+            }
+        }
+
+    // See if we have a problem with the channel data we are about to return:
+        if (channels[0].length == 0 || channels[1].length == 0 || channels[0].length != channels[1].length){
+            System.out.println("== getChannelOverlap: WARNING --> Something has gone wrong!");
+        }
+
+        return channels;
+
+    } // end getChannelOverlap
+
+
+    /**
+     * Converts an array of type int into an array of type double.
+     *
+     * @param   source     The array of int values to be converted.
+     * 
+     * @return  An array of double values.
+     */
+    static double[] intArrayToDoubleArray(int[] source) 
+    {
+        double[] dest = new double[source.length];
+        int length = source.length;
+        for (int i = 0; i < length; i++) {
+            dest[i] = source[i];
+        }
+        return dest;
+    }
+
+
 
 
 }
