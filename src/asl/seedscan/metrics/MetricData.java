@@ -253,7 +253,7 @@ System.out.format("== createRotatedChannels: az1=%f az2=%f azDiff=%f\n", az1, az
         String channelId  = MetricResult.createResultId(id.getChannel());
         logger.fine(String.format(
                     "MetricValueIdentifier --> date=%04d-%02d-%02d (%03d) %02d:%02d:%02d | metricName=%s station=%s channel=%s",
-                    date.get(Calendar.YEAR), date.get(Calendar.MONTH), date.get(Calendar.DAY_OF_MONTH), date.get(Calendar.DAY_OF_YEAR),
+                    date.get(Calendar.YEAR), (date.get(Calendar.MONTH)+1), date.get(Calendar.DAY_OF_MONTH), date.get(Calendar.DAY_OF_YEAR), //Java uses months 0-11 so I added 1 to the returned value
                     date.get(Calendar.HOUR), date.get(Calendar.MINUTE), date.get(Calendar.SECOND),
                     id.getMetricName(), id.getStation(), id.getChannel()
         ));
