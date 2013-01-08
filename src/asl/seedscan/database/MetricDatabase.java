@@ -87,8 +87,8 @@ public class MetricDatabase
     	
         try {
 	        callStatement = connection.prepareCall("SELECT spGetMetricDigest(?, ?, ?, ?)");
-	        java.sql.Date sqlDate = new java.sql.Date(date.getTimeInMillis());
-	        callStatement.setDate(1, sqlDate);
+	        java.sql.Date sqlDate = new java.sql.Date(date.getTime().getTime());
+	        callStatement.setDate(1, sqlDate, date);
 	        callStatement.setString(2, metricName);
 	        callStatement.setString(3, station.getNetwork());
 	        callStatement.setString(4, station.getStation());
@@ -112,8 +112,8 @@ public class MetricDatabase
     	
         try {
 	        callStatement = connection.prepareCall("SELECT spGetMetricValueDigest(?, ?, ?, ?, ?, ?)");
-	        java.sql.Date sqlDate = new java.sql.Date(date.getTimeInMillis());
-	        callStatement.setDate(1, sqlDate);
+	        java.sql.Date sqlDate = new java.sql.Date(date.getTime().getTime());
+	        callStatement.setDate(1, sqlDate, date);
 	        callStatement.setString(2, metricName);
 	        callStatement.setString(3, station.getNetwork());
 	        callStatement.setString(4, station.getStation());
@@ -140,8 +140,8 @@ public class MetricDatabase
     	Double value = null;
         try {
 	        callStatement = connection.prepareCall("SELECT spGetMetricValue(?, ?, ?, ?, ?, ?)");
-	        java.sql.Date sqlDate = new java.sql.Date(date.getTimeInMillis());
-	        callStatement.setDate(1, sqlDate);
+	        java.sql.Date sqlDate = new java.sql.Date(date.getTime().getTime());
+	        callStatement.setDate(1, sqlDate, date);
 	        callStatement.setString(2, metricName);
 	        callStatement.setString(3, station.getNetwork());
 	        callStatement.setString(4, station.getStation());
@@ -166,8 +166,8 @@ public class MetricDatabase
             	ResultSet resultSet = null;
             	Channel channel = MetricResult.createChannel(id);
 	            callStatement = connection.prepareCall("SELECT spInsertMetricData(?, ?, ?, ?, ?, ?, ?, ?)");
-	            java.sql.Date date = new java.sql.Date(results.getDate().getTimeInMillis());
-	            callStatement.setDate(1, date);
+	            java.sql.Date date = new java.sql.Date(results.getDate().getTime().getTime());
+	            callStatement.setDate(1, date, results.getDate());
 	            callStatement.setString(2, results.getMetricName());
 	            callStatement.setString(3, results.getStation().getNetwork());
 	            callStatement.setString(4, results.getStation().getStation());

@@ -1,11 +1,12 @@
+*.png
 *.pyc
 *.swp
 build
 config.xml
 doc
-libs/postgresql-9.1-903.jdbc4.jar
+libs/postgresql*.jdbc4.jar
 logs/*.log
-rdseed.err_log
+rdseed.err_log*
 seedscan.jar
 SeedScan.jar
 seedscan.lock
