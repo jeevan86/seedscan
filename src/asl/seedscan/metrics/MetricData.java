@@ -26,9 +26,16 @@ import asl.metadata.EpochData;
 import asl.metadata.Station;
 import asl.metadata.meta_new.StationMeta;
 import asl.metadata.meta_new.ChannelMeta;
-import asl.seedsplitter.DataSet;
 import asl.security.MemberDigest;
+import asl.seedsplitter.BlockLocator;
+import asl.seedsplitter.ContiguousBlock;
+import asl.seedsplitter.DataSet;
+import asl.seedsplitter.SeedSplitter;
+import asl.seedsplitter.IllegalSampleRateException;
+import asl.seedsplitter.Sequence;
+import asl.seedsplitter.SequenceRangeException;
 import asl.util.Hex;
+
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -72,6 +79,12 @@ public class MetricData
         this.data = data;
     }
 
+    // MTH: Added simple constructor for AvailabilityMetric when there is NO data
+    public MetricData( StationMeta metadata)
+    {
+        this.metadata = metadata;
+    }
+
     public StationMeta getMetaData()
     {
         return metadata;
@@ -93,6 +106,8 @@ public class MetricData
 
     public Boolean hasChannelData(String location, String name)
     {
+        if (data == null) { return false; }
+
         Boolean hasChannel = false;
         String locationName = location + "-" + name;
         Set<String> keys = data.keySet();
@@ -130,94 +145,112 @@ public class MetricData
 /*
  *  Rotate/Create new derived channels: (chan1, chan2) --> (chanN, chanE)
  *  And add these to StationData
+ *  Channels we can derive end in H1,H2 (e.g., LH1,LH2 or HH1,HH2) --> LHND,LHED or HHND,HHED
+ *                             or N1,N2 (e.g., LN1,LN2 or HN1,HN2) --> LNND,LNED or HNND,HNED
  */
-    public void createRotatedChannelData(Channel derivedChannel)
+    public void createRotatedChannelData(String location, String channelPrefix)
     {
-        if (derivedChannel.getChannel().contains("HND") || derivedChannel.getChannel().contains("HED")) {
-            // These are channels we know how to rotate, so continue
-        }
-        else {
-            // Unknown channel reqeuested ?
-            System.out.format("== createRotatedChannelData: Error -- Don't know how to make channel=[%s]\n", derivedChannel);
-            return;
-        }
+    // channelPrefix = 'LH' or 'HN'. Use this to make horizontal channels 1,2:
 
-    // Use the channelBand to decide which horizontal channels to use for rotation
-        String location    = derivedChannel.getLocation();
-        String channelBand = derivedChannel.getChannel().substring(0,1); // e.g., "L", "B", etc.
-        Channel channel1 = new Channel(location, String.format("%sH1", channelBand) );
-        Channel channel2 = new Channel(location, String.format("%sH2", channelBand) );
+    // Raw horizontal channels used for rotation
+        Channel channel1 = new Channel(location, String.format("%s1", channelPrefix) );
+        Channel channel2 = new Channel(location, String.format("%s2", channelPrefix) );
 
         if (hasChannelData(channel1)==false || hasChannelData(channel2)==false){
-            System.out.format("== createRotatedChannelData: Error -- Request for rotated channel=[%s] "
-            + "but can't find data for channel1=[%s] and/or channel2=[%s]\n",derivedChannel, channel1, channel2);
+            System.out.format("== createRotatedChannelData: Error -- Unable to find data "
+            + "for channel1=[%s] and/or channel2=[%s] --> Unable to Rotate!\n",channel1, channel2);
             return;
         }
-    // The (new) derived channels (e.g., 00-LHND,00-LHED -or- 10-BHND,10-BHED, etc.)
-        Channel channelN = new Channel(location, channel1.getChannel().replace("H1", "HND") );
-        Channel channelE = new Channel(location, channel1.getChannel().replace("H1", "HED") );
 
-    // We have data for channel 1 and channel 2.  At this point we *should* limit the rotation to
-    //   time periods where the channels both have data (i.e., the ContiguousBlocks) ...
+    // Rotated (=derived) channels (e.g., 00-LHND,00-LHED -or- 10-BHND,10-BHED, etc.)
+        Channel channelN = new Channel(location, String.format("%sND", channelPrefix) );
+        Channel channelE = new Channel(location, String.format("%sED", channelPrefix) );
 
-        ArrayList<DataSet>datasets1 = getChannelData(channel1);
-        ArrayList<DataSet>datasets2 = getChannelData(channel2);
-        //for (DataSet dataset : datasets1) {
-        //} 
-        DataSet dataset1 = datasets1.get(0);
-        DataSet dataset2 = datasets2.get(0);
-        int    ndata1    = dataset1.getLength();
-        int    ndata2    = dataset2.getLength();
+    // Get overlapping data for 2 horizontal channels and confirm equal sample rate, etc.
+        long[] foo = new long[1];
+        double[][] channelOverlap = getChannelOverlap(channel1, channel2, foo);
+    // The startTime of the largest overlapping segment
+        long startTime = foo[0]; 
 
-        if (ndata1 != ndata2) {
-            System.out.format("== MetricData.createRotatedChannels: chan1 ndata=%d BUT chan2 ndata=%d\n", ndata1, ndata2);
-        }
-        int ndata = ndata1;
-        
-        double srate1   = dataset1.getSampleRate();
-        double srate2   = dataset2.getSampleRate();
+        double[]   chan1Data = channelOverlap[0];
+        double[]   chan2Data = channelOverlap[1];
+    // At this point chan1Data and chan2Data should have the SAME number of (overlapping) points
+
+        int ndata = chan1Data.length;
+
+        double srate1 = getChannelData(channel1).get(0).getSampleRate();
+        double srate2 = getChannelData(channel2).get(0).getSampleRate();
         if (srate1 != srate2) {
-            System.out.format("== MetricData.createRotatedChannels: chan1 srate=%f BUT chan2 srate=%f\n", srate1, srate2);
-            return;
+            throw new RuntimeException("MetricData.createRotatedChannels(): Error: srate1 != srate2 !!");
         }
 
-        int[] intArray1 = dataset1.getSeries();
-        int[] intArray2 = dataset2.getSeries();
+        double[]   chanNData = new double[ndata];
+        double[]   chanEData = new double[ndata];
 
-        int[] intArrayN = new int[ndata];
-        int[] intArrayE = new int[ndata];
-
-        double[] chN = new double[ndata];
-        double[] chE = new double[ndata];
-
-    // az1 = azimuth of the H1 channel/vector.  az2 = azimuth of the H2 channel/vector
-    // Find the smallest (<= 180) angle between them --> This *should* be 90 (=orthogonal channels)
+    // INITIALLY: Lets assume the horizontal channels are PERPENDICULAR and use a single azimuth to rotate
+    //  We'll check the azimuths and flip signs to put channel1 to +N half and channel 2 to +E
         double az1 = (metadata.getChanMeta( channel1 )).getAzimuth(); 
         double az2 = (metadata.getChanMeta( channel2 )).getAzimuth(); 
+
+        int quadrant=0;
+        double  azimuth=-999;
+        int sign1 = 1;
+        int sign2 = 1;
+        if (az1 >= 0 && az1 < 90) {
+            quadrant = 1;
+            azimuth  = az1;
+        }
+        else if (az1 >= 90 && az1 < 180) {
+            quadrant = 2;
+            azimuth  = az1 - 180;
+            sign1    =-1;
+        }
+        else if (az1 >= 180 && az1 < 270) {
+            quadrant = 3;
+            azimuth  = az1 - 180;
+            sign1    =-1;
+        }
+        else if (az1 >= 270 && az1 < 360) {
+            quadrant = 4;
+            azimuth  = az1 - 360;
+        }
+        else { // ?? 
+            System.out.format("== OOPS: MetricData.createRotatedChannels(): Don't know how to rotate az1=%f\n", az1);
+        }
+
+        sign2 = 1;
+        if (az2 >= 0 && az2 < 180) {
+            sign2    = 1;
+        }
+        else if (az2 >= 180 && az2 < 360) {
+            sign2    =-1;
+        }
+        else { // ?? 
+            System.out.format("== OOPS: MetricData.createRotatedChannels(): Don't know how to rotate az2=%f\n", az2);
+        }
+
+        System.out.format("== MetricData.createRotatedChannels(): az1=%f --> azimuth=%f az2=%f"
+                        + "Quadrant=%d (sign1=%d, sign2=%d)\n", az1, azimuth, az2, quadrant, sign1, sign2);
+
+        double cosAz   = Math.cos( azimuth * Math.PI/180 );
+        double sinAz   = Math.sin( azimuth * Math.PI/180 );
+
+        for (int i=0; i<ndata; i++){
+            chanNData[i] = sign1 * chan1Data[i] * cosAz - sign2 * chan2Data[i] * sinAz;
+            chanEData[i] = sign1 * chan1Data[i] * sinAz + sign2 * chan2Data[i] * cosAz;
+        }
+
+/**
+    // az1 = azimuth of the H1 channel/vector.  az2 = azimuth of the H2 channel/vector
+    // Find the smallest (<= 180) angle between them --> This *should* be 90 (=orthogonal channels)
         double azDiff = Math.abs(az1 - az2);
         if (azDiff > 180) azDiff = Math.abs(az1 - az2 - 360);
-
-System.out.format("== createRotatedChannels: az1=%f az2=%f azDiff=%f\n", az1, az2, azDiff);
 
         if ( Math.abs( azDiff - 90. ) > 0.2 ) {
             System.out.format("== createRotatedChannels: channels are NOT perpendicular! az1-az2 = %f\n",
                                Math.abs(az1 - az2) );
         }
-
-// Convert azimuths to radians
-        az1 = az1 * Math.PI/180.;
-        az2 = az2 * Math.PI/180.;
-
-// This should work even if the 2 channels are not perpendicular
-// If the channels are perpendicular then az2 = 90 - az1 and the normal 2D rotation matrix follows
-//  We should really be checking for and only using
-//     ContiguousBlocks!!
-        for (int i=0; i<ndata; i++){
-            chN[i] = (double)intArray1[i] * Math.cos( az1 ) + (double)intArray2[i] * Math.cos( az2 );
-            chE[i] = (double)intArray1[i] * Math.sin( az1 ) + (double)intArray2[i] * Math.sin( az2 );
-            //intArrayN[i] = intArray1[i] * Math.cos( az1 ) + intArray2[i] * Math.cos( az2 );
-            //intArrayE[i] = intArray1[i] * Math.sin( az1 ) + intArray2[i] * Math.sin( az2 );
-        }
+**/
 
 // Here we need to convert the Series intArray[] into a DataSet with header, etc ...
 
@@ -226,23 +259,186 @@ System.out.format("== createRotatedChannels: az1=%f az2=%f azDiff=%f\n", az1, az
         String northKey = null;
         String eastKey  = null;
 
+        // keys look like "IU_ANMO 00-BH1 (20.0 Hz)"
+        //             or "IU_ANMO 10-BH1 (20.0 Hz)"
+        String lookupString = location + "-" + channelPrefix + "1";  // e.g., "10-BH1"
+        String northString  = location + "-" + channelPrefix + "ND"; // e.g., "10-BHND"
+        String eastString   = location + "-" + channelPrefix + "ED"; // e.g., "10-BHED"
+
         Set<String> keys = data.keySet();
-        for (String key : keys){          // key looks like "IU_ANMO 00-BHZ (20.0 Hz)"
-           //if (key.contains(locationName) ){
-           if (key.contains(channel1.getChannel()) ){
-                northKey = key.replaceAll("H1", "HND");
-                eastKey  = key.replaceAll("H1", "HED");
+        for (String key : keys){   
+           if (key.contains(lookupString)) { // "LH1" --> "LHND" and "LHED"
+                northKey = key.replaceAll(lookupString, northString);
+                eastKey  = key.replaceAll(lookupString, eastString);
            }
         }
-        System.out.format(" northKey=[%s] eastKey=[%s]\n", northKey, eastKey);
+        System.out.format("== MetricData.createRotatedChannels(): channel1=%s, channelPrefex=%s\n", channel1, channelPrefix);
+        System.out.format("== MetricData.createRotatedChannels(): northKey=[%s] eastKey=[%s]\n", northKey, eastKey);
 
-// Use the new keys to add the new ChannelData to the Hashtable ...
-/**
-        say northArrayList = ArrayList<DataSet> ...
-        data.put(northKey, northArrayList);
-**/
+        DataSet ch1Temp = getChannelData(channel1).get(0);
+        String network  = ch1Temp.getNetwork();
+        String station  = ch1Temp.getStation();
+        //String location = ch1Temp.getLocation();
+
+        DataSet northDataSet = new DataSet();
+        northDataSet.setNetwork(network);
+        northDataSet.setStation(station);
+        northDataSet.setLocation(location);
+        northDataSet.setChannel(channelN.getChannel());
+        northDataSet.setStartTime(startTime);
+        try {
+            northDataSet.setSampleRate(srate1);
+        } catch (IllegalSampleRateException e) {
+            logger.finer(String.format("MetricData.createRotatedChannels(): Invalid Sample Rate = %f", srate1) );
+        }
+
+        int[] intArray = new int[ndata];
+        for (int i=0; i<ndata; i++){
+            intArray[i] = (int)chanNData[i];
+        }
+        northDataSet.extend(intArray, 0, ndata);
+
+        ArrayList<DataSet> dataList = new ArrayList<DataSet>();
+        dataList.add(northDataSet);
+        data.put(northKey, dataList);
+
+
+    // Try to get it back
+        DataSet tmp = getChannelData(channelN).get(0);
+        System.out.format("== Got %s_%s %s-%s nsamps=%d nBlocks=%d\n", tmp.getNetwork(), tmp.getStation(), 
+                           tmp.getLocation(), tmp.getChannel(), tmp.getLength() , tmp.getBlockCount() );
+
+        DataSet eastDataSet = new DataSet();
+        eastDataSet.setNetwork(network);
+        eastDataSet.setStation(station);
+        eastDataSet.setLocation(location);
+        eastDataSet.setChannel(channelE.getChannel());
+        eastDataSet.setStartTime(startTime);
+        try {
+            eastDataSet.setSampleRate(srate1);
+        } catch (IllegalSampleRateException e) {
+            logger.finer(String.format("MetricData.createRotatedChannels(): Invalid Sample Rate = %f", srate1) );
+        }
+
+        for (int i=0; i<ndata; i++){
+            intArray[i] = (int)chanEData[i];
+        }
+        eastDataSet.extend(intArray, 0, ndata);
+
+        dataList = new ArrayList<DataSet>();
+        dataList.add(eastDataSet);
+        data.put(eastKey, dataList);
+
+        tmp = getChannelData(channelE).get(0);
+        System.out.format("== Got %s_%s %s-%s nsamps=%d nBlocks=%d\n", tmp.getNetwork(), tmp.getStation(), 
+                           tmp.getLocation(), tmp.getChannel(), tmp.getLength() , tmp.getBlockCount() );
 
     } // end createRotatedChannels()
+
+
+    public double[][] getChannelOverlap(Channel channelX, Channel channelY) {
+        // Dummy var to hold startTime of overlap
+        // Call the 3 param version below if you want the startTime back
+        long[] foo = new long[1];
+        return getChannelOverlap(channelX, channelY, foo);
+    }
+
+/**
+ *  getChannelOverlap - find the overlapping samples between 2+ channels
+ *
+ */
+    public double[][] getChannelOverlap(Channel channelX, Channel channelY, long[] startTime) {
+
+        ArrayList<ArrayList<DataSet>> dataLists = new ArrayList<ArrayList<DataSet>>();
+
+        ArrayList<DataSet> channelXData = getChannelData(channelX);
+        ArrayList<DataSet> channelYData = getChannelData(channelY);
+        if (channelXData == null) {
+            System.out.format("== getChannelOverlap: Error --> No DataSets found for Channel=%s\n", channelX);
+        }
+        if (channelYData == null) {
+            System.out.format("== getChannelOverlap: Error --> No DataSets found for Channel=%s\n", channelY);
+        }
+        dataLists.add(channelXData);
+        dataLists.add(channelYData);
+
+        //System.out.println("Locating contiguous blocks...");
+
+        ArrayList<ContiguousBlock> blocks = null;
+        BlockLocator locator = new BlockLocator(dataLists);
+        //Thread blockThread = new Thread(locator);
+        //blockThread.start();
+        locator.doInBackground();
+        blocks = locator.getBlocks();
+
+        //System.out.println("Found " + blocks.size() + " Contiguous Blocks");
+
+        ContiguousBlock largestBlock = null;
+        ContiguousBlock lastBlock = null;
+        for (ContiguousBlock block: blocks) {
+            if ((largestBlock == null) || (largestBlock.getRange() < block.getRange())) {
+                largestBlock = block;
+            }
+            if (lastBlock != null) {
+                System.out.println("    Gap: " + ((block.getStartTime() - lastBlock.getEndTime()) / block.getInterval()) + " data points (" + (block.getStartTime() - lastBlock.getEndTime()) + " microseconds)");
+            }
+            //System.out.println("  Time Range: " + Sequence.timestampToString(block.getStartTime()) + " - " + Sequence.timestampToString(block.getEndTime()) + " (" + ((block.getEndTime() - block.getStartTime()) / block.getInterval() + 1) + " data points)");
+            lastBlock = block;
+        }
+        //System.out.println("");
+        //System.out.println("Largest Block:");
+        //System.out.println("  Time Range: " + Sequence.timestampToString(largestBlock.getStartTime()) + " - " + Sequence.timestampToString(largestBlock.getEndTime()) + " (" + ((largestBlock.getEndTime() - largestBlock.getStartTime()) / largestBlock.getInterval() + 1) + " data points)");
+
+        double[][] channels = {null, null};
+        int[] channel = null;
+
+        for (int i = 0; i < 2; i++) {
+            boolean found = false;
+            for (DataSet set: dataLists.get(i)) {
+                if ((!found) && set.containsRange(largestBlock.getStartTime(), largestBlock.getEndTime())) {
+                    try {
+                        System.out.println("  DataSet[" +i+ "]: " + Sequence.timestampToString(set.getStartTime()) + " - " + Sequence.timestampToString(set.getEndTime()) + " (" + ((set.getEndTime() - set.getStartTime()) / set.getInterval() + 1) + " data points)");
+                        channel = set.getSeries(largestBlock.getStartTime(), largestBlock.getEndTime());
+                        channels[i] = intArrayToDoubleArray(channel);
+                    } catch (SequenceRangeException e) {
+                        //System.out.println("SequenceRangeException");
+                        e.printStackTrace();
+                    }
+                    found = true;
+                    break;
+                }
+            }
+        }
+
+    // See if we have a problem with the channel data we are about to return:
+        if (channels[0].length == 0 || channels[1].length == 0 || channels[0].length != channels[1].length){
+            System.out.println("== getChannelOverlap: WARNING --> Something has gone wrong!");
+        }
+
+    // MTH: hack to return the startTime of the overlapping length of data points
+        startTime[0] = largestBlock.getStartTime();
+
+        return channels;
+
+    } // end getChannelOverlap
+
+
+    /**
+     * Converts an array of type int into an array of type double.
+     *
+     * @param   source     The array of int values to be converted.
+     * 
+     * @return  An array of double values.
+     */
+    static double[] intArrayToDoubleArray(int[] source) 
+    {
+        double[] dest = new double[source.length];
+        int length = source.length;
+        for (int i = 0; i < length; i++) {
+            dest[i] = source[i];
+        }
+        return dest;
+    }
 
 
     public ByteBuffer valueDigestChanged(Channel channel, MetricValueIdentifier id)
@@ -259,12 +455,15 @@ System.out.format("== createRotatedChannels: az1=%f az2=%f azDiff=%f\n", az1, az
         String channelId  = MetricResult.createResultId(id.getChannel());
         logger.fine(String.format(
                     "MetricValueIdentifier --> date=%04d-%02d-%02d (%03d) %02d:%02d:%02d | metricName=%s station=%s channel=%s",
-                    date.get(Calendar.YEAR), (date.get(Calendar.MONTH)+1), date.get(Calendar.DAY_OF_MONTH), date.get(Calendar.DAY_OF_YEAR), //Java uses months 0-11 so I added 1 to the returned value
+                    date.get(Calendar.YEAR), (date.get(Calendar.MONTH)+1), date.get(Calendar.DAY_OF_MONTH), date.get(Calendar.DAY_OF_YEAR), 
                     date.get(Calendar.HOUR), date.get(Calendar.MINUTE), date.get(Calendar.SECOND),
                     id.getMetricName(), id.getStation(), id.getChannel()
         ));
 
-    // Make sure we have metadata + data for all channels of channelArray before attempting to compute the digest
+// Try to compute the digest for the metadata + data channels in this array.
+// Compute derived (e.g., rotated) channels if necessary.
+// We must AT LEAST have the metadata to compute a digest, else return digest=null (so the Metric won't continue)
+// e.g., we can still "compute" an AvailabilityMetric=0 when we have metadata but no data
 
         if (!metadata.hasChannels(channelArray)) { 
         // See if channelArray contains rotated-derived channels (e.g., "00-LHND") and if so,
@@ -272,23 +471,23 @@ System.out.format("== createRotatedChannels: az1=%f az2=%f azDiff=%f\n", az1, az
             checkForRotatedChannels(channelArray);
         }
 
+        // Check again for metadata. If we still don't have it (e.g., we weren't able to rotate) --> return null digest
         if (!metadata.hasChannels(channelArray)) { 
-        // if we were unable to do the rotations then fail out ...
-            System.out.format("MetricData.valueDigestChanged() Error: We don't have metadata to compute digest for this channelArray\n");
+            System.out.format("MetricData.valueDigestChanged(): We don't have metadata to compute the digest for this channelArray "
+                              + " --> return null digest\n");
             return null;
         }
 
-        if (!hasChannelArrayData(channelArray)) { 
-                System.out.format("MetricData.valueDigestChanged() Error: We don't have data to compute digest for this channelArray\n");
-                return null;
-        }
-        
         ByteBuffer newDigest = getHash(channelArray);
         if (newDigest == null) {
             logger.warning("New digest is null!");
         }
 
-        if (metricReader.isConnected()) {
+        if (metricReader == null) { // This could be the case if we are computing AvailabilityMetric and there is no data
+            return newDigest;
+        }
+
+        if (metricReader.isConnected()) {   // Retrieve old Digest from Database and compare to new Digest
             System.out.println("=== MetricData.metricReader *IS* connected");
             ByteBuffer oldDigest = metricReader.getMetricValueDigest(id);
             if (oldDigest == null) {
@@ -331,13 +530,21 @@ System.out.format("== createRotatedChannels: az1=%f az2=%f azDiff=%f\n", az1, az
                 digests.add(chanMeta.getDigestBytes());
             }
 
-            ArrayList<DataSet>datasets = getChannelData(channel);
-            if (datasets == null){
-                System.out.format("MetricData.getHash() Error: Data not found for requested channel:%s\n",channel);
-                return null;
+            if (!hasChannelData(channel))  {
+                   // Go ahead and pass back the digests for the metadata alone
             }
-            else {
-                digests.add(datasets.get(0).getDigestBytes());
+            else { // Add in the data digests
+                ArrayList<DataSet>datasets = getChannelData(channel);
+                if (datasets == null){
+                    System.out.format("MetricData.getHash() Error: Data not found for requested channel:%s\n",channel);
+                    return null;
+                }
+                else {
+                    for (int i=0; i<datasets.size(); i++) {
+                        //digests.add(datasets.get(0).getDigestBytes());
+                        digests.add(datasets.get(i).getDigestBytes());
+                    }
+                }
             }
         }
 
@@ -356,24 +563,40 @@ System.out.format("== createRotatedChannels: az1=%f az2=%f azDiff=%f\n", az1, az
     }
 
 /**
- *  We've been handed a channelArray -- We want to go through it and see if any of the channels
- *  are rotated-derived channels (e.g., "00-LHND").  If so, then see if we have metadata for
- *  them -- if not, try to make it
+ *  We've been handed a channelArray for which valueDigestChanged() was unable to find metadata.
+ *  We want to go through the channels and see if any are rotated-derived channels (e.g., "00-LHND").  
+ *  If so, then try to create the rotated channel data + metadata
  */
     public void checkForRotatedChannels(ChannelArray channelArray)
     {
         ArrayList<Channel> channels = channelArray.getChannels();
         for (Channel channel : channels){
             System.out.format("== checkForRotatedChannels: request channel=%s\n", channel);
-            if (channel.getChannel().contains("HND") || channel.getChannel().contains("HED")) {
-                System.out.format("== checkForRotatedChannels: Request for rotated-derived channel=%s\n", channel);
-                metadata.addRotatedChannel(channel);
-                createRotatedChannelData(channel);
+
+        // channelPrefix = channel band + instrument code  e.g., 'L' + 'H' = "LH"
+            String channelPrefix = null;
+            if (channel.getChannel().contains("ND") ) {
+                channelPrefix = channel.getChannel().replace("ND","");
+            }
+            else if (channel.getChannel().contains("ED") ) {
+                channelPrefix = channel.getChannel().replace("ED","");
             }
             else {
                 System.out.format("== checkForRotatedChannels: Request for UNKNOWN channel=%s\n", channel);
+                return;
+            }
+
+        // Check here since each derived channel (e.g., "00-LHND") will cause us to generate
+        //  Rotated channel *pairs* ("00-LHND" AND "00-LHED") so we don't need to repeat it
+            if (!metadata.hasChannel(channel)) { 
+                metadata.addRotatedChannelMeta(channel.getLocation(), channelPrefix);
+            }
+            if (!hasChannelData(channel)) { 
+System.out.format("== channel=[%s] --> channelPrefix=[%s] --> createRotatedChannelData\n", channel, channelPrefix);
+                createRotatedChannelData(channel.getLocation(), channelPrefix);
             }
         }
     }
+
 
 }

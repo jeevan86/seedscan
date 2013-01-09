@@ -46,6 +46,7 @@ extends Metric
         return "AvailabilityMetric";
     }
 
+
     public void process()
     {
         System.out.format("\n              [ == Metric %s == ]\n", getName() ); 
@@ -58,39 +59,40 @@ extends Metric
 
         for (Channel channel : channels){
 
-/**
-            if (getForceUpdate()) {
-                digest = metricData.getHash(channel);
-            }
-            else {
-                digest = metricData.valueDigestChanged(channel, createIdentifier(channel));
-            }
-**/
-
          // Check to see that we have data + metadata & see if the digest has changed wrt the database:
 
+            double availability = 0;
             ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel));
             logger.fine(String.format("%s: digest=%s\n", getName(), (digest == null) ? "null" : Hex.byteArrayToHexString(digest.array())));
 
+        // digest could be null because it hasn't changed OR because we don't have metadata for this channel
             if (digest == null) { 
                 System.out.format("%s INFO: Data and metadata have NOT changed for this channel:%s --> Skipping\n"
-                                  ,getName(), channel);
+                                ,getName(), channel);
                 continue;
             }
 
-         // If we're here, it means we need to (re)compute the metric for this channel:
+        // If we're here then we DO have metadata but still we might not have data for the channel
+        //                                             in which case we'll report availability = 0
+            if (!metricData.hasChannelData(channel)) {
+                System.out.format("== AvailabilityMetric: We DONT! have data for channel=%s "
+                + " return Availability=0\n", channel);
+            }
+            else {     // If we're here, it means we need to (re)compute the metric for this channel:
 
-            ChannelMeta chanMeta = stationMeta.getChanMeta(channel);
-            ArrayList<DataSet>datasets = metricData.getChannelData(channel);
+                ChannelMeta chanMeta = stationMeta.getChanMeta(channel);
+                ArrayList<DataSet>datasets = metricData.getChannelData(channel);
 
-            int ndata    = 0;
+                int ndata    = 0;
 
-            for (DataSet dataset : datasets) {
-                ndata   += dataset.getLength();
-            } // end for each dataset
+                for (DataSet dataset : datasets) {
+                    ndata   += dataset.getLength();
+                } // end for each dataset
 
-            int expectedPoints  = (int)chanMeta.getSampleRate() * 24 * 60 * 60; 
-            double availability = 100 * ndata/expectedPoints;
+                int expectedPoints  = (int)chanMeta.getSampleRate() * 24 * 60 * 60; 
+                availability = 100 * ndata/expectedPoints;
+    
+            } // else compute the metric
 
             metricResult.addResult(channel, availability, digest);
 

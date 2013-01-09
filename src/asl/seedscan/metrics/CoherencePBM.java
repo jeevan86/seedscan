@@ -86,7 +86,7 @@ extends PowerBandMetric
 
         //for (Channel channel : channels){
         // Dummy loop
-        for (int i=0; i < 1; i++) {
+        for (int i=2; i < 3; i++) {
             Channel channelX = null;
             Channel channelY = null;
 
@@ -101,6 +101,8 @@ extends PowerBandMetric
             else if (i==2) {
                 channelX = new Channel("00", "LHED");
                 channelY = new Channel("10", "LHED");
+                //channelX = new Channel("20", "HNED");
+                //channelY = new Channel("10", "LHED");
             }
 
             ChannelArray channelArray = new ChannelArray(channelX, channelY);

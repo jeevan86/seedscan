@@ -172,53 +172,52 @@ public class StationMeta
     }
 
 /**
- *  If we're here, then MetricData.valueDigestChanged() must've been handed a derived
- *   channel (e.g., 00-LHND or 10-BHED) that we do not yet have metadata for --> make it
+ *  Not sure yet if we need this to drive addRotatedChannel below 
+ *  e.g., if we need to rotate 2 channels at one time
  */
-    public void addRotatedChannel(Channel derivedChannel) {
+    public void addRotatedChannelMeta(String location, String channelPrefix) {  
+        String northChannelName = channelPrefix + "ND"; 
+        String eastChannelName  = channelPrefix + "ED";
+        addRotatedChannel(location, northChannelName);
+        addRotatedChannel(location,  eastChannelName);
+    }
 
-        if (derivedChannel.getChannel().contains("HND") || derivedChannel.getChannel().contains("HED")) {
-            // These are channels we know how to rotate
+
+    public void addRotatedChannel(String location, String derivedChannelName) {
+
+        String origChannelName = null;
+        double azimuth;
+
+        if (derivedChannelName.contains("ND") ) {                     // Derived     Orig
+            origChannelName = derivedChannelName.replace("ND", "1");   // "LHND" --> "LH1"
+            azimuth = 0.;   // NORTH
+        }
+        else if (derivedChannelName.contains("ED") ) {                // Derived     Orig
+            origChannelName = derivedChannelName.replace("ED", "2");   // "LHED" --> "LH2"
+            azimuth = 90.;  // EAST
         }
         else {
-            // Unknown channel ?
-            System.out.format("== addRotatedChannel: Error -- Don't know how to make channel=[%s]\n", derivedChannel);
-            return;
-        }
-        String location    = derivedChannel.getLocation();
-        String channelBand = derivedChannel.getChannel().substring(0,1);
-        String chan1 = String.format("%sH1", channelBand);
-        String chan2 = String.format("%sH2", channelBand);
-
-    // Use the channelBand to decide which horizontal channels to use for rotation
-        Channel channel1 = new Channel(location, chan1); 
-        Channel channel2 = new Channel(location, chan2); 
-
-        if (hasChannel(channel1)==false || hasChannel(channel2)==false){
-            System.out.format("== addRotatedChannel: Error -- Request for rotated channel=[%s] but can't find chan1=[%s] and/or chan2=[%s]\n",
-                               derivedChannel, channel1, channel2);
+            System.out.format("== addRotatedChannel: Error -- Don't know how to make channel=[%s]\n", derivedChannelName);
             return;
         }
 
-        Channel channelN = new Channel(location, channel1.getChannel().replace("H1", "HND") );
-        Channel channelE = new Channel(location, channel1.getChannel().replace("H1", "HED") );
+        Channel origChannel    = new Channel(location, origChannelName);
+        Channel derivedChannel = new Channel(location, derivedChannelName);
 
-System.out.format("== addRotatedChannels: channelN=%s & channelE=%s\n", channelN, channelE);
+        if (hasChannel(origChannel)==false){
+            System.out.format("== addRotatedChannel: Error -- Request for rotated channel=[%s] but can't find "
+                            + "origChannel=[%s] to make it from\n", derivedChannel, origChannel);
+            return;
+        }
+            
+        // Deep copy the orig chanMeta to the derived chanMeta and set the derived chanMeta azimuth
+        ChannelMeta derivedChannelMeta = (getChanMeta(origChannel)).copy(derivedChannel);
+        derivedChannelMeta.setAzimuth(azimuth);
+        this.addChannel( new ChannelKey(derivedChannel), derivedChannelMeta);
 
-        // Deep copy the ?H1 chanMeta to ?HND and set the azimuth to 0 == NORTH
-        ChannelMeta chanMeta1 = getChanMeta(channel1);
-        ChannelMeta chanMetaN = chanMeta1.copy(channelN);
-        chanMetaN.setAzimuth(0.0);
+        //getChanMeta(origChannel).print();
+        //derivedChannelMeta.print();
 
-        // Deep copy the ?H1 chanMeta to ?HED and set the azimuth to 90 == EAST
-        ChannelMeta chanMetaE = chanMeta1.copy(channelE);
-        chanMetaE.setAzimuth(90.0);
-
-        this.addChannel( new ChannelKey(channelN), chanMetaN);
-        this.addChannel( new ChannelKey(channelE), chanMetaE);
-
-        chanMetaN.print();
-        chanMetaE.print();
     }
 
 

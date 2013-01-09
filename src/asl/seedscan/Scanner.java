@@ -123,14 +123,53 @@ public class Scanner
             ArchivePath pathEngine = new ArchivePath(timestamp, station);
             String path = pathEngine.makePath(scan.getPathPattern());
             File dir = new File(path);
+            Boolean dataExists = true;
             if (!dir.exists()) {
                 logger.info("Path '" +dir+ "' does not exist.");
-                continue;
+                dataExists = false;
             }
             else if (!dir.isDirectory()) {
                 logger.info("Path '" +dir+ "' is not a directory.");
-                continue;
+                dataExists = false;
             }
+
+            if (!dataExists) {  // Found no data for this station + day
+                // See if the scan asks for the data AvailabilityMetric
+                String metricName = null;
+                for (MetricWrapper wrapper: scan.getMetrics()) {
+                    Metric metric = wrapper.getNewInstance();
+                    if (metric.getClass().getName().contains("AvailabilityMetric")){
+                        metricName = metric.getClass().getName();
+                        metric.setData( new MetricData(stnMeta) );
+                        metric.process();
+                        MetricResult results = metric.getMetricResult();
+
+                        if (results == null){
+                        }
+                        else {
+                            for (String id: results.getIdSet()) {
+                                double value = results.getResult(id);
+                                System.out.format("  %s : %.2f\n", id, value);
+                            }
+                            if (injector.isConnected()) {
+                                try {
+                                    injector.inject(results);
+                                } catch (InterruptedException ex) {
+                                    logger.warning(String.format("Interrupted while trying to inject metric [%s]", metric.toString()));
+                                }
+                            }
+                            else {
+                                System.out.println("== Scanner: injector *IS NOT* connected --> Don't inject");
+                            }
+                        }
+
+                        break;
+                    }
+                } 
+                continue; // Go to next day and see if we have data for it
+
+            } // end if (No Data for this station + day)
+
 
 /** MTH: There are some non-seed files (e.g., data_avail.txt) included in files[].
  **      For some reason the file netday.index causes the splitter to hang.
@@ -159,12 +198,6 @@ public class Scanner
 
             SeedSplitter splitter = new SeedSplitter(files, progressQueue);
             table = splitter.doInBackground();
-
-            //String DigestStrings[] = splitter.getDigests();
-            //System.out.format("==Scanner: got %d digestString(s)\n", DigestStrings.length );
-            //for (String digestString : DigestStrings) {
-              //System.out.format("==Scanner: digestString=%s\n", digestString );
-            //}
 
             Runtime runtime = Runtime.getRuntime();
             System.out.println(" Java total memory=" + runtime.totalMemory() );

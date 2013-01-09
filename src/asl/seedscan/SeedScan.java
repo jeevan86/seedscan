@@ -329,7 +329,7 @@ System.out.println(" Java total memory=" + runtime.totalMemory() );
 
 // Set getStationList = false if you want to manually control the StationList below ...
         Boolean getStationList = true;
-        //getStationList = false;
+        getStationList = false;
         ArrayList<Station> stations;
 
     if (getStationList){
@@ -341,7 +341,6 @@ System.out.println(" Java total memory=" + runtime.totalMemory() );
         stations = new ArrayList<Station>();
         //ArrayList<Station> stations = new ArrayList<Station>();
         //stations.add( new Station("IC","MDJ") );
-        stations.add( new Station("IU","ANMO") );
         //stations.add( new Station("IC","BJT") );
         //Adam suggest I use these stations for testing
         //stations.add( new Station("IU","WAKE") );
@@ -349,17 +348,18 @@ System.out.println(" Java total memory=" + runtime.totalMemory() );
         //stations.add( new Station("IU","MAJO") );
         //stations.add( new Station("IU","KEV") ); //KEV gives an divide by 0 error when included
         //stations.add( new Station("IU","KIP" ) );
-        //stations.add( new Station("IU","ANTO") );
+        stations.add( new Station("IU","ANTO") );
         //stations.add( new Station("IU","DWPF") );
         //stations.add( new Station("IU","PMSA") );
-        //stations.add( new Station("IU","OTAV" ) );
+        stations.add( new Station("IU","OTAV" ) );
+        stations.add( new Station("IU","ANMO") );
         //stations.add( new Station("IU","HRV") );
         //End Adam's suggestion
         //stations.add( new Station("IU","SNZO") );
-        //stations.add( new Station("IW","LKWY") );
+        stations.add( new Station("IW","LKWY") );
         //stations.add( new Station("US","LKWY") );
         //stations.add( new Station("IU","ANTO") );
-        //stations.add( new Station("GT","LPAZ") );
+        stations.add( new Station("GT","LPAZ") );
         //stations.add( new Station("IC","KMI") );
     }
 

@@ -382,6 +382,12 @@ implements Runnable
                         // blockettes = record.getBlockettes();
                         lastSequenceNumber = record.getSequence();
                         tempData.extend(samples, 0, samples.length);
+//MTH
+/**
+System.out.format("== SeedSplitProcessor: tempData.extend( %s_%s %s-%s samples.length=%d\n",
+                  network, station, location, channel, samples.length);
+**/
+
                     } // end else
                 } catch (SteimException e) {
                     logger.warning("Caught SteimException");

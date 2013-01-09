@@ -89,6 +89,7 @@ implements Comparable<ChannelKey>
         }
     // MTH: For now we'll allow either 3-char ("LHZ") or 4-char ("LHND") channels
         if (channel.length() < 3 || channel.length() > 4) { 
+System.out.format("== Offending channel=[%s]\n", channel);
             throw new RuntimeException("ChannelKey.setChannel(): We only allow 3 or 4 character channels!");
         }
         this.name = channel;

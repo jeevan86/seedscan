@@ -171,6 +171,7 @@ extends MemberDigest
         int copySize = 0;
         while (length > 0) {
             copySize = (m_remainder > length) ? length : m_remainder;
+//System.out.format("=== Sequence.extend(): length=%d remainder=%d copySize=%d\n", length, m_remainder, copySize);
             System.arraycopy(buffer, offset, m_block, BLOCK_SIZE - m_remainder, copySize);
             if (m_remainder <= length) {
                 this._addBlock();
@@ -809,7 +810,7 @@ extends MemberDigest
         cal.setTimeInMillis(timestamp/1000);
         result = String.format("%04d/%02d/%02d %02d:%02d:%02d.%06d",
                                 cal.get(Calendar.YEAR),
-                                cal.get(Calendar.MONTH),
+                                cal.get(Calendar.MONTH) + 1,   // MTH: Java uses months 0-11 ...
                                 cal.get(Calendar.DAY_OF_MONTH),
                                 cal.get(Calendar.HOUR_OF_DAY),
                                 cal.get(Calendar.MINUTE),

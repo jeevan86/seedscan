@@ -92,7 +92,6 @@ public abstract class Metric
             double[] df  = new double[1];            // Dummy array to get params out of computePSD()
             for (int i=0; i<df.length; i++) df[i]=0;
             try {
-System.out.println("== Metric.getCrossPower --> computePSD");
                 psd = computePSD(channelA, channelB, df);
             }
             catch (NullPointerException e) {
@@ -193,8 +192,8 @@ System.out.println("== Metric.getCrossPower --> computePSD");
         int ndata      = 0;
         double srate   = 0;  // srate = sample frequency, e.g., 20Hz
 
-System.out.println("== Metric.computePSD --> getChannelOverlap");
-        double[][] channelOverlap = getChannelOverlap(channelX, channelY);
+        //double[][] channelOverlap = getChannelOverlap(channelX, channelY);
+        double[][] channelOverlap = metricData.getChannelOverlap(channelX, channelY);
         double[]   chanXData = channelOverlap[0];
         double[]   chanYData = channelOverlap[1];
 // At this point chanXData and chanYData should have the SAME number of (overlapping) points
@@ -303,11 +302,6 @@ System.out.println("== Metric.computePSD --> getChannelOverlap");
 
         // Load up the 1-sided PSD:
            for(int k = 0; k < nf; k++){
-// Follow psd[k] through to see how averaging over magnitude (purely real) looks like
-// Follow psdC[k] through to see how averaging over Re and Im (Gxy(f) = C + iQ) looks like 
-// i.e., psd[k] = psdC[k].mag()
-// When X=Y --> psd == psdC
-
             // when X=Y, X*Y.conjg is Real and (X*Y.conjg).mag() simply returns the Real part as a double 
                 psd[k] = psd[k] + Cmplx.mul(xfft[k], yfft[k].conjg()).mag() ;
                 psdC[k]= Cmplx.add(psdC[k], Cmplx.mul(xfft[k], yfft[k].conjg()) );
@@ -357,8 +351,6 @@ System.out.println("== Metric.computePSD --> getChannelOverlap");
             else {   // Divide out (squared)instrument response & Convert to dB:
                 psdC[k] = Cmplx.div(psdC[k], responseMagC[k]);
                 psd[k] = psd[k]/responseMag[k];
-// Can't take log here as it will ruin the Coherence calcs
-                //psd[k] = 10*Math.log10(psd[k]);
             }
         }
 
@@ -410,7 +402,10 @@ System.out.println("== Metric.computePSD --> getChannelOverlap");
     } // end computePSD
 
 
-
+/**
+ *  getChannelOverlap - find the overlapping samples between 2+ channels
+ *
+ */
     public double[][] getChannelOverlap(Channel channelX, Channel channelY) {
 
         ArrayList<ArrayList<DataSet>> dataLists = new ArrayList<ArrayList<DataSet>>();
@@ -426,19 +421,7 @@ System.out.println("== Metric.computePSD --> getChannelOverlap");
         dataLists.add(channelXData);
         dataLists.add(channelYData);
 
-/**
-        for (int i = 0; i < dataLists.size(); i++) {
-            System.out.println("ArrayList " + i);
-            ArrayList<DataSet> dataList = dataLists.get(i);
-            for (int j = 0; j < dataList.size(); j++) {
-                DataSet dataSet = dataList.get(j);
-                System.out.println("  DataSet " + j);
-                System.out.println("    " + dataSet.getNetwork() + "_" + dataSet.getStation() + " " + dataSet.getLocation() + "-" + dataSet.getChannel() + "(" + dataSet.getLength() + " data points)");
-                System.out.println("    " + Sequence.timestampToString(dataSet.getStartTime()) + " - " + Sequence.timestampToString(dataSet.getEndTime()));
-            }
-        }
-        System.out.println("Locating contiguous blocks...");
-**/
+        //System.out.println("Locating contiguous blocks...");
 
         ArrayList<ContiguousBlock> blocks = null;
         BlockLocator locator = new BlockLocator(dataLists);
@@ -480,9 +463,6 @@ System.out.println("== Metric.computePSD --> getChannelOverlap");
                         //System.out.println("SequenceRangeException");
                         e.printStackTrace();
                     }
-                    // Add if we decide to clean up memory as we go.
-                    // Might not want to if we wish to allow the user to 
-                    // pick a different block without re-scanning.
                     found = true;
                     break;
                 }
@@ -515,8 +495,6 @@ System.out.println("== Metric.computePSD --> getChannelOverlap");
         }
         return dest;
     }
-
-
 
 
 }
