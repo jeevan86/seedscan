@@ -109,7 +109,7 @@ extends PowerBandMetric
          // Check to see that we have data + metadata & see if the digest has changed wrt the database:
 
             ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel));
-            logger.fine(String.format("%s: digest=%s\n", getName(), (digest == null) ? "null" : Hex.byteArrayToHexString(digest.array())));
+            //logger.fine(String.format("%s: digest=%s\n", getName(), (digest == null) ? "null" : Hex.byteArrayToHexString(digest.array())));
 
             if (digest == null) {
                 System.out.format("%s INFO: Data and metadata have NOT changed for this channel:%s --> Skipping\n"

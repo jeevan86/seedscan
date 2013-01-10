@@ -24,6 +24,9 @@ import java.util.Set;
 import java.util.Enumeration;
 import java.io.FilenameFilter;
 
+import java.nio.ByteBuffer;
+import asl.util.Hex;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.Runnable;
@@ -232,7 +235,8 @@ public class Scanner
                 else {
                     for (String id: results.getIdSet()) {
                         double value = results.getResult(id);
-                        System.out.format("  %s : %.2f\n", id, value);
+                        ByteBuffer digest = results.getDigest(id);
+                        System.out.format("  %s : %.2f [%s]\n", id, value, Hex.byteArrayToHexString(digest.array()) );
                     }
                     if (injector.isConnected()) {
                         try {

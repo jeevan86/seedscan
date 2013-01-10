@@ -30,7 +30,7 @@ extends TaskThread<QueryContext<? extends Object>>
 	}
 
     public Boolean isConnected() {
-System.out.println("== MetricReader.isConnected() = " + metricDB.isConnected() );
+        //System.out.println("== MetricReader.isConnected() = " + metricDB.isConnected() );
         return metricDB.isConnected();
     }
 

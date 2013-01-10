@@ -142,6 +142,58 @@ public class MetricData
         return getChannelData(channel.getLocation(), channel.getChannel() );           
     }
 
+/**
+ *  Return a full day (86400 sec) array of data assembled from a channel's DataSets
+ *  Zero pad any gaps between DataSets
+ */
+    public double[] getPaddedDayData(Channel channel) 
+    {
+        if (!hasChannelData(channel)){
+            System.out.format("== MetricData.getPaddedDayData() ERROR: We have NO data for channel=[%s]\n", channel);
+            return null;
+        }
+        ArrayList<DataSet>datasets = getChannelData(channel);
+
+        long dayStartTime = metadata.getTimestamp().getTimeInMillis() * 1000; // epoch microsecs since 1970
+        long interval     = datasets.get(0).getInterval();                    // sample dt in microsecs
+
+        int nPointsPerDay = (int)(86400000000L/interval);
+
+        double[] data     = new double[nPointsPerDay];
+
+        long lastEndTime = 0;
+        int k=0;
+
+        for (int i=0; i<datasets.size(); i++) {
+            DataSet dataset= datasets.get(i);
+            long startTime = dataset.getStartTime();  // microsecs since Jan. 1, 1970
+            long endTime   = dataset.getEndTime();
+            int length     = dataset.getLength();
+            int[] series   = dataset.getSeries();
+
+            if (i == 0) {
+                lastEndTime = dayStartTime;
+            }
+            int npad = (int)( (startTime - lastEndTime) / interval ) - 1;
+
+            for (int j=0; j<npad; j++){
+                data[k] = 0.;
+                k++;
+            }
+            for (int j=0; j<length; j++){
+                data[k] = (double)series[j];
+                k++;
+            }
+
+            lastEndTime = endTime;
+        }
+        //System.out.format("== fullDayData: nDataSets=%d interval=%d nPointsPerDay%d k=%d\n", datasets.size(),
+                          //interval, nPointsPerDay, k );
+        return data;
+    }
+
+
+
 /*
  *  Rotate/Create new derived channels: (chan1, chan2) --> (chanN, chanE)
  *  And add these to StationData
@@ -229,8 +281,8 @@ public class MetricData
             System.out.format("== OOPS: MetricData.createRotatedChannels(): Don't know how to rotate az2=%f\n", az2);
         }
 
-        System.out.format("== MetricData.createRotatedChannels(): az1=%f --> azimuth=%f az2=%f"
-                        + "Quadrant=%d (sign1=%d, sign2=%d)\n", az1, azimuth, az2, quadrant, sign1, sign2);
+        System.out.format("== MetricData.createRotatedChannels for [%s-%s]: az1=%.2f --> azimuth=%.2f az2=%.2f"
+          + " Quadrant=%d (sign1=%d, sign2=%d)\n", location, channelPrefix, az1, azimuth, az2, quadrant, sign1, sign2);
 
         double cosAz   = Math.cos( azimuth * Math.PI/180 );
         double sinAz   = Math.sin( azimuth * Math.PI/180 );
@@ -272,8 +324,8 @@ public class MetricData
                 eastKey  = key.replaceAll(lookupString, eastString);
            }
         }
-        System.out.format("== MetricData.createRotatedChannels(): channel1=%s, channelPrefex=%s\n", channel1, channelPrefix);
-        System.out.format("== MetricData.createRotatedChannels(): northKey=[%s] eastKey=[%s]\n", northKey, eastKey);
+        //System.out.format("== MetricData.createRotatedChannels(): channel1=%s, channelPrefex=%s\n", channel1, channelPrefix);
+        //System.out.format("== MetricData.createRotatedChannels(): northKey=[%s] eastKey=[%s]\n", northKey, eastKey);
 
         DataSet ch1Temp = getChannelData(channel1).get(0);
         String network  = ch1Temp.getNetwork();
@@ -302,12 +354,6 @@ public class MetricData
         dataList.add(northDataSet);
         data.put(northKey, dataList);
 
-
-    // Try to get it back
-        DataSet tmp = getChannelData(channelN).get(0);
-        System.out.format("== Got %s_%s %s-%s nsamps=%d nBlocks=%d\n", tmp.getNetwork(), tmp.getStation(), 
-                           tmp.getLocation(), tmp.getChannel(), tmp.getLength() , tmp.getBlockCount() );
-
         DataSet eastDataSet = new DataSet();
         eastDataSet.setNetwork(network);
         eastDataSet.setStation(station);
@@ -329,12 +375,13 @@ public class MetricData
         dataList.add(eastDataSet);
         data.put(eastKey, dataList);
 
+/**
         tmp = getChannelData(channelE).get(0);
         System.out.format("== Got %s_%s %s-%s nsamps=%d nBlocks=%d\n", tmp.getNetwork(), tmp.getStation(), 
                            tmp.getLocation(), tmp.getChannel(), tmp.getLength() , tmp.getBlockCount() );
+**/
 
     } // end createRotatedChannels()
-
 
     public double[][] getChannelOverlap(Channel channelX, Channel channelY) {
         // Dummy var to hold startTime of overlap
@@ -385,9 +432,6 @@ public class MetricData
             //System.out.println("  Time Range: " + Sequence.timestampToString(block.getStartTime()) + " - " + Sequence.timestampToString(block.getEndTime()) + " (" + ((block.getEndTime() - block.getStartTime()) / block.getInterval() + 1) + " data points)");
             lastBlock = block;
         }
-        //System.out.println("");
-        //System.out.println("Largest Block:");
-        //System.out.println("  Time Range: " + Sequence.timestampToString(largestBlock.getStartTime()) + " - " + Sequence.timestampToString(largestBlock.getEndTime()) + " (" + ((largestBlock.getEndTime() - largestBlock.getStartTime()) / largestBlock.getInterval() + 1) + " data points)");
 
         double[][] channels = {null, null};
         int[] channel = null;
@@ -397,7 +441,7 @@ public class MetricData
             for (DataSet set: dataLists.get(i)) {
                 if ((!found) && set.containsRange(largestBlock.getStartTime(), largestBlock.getEndTime())) {
                     try {
-                        System.out.println("  DataSet[" +i+ "]: " + Sequence.timestampToString(set.getStartTime()) + " - " + Sequence.timestampToString(set.getEndTime()) + " (" + ((set.getEndTime() - set.getStartTime()) / set.getInterval() + 1) + " data points)");
+                        //System.out.println("  DataSet[" +i+ "]: " + Sequence.timestampToString(set.getStartTime()) + " - " + Sequence.timestampToString(set.getEndTime()) + " (" + ((set.getEndTime() - set.getStartTime()) / set.getInterval() + 1) + " data points)");
                         channel = set.getSeries(largestBlock.getStartTime(), largestBlock.getEndTime());
                         channels[i] = intArrayToDoubleArray(channel);
                     } catch (SequenceRangeException e) {
@@ -453,12 +497,14 @@ public class MetricData
         Station station   = id.getStation();
         Calendar date     = id.getDate();
         String channelId  = MetricResult.createResultId(id.getChannel());
+/**
         logger.fine(String.format(
                     "MetricValueIdentifier --> date=%04d-%02d-%02d (%03d) %02d:%02d:%02d | metricName=%s station=%s channel=%s",
                     date.get(Calendar.YEAR), (date.get(Calendar.MONTH)+1), date.get(Calendar.DAY_OF_MONTH), date.get(Calendar.DAY_OF_YEAR), 
                     date.get(Calendar.HOUR), date.get(Calendar.MINUTE), date.get(Calendar.SECOND),
                     id.getMetricName(), id.getStation(), id.getChannel()
         ));
+**/
 
 // Try to compute the digest for the metadata + data channels in this array.
 // Compute derived (e.g., rotated) channels if necessary.
@@ -473,7 +519,7 @@ public class MetricData
 
         // Check again for metadata. If we still don't have it (e.g., we weren't able to rotate) --> return null digest
         if (!metadata.hasChannels(channelArray)) { 
-            System.out.format("MetricData.valueDigestChanged(): We don't have metadata to compute the digest for this channelArray "
+            System.out.format("MetricData.valueDigestChanged: We don't have metadata to compute the digest for this channelArray "
                               + " --> return null digest\n");
             return null;
         }
@@ -488,7 +534,7 @@ public class MetricData
         }
 
         if (metricReader.isConnected()) {   // Retrieve old Digest from Database and compare to new Digest
-            System.out.println("=== MetricData.metricReader *IS* connected");
+            //System.out.println("=== MetricData.metricReader *IS* connected");
             ByteBuffer oldDigest = metricReader.getMetricValueDigest(id);
             if (oldDigest == null) {
                 logger.fine("Old digest is null.");
@@ -501,7 +547,7 @@ public class MetricData
                                        EpochData.epochToDateString(date), metricName, station, channelId));
         }
         else {
-            System.out.println("=== MetricData.metricReader *IS NOT* connected");
+            //System.out.println("=== MetricData.metricReader *IS NOT* connected");
         }
 
         return newDigest;
@@ -550,16 +596,6 @@ public class MetricData
 
         return MemberDigest.multiBuffer(digests);
 
-        //System.out.format("=== getHash(): newDigest=%s\n", Hex.byteArrayToHexString(newDigest.array()) );
-    }
-
-
-//MTH: I think this is now obsolete:
-    public ByteBuffer hashChanged(Channel channel)
-    {
-        ChannelArray channelArray = new ChannelArray(channel.getLocation(), channel.getChannel());
-        //return hashChanged(channelArray);
-        return null;
     }
 
 /**
@@ -571,7 +607,7 @@ public class MetricData
     {
         ArrayList<Channel> channels = channelArray.getChannels();
         for (Channel channel : channels){
-            System.out.format("== checkForRotatedChannels: request channel=%s\n", channel);
+            //System.out.format("== checkForRotatedChannels: request channel=%s\n", channel);
 
         // channelPrefix = channel band + instrument code  e.g., 'L' + 'H' = "LH"
             String channelPrefix = null;
@@ -582,7 +618,7 @@ public class MetricData
                 channelPrefix = channel.getChannel().replace("ED","");
             }
             else {
-                System.out.format("== checkForRotatedChannels: Request for UNKNOWN channel=%s\n", channel);
+                System.out.format("== MetricData.checkForRotatedChannels: Request for UNKNOWN channel=%s\n", channel);
                 return;
             }
 
@@ -592,7 +628,6 @@ public class MetricData
                 metadata.addRotatedChannelMeta(channel.getLocation(), channelPrefix);
             }
             if (!hasChannelData(channel)) { 
-System.out.format("== channel=[%s] --> channelPrefix=[%s] --> createRotatedChannelData\n", channel, channelPrefix);
                 createRotatedChannelData(channel.getLocation(), channelPrefix);
             }
         }

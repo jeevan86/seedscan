@@ -187,46 +187,32 @@ public abstract class Metric
 */
     private final double[] computePSD(Channel channelX, Channel channelY, double[] params) {
 
-        System.out.format("== Metric.computePSD(channelX=%s, channelY=%s)\n", channelX, channelY);
+        //System.out.format("== Metric.computePSD(channelX=%s, channelY=%s)\n", channelX, channelY);
 
         int ndata      = 0;
         double srate   = 0;  // srate = sample frequency, e.g., 20Hz
 
-        //double[][] channelOverlap = getChannelOverlap(channelX, channelY);
-        double[][] channelOverlap = metricData.getChannelOverlap(channelX, channelY);
-        double[]   chanXData = channelOverlap[0];
-        double[]   chanYData = channelOverlap[1];
-// At this point chanXData and chanYData should have the SAME number of (overlapping) points
+// This would give us 2 channels with the SAME number of (overlapping) points, but 
+//   they might not represent a complete day (e.g., could be a single block of data in the middle of the day)
+//      double[][] channelOverlap = metricData.getChannelOverlap(channelX, channelY);
+//      double[]   chanXData = channelOverlap[0];
+//      double[]   chanYData = channelOverlap[1];
 
-        ndata = chanXData.length; 
+// Instead, getPaddedDayData() gives us a complete (zero padded if necessary) array of data for 1 day:
+        double[] chanXData = metricData.getPaddedDayData(channelX);
+        double[] chanYData = metricData.getPaddedDayData(channelY);
 
         double srateX = metricData.getChannelData(channelX).get(0).getSampleRate();
         double srateY = metricData.getChannelData(channelY).get(0).getSampleRate();
         ChannelMeta chanMetaX = stationMeta.getChanMeta(channelX);
         ChannelMeta chanMetaY = stationMeta.getChanMeta(channelY);
 
-/**
-        ArrayList<DataSet>datasets = metricData.getChannelData(channelX);
-        DataSet dataset = datasets.get(0);
-        int    ndataX   = dataset.getLength();
-        int ndataX = metricData.getChannelData(channelX).get(0).getLength();
-        double srateX   = dataset.getSampleRate();
-        int[] intArrayX = dataset.getSeries();
-        ChannelMeta chanMetaX = stationMeta.getChanMeta(channelX);
-
-        datasets = metricData.getChannelData(channelY);
-        dataset  = datasets.get(0);
-        int    ndataY   = dataset.getLength();
-        double srateY   = dataset.getSampleRate();
-        int[] intArrayY = dataset.getSeries();
-        ChannelMeta chanMetaY = stationMeta.getChanMeta(channelY);
-**/
-
         if (srateX != srateY) {
             String message = "computePSD() ERROR: srateX (=" + srateX + ") != srateY (=" + srateY + ")";
             throw new RuntimeException(message);
         }
         srate = srateX;
+        ndata = chanXData.length; 
 
         //ndata = (ndataX < ndataY) ? ndataX : ndataY;
 
@@ -402,99 +388,4 @@ public abstract class Metric
     } // end computePSD
 
 
-/**
- *  getChannelOverlap - find the overlapping samples between 2+ channels
- *
- */
-    public double[][] getChannelOverlap(Channel channelX, Channel channelY) {
-
-        ArrayList<ArrayList<DataSet>> dataLists = new ArrayList<ArrayList<DataSet>>();
-
-        ArrayList<DataSet> channelXData = metricData.getChannelData(channelX);
-        ArrayList<DataSet> channelYData = metricData.getChannelData(channelY);
-        if (channelXData == null) {
-            System.out.format("== getChannelOverlap: Error --> No DataSets found for Channel=%s\n", channelX);
-        }
-        if (channelYData == null) {
-            System.out.format("== getChannelOverlap: Error --> No DataSets found for Channel=%s\n", channelY);
-        }
-        dataLists.add(channelXData);
-        dataLists.add(channelYData);
-
-        //System.out.println("Locating contiguous blocks...");
-
-        ArrayList<ContiguousBlock> blocks = null;
-        BlockLocator locator = new BlockLocator(dataLists);
-        //Thread blockThread = new Thread(locator);
-        //blockThread.start();
-        locator.doInBackground();
-        blocks = locator.getBlocks();
-
-        //System.out.println("Found " + blocks.size() + " Contiguous Blocks");
-
-        ContiguousBlock largestBlock = null;
-        ContiguousBlock lastBlock = null;
-        for (ContiguousBlock block: blocks) {
-            if ((largestBlock == null) || (largestBlock.getRange() < block.getRange())) {
-                largestBlock = block;
-            }
-            if (lastBlock != null) {
-                System.out.println("    Gap: " + ((block.getStartTime() - lastBlock.getEndTime()) / block.getInterval()) + " data points (" + (block.getStartTime() - lastBlock.getEndTime()) + " microseconds)");
-            }
-            //System.out.println("  Time Range: " + Sequence.timestampToString(block.getStartTime()) + " - " + Sequence.timestampToString(block.getEndTime()) + " (" + ((block.getEndTime() - block.getStartTime()) / block.getInterval() + 1) + " data points)");
-            lastBlock = block;
-        }
-        //System.out.println("");
-        //System.out.println("Largest Block:");
-        //System.out.println("  Time Range: " + Sequence.timestampToString(largestBlock.getStartTime()) + " - " + Sequence.timestampToString(largestBlock.getEndTime()) + " (" + ((largestBlock.getEndTime() - largestBlock.getStartTime()) / largestBlock.getInterval() + 1) + " data points)");
-
-        double[][] channels = {null, null};
-        int[] channel = null;
-
-        for (int i = 0; i < 2; i++) {
-            boolean found = false;
-            for (DataSet set: dataLists.get(i)) {
-                if ((!found) && set.containsRange(largestBlock.getStartTime(), largestBlock.getEndTime())) {
-                    try {
-                        System.out.println("  DataSet[" +i+ "]: " + Sequence.timestampToString(set.getStartTime()) + " - " + Sequence.timestampToString(set.getEndTime()) + " (" + ((set.getEndTime() - set.getStartTime()) / set.getInterval() + 1) + " data points)");
-                        channel = set.getSeries(largestBlock.getStartTime(), largestBlock.getEndTime());
-                        channels[i] = intArrayToDoubleArray(channel);
-                    } catch (SequenceRangeException e) {
-                        //System.out.println("SequenceRangeException");
-                        e.printStackTrace();
-                    }
-                    found = true;
-                    break;
-                }
-            }
-        }
-
-    // See if we have a problem with the channel data we are about to return:
-        if (channels[0].length == 0 || channels[1].length == 0 || channels[0].length != channels[1].length){
-            System.out.println("== getChannelOverlap: WARNING --> Something has gone wrong!");
-        }
-
-        return channels;
-
-    } // end getChannelOverlap
-
-
-    /**
-     * Converts an array of type int into an array of type double.
-     *
-     * @param   source     The array of int values to be converted.
-     * 
-     * @return  An array of double values.
-     */
-    static double[] intArrayToDoubleArray(int[] source) 
-    {
-        double[] dest = new double[source.length];
-        int length = source.length;
-        for (int i = 0; i < length; i++) {
-            dest[i] = source[i];
-        }
-        return dest;
-    }
-
-
-}
+} // end class

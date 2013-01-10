@@ -18,7 +18,6 @@
  */
 package asl.seedscan.metrics;
 
-import java.nio.ByteBuffer;
 import java.util.logging.Logger;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
@@ -52,18 +51,28 @@ extends Metric
         System.out.format("\n              [ == Metric %s == ]\n", getName() ); 
 
    // Create a 3-channel array to use for loop
-        ChannelArray channelArray = new ChannelArray("00","BHZ", "BH1", "BH2");
-        ArrayList<Channel> channels = channelArray.getChannels();
+        ChannelArray primaryChannelArray   = new ChannelArray("00","BHZ", "BH1", "BH2");
+        ChannelArray secondaryChannelArray = new ChannelArray("00","BHZ", "BHN", "BHE"); // Use these if we can't find primaries
+
+        ArrayList<Channel> primaryChannels   = primaryChannelArray.getChannels();
+        ArrayList<Channel> secondaryChannels = secondaryChannelArray.getChannels();
 
    // Loop over channels, get metadata & data for channel and Calculate Metric
 
-        for (Channel channel : channels){
+      //for (Channel channel : channels){
+        for (int i=0; i<primaryChannels.size(); i++){
+
+            Channel channel = primaryChannels.get(i);
+
+            if (!stationMeta.hasChannel(channel)) { // If we can't located the primary channel --> try the secondary channel
+                channel = secondaryChannels.get(i);
+            }
 
          // Check to see that we have data + metadata & see if the digest has changed wrt the database:
 
             double availability = 0;
             ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel));
-            logger.fine(String.format("%s: digest=%s\n", getName(), (digest == null) ? "null" : Hex.byteArrayToHexString(digest.array())));
+            //logger.fine(String.format("%s: digest=%s\n", getName(), (digest == null) ? "null" : Hex.byteArrayToHexString(digest.array())));
 
         // digest could be null because it hasn't changed OR because we don't have metadata for this channel
             if (digest == null) { 

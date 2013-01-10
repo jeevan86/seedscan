@@ -51,23 +51,30 @@ extends Metric
         System.out.format("\n              [ == Metric %s == ]\n", getName() ); 
 
    // Create a 3-channel array to use for loop
-        ChannelArray channelArray = new ChannelArray("00","VMZ", "VM1", "VM2");
-        ArrayList<Channel> channels = channelArray.getChannels();
+        ChannelArray primaryChannelArray   = new ChannelArray("00","VMZ", "VM1", "VM2");
+        ChannelArray secondaryChannelArray = new ChannelArray("00","VMZ", "VMN", "VME"); // Use these if we can't find primaries
+
+        ArrayList<Channel> primaryChannels   = primaryChannelArray.getChannels();
+        ArrayList<Channel> secondaryChannels = secondaryChannelArray.getChannels();
 
    // Loop over channels, get metadata & data for channel and Calculate Metric
 
-        for (Channel channel : channels){
+        for (int i=0; i<primaryChannels.size(); i++){
+
+            Channel channel = primaryChannels.get(i);
+
+            if (!stationMeta.hasChannel(channel)) { // If we can't located the primary channel --> try the secondary channel
+                channel = secondaryChannels.get(i);
+            }
 
          // Check to see that we have data + metadata & see if the digest has changed wrt the database:
             ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel));
+            //logger.fine(String.format("%s: digest=%s\n", getName(), (digest == null) ? "null" : Hex.byteArrayToHexString(digest.array())));
 
             if (digest == null) { 
                 System.out.format("%s INFO: Data and metadata have NOT changed for this channel:%s --> Skipping\n"
                                   ,getName(), channel);
                 continue;
-            }
-            else {
-                System.out.format("%s: digest=%s\n", getName(), Hex.byteArrayToHexString(digest.array()) );
             }
 
          // If we're here, it means we need to (re)compute the metric for this channel:
@@ -108,8 +115,8 @@ extends Metric
 
             for (DataSet dataset : datasets) {
                 int intArray[] = dataset.getSeries();
-                for (int i=0; i<intArray.length; i++){
-                    massPosition += Math.pow( (a0 + intArray[i] * a1), 2);
+                for (int j=0; j<intArray.length; j++){
+                    massPosition += Math.pow( (a0 + intArray[j] * a1), 2);
                 }
                 ndata += dataset.getLength();
             } // end for each dataset
