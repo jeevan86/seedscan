@@ -177,11 +177,15 @@ public class MetricData
             int npad = (int)( (startTime - lastEndTime) / interval ) - 1;
 
             for (int j=0; j<npad; j++){
-                data[k] = 0.;
+                if (k < data.length) {
+                    data[k] = 0.;
+                }
                 k++;
             }
             for (int j=0; j<length; j++){
-                data[k] = (double)series[j];
+                if (k < data.length) {
+                    data[k] = (double)series[j];
+                }
                 k++;
             }
 
@@ -506,21 +510,31 @@ public class MetricData
         ));
 **/
 
-// Try to compute the digest for the metadata + data channels in this array.
-// Compute derived (e.g., rotated) channels if necessary.
-// We must AT LEAST have the metadata to compute a digest, else return digest=null (so the Metric won't continue)
-// e.g., we can still "compute" an AvailabilityMetric=0 when we have metadata but no data
-
+    // We need at least metadata to compute a digest. If it doesn't exist, then maybe this is a rotated
+    // channel (e.g., "00-LHND") and we need to first try to make the metadata + data for it.
         if (!metadata.hasChannels(channelArray)) { 
-        // See if channelArray contains rotated-derived channels (e.g., "00-LHND") and if so,
-        //   try to create the metadata + data for them 
             checkForRotatedChannels(channelArray);
         }
 
-        // Check again for metadata. If we still don't have it (e.g., we weren't able to rotate) --> return null digest
+    // Check again for metadata. If we still don't have it (e.g., we weren't able to rotate) --> return null digest
         if (!metadata.hasChannels(channelArray)) { 
             System.out.format("MetricData.valueDigestChanged: We don't have metadata to compute the digest for this channelArray "
                               + " --> return null digest\n");
+            return null;
+        }
+
+    // At this point we have the metadata but we may still not have any data for this channel(s).
+    // Check for data and if it doesn't exist, then return a null digest, EXCEPT if this is the
+    // AvailabilityMetric that is requesting the digest (in which case return a digest for the metadata alone)
+
+        Boolean availabilityMetric = false;
+        if (id.getMetricName().contains("AvailabilityMetric") ) {
+            availabilityMetric = true;
+        }
+
+        if (!hasChannelArrayData(channelArray) && !availabilityMetric) {  // Return null digest so Metric will be skipped
+            System.out.println("== valueDigestChanged: We do NOT have data for this channel(s) AND this is NOT the "
+                               + "AvailabilityMetric --> return null digest");
             return null;
         }
 
@@ -578,6 +592,7 @@ public class MetricData
 
             if (!hasChannelData(channel))  {
                    // Go ahead and pass back the digests for the metadata alone
+                   // The only Metric that should get to here is the AvailabilityMetric
             }
             else { // Add in the data digests
                 ArrayList<DataSet>datasets = getChannelData(channel);

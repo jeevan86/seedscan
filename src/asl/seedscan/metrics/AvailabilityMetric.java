@@ -85,7 +85,7 @@ extends Metric
         //                                             in which case we'll report availability = 0
             if (!metricData.hasChannelData(channel)) {
                 System.out.format("== AvailabilityMetric: We DONT! have data for channel=%s "
-                + " return Availability=0\n", channel);
+                                + " return Availability=0\n", channel);
             }
             else {     // If we're here, it means we need to (re)compute the metric for this channel:
 
@@ -108,4 +108,3 @@ extends Metric
         }// end foreach channel
     } // end process()
 }
-
