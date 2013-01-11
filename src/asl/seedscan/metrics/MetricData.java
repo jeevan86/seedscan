@@ -217,6 +217,11 @@ public class MetricData
             + "for channel1=[%s] and/or channel2=[%s] --> Unable to Rotate!\n",channel1, channel2);
             return;
         }
+        if (metadata.hasChannel(channel1)==false || metadata.hasChannel(channel2)==false){
+            System.out.format("== createRotatedChannelData: Error -- Unable to find metadata "
+            + "for channel1=[%s] and/or channel2=[%s] --> Unable to Rotate!\n",channel1, channel2);
+            return;
+        }
 
     // Rotated (=derived) channels (e.g., 00-LHND,00-LHED -or- 10-BHND,10-BHED, etc.)
         Channel channelN = new Channel(location, String.format("%sND", channelPrefix) );
@@ -642,7 +647,9 @@ public class MetricData
             if (!metadata.hasChannel(channel)) { 
                 metadata.addRotatedChannelMeta(channel.getLocation(), channelPrefix);
             }
-            if (!hasChannelData(channel)) { 
+        // MTH: Only try to add rotated channel data if we were successful in adding the rotated channel
+        //      metadata above since createRotatedChannelData requires it
+            if (!hasChannelData(channel) && metadata.hasChannel(channel) ) { 
                 createRotatedChannelData(channel.getLocation(), channelPrefix);
             }
         }
