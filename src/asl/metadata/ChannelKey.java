@@ -95,6 +95,9 @@ System.out.format("== Offending channel=[%s]\n", channel);
         this.name = channel;
     }
 
+    public Channel toChannel() {
+        return new Channel( this.getLocation(), this.getName() );
+    }
 
     // identifiers
     public String getLocation()

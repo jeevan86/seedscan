@@ -144,6 +144,46 @@ public class StationMeta
       return channels;
     }
 
+/**
+ *  See if metadata contains the channel and if so, return it back.
+ *  If metadata does not contain the channel, then see if metadata contains these alternatives:
+ *  
+ *  ?H1 --> ?HN
+ *  ?H2 --> ?HE
+ **/
+    public Channel checkChannel(Channel channel) {
+
+        if (hasChannel(channel)) {
+            return channel;
+        }
+        else if(channel.getChannel().contains("H1")) { // LH1 --> LHN
+            Channel newChannel = new Channel ( channel.getLocation(), channel.getChannel().replace("H1", "HN") );
+            if (hasChannel(newChannel)) {
+                return newChannel;
+            } 
+        }
+        else if(channel.getChannel().contains("H2")) { // LH2 --> LHE
+            Channel newChannel = new Channel ( channel.getLocation(), channel.getChannel().replace("H2", "HE") );
+            if (hasChannel(newChannel)) {
+                return newChannel;
+            } 
+        }
+        else if(channel.getChannel().contains("N1")) { // HN1 --> HNN
+            Channel newChannel = new Channel ( channel.getLocation(), channel.getChannel().replace("N1", "NN") );
+            if (hasChannel(newChannel)) {
+                return newChannel;
+            } 
+        }
+        else if(channel.getChannel().contains("N2")) { // HN2 --> HNE
+            Channel newChannel = new Channel ( channel.getLocation(), channel.getChannel().replace("N2", "NE") );
+            if (hasChannel(newChannel)) {
+                return newChannel;
+            } 
+        }
+        // If we're here then we don't know what this channel is so just return it back
+        return channel;
+    }
+
     public Boolean hasChannel(ChannelKey channelKey) {
       return channels.containsKey(channelKey);
     }

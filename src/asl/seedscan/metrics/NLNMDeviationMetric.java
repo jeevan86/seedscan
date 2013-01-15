@@ -95,16 +95,25 @@ extends PowerBandMetric
             return;  // Can't do anything if we didn't read in a NLNM model so skip to the next metric
         }
 
-   // Create a 3-channel array to use for loop
-        ChannelArray channelArray = new ChannelArray("00","LHZ", "LH1", "LH2");
-        //ChannelArray channelArray = new ChannelArray("00","LHZ");
-        ArrayList<Channel> channels = channelArray.getChannels();
+        ChannelArray primarySensorArray   = new ChannelArray("00","LHZ", "LH1", "LH2");
+        ChannelArray secondarySensorArray = new ChannelArray("10","LHZ", "LH1", "LH2");
+
+        ArrayList<Channel> primaryChannels   = primarySensorArray.getChannels();
+        ArrayList<Channel> secondaryChannels = secondarySensorArray.getChannels();
+
+        ArrayList<Channel> channels = new ArrayList<Channel>();
+        for (Channel channel : primaryChannels){
+            channels.add(channel);
+        }
+        for (Channel channel : secondaryChannels){
+            channels.add(channel);
+        }
 
    // Loop over channels, get metadata & data for channel and Calculate Metric
 
-        String outFile; // Use for outputting spectra arrays (in testing)
-
         for (Channel channel : channels){
+
+            channel = stationMeta.checkChannel(channel); // If station uses LHN,LHE instead of LH1,LH2 than switch to former
 
          // Check to see that we have data + metadata & see if the digest has changed wrt the database:
 
@@ -117,90 +126,102 @@ extends PowerBandMetric
                 continue;
             }
 
-         // If we're here, it means we need to (re)compute the metric for this channel:
-
-         // Compute/Get the 1-sided psd[f] using Peterson's algorithm (24 hrs, 13 segments, etc.)
-
-            CrossPower crossPower = getCrossPower(channel, channel);
-            double[] psd  = crossPower.getSpectrum();
-            double df     = crossPower.getSpectrumDeltaF();
-
-         // nf = number of positive frequencies + DC (nf = nfft/2 + 1, [f: 0, df, 2df, ...,nfft/2*df] )
-            int nf        = psd.length;
-            double freq[] = new double[nf];
-
-         // Fill freq array & Convert spectrum to dB
-            for ( int k = 0; k < nf; k++){
-                freq[k] = (double)k * df;
-                psd[k]  = 10.*Math.log10(psd[k]);
+            double result = computeMetric(channel);
+            if (result == NO_RESULT) {
+                // Do nothing --> skip to next channel
             }
-
-         // Convert psd[f] to psd[T]
-         // Reverse freq[] --> per[] where per[0]=shortest T and per[nf-2]=longest T:
-
-            double[] per    = new double[nf];
-            double[] psdPer = new double[nf];
-         // per[nf-1] = 1/freq[0] = 1/0 = inf --> set manually:
-            per[nf-1] = 0;  
-            for (int k = 0; k < nf-1; k++){
-                per[k]     = 1./freq[nf-k-1];
-                psdPer[k]  = psd[nf-k-1];
+            else {
+                metricResult.addResult(channel, result, digest);
             }
-            double Tmin  = per[0];    // Should be = 1/fNyq = 2/fs = 0.1 for fs=20Hz
-            double Tmax  = per[nf-2]; // Should be = 1/df = Ndt
-
-            //outFile = channel.toString() + ".psd.T";
-            //Timeseries.timeoutXY(per, psdPer, outFile);
-
-         // Interpolate the smoothed psd to the periods of the NLNM Model:
-            double psdInterp[] = Timeseries.interpolate(per, psdPer, NLNMPeriods);
-
-            //outFile = channel.toString() + ".psd.Fsmooth.T.Interp";
-            //Timeseries.timeoutXY(NLNMPeriods, psdInterp, outFile);
-
-            PowerBand band    = getPowerBand();
-            double lowPeriod  = band.getLow();
-            double highPeriod = band.getHigh();
-
-            if (!checkPowerBand(lowPeriod, highPeriod, Tmin, Tmax)){
-                System.out.format("%s powerBand Error: Skipping channel:%s\n", getName(), channel);
-                continue;
-            }
-
-        // Compute deviation from NLNM within the requested period band:
-            double deviation = 0;
-            int nPeriods = 0;
-            for (int k = 0; k < NLNMPeriods.length; k++){
-                if (NLNMPeriods[k] >  highPeriod){
-                    break;
-                }
-                else if (NLNMPeriods[k] >= lowPeriod){
-                    double difference = psdInterp[k] - NLNMPowers[k];
-                    deviation += Math.sqrt( Math.pow(difference, 2) );
-                    nPeriods++;
-                }
-            }
-
-            if (nPeriods == 0) {
-                StringBuilder message = new StringBuilder();
-                message.append(String.format("NLNMDeviation Error: Requested band [%f - %f] contains NO periods within NLNM\n"
-                    ,lowPeriod, highPeriod) );
-                throw new RuntimeException(message.toString());
-            }
-            deviation = deviation/(double)nPeriods;
-
-            metricResult.addResult(channel, deviation, digest);
-
-Boolean DEBUG = true;
-
-            if (DEBUG) {   // Output files like 2012160.IU_ANMO.00-LHZ.png = psd
-                plotPSD(channel, psdInterp);
-            }
-
 
         }// end foreach channel
 
     } // end process()
+
+
+    private double computeMetric(Channel channel) {
+
+     // Compute/Get the 1-sided psd[f] using Peterson's algorithm (24 hrs, 13 segments, etc.)
+
+        CrossPower crossPower = getCrossPower(channel, channel);
+        double[] psd  = crossPower.getSpectrum();
+        double df     = crossPower.getSpectrumDeltaF();
+
+     // nf = number of positive frequencies + DC (nf = nfft/2 + 1, [f: 0, df, 2df, ...,nfft/2*df] )
+        int nf        = psd.length;
+        double freq[] = new double[nf];
+
+     // Fill freq array & Convert spectrum to dB
+        for ( int k = 0; k < nf; k++){
+            freq[k] = (double)k * df;
+            psd[k]  = 10.*Math.log10(psd[k]);
+        }
+
+     // Convert psd[f] to psd[T]
+     // Reverse freq[] --> per[] where per[0]=shortest T and per[nf-2]=longest T:
+
+        double[] per    = new double[nf];
+        double[] psdPer = new double[nf];
+     // per[nf-1] = 1/freq[0] = 1/0 = inf --> set manually:
+        per[nf-1] = 0;  
+        for (int k = 0; k < nf-1; k++){
+            per[k]     = 1./freq[nf-k-1];
+            psdPer[k]  = psd[nf-k-1];
+        }
+        double Tmin  = per[0];    // Should be = 1/fNyq = 2/fs = 0.1 for fs=20Hz
+        double Tmax  = per[nf-2]; // Should be = 1/df = Ndt
+
+        String outFile; // Use for outputting spectra arrays (in testing)
+
+        //outFile = channel.toString() + ".psd.T";
+        //Timeseries.timeoutXY(per, psdPer, outFile);
+
+     // Interpolate the smoothed psd to the periods of the NLNM Model:
+        double psdInterp[] = Timeseries.interpolate(per, psdPer, NLNMPeriods);
+
+        //outFile = channel.toString() + ".psd.Fsmooth.T.Interp";
+        //Timeseries.timeoutXY(NLNMPeriods, psdInterp, outFile);
+
+        PowerBand band    = getPowerBand();
+        double lowPeriod  = band.getLow();
+        double highPeriod = band.getHigh();
+
+        if (!checkPowerBand(lowPeriod, highPeriod, Tmin, Tmax)){
+            System.out.format("%s powerBand Error: Skipping channel:%s\n", getName(), channel);
+            return NO_RESULT;
+        }
+
+    // Compute deviation from NLNM within the requested period band:
+        double deviation = 0;
+        int nPeriods = 0;
+        for (int k = 0; k < NLNMPeriods.length; k++){
+            if (NLNMPeriods[k] >  highPeriod){
+                break;
+            }
+            else if (NLNMPeriods[k] >= lowPeriod){
+                double difference = psdInterp[k] - NLNMPowers[k];
+                deviation += Math.sqrt( Math.pow(difference, 2) );
+                nPeriods++;
+            }
+        }
+
+        if (nPeriods == 0) {
+            StringBuilder message = new StringBuilder();
+            message.append(String.format("NLNMDeviation Error: Requested band [%f - %f] contains NO periods within NLNM\n"
+                ,lowPeriod, highPeriod) );
+            throw new RuntimeException(message.toString());
+        }
+        deviation = deviation/(double)nPeriods;
+
+Boolean DEBUG = true;
+
+        if (DEBUG) {   // Output files like 2012160.IU_ANMO.00-LHZ.png = psd
+            plotPSD(channel, psdInterp);
+        }
+
+        return deviation;
+
+    } // end computeMetric()
 
 
 /** readNLNM() - Read in Peterson's NewLowNoiseModel from file specified in config.xml

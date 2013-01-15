@@ -20,8 +20,12 @@ package asl.seedscan.metrics;
 
 import java.util.logging.Logger;
 import java.util.ArrayList;
-import java.util.GregorianCalendar;
 import java.util.Calendar;
+import java.util.Enumeration;
+import java.util.GregorianCalendar;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.TreeSet;
 
 import java.nio.ByteBuffer;
 import asl.util.Hex;
@@ -50,61 +54,67 @@ extends Metric
     {
         System.out.format("\n              [ == Metric %s == ]\n", getName() ); 
 
-   // Create a 3-channel array to use for loop
-        ChannelArray primaryChannelArray   = new ChannelArray("00","BHZ", "BH1", "BH2");
-        ChannelArray secondaryChannelArray = new ChannelArray("00","BHZ", "BHN", "BHE"); // Use these if we can't find primaries
+    // Get this StationMeta's ChannelKeys, sort and loop over:
 
-        ArrayList<Channel> primaryChannels   = primaryChannelArray.getChannels();
-        ArrayList<Channel> secondaryChannels = secondaryChannelArray.getChannels();
+        Hashtable<ChannelKey,ChannelMeta> channels  = stationMeta.getChannelHashTable();
+        TreeSet<ChannelKey> keys = new TreeSet<ChannelKey>();
+        keys.addAll(channels.keySet());
 
-   // Loop over channels, get metadata & data for channel and Calculate Metric
+        for (ChannelKey key : keys){
 
-      //for (Channel channel : channels){
-        for (int i=0; i<primaryChannels.size(); i++){
+            Channel channel = key.toChannel();
 
-            Channel channel = primaryChannels.get(i);
-
-            if (!stationMeta.hasChannel(channel)) { // If we can't located the primary channel --> try the secondary channel
-                channel = secondaryChannels.get(i);
-            }
-
-         // Check to see that we have data + metadata & see if the digest has changed wrt the database:
-
-            double availability = 0;
             ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel));
+
             //logger.fine(String.format("%s: digest=%s\n", getName(), (digest == null) ? "null" : Hex.byteArrayToHexString(digest.array())));
 
-        // digest could be null because it hasn't changed OR because we don't have metadata for this channel
+        // At this point we KNOW we have metadata so we WILL compute a digest.  If the digest is null
+        //  then nothing has changed and we don't need to recompute the metric
             if (digest == null) { 
                 System.out.format("%s INFO: Data and metadata have NOT changed for this channel:%s --> Skipping\n"
                                 ,getName(), channel);
                 continue;
             }
 
-        // If we're here then we DO have metadata but still we might not have data for the channel
-        //                                             in which case we'll report availability = 0
-            if (!metricData.hasChannelData(channel)) {
-                System.out.format("== AvailabilityMetric: We DONT! have data for channel=%s "
-                                + " return Availability=0\n", channel);
-            }
-            else {     // If we're here, it means we need to (re)compute the metric for this channel:
+            double result = computeMetric(channel);
 
-                ChannelMeta chanMeta = stationMeta.getChanMeta(channel);
-                ArrayList<DataSet>datasets = metricData.getChannelData(channel);
-
-                int ndata    = 0;
-
-                for (DataSet dataset : datasets) {
-                    ndata   += dataset.getLength();
-                } // end for each dataset
-
-                int expectedPoints  = (int)chanMeta.getSampleRate() * 24 * 60 * 60; 
-                availability = 100 * ndata/expectedPoints;
-    
-            } // else compute the metric
-
-            metricResult.addResult(channel, availability, digest);
+            metricResult.addResult(channel, result, digest);
 
         }// end foreach channel
     } // end process()
+
+    private double computeMetric(Channel channel) {
+
+     // AvailabilityMetric still returns a result (availability=0) even when there is NO data for this channel
+        if (!metricData.hasChannelData(channel)) {
+            return 0.;
+        }
+
+        double availability = 0;
+
+     // The expected (=from metadata) number of samples:
+        ChannelMeta chanMeta = stationMeta.getChanMeta(channel);
+        int expectedPoints  = (int) (chanMeta.getSampleRate() * 24. * 60. * 60.); 
+
+     // The actual (=from data) number of samples:
+        ArrayList<DataSet>datasets = metricData.getChannelData(channel);
+
+        int ndata    = 0;
+
+        for (DataSet dataset : datasets) {
+            ndata   += dataset.getLength();
+        } // end for each dataset
+
+        if (expectedPoints > 0) {
+            availability = 100. * (double)ndata/(double)expectedPoints;
+        }
+        else {
+            System.out.format("== AvailabilityMetric: WARNING: Expected points for channel=[%s] = 0!!\n");
+            return NO_RESULT;
+        }
+
+        return availability;
+
+    } // end computeMetric()
+
 }

@@ -47,6 +47,7 @@ public abstract class Metric
     private Hashtable<CrossPowerKey, CrossPower> crossPowerMap;
 
     private Boolean forceUpdate = false;
+    protected final double NO_RESULT = -999.999; 
 
     protected StationMeta  stationMeta  = null;
     protected MetricData   metricData   = null;

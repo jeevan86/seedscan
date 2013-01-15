@@ -18,18 +18,21 @@
  */
 package asl.seedscan.metrics;
 
-import java.nio.ByteBuffer;
 import java.util.logging.Logger;
 import java.util.ArrayList;
-import java.util.GregorianCalendar;
 import java.util.Calendar;
+import java.util.Enumeration;
+import java.util.GregorianCalendar;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.TreeSet;
+
+import java.nio.ByteBuffer;
+import asl.util.Hex;
 
 import asl.metadata.*;
 import asl.metadata.meta_new.*;
 import asl.seedsplitter.*;
-
-import java.nio.ByteBuffer;
-import asl.util.Hex;
 
 public class GapCountMetric
 extends Metric
@@ -46,77 +49,88 @@ extends Metric
         return "GapCountMetric";
     }
 
+
     public void process()
     {
         System.out.format("\n              [ == Metric %s == ]\n", getName() ); 
 
-   // Create a 3-channel array to use for loop
-        ChannelArray primaryChannelArray   = new ChannelArray("00","BHZ", "BH1", "BH2");
-        ChannelArray secondaryChannelArray = new ChannelArray("00","BHZ", "BHN", "BHE"); // Use these if we can't find primaries
+    // Get this StationMeta's ChannelKeys, sort and loop over:
 
-        ArrayList<Channel> primaryChannels   = primaryChannelArray.getChannels();
-        ArrayList<Channel> secondaryChannels = secondaryChannelArray.getChannels();
+        Hashtable<ChannelKey,ChannelMeta> channels  = stationMeta.getChannelHashTable();
+        TreeSet<ChannelKey> keys = new TreeSet<ChannelKey>();
+        keys.addAll(channels.keySet());
 
-   // Loop over channels, get metadata & data for channel and Calculate Metric
+        for (ChannelKey key : keys){
 
-      //for (Channel channel : channels){
-        for (int i=0; i<primaryChannels.size(); i++){
+            Channel channel = key.toChannel();
 
-            Channel channel = primaryChannels.get(i);
-
-            if (!stationMeta.hasChannel(channel)) { // If we can't located the primary channel --> try the secondary channel
-                channel = secondaryChannels.get(i);
-            }
-
-
-         // Check to see that we have data + metadata & see if the digest has changed wrt the database:
             ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel));
+
             //logger.fine(String.format("%s: digest=%s\n", getName(), (digest == null) ? "null" : Hex.byteArrayToHexString(digest.array())));
 
+        // At this point we KNOW we have metadata so we WILL compute a digest.  If the digest is null 
+        //  then nothing has changed (OR we DON'T have data for this channel) and we don't need to recompute the metric
             if (digest == null) { 
                 System.out.format("%s INFO: Data and metadata have NOT changed for this channel:%s --> Skipping\n"
-                                  ,getName(), channel);
+                                ,getName(), channel);
                 continue;
             }
 
-        // If we're here, it means we need to (re)compute the metric for this channel:
-        
-            ArrayList<DataSet>datasets = metricData.getChannelData(channel);
+            double result = computeMetric(channel);
 
-        // First count any interior gaps (= gaps that aren't at the beginning/end of the day)
-            int gapCount = datasets.size()-1;
-
-            long firstSetStartTime = datasets.get(0).getStartTime();  // time in microsecs since epoch
-            long interval          = datasets.get(0).getInterval();   // sample dt in microsecs
-
-            // stationMeta.getTimestamp() returns a Calendar object for the expected day
-            //   convert it from milisecs to microsecs
-            long expectedStartTime = stationMeta.getTimestamp().getTimeInMillis() * 1000;
-            double gapThreshold = interval / 2.;
-
-        // Check for possible gap at the beginning of the day
-            if ((firstSetStartTime - expectedStartTime) > gapThreshold) {
-                gapCount++;
-                System.out.format("== GapCountMetric: (firstSetStartTime - expectedStartTime) = %d microsecs"
-                + " >= gapThreshold = %f --> gapCount++ \n", (firstSetStartTime - expectedStartTime),
-                gapThreshold, gapCount );
+            if (result == NO_RESULT) {
+                // Do nothing --> skip to next channel
             }
-
-            long expectedEndTime = expectedStartTime + 86400000000L;  // end of day in microsecs
-            long lastSetEndTime  = datasets.get(datasets.size()-1).getEndTime(); 
-
-        // Check for possible gap at the end of the day
-        // We expect a full day to be 24:00:00 - one sample = (86400 - dt) secs 
-            if ((expectedEndTime - lastSetEndTime) > interval) {
-                gapCount++;
-                System.out.format("== GapCountMetric: (expectedEndTime - lastSetEndTime) = %d microsecs"
-                + " >= gapThreshold = %f --> gapCount++ \n", (expectedEndTime - lastSetEndTime),
-                gapThreshold, gapCount );
+            else {
+                metricResult.addResult(channel, result, digest);
             }
-
-            metricResult.addResult(channel, (double)gapCount, digest);
 
         }// end foreach channel
     } // end process()
-}
 
+
+    private double computeMetric(Channel channel) {
+
+        ArrayList<DataSet>datasets = metricData.getChannelData(channel);
+        if (datasets == null) {  // No data --> Skip this channel
+            System.out.format("== Error: Metric=%s --> No datasets found for channel=[%s]\n",
+                               getName(), channel);
+            return NO_RESULT;
+        }
+
+     // First count any interior gaps (= gaps that aren't at the beginning/end of the day)
+        int gapCount = datasets.size()-1;
+
+        long firstSetStartTime = datasets.get(0).getStartTime();  // time in microsecs since epoch
+        long interval          = datasets.get(0).getInterval();   // sample dt in microsecs
+
+     // stationMeta.getTimestamp() returns a Calendar object for the expected day
+     //   convert it from milisecs to microsecs
+        long expectedStartTime = stationMeta.getTimestamp().getTimeInMillis() * 1000;
+        double gapThreshold = interval / 2.;
+
+     // Check for possible gap at the beginning of the day
+        if ((firstSetStartTime - expectedStartTime) > gapThreshold) {
+            gapCount++;
+            System.out.format("== GapCountMetric: channel=[%s] : (firstSetStartTime - expectedStartTime) = %d microsecs"
+            + " >= gapThreshold = %f --> gapCount++ \n", channel, (firstSetStartTime - expectedStartTime),
+            gapThreshold, gapCount );
+        }
+
+        long expectedEndTime = expectedStartTime + 86400000000L;  // end of day in microsecs
+        long lastSetEndTime  = datasets.get(datasets.size()-1).getEndTime(); 
+
+     // Check for possible gap at the end of the day
+     // We expect a full day to be 24:00:00 - one sample = (86400 - dt) secs 
+        if ((expectedEndTime - lastSetEndTime) > interval) {
+            gapCount++;
+            System.out.format("== GapCountMetric: channel=[%s] : (expectedEndTime - lastSetEndTime) = %d microsecs"
+            + " >= gapThreshold = %f --> gapCount++ \n", channel, (expectedEndTime - lastSetEndTime),
+            gapThreshold, gapCount );
+        }
+
+        return (double)gapCount;
+
+    } // end computeMetric()
+
+}

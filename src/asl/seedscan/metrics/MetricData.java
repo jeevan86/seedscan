@@ -22,6 +22,7 @@ import asl.seedscan.database.*;
 
 import asl.metadata.Channel;
 import asl.metadata.ChannelArray;
+import asl.metadata.ChannelKey;
 import asl.metadata.EpochData;
 import asl.metadata.Station;
 import asl.metadata.meta_new.StationMeta;
@@ -101,7 +102,11 @@ public class MetricData
 
     public Boolean hasChannelData(Channel channel)
     {
-        return hasChannelData(channel.getLocation(), channel.getChannel() );           
+        return hasChannelData( channel.getLocation(), channel.getChannel() );
+    }
+
+    public Boolean hasChannelData(ChannelKey channelKey) {
+        return hasChannelData( channelKey.getLocation(), channelKey.getName() );
     }
 
     public Boolean hasChannelData(String location, String name)
@@ -538,8 +543,8 @@ public class MetricData
         }
 
         if (!hasChannelArrayData(channelArray) && !availabilityMetric) {  // Return null digest so Metric will be skipped
-            System.out.println("== valueDigestChanged: We do NOT have data for this channel(s) AND this is NOT the "
-                               + "AvailabilityMetric --> return null digest");
+            System.out.format("== valueDigestChanged: <Metric=%s> We do NOT have data for this channel(s) "
+                               + "--> return null digest\n", id.getMetricName());
             return null;
         }
 
@@ -638,7 +643,7 @@ public class MetricData
                 channelPrefix = channel.getChannel().replace("ED","");
             }
             else {
-                System.out.format("== MetricData.checkForRotatedChannels: Request for UNKNOWN channel=%s\n", channel);
+                //System.out.format("== MetricData.checkForRotatedChannels: Request for UNKNOWN channel=%s\n", channel);
                 return;
             }
 
