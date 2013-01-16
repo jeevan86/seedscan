@@ -34,10 +34,10 @@ import asl.metadata.*;
 import asl.metadata.meta_new.*;
 import asl.seedsplitter.*;
 
-public class AvailabilityMetric
+public class TimingQualityMetric
 extends Metric
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.AvailabilityMetric");
+    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.TimingQualityMetric");
 
     @Override public long getVersion()
     {
@@ -46,7 +46,7 @@ extends Metric
 
     @Override public String getName()
     {
-        return "AvailabilityMetric";
+        return "TimingQualityMetric";
     }
 
 
@@ -78,42 +78,49 @@ extends Metric
 
             double result = computeMetric(channel);
 
-            metricResult.addResult(channel, result, digest);
+            if (result == NO_RESULT) {
+                // Do nothing --> skip to next channel
+            }
+            else {
+                metricResult.addResult(channel, result, digest);
+            }
 
         }// end foreach channel
     } // end process()
 
     private double computeMetric(Channel channel) {
 
-     // AvailabilityMetric still returns a result (availability=0) even when there is NO data for this channel
         if (!metricData.hasChannelData(channel)) {
-            return 0.;
-        }
-
-        double availability = 0;
-
-     // The expected (=from metadata) number of samples:
-        ChannelMeta chanMeta = stationMeta.getChanMeta(channel);
-        int expectedPoints  = (int) (chanMeta.getSampleRate() * 24. * 60. * 60.); 
-
-     // The actual (=from data) number of samples:
-        ArrayList<DataSet>datasets = metricData.getChannelData(channel);
-
-        int ndata    = 0;
-
-        for (DataSet dataset : datasets) {
-            ndata   += dataset.getLength();
-        } // end for each dataset
-
-        if (expectedPoints > 0) {
-            availability = 100. * (double)ndata/(double)expectedPoints;
-        }
-        else {
-            System.out.format("== AvailabilityMetric: WARNING: Expected points for channel=[%s] = 0!!\n", channel);
             return NO_RESULT;
         }
 
-        return availability;
+        ArrayList<Integer> qualities = metricData.getChannelQualityData(channel);
+
+        if (qualities == null) {
+            return NO_RESULT;
+        }
+
+        int totalQuality = 0;
+        int totalPoints  = 0;
+
+        for (int i=0; i<qualities.size(); i++){
+            totalQuality += qualities.get(i);
+            totalPoints++;
+//System.out.format("== TimingQuality: quality[%d] = %d\n", i, qualities.get(i) );
+        } 
+
+        double averageQuality = 0.;
+
+        if (totalPoints > 0) {
+            averageQuality = (double)totalQuality / (double)totalPoints;
+        }
+        else {
+            System.out.format("== TimingQualityMetric: WARNING: We have NO timing quality measurements for channel=[%s] = 0!!\n",
+                                channel);
+            return NO_RESULT;
+        }
+
+        return averageQuality;
 
     } // end computeMetric()
 

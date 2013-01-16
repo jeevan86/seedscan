@@ -71,6 +71,9 @@ extends SwingWorker<Hashtable<String,ArrayList<DataSet>>, SeedSplitProgress>
     private Pattern m_patternLocation = null;
     private Pattern m_patternChannel  = null;
 
+//MTH
+    private Hashtable<String,ArrayList<Integer>> m_qualityTable;
+
     /**
      * Hidden initializer which is called by all constructors.
      * 
@@ -165,6 +168,11 @@ extends SwingWorker<Hashtable<String,ArrayList<DataSet>>, SeedSplitProgress>
     public Hashtable<String,ArrayList<DataSet>> getTable()
     {
         return m_table;
+    }
+
+    public Hashtable<String,ArrayList<Integer>> getQualityTable()
+    {
+        return m_qualityTable;
     }
 
     /**
@@ -264,6 +272,8 @@ extends SwingWorker<Hashtable<String,ArrayList<DataSet>>, SeedSplitProgress>
                 // Should we do something more? Throw an exception?
             }
             m_table = processor.getTable();
+//MTH:
+            m_qualityTable = processor.getQualityTable();
             m_lastProgress = progress;
             if (progress.errorOccurred()) {
                 m_table = null;

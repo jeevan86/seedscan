@@ -355,10 +355,10 @@ System.out.println(" Java total memory=" + runtime.totalMemory() );
         stations.add( new Station("IU","ANMO") );
         stations.add( new Station("IU","HRV") );
         //End Adam's suggestion
-        //stations.add( new Station("IU","SNZO") );
+        stations.add( new Station("IU","SNZO") );
         //stations.add( new Station("IW","LKWY") );
         //stations.add( new Station("US","LKWY") );
-        //stations.add( new Station("IU","ANTO") );
+        stations.add( new Station("IU","ANTO") );
         stations.add( new Station("GT","LPAZ") );
         //stations.add( new Station("IC","KMI") );
     }

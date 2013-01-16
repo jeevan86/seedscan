@@ -59,6 +59,9 @@ implements Runnable
     private Hashtable<String,ArrayList<DataSet>> m_table = null;
     private static TimeZone m_tz = TimeZone.getTimeZone("GMT");
 
+//MTH:
+    private Hashtable<String,ArrayList<Integer>> m_qualityTable = null;
+
     private Pattern m_patternNetwork  = null;
     private Pattern m_patternStation  = null;
     private Pattern m_patternLocation = null;
@@ -154,6 +157,9 @@ implements Runnable
      */
     public Hashtable<String,ArrayList<DataSet>> getTable() {
         return m_table;
+    }
+    public Hashtable<String,ArrayList<Integer>> getQualityTable() {
+        return m_qualityTable;
     }
 
     /**
@@ -293,6 +299,7 @@ implements Runnable
                         second = timeComp[2];
                         husec  = timeComp[3];
 
+//System.out.format("== SeedSplitProcessor: key=%s [%d/%d/%d %2d:%2d:%2d]\n", key, year,month,day,hour,minute,second);
                         cal = new GregorianCalendar(m_tz);
                         cal.set(year, month, day, hour, minute, second);
                         cal.setTimeInMillis((cal.getTimeInMillis() / 1000L * 1000L) + (husec / 10));
@@ -382,12 +389,27 @@ implements Runnable
                         // blockettes = record.getBlockettes();
                         lastSequenceNumber = record.getSequence();
                         tempData.extend(samples, 0, samples.length);
-//MTH
-/**
-System.out.format("== SeedSplitProcessor: tempData.extend( %s_%s %s-%s samples.length=%d\n",
-                  network, station, location, channel, samples.length);
-**/
 
+                    // MTH: Get timing quality from the current miniseed block and store it for this key
+//System.out.format("== SeedSplitProcessor: key=%s [%d/%d/%d %2d:%2d:%2d] quality=[%d]\n", key, year,month,day,hour,minute,second, quality);
+                        int quality = record.getTimingQuality();
+
+                        if (m_qualityTable == null) {
+                            m_qualityTable = new Hashtable<String, ArrayList<Integer>>();
+                        }
+
+                        ArrayList<Integer> qualityArray = null;
+                        if (m_qualityTable.get(key) == null) {
+                            qualityArray = new ArrayList<Integer>(); 
+                            m_qualityTable.put(key, qualityArray);
+                        }
+                        else {
+                            qualityArray = m_qualityTable.get(key); 
+                        }
+                        if (quality >= 0) { // getTimingQuality() return -1 if no B1001 block found
+                            qualityArray.add(quality);
+                        }
+                        
                     } // end else
                 } catch (SteimException e) {
                     logger.warning("Caught SteimException");
@@ -495,6 +517,17 @@ System.out.format("== SeedSplitProcessor: tempData.extend( %s_%s %s-%s samples.l
             progress = new SeedSplitProgress(byteTotal, true);
             m_progressQueue.put(progress);
         }
-    }
+
+// Print out m_qualityTable to see what we got ...
+        //TreeSet<String> keys = new TreeSet<String>();
+        //keys.addAll(m_qualityTable.keySet());
+        //for (String qkey : keys){
+            //ArrayList<Integer> qualities = m_qualityTable.get(qkey);
+            //System.out.format("== [key=%s] --> nQuality=%d\n", qkey, qualities.size() );
+        //}
+        //System.exit(0);
+
+    } // run()
+
 }
 

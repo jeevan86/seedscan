@@ -50,6 +50,7 @@ public class MetricData
     private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.MetricData");
 
     private Hashtable<String, ArrayList<DataSet>> data;
+    private Hashtable<String, ArrayList<Integer>> qualityData;
     private StationMeta metadata;
     private Hashtable<String, String> synthetics;
     private MetricReader metricReader;
@@ -70,6 +71,15 @@ public class MetricData
     {
     	this.metricReader = metricReader;
         this.data = data;
+        this.metadata = metadata;
+    }
+
+    public MetricData(	MetricReader metricReader, Hashtable<String,ArrayList<DataSet>> data, 
+                        Hashtable<String,ArrayList<Integer>> qualityData, StationMeta metadata)
+    {
+    	this.metricReader = metricReader;
+        this.data = data;
+        this.qualityData = qualityData;
         this.metadata = metadata;
     }
 
@@ -145,6 +155,23 @@ public class MetricData
     public ArrayList<DataSet> getChannelData(Channel channel)
     {
         return getChannelData(channel.getLocation(), channel.getChannel() );           
+    }
+
+    public ArrayList<Integer> getChannelQualityData(Channel channel)
+    {
+        return getChannelQualityData(channel.getLocation(), channel.getChannel() );           
+    }
+
+    public ArrayList<Integer> getChannelQualityData(String location, String name)
+    {
+        String locationName = location + "-" + name;
+        Set<String> keys = qualityData.keySet();
+        for (String key : keys){          // key looks like "IU_ANMO 00-BHZ (20.0 Hz)"
+           if (key.contains(locationName) ){
+              return qualityData.get(key); 
+           }
+        }
+        return null;           
     }
 
 /**

@@ -21,6 +21,7 @@ package asl.seedscan;
 
 import java.util.TimeZone;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.Enumeration;
 import java.io.FilenameFilter;
 
@@ -202,11 +203,15 @@ public class Scanner
             SeedSplitter splitter = new SeedSplitter(files, progressQueue);
             table = splitter.doInBackground();
 
+            Hashtable<String,ArrayList<Integer>> qualityTable = null;
+            qualityTable = splitter.getQualityTable();
+
             Runtime runtime = Runtime.getRuntime();
             System.out.println(" Java total memory=" + runtime.totalMemory() );
 
 // [3] Loop over Metrics to compute, for this station, for this day
-            MetricData metricData = new MetricData(reader, table, stnMeta);
+            //MetricData metricData = new MetricData(reader, table, stnMeta);
+            MetricData metricData = new MetricData(reader, table, qualityTable, stnMeta);
 
             Hashtable<CrossPowerKey, CrossPower> crossPowerMap = null;
 
