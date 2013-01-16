@@ -19,9 +19,10 @@
 package asl.metadata.meta_new;
 
 import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.Collections;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Hashtable;
+import java.util.TreeSet;
 import asl.metadata.*;
 
 
@@ -182,6 +183,30 @@ public class StationMeta
         }
         // If we're here then we don't know what this channel is so just return it back
         return channel;
+    }
+
+/**
+ *  Return a (sorted) ArrayList of channels that are continuous (channelFlag="C?")
+ **/
+    public ArrayList<Channel> getContinuousChannels() {
+        TreeSet<ChannelKey> keys = new TreeSet<ChannelKey>();
+        keys.addAll(channels.keySet());
+
+        ArrayList<Channel> channelArrayList = new ArrayList<Channel>();
+
+        for (ChannelKey channelKey : keys){
+
+            Channel channel = channelKey.toChannel();
+
+            String channelFlags  = getChanMeta(channelKey).getChannelFlags();
+            //System.out.format("== channel=[%s] channelFlags=[%s]\n", channel, channelFlags);
+
+            if (channelFlags.substring(0,1).equals("C") ){
+                //System.out.format("== Channel is Continuous!\n");
+                channelArrayList.add(channel);
+            }
+        }
+        return channelArrayList;
     }
 
     public Boolean hasChannel(ChannelKey channelKey) {

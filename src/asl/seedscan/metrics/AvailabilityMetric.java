@@ -54,15 +54,10 @@ extends Metric
     {
         System.out.format("\n              [ == Metric %s == ]\n", getName() ); 
 
-    // Get this StationMeta's ChannelKeys, sort and loop over:
+    // Get a sorted list of continuous channels for this stationMeta and loop over:
+        ArrayList<Channel> channels = stationMeta.getContinuousChannels();
 
-        Hashtable<ChannelKey,ChannelMeta> channels  = stationMeta.getChannelHashTable();
-        TreeSet<ChannelKey> keys = new TreeSet<ChannelKey>();
-        keys.addAll(channels.keySet());
-
-        for (ChannelKey key : keys){
-
-            Channel channel = key.toChannel();
+        for (Channel channel : channels){
 
             ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel));
 
@@ -81,6 +76,7 @@ extends Metric
             metricResult.addResult(channel, result, digest);
 
         }// end foreach channel
+
     } // end process()
 
     private double computeMetric(Channel channel) {

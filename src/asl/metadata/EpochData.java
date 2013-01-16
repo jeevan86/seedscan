@@ -44,6 +44,7 @@ public class EpochData
     private double depth;
     private double sampleRate;
     private String instrumentType;
+    private String channelFlags;
 
 //  epochToDateString(Calendar timestamp):
 //  Return date string (e.g., "2002:324:14:30") for given Calendar timestamp
@@ -93,6 +94,7 @@ public class EpochData
         this.dip        = Double.parseDouble(info.getFieldValue(15, 0));
         this.sampleRate = Double.parseDouble(info.getFieldValue(18, 0));
         this.instrumentType = info.getFieldValue(6, 0);
+        this.channelFlags   = info.getFieldValue(21, 0);
 
 /** MTH: This is what Blockette B052 looks like:
 B052F04     Channel:                               HNZ
@@ -107,8 +109,16 @@ B052F11     Longitude:                             -106.457295
 B052F12     Elevation:                             1816.000000
 B052F13     Local depth:                           0.000000
 B052F14     Azimuth:                               0.000000
-B052F15     Dip:                                   -90.000000
+B052F15     Dip:                                   0.000000
 B052F16     Format lookup:     2                   Format Information Follows
+B052F17     Log2 of Data record length:            9
+B052F18     Sample rate:                           100
+B052F19     Clock tolerance:                       0
+B052F21     Channel flags:                         CG
+B052F22     Start date:                            2011,109
+B052F23     End date:                              (null)
+B052F24     Update flag:                           N
+...
 B030F03          Format Name: Steim2 Integer Compression Format
 B030F05          Data family:   50
 **/
@@ -204,6 +214,9 @@ B030F05          Data family:   50
     }
     public String getInstrumentType() {
       return instrumentType;
+    }
+    public String getChannelFlags() {
+      return channelFlags;
     }
 }
 

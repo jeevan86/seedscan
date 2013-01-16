@@ -55,6 +55,8 @@ public class ChannelMeta extends MemberDigest
     private String location = null;
     private String comment = null;
     private String instrumentType = null;
+    private String channelFlags = null; 
+
     private double sampleRate;
     private double dip;
     private double azimuth;
@@ -92,6 +94,7 @@ public class ChannelMeta extends MemberDigest
         copyChan.depth          = this.depth;
         copyChan.dayBreak       = this.dayBreak;
         copyChan.instrumentType = this.instrumentType;
+        copyChan.channelFlags   = this.channelFlags;
 
         for (Integer stageID : this.stages.keySet() ){
             ResponseStage stage = this.getStage(stageID);
@@ -170,26 +173,6 @@ public class ChannelMeta extends MemberDigest
 
     // constructor(s)
 
-    public ChannelMeta deepClone() {
-        //ChannelKey channelKey = new ChannelKey(location, name);
-        //Calendar timestamp    = this.getTimestamp();
-        //return new ChannelMeta(channelKey, timestamp);
-        try {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(baos);
-            oos.writeObject(this);
-
-            ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-            ObjectInputStream ois = new ObjectInputStream(bais);
-            return (ChannelMeta) ois.readObject();
-        } catch (IOException e) {
-            return null;
-        } catch (ClassNotFoundException e) {
-            return null;
-        }
-    }
-
-
     public ChannelMeta(ChannelKey channel, Calendar metaTimestamp)
     {
    // We need to call the super constructor to start the MessageDigest
@@ -230,6 +213,10 @@ public class ChannelMeta extends MemberDigest
     {
         this.instrumentType = instrumentType;
     }
+    public void setChannelFlags(String channelFlags)
+    {
+        this.channelFlags = channelFlags;
+    }
     public void setDayBreak()
     {
         this.dayBreak = true;
@@ -258,6 +245,10 @@ public class ChannelMeta extends MemberDigest
     public String getInstrumentType()
     {
         return instrumentType;
+    }
+    public String getChannelFlags()
+    {
+        return channelFlags;
     }
     public Boolean hasDayBreak() {
         return dayBreak;
@@ -616,6 +607,7 @@ public class ChannelMeta extends MemberDigest
         this.setDip(epochData.getDip() );
         this.setSampleRate(epochData.getSampleRate() );
         this.setInstrumentType(epochData.getInstrumentType() );
+        this.setChannelFlags(epochData.getChannelFlags() );
 
     } // end processEpochData
 

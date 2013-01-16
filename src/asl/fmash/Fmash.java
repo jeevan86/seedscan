@@ -176,7 +176,7 @@ public class Fmash
 
             getMaps();
 
-            currentTime = (long)startTime;
+            currentTime = startTime;
 
             for (int i=0; i < maps.length; i++) {
                 map = maps[i];
