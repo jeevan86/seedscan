@@ -252,11 +252,17 @@ extends PowerBandMetric
                 String[] args = line.trim().split("\\s+") ;
 // MTH: This is hard-wired for Adam's station model files which have 7 columns:
                 if (args.length != 7) {
-                    String message = "==Error reading NLNM: got " + args.length + " args on one line!";
+                    String message = "==Error reading Station Model File: got " + args.length + " args on one line!";
                     throw new RuntimeException(message);
                 }
+                try {
                 tmpPers.add( Double.valueOf(args[0].trim()).doubleValue() );
                 tmpPows.add( Double.valueOf(args[2].trim()).doubleValue() );
+                }
+                catch (NumberFormatException e) {
+                    System.out.format("== StationDeviation: Error reading modelFile=[%s]: %s\n", fName, e);
+                    return false;
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
