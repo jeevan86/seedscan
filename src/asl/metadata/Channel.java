@@ -19,6 +19,8 @@
 
 package asl.metadata;
 
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 import java.util.logging.Logger;
 
 public class Channel
@@ -36,11 +38,70 @@ public class Channel
         setChannel(channel);
     }
 
-    public void setLocation(String location) {
+/**
+ *  Static methods to validate channel naming and location.
+ *  Individuaally validate Band, Instrument and Orientation Codes
+ *  as per SEEDManual v2.4 Appendix A.
+ *
+ *  These will only be useful to validate original, SEISMIC channels (e.g., "VHZ")
+ *  but will trip over derived channels (e.g., "00-10, LHND-LHND") and
+ *  non-seismic channels (e.g., LDF)
+ */
+    public static Boolean validLocationCode(String location) {
+        if (location.length() != 2) {
+            return false;
+        }
+    // Allow locations = {"00", "10", "20", ..., "99" and "--"}
+        Pattern pattern  = Pattern.compile("^[0-9][0-9]$");
+        Matcher matcher  = pattern.matcher(location);
+        if (!matcher.matches() && !location.equals("--") ) {
+            return false;
+        }
+        return true;
+    }
+    public static Boolean validBandCode(String band) {
+        if (band.length() != 1) {
+            return false;
+        }
+        Pattern pattern  = Pattern.compile("[F,G,D,C,E,S,H,B,M,L,V,U,R,P,T,Q,A,O]");
+        Matcher matcher  = pattern.matcher(band);
+        if (!matcher.matches() ) {
+            return false;
+        }
+        return true;
+    }
+    public static Boolean validInstrumentCode(String instrument) {
+        if (instrument.length() != 1) {
+            return false;
+        }
+        Pattern pattern  = Pattern.compile("[H,L,G,M,N,D,F,I,K,R,W,C,E]");
+        Matcher matcher  = pattern.matcher(instrument);
+        if (!matcher.matches() ) {
+            return false;
+        }
+        return true;
+    }
+    public static Boolean validOrientationCode(String orientation) {
+        if (orientation.length() != 1) {
+            return false;
+        }
+        Pattern pattern  = Pattern.compile("[1,2,3,N,E,Z,U,V,W]");
+        Matcher matcher  = pattern.matcher(orientation);
+        if (!matcher.matches() ) {
+            return false;
+        }
+        return true;
+    }
+
+// channel setter method(s)
+
+    private void setLocation(String location) {
         if (location != null) {
-            if (location.length() < 2) {
-                throw new RuntimeException("location name MUST be at least 2-characters long");
-            }
+        // Not sure how we want to validate since CoherencePBM for instance, calls
+        //  Metric.createIdentifier --> MetricResult.createChannel --> new Channel ("00-10", ...)
+            //if (!validLocationCode(location)) {
+                //throw new RuntimeException("Channel.setLocation: ERROR INVALID LOCATION CODE=" + location);
+            //}
             this.location = location;
         }
         else {
@@ -52,14 +113,16 @@ public class Channel
         if (channel == null) {
             throw new RuntimeException("channel cannot be null");
         }
-    //  I don't know of any channels that aren't exactly 3-characters long (??)
+    //  Most channels should be exactly 3-chars long (e.g., LH1), however, derived
+    //    channels (e.g., LHND) will be 4-chars and maybe/probably there will be others
+    //  e.g., MetricResult.createChannel ( new Channel("00-10" , "LHND-LHND") ) ...
         if (channel.length() < 3) {
             throw new RuntimeException("channel name MUST be at least 3-characters long");
         }
         this.channel = channel;
     }
 
-    public void setStation(Station station) {
+    private void setStation(Station station) {
         if (station == null) {
             throw new RuntimeException("station cannot be null");
         }
@@ -74,6 +137,8 @@ public class Channel
     public Station getStation() {
         return station;
     }
+
+// channel getter method(s)
 
     public String getLocation() {
         return location;

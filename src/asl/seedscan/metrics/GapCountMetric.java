@@ -107,9 +107,9 @@ extends Metric
      // Check for possible gap at the beginning of the day
         if ((firstSetStartTime - expectedStartTime) > gapThreshold) {
             gapCount++;
-            System.out.format("== GapCountMetric: channel=[%s] : (firstSetStartTime - expectedStartTime) = %d microsecs"
-            + " >= gapThreshold = %f --> gapCount++ \n", channel, (firstSetStartTime - expectedStartTime),
-            gapThreshold, gapCount );
+            //System.out.format("== GapCountMetric: channel=[%s] : (firstSetStartTime - expectedStartTime) = %d microsecs"
+            //+ " >= gapThreshold = %f --> gapCount++ \n", channel, (firstSetStartTime - expectedStartTime),
+            //gapThreshold, gapCount );
         }
 
         long expectedEndTime = expectedStartTime + 86400000000L;  // end of day in microsecs
@@ -119,9 +119,9 @@ extends Metric
      // We expect a full day to be 24:00:00 - one sample = (86400 - dt) secs 
         if ((expectedEndTime - lastSetEndTime) > interval) {
             gapCount++;
-            System.out.format("== GapCountMetric: channel=[%s] : (expectedEndTime - lastSetEndTime) = %d microsecs"
-            + " >= gapThreshold = %f --> gapCount++ \n", channel, (expectedEndTime - lastSetEndTime),
-            gapThreshold, gapCount );
+            //System.out.format("== GapCountMetric: channel=[%s] : (expectedEndTime - lastSetEndTime) = %d microsecs"
+            //+ " >= gapThreshold = %f --> gapCount++ \n", channel, (expectedEndTime - lastSetEndTime),
+            //gapThreshold, gapCount );
         }
 
         return (double)gapCount;

@@ -186,6 +186,60 @@ public class StationMeta
     }
 
 /**
+ *  Return ArrayList of all channels contained in this stationMeta
+ *    that match the 2-char band
+ *  e.g., if band = "LH" then return "00-LHZ", "00-LH1", "00-LH2", "00-LHN", "00-LHE",
+ *                                   "10-LHZ", "10-LH1", "10-LH2", ..
+ *                                   "---LHZ", "---LH1", "---LH2", "---LHN", "---LHE", 
+ */
+    public ArrayList<Channel> getChannelArray(String band) {
+        if (!Channel.validBandCode(band.substring(0,1)) || !Channel.validInstrumentCode(band.substring(1,2)) ) {
+            return null;
+        }
+        TreeSet<ChannelKey> keys = new TreeSet<ChannelKey>();
+        keys.addAll(channels.keySet());
+
+        ArrayList<Channel> channelArrayList = new ArrayList<Channel>();
+
+        for (ChannelKey channelKey : keys){
+            Channel channel = channelKey.toChannel();
+
+            if (channel.getChannel().contains(band) ){
+                //System.out.format("== Channel [%s] contains band [%s]\n", channel, band);
+                channelArrayList.add(channel);
+            }
+        }
+        return channelArrayList;
+    }
+
+/*
+ *  Same as above but limit return channels to those containing the specified location
+ *       as well as the specified band
+ */
+    public ArrayList<Channel> getChannelArray(String location, String band) {
+        if (!Channel.validLocationCode(location)) {
+            return null;
+        }
+        if (!Channel.validBandCode(band.substring(0,1)) || !Channel.validInstrumentCode(band.substring(1,2)) ) {
+            return null;
+        }
+        TreeSet<ChannelKey> keys = new TreeSet<ChannelKey>();
+        keys.addAll(channels.keySet());
+
+        ArrayList<Channel> channelArrayList = new ArrayList<Channel>();
+
+        for (ChannelKey channelKey : keys){
+            Channel channel = channelKey.toChannel();
+
+            if (channel.getChannel().contains(band) && channel.getLocation().equals(location) ){
+                System.out.format("== Channel [%s] contains band [%s]\n", channel, band);
+                channelArrayList.add(channel);
+            }
+        }   
+        return channelArrayList;
+    }
+
+/**
  *  Return a (sorted) ArrayList of channels that are continuous (channelFlag="C?")
  **/
     public ArrayList<Channel> getContinuousChannels() {
@@ -253,12 +307,32 @@ public class StationMeta
         String origChannelName = null;
         double azimuth;
 
-        if (derivedChannelName.contains("ND") ) {                     // Derived     Orig
-            origChannelName = derivedChannelName.replace("ND", "1");   // "LHND" --> "LH1"
+        Boolean found = false;
+
+        if (derivedChannelName.contains("ND") ) {                         // Derived     Orig
+            origChannelName = derivedChannelName.replace("ND", "1");       // "LHND" --> "LH1"
+            if (hasChannel(new Channel(location, origChannelName)) ){
+                found = true;
+            }
+            else {
+                origChannelName = derivedChannelName.replace("ND", "N");   // "LHND" --> "LHN"
+                if (hasChannel(new Channel(location, origChannelName)) ){
+                    found = true;
+                }
+            }
             azimuth = 0.;   // NORTH
         }
-        else if (derivedChannelName.contains("ED") ) {                // Derived     Orig
-            origChannelName = derivedChannelName.replace("ED", "2");   // "LHED" --> "LH2"
+        else if (derivedChannelName.contains("ED") ) {                    // Derived     Orig
+            origChannelName = derivedChannelName.replace("ED", "2");       // "LHED" --> "LH2"
+            if (hasChannel(new Channel(location, origChannelName)) ){
+                found = true;
+            }
+            else {
+                origChannelName = derivedChannelName.replace("ED", "E");   // "LHED" --> "LHE"
+                if (hasChannel(new Channel(location, origChannelName)) ){
+                    found = true;
+                }
+            }
             azimuth = 90.;  // EAST
         }
         else {
@@ -266,15 +340,15 @@ public class StationMeta
             return;
         }
 
+        if (!found) {
+            System.out.format("== addRotatedChannel: Error -- StationMeta doesn't contain horizontal channels "
+                            + "needed to make channel=[%s]\n", derivedChannelName);
+            return;
+        }
+
         Channel origChannel    = new Channel(location, origChannelName);
         Channel derivedChannel = new Channel(location, derivedChannelName);
 
-        if (hasChannel(origChannel)==false){
-            System.out.format("== addRotatedChannel: Error -- Request for rotated channel=[%s] but can't find "
-                            + "origChannel=[%s] to make it from\n", derivedChannel, origChannel);
-            return;
-        }
-            
         // Deep copy the orig chanMeta to the derived chanMeta and set the derived chanMeta azimuth
         ChannelMeta derivedChannelMeta = (getChanMeta(origChannel)).copy(derivedChannel);
         derivedChannelMeta.setAzimuth(azimuth);

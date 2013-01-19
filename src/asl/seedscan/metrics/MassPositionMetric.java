@@ -50,22 +50,12 @@ extends Metric
     {
         System.out.format("\n              [ == Metric %s == ]\n", getName() ); 
 
-   // Create a 3-channel array to use for loop
-        ChannelArray primaryChannelArray   = new ChannelArray("00","VMZ", "VM1", "VM2");
-        ChannelArray secondaryChannelArray = new ChannelArray("00","VMZ", "VMN", "VME"); // Use these if we can't find primaries
-
-        ArrayList<Channel> primaryChannels   = primaryChannelArray.getChannels();
-        ArrayList<Channel> secondaryChannels = secondaryChannelArray.getChannels();
+   // Create a channel array to use for loop
+        ArrayList<Channel> channels = stationMeta.getChannelArray("VM"); // Get all VM? channels in metadata
 
    // Loop over channels, get metadata & data for channel and Calculate Metric
 
-        for (int i=0; i<primaryChannels.size(); i++){
-
-            Channel channel = primaryChannels.get(i);
-
-            if (!stationMeta.hasChannel(channel)) { // If we can't located the primary channel --> try the secondary channel
-                channel = secondaryChannels.get(i);
-            }
+        for (Channel channel : channels) {
 
          // Check to see that we have data + metadata & see if the digest has changed wrt the database:
             ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel));

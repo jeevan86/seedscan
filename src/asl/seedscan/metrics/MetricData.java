@@ -22,7 +22,6 @@ import asl.seedscan.database.*;
 
 import asl.metadata.Channel;
 import asl.metadata.ChannelArray;
-import asl.metadata.ChannelKey;
 import asl.metadata.EpochData;
 import asl.metadata.Station;
 import asl.metadata.meta_new.StationMeta;
@@ -113,10 +112,6 @@ public class MetricData
     public Boolean hasChannelData(Channel channel)
     {
         return hasChannelData( channel.getLocation(), channel.getChannel() );
-    }
-
-    public Boolean hasChannelData(ChannelKey channelKey) {
-        return hasChannelData( channelKey.getLocation(), channelKey.getName() );
     }
 
     public Boolean hasChannelData(String location, String name)
@@ -238,17 +233,25 @@ public class MetricData
  */
     public void createRotatedChannelData(String location, String channelPrefix)
     {
-    // channelPrefix = 'LH' or 'HN'. Use this to make horizontal channels 1,2:
+        Boolean use12 = true; // Use ?H1,?H2 to rotate, else use ?HN,?HE
 
     // Raw horizontal channels used for rotation
         Channel channel1 = new Channel(location, String.format("%s1", channelPrefix) );
         Channel channel2 = new Channel(location, String.format("%s2", channelPrefix) );
 
+    // If we can't find ?H1,?H2 --> try for ?HN,?HE
+        if (hasChannelData(channel1)==false || hasChannelData(channel2)==false){
+            channel1.setChannel(String.format("%sN", channelPrefix));
+            channel2.setChannel(String.format("%sE", channelPrefix));
+            use12 = false;
+        }
+    // If we still can't find 2 horizontals to rotate then give up
         if (hasChannelData(channel1)==false || hasChannelData(channel2)==false){
             System.out.format("== createRotatedChannelData: Error -- Unable to find data "
             + "for channel1=[%s] and/or channel2=[%s] --> Unable to Rotate!\n",channel1, channel2);
             return;
         }
+
         if (metadata.hasChannel(channel1)==false || metadata.hasChannel(channel2)==false){
             System.out.format("== createRotatedChannelData: Error -- Unable to find metadata "
             + "for channel1=[%s] and/or channel2=[%s] --> Unable to Rotate!\n",channel1, channel2);
@@ -354,7 +357,14 @@ public class MetricData
 
         // keys look like "IU_ANMO 00-BH1 (20.0 Hz)"
         //             or "IU_ANMO 10-BH1 (20.0 Hz)"
-        String lookupString = location + "-" + channelPrefix + "1";  // e.g., "10-BH1"
+        String lookupString = null;
+        if (use12) {
+            lookupString = location + "-" + channelPrefix + "1";  // e.g., "10-BH1"
+        }
+        else {
+            lookupString = location + "-" + channelPrefix + "N";  // e.g., "10-BHN"
+        }
+
         String northString  = location + "-" + channelPrefix + "ND"; // e.g., "10-BHND"
         String eastString   = location + "-" + channelPrefix + "ED"; // e.g., "10-BHED"
 
@@ -366,7 +376,7 @@ public class MetricData
            }
         }
         //System.out.format("== MetricData.createRotatedChannels(): channel1=%s, channelPrefex=%s\n", channel1, channelPrefix);
-        //System.out.format("== MetricData.createRotatedChannels(): northKey=[%s] eastKey=[%s]\n", northKey, eastKey);
+        System.out.format("== MetricData.createRotatedChannels(): northKey=[%s] eastKey=[%s]\n", northKey, eastKey);
 
         DataSet ch1Temp = getChannelData(channel1).get(0);
         String network  = ch1Temp.getNetwork();

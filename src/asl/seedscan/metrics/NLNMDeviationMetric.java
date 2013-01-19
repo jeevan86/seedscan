@@ -95,27 +95,14 @@ extends PowerBandMetric
             return;  // Can't do anything if we didn't read in a NLNM model so skip to the next metric
         }
 
-        ChannelArray primarySensorArray   = new ChannelArray("00","LHZ", "LH1", "LH2");
-        ChannelArray secondarySensorArray = new ChannelArray("10","LHZ", "LH1", "LH2");
-
-        ArrayList<Channel> primaryChannels   = primarySensorArray.getChannels();
-        ArrayList<Channel> secondaryChannels = secondarySensorArray.getChannels();
-
-        ArrayList<Channel> channels = new ArrayList<Channel>();
-        for (Channel channel : primaryChannels){
-            channels.add(channel);
-        }
-        for (Channel channel : secondaryChannels){
-            channels.add(channel);
-        }
+        ArrayList<Channel> channels = stationMeta.getChannelArray("LH"); // Get all LH channels in metadata
 
    // Loop over channels, get metadata & data for channel and Calculate Metric
 
         for (Channel channel : channels){
 
-            channel = stationMeta.checkChannel(channel); // If station uses LHN,LHE instead of LH1,LH2 than switch to former
-
          // Check to see that we have data + metadata & see if the digest has changed wrt the database:
+         // Update: At this point we KNOW we have metadata since it is driving the channel loop
 
             ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel));
             //logger.fine(String.format("%s: digest=%s\n", getName(), (digest == null) ? "null" : Hex.byteArrayToHexString(digest.array())));

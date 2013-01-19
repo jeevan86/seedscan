@@ -55,6 +55,7 @@ extends Metric
         System.out.format("\n              [ == Metric %s == ]\n", getName() ); 
 
     // Get a sorted list of continuous channels for this stationMeta and loop over:
+
         ArrayList<Channel> channels = stationMeta.getContinuousChannels();
 
         for (Channel channel : channels){
