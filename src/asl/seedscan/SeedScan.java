@@ -329,7 +329,7 @@ System.out.println(" Java total memory=" + runtime.totalMemory() );
 
 // Set getStationList = false if you want to manually control the StationList below ...
         Boolean getStationList = true;
-        getStationList = false;
+        //getStationList = false;
         ArrayList<Station> stations;
 
     if (getStationList){
@@ -345,7 +345,7 @@ System.out.println(" Java total memory=" + runtime.totalMemory() );
         //Adam suggest I use these stations for testing
         //stations.add( new Station("IU","WAKE") );
         stations.add( new Station("IU","ANMO") );
-        stations.add( new Station("IC","KMI") );
+        //stations.add( new Station("IC","KMI") );
         stations.add( new Station("IW","MFID") );
         //stations.add( new Station("IU","MAJO") );
         //stations.add( new Station("IU","KEV") ); //KEV gives an divide by 0 error when included
@@ -355,7 +355,8 @@ System.out.println(" Java total memory=" + runtime.totalMemory() );
         //stations.add( new Station("IU","PMSA") );
         //stations.add( new Station("IU","OTAV" ) );
         //stations.add( new Station("BK","CMB") );
-        //stations.add( new Station("IU","HRV") );
+        stations.add( new Station("IU","HRV") );
+        stations.add( new Station("CI","PASC") );
         //End Adam's suggestion
         //stations.add( new Station("IU","SNZO") );
         //stations.add( new Station("IW","LKWY") );

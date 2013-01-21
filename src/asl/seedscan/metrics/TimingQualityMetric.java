@@ -20,19 +20,13 @@ package asl.seedscan.metrics;
 
 import java.util.logging.Logger;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Enumeration;
-import java.util.GregorianCalendar;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.TreeSet;
 
 import java.nio.ByteBuffer;
 import asl.util.Hex;
 
-import asl.metadata.*;
-import asl.metadata.meta_new.*;
-import asl.seedsplitter.*;
+import asl.metadata.Channel;
+import asl.metadata.meta_new.ChannelMeta;
+import asl.seedsplitter.DataSet;
 
 public class TimingQualityMetric
 extends Metric

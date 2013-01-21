@@ -301,7 +301,11 @@ public class StationMeta
         addRotatedChannel(location,  eastChannelName);
     }
 
-
+/**
+ *  If handed a derivedChannelName like "LHND" (or "LHED"), try to create it from
+ *   LH1 (or LH2) channel metadata.  If these aren't found, look for LHN (or LHE)
+ *   instead.
+ */
     public void addRotatedChannel(String location, String derivedChannelName) {
 
         String origChannelName = null;
@@ -314,7 +318,7 @@ public class StationMeta
             if (hasChannel(new Channel(location, origChannelName)) ){
                 found = true;
             }
-            else {
+            else {   // try ...
                 origChannelName = derivedChannelName.replace("ND", "N");   // "LHND" --> "LHN"
                 if (hasChannel(new Channel(location, origChannelName)) ){
                     found = true;
@@ -327,7 +331,7 @@ public class StationMeta
             if (hasChannel(new Channel(location, origChannelName)) ){
                 found = true;
             }
-            else {
+            else {   // try ...
                 origChannelName = derivedChannelName.replace("ED", "E");   // "LHED" --> "LHE"
                 if (hasChannel(new Channel(location, origChannelName)) ){
                     found = true;
@@ -353,9 +357,6 @@ public class StationMeta
         ChannelMeta derivedChannelMeta = (getChanMeta(origChannel)).copy(derivedChannel);
         derivedChannelMeta.setAzimuth(azimuth);
         this.addChannel( new ChannelKey(derivedChannel), derivedChannelMeta);
-
-        //getChanMeta(origChannel).print();
-        //derivedChannelMeta.print();
 
     }
 

@@ -18,18 +18,21 @@
  */
 package asl.seedscan.metrics;
 
-import java.nio.ByteBuffer;
 import java.util.logging.Logger;
 import java.util.ArrayList;
-import java.util.GregorianCalendar;
 import java.util.Calendar;
+import java.util.Enumeration;
+import java.util.GregorianCalendar;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.TreeSet;
+
+import java.nio.ByteBuffer;
+import asl.util.Hex;
 
 import asl.metadata.*;
 import asl.metadata.meta_new.*;
 import asl.seedsplitter.*;
-
-import java.nio.ByteBuffer;
-import asl.util.Hex;
 
 public class CalibrationMetric
 extends Metric
@@ -46,37 +49,74 @@ extends Metric
         return "CalibrationMetric";
     }
 
+
     public void process()
     {
         System.out.format("\n              [ == Metric %s == ]\n", getName() ); 
-   // Create a 3-channel array to use for loop
-        ChannelArray channelArray = new ChannelArray("00","BHZ", "BH1", "BH2");
-        ArrayList<Channel> channels = channelArray.getChannels();
 
-   // Loop over channels, get metadata & data for channel and Calculate Metric
+    // Get a sorted list of continuous channels for this stationMeta and loop over:
+        ArrayList<Channel> channels = stationMeta.getContinuousChannels();
 
         for (Channel channel : channels){
 
-         // Check to see that we have data + metadata & see if the digest has changed wrt the database:
-
             ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel));
-            logger.fine(String.format("%s: digest=%s\n", getName(), (digest == null) ? "null" : Hex.byteArrayToHexString(digest.array())));
 
-            if (digest == null) {
+            //logger.fine(String.format("%s: digest=%s\n", getName(), (digest == null) ? "null" : Hex.byteArrayToHexString(digest.array())));
+
+        // At this point we KNOW we have metadata so we WILL compute a digest.  If the digest is null
+        //  then nothing has changed and we don't need to recompute the metric
+            if (digest == null) { 
                 System.out.format("%s INFO: Data and metadata have NOT changed for this channel:%s --> Skipping\n"
-                                  ,getName(), channel);
+                                ,getName(), channel);
                 continue;
             }
 
-         // If we're here, it means we need to (re)compute the metric for this channel:
+            double result = computeMetric(channel);
 
-            ArrayList<DataSet>datasets = metricData.getChannelData(channel);
-            int someCalibrationMeasurement;
-// How do we compute the calibration(s) ?
-
-            //metricResult.addResult(channel, (double)gapCount, digest);
+            if (result == NO_RESULT) {
+                // Do nothing --> skip to next channel
+            }
+            else {
+                metricResult.addResult(channel, result, digest);
+            }
 
         }// end foreach channel
     } // end process()
-}
 
+    private double computeMetric(Channel channel) {
+
+        if (!metricData.hasChannelData(channel)) {
+            return NO_RESULT;
+        }
+
+        ArrayList<Integer> qualities = metricData.getChannelQualityData(channel);
+
+        if (qualities == null) {
+            return NO_RESULT;
+        }
+
+        int totalQuality = 0;
+        int totalPoints  = 0;
+
+        for (int i=0; i<qualities.size(); i++){
+            totalQuality += qualities.get(i);
+            totalPoints++;
+//System.out.format("== TimingQuality: quality[%d] = %d\n", i, qualities.get(i) );
+        } 
+
+        double averageQuality = 0.;
+
+        if (totalPoints > 0) {
+            averageQuality = (double)totalQuality / (double)totalPoints;
+        }
+        else {
+            System.out.format("== TimingQualityMetric: WARNING: We have NO timing quality measurements for channel=[%s] = 0!!\n",
+                                channel);
+            return NO_RESULT;
+        }
+
+        return averageQuality;
+
+    } // end computeMetric()
+
+}

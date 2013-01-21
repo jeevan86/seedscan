@@ -376,7 +376,7 @@ public class MetricData
            }
         }
         //System.out.format("== MetricData.createRotatedChannels(): channel1=%s, channelPrefex=%s\n", channel1, channelPrefix);
-        System.out.format("== MetricData.createRotatedChannels(): northKey=[%s] eastKey=[%s]\n", northKey, eastKey);
+        //System.out.format("== MetricData.createRotatedChannels(): northKey=[%s] eastKey=[%s]\n", northKey, eastKey);
 
         DataSet ch1Temp = getChannelData(channel1).get(0);
         String network  = ch1Temp.getNetwork();

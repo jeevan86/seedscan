@@ -42,18 +42,14 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.File;
 import java.nio.ByteBuffer;
+import asl.util.Hex;
 
 import java.util.logging.Logger;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.GregorianCalendar;
 import java.util.Calendar;
 
-import asl.metadata.*;
-import asl.metadata.meta_new.*;
-import asl.security.MemberDigest;
-import asl.seedsplitter.DataSet;
-import asl.util.Hex;
+import asl.metadata.Channel;
+import asl.metadata.Station;
 
 import timeutils.Timeseries;
 
@@ -84,6 +80,8 @@ extends PowerBandMetric
 
     private double[] NLNMPeriods;
     private double[] NLNMPowers;
+    private Boolean DEBUG = true;
+    private final String outputDir = "outputs";
 
     public void process()
     {
@@ -200,8 +198,6 @@ extends PowerBandMetric
         }
         deviation = deviation/(double)nPeriods;
 
-Boolean DEBUG = true;
-
         if (DEBUG) {   // Output files like 2012160.IU_ANMO.00-LHZ.png = psd
             plotPSD(channel, psdInterp);
         }
@@ -275,12 +271,42 @@ Boolean DEBUG = true;
 
     private void plotPSD(Channel channel, double[] psdInterp) {
 
+        // See if outputDir exists. If not, then try to make it and if that
+        //   fails then return
+
+        File dir = new File(outputDir);
+        Boolean allIsOkay;
+        if (dir.exists()) {           // Dir exists --> check write permissions
+            if (!dir.isDirectory()) {
+                allIsOkay = false;        // The filename exists but it is NOT a directory
+            }
+            else {
+                allIsOkay = dir.canWrite();
+            }
+        }
+        else {                      // Dir doesn't exist --> try to make it
+            allIsOkay = dir.mkdir();
+        }
+
         Station station        = metricResult.getStation();
         Calendar date          = metricResult.getDate();
         final String plotTitle = String.format("%04d%03d.%s.%s", date.get(Calendar.YEAR), date.get(Calendar.DAY_OF_YEAR)
                                                 ,station, channel);
-        final String pngName   = String.format("tests/%04d%03d.%s.%s.png", date.get(Calendar.YEAR), date.get(Calendar.DAY_OF_YEAR)
+        final String pngName   = String.format("%s/%04d%03d.%s.%s.png", outputDir, date.get(Calendar.YEAR), date.get(Calendar.DAY_OF_YEAR)
                                                 ,station, channel);
+
+        File outputFile = new File(pngName);
+        if (outputFile.exists()) {
+            if (!outputFile.canWrite()) {
+                allIsOkay = false;
+            }
+        }
+
+        if (!allIsOkay) {
+            System.out.format("== plotPSD: request to output plot=[%s] but we are unable to create it "
+                              + " --> skip plot\n", pngName );
+            return;
+        }
 
         final XYSeries series1 = new XYSeries(channel.toString());
         final XYSeries series2 = new XYSeries("NLNM");
@@ -329,7 +355,7 @@ Boolean DEBUG = true;
 // Here we need to see if test dir exists and create it if necessary ...
         try { 
             //ChartUtilities.saveChartAsJPEG(new File("chart.jpg"), chart, 500, 300);
-            ChartUtilities.saveChartAsPNG(new File(pngName), chart, 500, 300);
+            ChartUtilities.saveChartAsPNG(outputFile, chart, 500, 300);
         } catch (IOException e) { 
             System.err.println("Problem occurred creating chart.");
 

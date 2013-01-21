@@ -127,7 +127,9 @@ public class Scanner
             ArchivePath pathEngine = new ArchivePath(timestamp, station);
             String path = pathEngine.makePath(scan.getPathPattern());
             File dir = new File(path);
+            File[] files = null;
             Boolean dataExists = true;
+
             if (!dir.exists()) {
                 logger.info("Path '" +dir+ "' does not exist.");
                 dataExists = false;
@@ -136,6 +138,34 @@ public class Scanner
                 logger.info("Path '" +dir+ "' is not a directory.");
                 dataExists = false;
             }
+            else { // The dir exists --> See if we have any useful seed files in it:
+
+/** MTH: There are some non-seed files (e.g., data_avail.txt) included in files[].
+ **      For some reason the file netday.index causes the splitter to hang.
+ **      Either restrict the file list to .seed files (as I do below) -or-
+ **      Debug splitter so it drops non-seed/miniseed files.
+**/
+                FilenameFilter textFilter = new FilenameFilter() {
+                    public boolean accept(File dir, String name) {
+                        String lowercaseName = name.toLowerCase();
+                        File file = new File(dir + "/" + name);
+                        if (lowercaseName.endsWith(".seed") && (file.length() > 0) ) {
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    }
+                };
+
+                files = dir.listFiles(textFilter);
+                if (files == null) {
+                    dataExists = false;
+                }
+                else if (files.length == 0) {
+                    dataExists = false;
+                }
+            } // end else dir exists
+
 
             if (!dataExists) {  // Found no data for this station + day
                 // See if the scan asks for the data AvailabilityMetric
@@ -169,35 +199,13 @@ public class Scanner
 
                         break;
                     }
-                } 
+                }
                 continue; // Go to next day and see if we have data for it
 
             } // end if (No Data for this station + day)
 
-
-/** MTH: There are some non-seed files (e.g., data_avail.txt) included in files[].
- **      For some reason the file netday.index causes the splitter to hang.
- **      Either restrict the file list to .seed files (as I do below) -or-
- **      Debug splitter so it drops non-seed/miniseed files.
- **
- **         File[] files = dir.listFiles();
-**/
-            FilenameFilter textFilter = new FilenameFilter() {
-              public boolean accept(File dir, String name) {
-                  String lowercaseName = name.toLowerCase();
-                  if (lowercaseName.endsWith(".seed")) {
-                      return true;
-                  } else {
-                      return false;
-                  }
-              }
-            };
-
-            File[] files = dir.listFiles(textFilter);
-            int seedCount = files.length;
-
             Hashtable<String,ArrayList<DataSet>> table = null;
-            logger.info(dir.getPath() + " contains " +seedCount+ " files.");
+            logger.info(dir.getPath() + " contains " +files.length+ " files.");
             progressQueue.clear();
 
             SeedSplitter splitter = new SeedSplitter(files, progressQueue);

@@ -252,6 +252,10 @@ implements Runnable
                             }
                         }
                         location = seedstring.substring(10,12).trim();
+                    // MTH:
+                        if (location.equals("") || location == null) {
+                            location = "--";            // Set Default location to "--"
+                        }
                         if (m_patternLocation != null) {
                             matcher = m_patternLocation.matcher(location);
                             if (!matcher.matches()) {

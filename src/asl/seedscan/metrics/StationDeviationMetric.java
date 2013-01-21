@@ -42,20 +42,15 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.File;
 import java.nio.ByteBuffer;
+import asl.util.Hex;
 
 import java.util.logging.Logger;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.GregorianCalendar;
 import java.util.Calendar;
 
-import asl.metadata.*;
-import asl.metadata.meta_new.*;
-import asl.security.MemberDigest;
+import asl.metadata.Channel;
+import asl.metadata.Station;
 import asl.seedscan.ArchivePath;
-import asl.seedsplitter.DataSet;
-
-import asl.util.Hex;
 
 import timeutils.Timeseries;
 

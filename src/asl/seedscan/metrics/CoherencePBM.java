@@ -44,16 +44,15 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.File;
 import java.nio.ByteBuffer;
+import asl.util.Hex;
 
 import java.util.logging.Logger;
 import java.util.ArrayList;
-import java.util.GregorianCalendar;
 import java.util.Calendar;
 
-import asl.metadata.*;
-import asl.metadata.meta_new.*;
-import asl.seedsplitter.DataSet;
-import asl.util.Hex;
+import asl.metadata.Channel;
+import asl.metadata.ChannelArray;
+import asl.metadata.Station;
 
 import timeutils.Timeseries;
 
@@ -71,6 +70,9 @@ extends PowerBandMetric
     {
         return "CoherencePBM";
     }
+
+    private Boolean DEBUG = true;
+    private final String outputDir = "outputs";
 
     public void process()
     {
@@ -201,7 +203,6 @@ extends PowerBandMetric
         }
         averageValue /= (double)nPeriods;
 
-Boolean DEBUG = true;
         if (DEBUG){
             plotCoherence(channelX, channelY, per, gammaPer);
         }
@@ -213,13 +214,42 @@ Boolean DEBUG = true;
 
     private void plotCoherence(Channel channelX, Channel channelY, double[] period, double[] gamma) {
 
+        // See if outputDir exists. If not, then try to make it and if that
+        //   fails then return
+
+        File dir = new File(outputDir);
+        Boolean allIsOkay = true;
+        if (dir.exists()) {           // Dir exists --> check write permissions
+            if (!dir.isDirectory()) {
+                allIsOkay = false;        // The filename exists but it is NOT a directory
+            }
+            else {
+                allIsOkay = dir.canWrite();
+            }
+        }
+        else {                      // Dir doesn't exist --> try to make it
+            allIsOkay = dir.mkdir();
+        }
+
         Station station        = metricResult.getStation();
         Calendar date          = metricResult.getDate();
         final String plotTitle = String.format("%04d%03d.%s.%s-%s", date.get(Calendar.YEAR), date.get(Calendar.DAY_OF_YEAR)
                                                 ,station, channelX, channelY);
-        //final String pngName   = String.format("tests/%04d%03d.%s.%s-%s.png", date.get(Calendar.YEAR), date.get(Calendar.DAY_OF_YEAR)
-        final String pngName   = String.format("%04d%03d.%s.%s-%s.png", date.get(Calendar.YEAR), date.get(Calendar.DAY_OF_YEAR)
+        final String pngName   = String.format("%s/%04d%03d.%s.%s-%s.png", outputDir, date.get(Calendar.YEAR), date.get(Calendar.DAY_OF_YEAR)
                                                 ,station, channelX, channelY);
+
+        File outputFile = new File(pngName);
+        if (outputFile.exists()) {
+            if (!outputFile.canWrite()) {
+                allIsOkay = false;
+            }
+        }
+
+        if (!allIsOkay) {
+            System.out.format("== plotPSD: request to output plot=[%s] but we are unable to create it "
+                              + " --> skip plot\n", pngName );
+            return;
+        }
 
         final String legend    = String.format("%s--%s",channelX, channelY);
         final XYSeries series1 = new XYSeries(legend);
@@ -259,7 +289,7 @@ Boolean DEBUG = true;
         chart.setTitle( new TextTitle(plotTitle) );
 
         try { 
-            ChartUtilities.saveChartAsPNG(new File(pngName), chart, 500, 300);
+            ChartUtilities.saveChartAsPNG(outputFile, chart, 500, 300);
         } catch (IOException e) { 
             System.err.println("Problem occurred creating chart.");
 

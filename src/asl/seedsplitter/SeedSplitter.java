@@ -227,6 +227,11 @@ extends SwingWorker<Hashtable<String,ArrayList<DataSet>>, SeedSplitProgress>
                 finalFile = true;
             }
             File file = m_files[i];
+        // MTH: SeedSplitProcessor hangs if seed filesize = 0 --> Handled in Scanner.java instead
+        // MTH: Skip this file if size = 0:
+        //  if (file.length() == 0) {
+        //      continue;
+        //  }
             DataInputStream inputStream;
             Thread inputThread = null;
             progressBytes = 0;
