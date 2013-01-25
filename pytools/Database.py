@@ -23,7 +23,7 @@ class Database:
     def select_database(self, conString):
         self.close()
         host, user, pwd, db, port = conString.split(',')
-        self.db = psycopg2.connect(host=host, user=user, password=pwd, dbname=db, port=port)
+        self.db = psycopg2.connect(host=host, user=user, password=pwd, database=db, port=port)
         self.cur = self.db.cursor()
 
     def close(self):
