@@ -69,8 +69,25 @@ public class ChannelMeta extends MemberDigest
     private String knet = null;
     private String kstn = null;
 
+    // constructor(s)
+
+    public ChannelMeta(ChannelKey channel, Calendar metaTimestamp)
+    {
+   // We need to call the super constructor to start the MessageDigest
+        super();
+        this.name     = channel.getName();
+        this.location = channel.getLocation();
+        this.metaTimestamp = metaTimestamp;
+        stages = new Hashtable<Integer, ResponseStage>();
+    }
+    public ChannelMeta(String location, String channel, Calendar metaTimestamp)
+    {
+        this(new ChannelKey(location, channel), metaTimestamp);
+    }
+
+
 /**
- *  Deep copy
+ *  Deep copy method(s)
  */
     public ChannelMeta copy() {
         return copy(this.name);
@@ -87,7 +104,6 @@ public class ChannelMeta extends MemberDigest
             useName = this.getName();
         }
         ChannelMeta copyChan = new ChannelMeta(this.getLocation(), useName, this.getTimestamp() );
-        //ChannelMeta copyChan = new ChannelMeta(this.getLocation(), this.getName(), this.getTimestamp() );
         copyChan.sampleRate     = this.sampleRate;
         copyChan.dip            = this.dip;
         copyChan.azimuth        = this.azimuth;
@@ -105,7 +121,7 @@ public class ChannelMeta extends MemberDigest
     }
 
 /**
- *  Shallow copy
+ *  Shallow copy - Not currently used ...
  */
 /**
     public ChannelMeta clone() {
@@ -126,6 +142,9 @@ public class ChannelMeta extends MemberDigest
     }
 **/
 
+/**
+ *  Add parts of this channelMeta to its digest
+ */
     public void addDigestMembers() {
 
       addToDigest(sampleRate);
@@ -171,21 +190,7 @@ public class ChannelMeta extends MemberDigest
 
     } // end addDigestMembers()
 
-    // constructor(s)
 
-    public ChannelMeta(ChannelKey channel, Calendar metaTimestamp)
-    {
-   // We need to call the super constructor to start the MessageDigest
-        super();
-        this.name     = channel.getName();
-        this.location = channel.getLocation();
-        this.metaTimestamp = metaTimestamp;
-        stages = new Hashtable<Integer, ResponseStage>();
-    }
-    public ChannelMeta(String location, String channel, Calendar metaTimestamp)
-    {
-        this(new ChannelKey(location, channel), metaTimestamp);
-    }
 
     // setter(s)
 
@@ -351,10 +356,10 @@ public class ChannelMeta extends MemberDigest
 //  Return complex response computed at given freqs[0,...length]
 
 /**
-    @outUnits = 0 Return Response in default units of seed file]
-    @outUnits = 1 Return [Displacement] Response
-    @outUnits = 2 Return [Velocity    ] Response
-    @outUnits = 3 Return [Acceleration] Response
+ *  @outUnits = 0 Return Response in default units of seed file]
+ *  @outUnits = 1 Return [Displacement] Response
+ *  @outUnits = 2 Return [Velocity    ] Response
+ *  @outUnits = 3 Return [Acceleration] Response
 **/
     public Cmplx[] getResponse(double[] freqs, int outUnits){
 

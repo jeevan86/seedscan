@@ -45,6 +45,8 @@ public class StationMeta
     private Hashtable<ChannelKey,ChannelMeta> channels;
     private Calendar metaTimestamp = null;
 
+    private Blockette blockette50 = null;
+
     // constructor(s)
 
     public StationMeta(Blockette blockette, Calendar timestamp)
@@ -60,6 +62,7 @@ public class StationMeta
         this.elevation= Double.parseDouble(blockette.getFieldValue(6,0));
         channels = new Hashtable<ChannelKey,ChannelMeta>();
         this.metaTimestamp = timestamp;
+        this.blockette50= blockette;
     }
 
     public void setLatitude(double latitude)
@@ -78,14 +81,8 @@ public class StationMeta
     }
     public void setLatLon(double latitude, double longitude)
     {
-        if (! (latitude <= 90. && latitude >= -90) ) {
-           throw new RuntimeException("Error: station latitude must be: -90 <= val <= 90");
-        }
-        if (! (longitude <= 180. && longitude >= -180) ) {
-           throw new RuntimeException("Error: station longitude must be: -180 <= val <= 180");
-        }
-        this.latitude  = latitude;
-        this.longitude = longitude;
+        this.setLatitude(latitude);
+        this.setLongitude(longitude);
     }
     public void setElevation(double elevation)
     {
@@ -123,9 +120,10 @@ public class StationMeta
         return metaTimestamp;
     }
 
-//  Look for particular channelMeta (e.g., "00" "VHZ") in channels array.
-//    Return it if found, else return null
-
+/**  
+ *  Look for particular channelMeta (e.g., "00" "VHZ") in channels Hashtable.
+ *    Return it if found, else return null
+ */
     public ChannelMeta getChanMeta(ChannelKey chanKey) {
       if (channels.containsKey(chanKey) ){
           return channels.get(chanKey);
@@ -140,49 +138,11 @@ public class StationMeta
     public ChannelMeta getChanMeta(String location, String name) {
       return getChanMeta(new ChannelKey(location, name));
     }
-
+/**
+ *  Return the entire channels Hashtable
+ */
     public Hashtable<ChannelKey,ChannelMeta> getChannelHashTable() {
       return channels;
-    }
-
-/**
- *  See if metadata contains the channel and if so, return it back.
- *  If metadata does not contain the channel, then see if metadata contains these alternatives:
- *  
- *  ?H1 --> ?HN
- *  ?H2 --> ?HE
- **/
-    public Channel checkChannel(Channel channel) {
-
-        if (hasChannel(channel)) {
-            return channel;
-        }
-        else if(channel.getChannel().contains("H1")) { // LH1 --> LHN
-            Channel newChannel = new Channel ( channel.getLocation(), channel.getChannel().replace("H1", "HN") );
-            if (hasChannel(newChannel)) {
-                return newChannel;
-            } 
-        }
-        else if(channel.getChannel().contains("H2")) { // LH2 --> LHE
-            Channel newChannel = new Channel ( channel.getLocation(), channel.getChannel().replace("H2", "HE") );
-            if (hasChannel(newChannel)) {
-                return newChannel;
-            } 
-        }
-        else if(channel.getChannel().contains("N1")) { // HN1 --> HNN
-            Channel newChannel = new Channel ( channel.getLocation(), channel.getChannel().replace("N1", "NN") );
-            if (hasChannel(newChannel)) {
-                return newChannel;
-            } 
-        }
-        else if(channel.getChannel().contains("N2")) { // HN2 --> HNE
-            Channel newChannel = new Channel ( channel.getLocation(), channel.getChannel().replace("N2", "NE") );
-            if (hasChannel(newChannel)) {
-                return newChannel;
-            } 
-        }
-        // If we're here then we don't know what this channel is so just return it back
-        return channel;
     }
 
 /**
@@ -190,7 +150,7 @@ public class StationMeta
  *    that match the 2-char band
  *  e.g., if band = "LH" then return "00-LHZ", "00-LH1", "00-LH2", "00-LHN", "00-LHE",
  *                                   "10-LHZ", "10-LH1", "10-LH2", ..
- *                                   "---LHZ", "---LH1", "---LH2", "---LHN", "---LHE", 
+ *                           -or-    "---LHZ", "---LH1", "---LH2", "---LHN", "---LHE", 
  */
     public ArrayList<Channel> getChannelArray(String band) {
         if (!Channel.validBandCode(band.substring(0,1)) || !Channel.validInstrumentCode(band.substring(1,2)) ) {
@@ -253,15 +213,16 @@ public class StationMeta
             Channel channel = channelKey.toChannel();
 
             String channelFlags  = getChanMeta(channelKey).getChannelFlags();
-            //System.out.format("== channel=[%s] channelFlags=[%s]\n", channel, channelFlags);
 
             if (channelFlags.substring(0,1).equals("C") ){
-                //System.out.format("== Channel is Continuous!\n");
                 channelArrayList.add(channel);
             }
         }
         return channelArrayList;
     }
+
+
+ // Boolean hasChannel methods:
 
     public Boolean hasChannel(ChannelKey channelKey) {
       return channels.containsKey(channelKey);
@@ -272,7 +233,6 @@ public class StationMeta
     public Boolean hasChannel(String location, String name) {
       return hasChannel(new ChannelKey(location, name) );
     }
-
     public Boolean hasChannels(ChannelArray channelArray) {
       for (Channel channel : channelArray.getChannels() ){
         if (!hasChannel(channel)){
@@ -289,6 +249,8 @@ public class StationMeta
           return false;
       }
     }
+
+ // addRotatedChannelMeta(s):
 
 /**
  *  Not sure yet if we need this to drive addRotatedChannel below 
@@ -357,7 +319,6 @@ public class StationMeta
         ChannelMeta derivedChannelMeta = (getChanMeta(origChannel)).copy(derivedChannel);
         derivedChannelMeta.setAzimuth(azimuth);
         this.addChannel( new ChannelKey(derivedChannel), derivedChannelMeta);
-
     }
 
 
@@ -369,6 +330,25 @@ public class StationMeta
       for (ChannelKey chanKey : chanKeys){
         channels.get(chanKey).print();
       }
+    }
+
+    public void printStationInfo() {
+
+      blockette50.print();
+
+/**
+      StringBuilder result = new StringBuilder();
+      String NEW_LINE = System.getProperty("line.separator");
+      result.append(String.format("%s\n","============================================================") );
+      result.append(String.format("%10s%s\t%15s%.2f\t%15s[%s]\n","Station:",name,"Latitude:",latitude,"Meta Timestamp:", 
+                                   EpochData.epochToDateString(getMetaTimestamp()) ) );
+      result.append(String.format("%10s%s\t%15s%.2f\t%15s%.2f\n","Network:",network,"Longitude:",longitude, "Elevation:",elevation) );
+      result.append(String.format("%10s%s\t\n", "Comment:", comment) );
+      result.append(String.format("%s\n","============================================================") );
+      result.append(NEW_LINE);
+      System.out.print(result.toString());
+**/
+      //return result.toString();
     }
 
     @Override public String toString() {

@@ -649,6 +649,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
         for(int blk=0; blk<nblockettes; blk++) {
           blocketteOffsets[blk] = next;
           short type =ms.getShort();
+//System.out.format("==== MiniSeed.crack: blockette type=[%d]\n", type);
           // This is the problem when blockette 1001 was not swapped for a shor ttime 2009,128-133
           if(type == -5885) {
             if(time.get(Calendar.YEAR) == 2009 &&
@@ -731,9 +732,12 @@ public class MiniSeed  implements MiniSeedOutputHandler {
               break;
             case 320:     // Pseudo-random calibration
               if(buf320 == null) {
-                buf320=new byte[32];
+            //MTH:
+                //buf320=new byte[32];
+                buf320=new byte[64];
                 bb320=ByteBuffer.wrap(buf320);
               }
+System.out.format("== MiniSeed: process blockette 320\n");
               ms.get(buf320);
               blockettes[blk]=bb320;
               if(swap) blockettes[blk].order(ByteOrder.LITTLE_ENDIAN);

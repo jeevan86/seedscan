@@ -53,6 +53,8 @@ public abstract class Metric
     protected MetricData   metricData   = null;
     protected MetricResult metricResult = null;
 
+    protected MetricData   nextMetricData = null;
+
     public Metric()
     {
         arguments = new Hashtable<String, String>();
@@ -109,6 +111,13 @@ public abstract class Metric
         this.metricData = metricData;
         stationMeta = metricData.getMetaData();
         metricResult = new MetricResult(stationMeta, getName());
+    }
+
+    // Same as above but for the next day
+    public void setDataNext(MetricData metricData)
+    {
+        this.nextMetricData = metricData;
+        //stationMeta = metricData.getMetaData();
     }
 
     public MetricResult getMetricResult()

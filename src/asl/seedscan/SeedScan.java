@@ -313,14 +313,14 @@ public class SeedScan
         */
 
 // ==== Perform Scans ====
-        System.out.format("\n\n==SeedScan: Load StationList and Begin Scan\n\n");
+        //System.out.format("\n\n==SeedScan: Load StationList and Begin Scan\n\n");
 
-Runtime runtime = Runtime.getRuntime();
-System.out.println(" Java total memory=" + runtime.totalMemory() );
+        //Runtime runtime = Runtime.getRuntime();
+        //System.out.println(" Java total memory=" + runtime.totalMemory() );
 
         for (String key : scans.keySet() ) {
            scan = scans.get(key);
-           System.out.format("scan key=%s startDay=%d daysToScan=%d\n", key, scan.getStartDay(), scan.getDaysToScan() );
+           System.out.format("== SeedScan Scan=[%s] startDay=%d daysToScan=%d\n", key, scan.getStartDay(), scan.getDaysToScan() );
         }
         scan = scans.get("daily");
 
@@ -329,7 +329,7 @@ System.out.println(" Java total memory=" + runtime.totalMemory() );
 
 // Set getStationList = false if you want to manually control the StationList below ...
         Boolean getStationList = true;
-        //getStationList = false;
+        getStationList = false;
         ArrayList<Station> stations;
 
     if (getStationList){
@@ -345,8 +345,14 @@ System.out.println(" Java total memory=" + runtime.totalMemory() );
         //Adam suggest I use these stations for testing
         //stations.add( new Station("IU","WAKE") );
         stations.add( new Station("IU","ANMO") );
+        stations.add( new Station("IU","SBA") );
+        stations.add( new Station("IU","GUMO") );
+        //stations.add( new Station("IU","KIP") );
+        //stations.add( new Station("IC","XAN") );
+        //stations.add( new Station("IU","GRFO") );
+        //stations.add( new Station("NE","WES") );
         //stations.add( new Station("IC","KMI") );
-        stations.add( new Station("IW","MFID") );
+        //stations.add( new Station("IW","MFID") );
         //stations.add( new Station("IU","MAJO") );
         //stations.add( new Station("IU","KEV") ); //KEV gives an divide by 0 error when included
         //stations.add( new Station("IU","KIP" ) );
@@ -355,8 +361,8 @@ System.out.println(" Java total memory=" + runtime.totalMemory() );
         //stations.add( new Station("IU","PMSA") );
         //stations.add( new Station("IU","OTAV" ) );
         //stations.add( new Station("BK","CMB") );
-        stations.add( new Station("IU","HRV") );
-        stations.add( new Station("CI","PASC") );
+        //stations.add( new Station("IU","HRV") );
+        //stations.add( new Station("CI","PASC") );
         //End Adam's suggestion
         //stations.add( new Station("IU","SNZO") );
         //stations.add( new Station("IW","LKWY") );
@@ -367,7 +373,7 @@ System.out.println(" Java total memory=" + runtime.totalMemory() );
     }
 
         for (Station station : stations){
-            System.out.format("== Got station:%s\n", station);
+            System.out.format("== SeedScan: Got station:[%s]\n", station);
         }
 
         Thread readerThread = new Thread(reader);

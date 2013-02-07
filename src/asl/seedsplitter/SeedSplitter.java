@@ -32,6 +32,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import seed.Blockette320;
+
 import javax.swing.SwingWorker;
 
 import asl.concurrent.FallOffQueue;
@@ -73,6 +75,7 @@ extends SwingWorker<Hashtable<String,ArrayList<DataSet>>, SeedSplitProgress>
 
 //MTH
     private Hashtable<String,ArrayList<Integer>> m_qualityTable;
+    private Hashtable<String,ArrayList<Blockette320>> m_calTable;
 
     /**
      * Hidden initializer which is called by all constructors.
@@ -173,6 +176,10 @@ extends SwingWorker<Hashtable<String,ArrayList<DataSet>>, SeedSplitProgress>
     public Hashtable<String,ArrayList<Integer>> getQualityTable()
     {
         return m_qualityTable;
+    }
+    public Hashtable<String,ArrayList<Blockette320>> getCalTable()
+    {
+        return m_calTable;
     }
 
     /**
@@ -279,6 +286,7 @@ extends SwingWorker<Hashtable<String,ArrayList<DataSet>>, SeedSplitProgress>
             m_table = processor.getTable();
 //MTH:
             m_qualityTable = processor.getQualityTable();
+            m_calTable     = processor.getCalTable();
             m_lastProgress = progress;
             if (progress.errorOccurred()) {
                 m_table = null;

@@ -49,6 +49,8 @@ import asl.metadata.*;
 import asl.metadata.meta_new.*;
 import asl.seedscan.metrics.*;
 
+import seed.Blockette320;
+
 public class Scanner
     implements Runnable
 {
@@ -59,6 +61,10 @@ public class Scanner
     private MetricInjector injector;
     private MetricReader reader;
     private Scan scan;
+    private MetaGenerator metaGen;
+
+    private MetricData currentMetricData = null;
+    private MetricData nextMetricData = null;
 
     private FallOffQueue<SeedSplitProgress> progressQueue;
 
@@ -77,155 +83,82 @@ public class Scanner
 
     public void scan()
     {
-
-    //  GregorianCalendar timestamp = new GregorianCalendar();
-
-    // This has to be done so that EpochData.epochToDateString will return the correct times
-    //   since seedsplitter/SeedSplitProcessor sets the TimeZone to GMT.
-    // Otherwise, all calls to epochToDateString will print local time (GMT - 4 hours).
-    // Update: There's more to it: If this is run after 8:00pm EST then it thinks it's the next GMT day ...
-
         GregorianCalendar timestamp = new GregorianCalendar(TimeZone.getTimeZone("GMT") );
 
-        if (scan.getStartDay() > 0) {
-            timestamp.setTimeInMillis(timestamp.getTimeInMillis() - (scan.getStartDay() * dayMilliseconds));
-        }
+        timestamp.setTimeInMillis(timestamp.getTimeInMillis() - (scan.getStartDay() * dayMilliseconds));
+
      // timestamp is now set to current time - (24 hours x StartDay). What we really want is to set it
      //   to the start (hh:mm=00:00) of the first day we want to scan
         timestamp.set(Calendar.HOUR_OF_DAY, 0);      timestamp.set(Calendar.MINUTE, 0);
         timestamp.set(Calendar.SECOND, 0);      timestamp.set(Calendar.MILLISECOND, 0);
 
      // Read in all metadata for this station (all channels + all days):
-        //MetaGenerator metaGen = new MetaGenerator(station);
         String datalessDir    = scan.getDatalessDir();
-//System.out.format("== Scanner: call MetaGenerator(station=%s)\n", station);
-        MetaGenerator metaGen = new MetaGenerator(station, datalessDir);
+        metaGen = new MetaGenerator(station, datalessDir);
         if (!metaGen.isLoaded()) {    // No Metadata found for this station --> Skip station == End thread ??
-            System.out.format("Scanner Error: No Metadata found for Station:%s_%s --> Skip this Station\n", station.getNetwork(), station.getStation());
+            System.out.format("== Scanner Error: No Metadata found for Station:%s --> Skip this Station\n", station);
             return;
         }
 
-     // Loop over days to scan
+
+     // Loop over days to scan, from most recent (currentDay=startDay) to oldest (currentDay=startDay - daysToScan - 1)
+     // e.g.,
+     // i   currentDay  nextDay
+     // -----------------------
+     // 0      072        073
+     // 1      071        072
+     // 2      070        071
+     // :
+     // daysToScan - 1
 
         for (int i=0; i < scan.getDaysToScan(); i++) {
             if (i != 0) {
                 timestamp.setTimeInMillis(timestamp.getTimeInMillis() - dayMilliseconds);
             }
+            GregorianCalendar nextDayTimestamp = (GregorianCalendar)timestamp.clone();
+            nextDayTimestamp.setTimeInMillis( timestamp.getTimeInMillis() + dayMilliseconds);
 
-            System.out.format("\n==Scanner: scan Day=%s Station=%s\n", EpochData.epochToDateString(timestamp), station);
+            System.out.format("\n==Scanner: scan Station=%s Day=%s\n", station, EpochData.epochToDateString(timestamp) );
 
 // [1] Get all the channel metadata for this station, for this day
             StationMeta stnMeta = metaGen.getStationMeta(station, timestamp); 
-            if (stnMeta == null) { // No Metadata found for this station + this day --> skip day
-               System.out.format("Scanner: No Metadata found for Station:%s_%s + Day:%s --> Skipping\n", station.getNetwork(), station.getStation(),
-                                  EpochData.epochToDateString(timestamp) );
+            if (stnMeta == null) {                       // No Metadata found for this station + this day --> skip day
+               System.out.format("== Scanner: No Metadata found for Station:%s_%s + Day:%s --> Skipping\n", 
+                                  station.getNetwork(), station.getStation(), EpochData.epochToDateString(timestamp) );
                continue;
             }
 
-// [2] Read in all the seed files for this station, for this day
+            stnMeta.printStationInfo();
 
-            ArchivePath pathEngine = new ArchivePath(timestamp, station);
-            String path = pathEngine.makePath(scan.getPathPattern());
-            File dir = new File(path);
-            File[] files = null;
-            Boolean dataExists = true;
+// [2] Read in all the seed files for this station, for this day & for the next day
+//     If this isn't the first day of the scan then simply copy current into next so we
+//     don't have to reread all of the seed files in
 
-            if (!dir.exists()) {
-                logger.info("Path '" +dir+ "' does not exist.");
-                dataExists = false;
+            if (i == 0) {
+                nextMetricData    = getMetricData(nextDayTimestamp);
             }
-            else if (!dir.isDirectory()) {
-                logger.info("Path '" +dir+ "' is not a directory.");
-                dataExists = false;
+            else {
+                nextMetricData    = currentMetricData;
             }
-            else { // The dir exists --> See if we have any useful seed files in it:
+            currentMetricData = getMetricData(timestamp);
 
-/** MTH: There are some non-seed files (e.g., data_avail.txt) included in files[].
- **      For some reason the file netday.index causes the splitter to hang.
- **      Either restrict the file list to .seed files (as I do below) -or-
- **      Debug splitter so it drops non-seed/miniseed files.
-**/
-                FilenameFilter textFilter = new FilenameFilter() {
-                    public boolean accept(File dir, String name) {
-                        String lowercaseName = name.toLowerCase();
-                        File file = new File(dir + "/" + name);
-                        if (lowercaseName.endsWith(".seed") && (file.length() > 0) ) {
-                            return true;
-                        } else {
-                            return false;
-                        }
-                    }
-                };
-
-                files = dir.listFiles(textFilter);
-                if (files == null) {
-                    dataExists = false;
-                }
-                else if (files.length == 0) {
-                    dataExists = false;
-                }
-            } // end else dir exists
-
-
-            if (!dataExists) {  // Found no data for this station + day
-                // See if the scan asks for the data AvailabilityMetric
-                String metricName = null;
-                for (MetricWrapper wrapper: scan.getMetrics()) {
-                    Metric metric = wrapper.getNewInstance();
-                    if (metric.getClass().getName().contains("AvailabilityMetric")){
-                        metricName = metric.getClass().getName();
-                        metric.setData( new MetricData(stnMeta) );
-                        metric.process();
-                        MetricResult results = metric.getMetricResult();
-
-                        if (results == null){
-                        }
-                        else {
-                            for (String id: results.getIdSet()) {
-                                double value = results.getResult(id);
-                                System.out.format("  %s : %.2f\n", id, value);
-                            }
-                            if (injector.isConnected()) {
-                                try {
-                                    injector.inject(results);
-                                } catch (InterruptedException ex) {
-                                    logger.warning(String.format("Interrupted while trying to inject metric [%s]", metric.toString()));
-                                }
-                            }
-                            else {
-                                System.out.println("== Scanner: injector *IS NOT* connected --> Don't inject");
-                            }
-                        }
-
-                        break;
-                    }
-                }
+            if (currentMetricData == null) {  // Found no data for this station + day
+             // See if the scan asks for the data AvailabilityMetric and if so --> process it
+                printNoAvailability(stnMeta);
                 continue; // Go to next day and see if we have data for it
-
-            } // end if (No Data for this station + day)
-
-            Hashtable<String,ArrayList<DataSet>> table = null;
-            logger.info(dir.getPath() + " contains " +files.length+ " files.");
-            progressQueue.clear();
-
-            SeedSplitter splitter = new SeedSplitter(files, progressQueue);
-            table = splitter.doInBackground();
-
-            Hashtable<String,ArrayList<Integer>> qualityTable = null;
-            qualityTable = splitter.getQualityTable();
+            } 
 
             Runtime runtime = Runtime.getRuntime();
             System.out.println(" Java total memory=" + runtime.totalMemory() );
 
 // [3] Loop over Metrics to compute, for this station, for this day
-            //MetricData metricData = new MetricData(reader, table, stnMeta);
-            MetricData metricData = new MetricData(reader, table, qualityTable, stnMeta);
 
             Hashtable<CrossPowerKey, CrossPower> crossPowerMap = null;
 
             for (MetricWrapper wrapper: scan.getMetrics()) {
                 Metric metric = wrapper.getNewInstance();
-                metric.setData(metricData);
+                metric.setData(currentMetricData);
+                metric.setDataNext(nextMetricData);
 
    // Hand off the crossPowerMap from metric to metric, adding to it each time
                 if (crossPowerMap != null) {
@@ -266,4 +199,146 @@ public class Scanner
 
         } // end loop over day to scan
     } // end scan()
+
+
+
+/**
+ *  Return a MetricData object for the station + timestamp
+ *  If a StationMeta is passed in, then this must be for the current Day so 
+ *  attach a MetricReader to the MetricData, otherwise don't
+ */
+    //private MetricData getMetricData(GregorianCalendar timestamp, Station station, StationMeta stnMeta) {
+    private MetricData getMetricData(GregorianCalendar timestamp) {
+
+      //System.out.format("== getMetricData: request data for Station=[%s] Day=[%s]\n", station, EpochData.epochToDateString(timestamp));
+
+        StationMeta stationMeta = metaGen.getStationMeta(station, timestamp); 
+        if (stationMeta == null) {
+            return null;
+        }
+
+        ArchivePath pathEngine = new ArchivePath(timestamp, station);
+        String path = pathEngine.makePath(scan.getPathPattern());
+        File dir = new File(path);
+        File[] files = null;
+        Boolean dataExists = true;
+
+/** MTH: There are some non-seed files (e.g., data_avail.txt) included in files[].
+ **      For some reason the file netday.index causes the splitter to hang.
+ **      Either restrict the file list to .seed files (as I do below) -or-
+ **      Debug splitter so it drops non-seed/miniseed files.
+**/
+        FilenameFilter textFilter = new FilenameFilter() {
+            public boolean accept(File dir, String name) {
+                String lowercaseName = name.toLowerCase();
+                File file = new File(dir + "/" + name);
+                if (lowercaseName.endsWith(".seed") && (file.length() > 0) ) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        };
+
+        if (!dir.exists()) {
+            logger.info("Path '" +dir+ "' does not exist.");
+            dataExists = false;
+        }
+        else if (!dir.isDirectory()) {
+            logger.info("Path '" +dir+ "' is not a directory.");
+            dataExists = false;
+        }
+        else { // The dir exists --> See if we have any useful seed files in it:
+
+            files = dir.listFiles(textFilter);
+            if (files == null) {
+                dataExists = false;
+            }
+            else if (files.length == 0) {
+                dataExists = false;
+            }
+        } // end else dir exists
+
+//      if (dataExists) {   // See if this is a calibration day (i.e., if files BC{0,1}.512.seed exist)
+//          for (File file : files){
+//              if (file.getName().equals("BC0.512.seed") || file.getName().equals("BC1.512.seed")) {
+//                  System.out.format("== Scanner: found Calibration file=[%s]\n", file);
+//              }
+//          }
+//      }
+
+        if (!dataExists) {
+            //System.out.format("== getMetricData: No data found for Day=[%s] Station=[%s]\n", EpochData.epochToDateString(timestamp), station);
+            return null;
+        }
+
+        Hashtable<String,ArrayList<DataSet>> table = null;
+        logger.info(dir.getPath() + " contains " +files.length+ " files.");
+        progressQueue.clear();
+
+        SeedSplitter splitter = new SeedSplitter(files, progressQueue);
+        table = splitter.doInBackground();
+
+        Hashtable<String,ArrayList<Integer>> qualityTable = null;
+        qualityTable = splitter.getQualityTable();
+
+        Hashtable<String,ArrayList<Blockette320>> calibrationTable = null;
+        calibrationTable = splitter.getCalTable();
+
+/**
+        MetricData metricData = null;
+        if (stnMeta != null) {
+            metricData  = new MetricData(reader, table, qualityTable, stnMeta, calibrationTable);
+        }   
+        else {
+            StationMeta stationMeta = metaGen.getStationMeta(station, timestamp); 
+            metricData  = new MetricData(table, qualityTable, stationMeta, calibrationTable);
+        }   
+        return metricData;
+**/
+
+        return new MetricData(reader, table, qualityTable, stationMeta, calibrationTable);
+
+    } // end getMetricData()
+
+
+    private void printNoAvailability(StationMeta stnMeta) {
+
+     // Found no data for this station + day
+     // See if the scan asks for the data AvailabilityMetric and if so --> process it
+        String metricName = null;
+        for (MetricWrapper wrapper: scan.getMetrics()) {
+            Metric metric = wrapper.getNewInstance();
+            if (metric.getClass().getName().contains("AvailabilityMetric")){
+                metricName = metric.getClass().getName();
+                metric.setData( new MetricData(stnMeta) );
+                metric.process();
+                MetricResult results = metric.getMetricResult();
+
+                if (results == null){
+                }
+                else {
+                    for (String id: results.getIdSet()) {
+                        double value = results.getResult(id);
+                        System.out.format("  %s : %.2f\n", id, value);
+                    }
+                    if (injector.isConnected()) {
+                        try {
+                            injector.inject(results);
+                        } catch (InterruptedException ex) {
+                            logger.warning(String.format("Interrupted while trying to inject metric [%s]", metric.toString()));
+                        }
+                    }
+                    else {
+                        System.out.println("== Scanner: injector *IS NOT* connected --> Don't inject");
+                    }
+                }
+
+                break;
+            }
+        }
+
+    } // printNoAvailability
+
+
 }

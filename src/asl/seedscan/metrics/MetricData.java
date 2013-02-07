@@ -36,6 +36,8 @@ import asl.seedsplitter.Sequence;
 import asl.seedsplitter.SequenceRangeException;
 import asl.util.Hex;
 
+import seed.Blockette320;
+
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -50,6 +52,7 @@ public class MetricData
 
     private Hashtable<String, ArrayList<DataSet>> data;
     private Hashtable<String, ArrayList<Integer>> qualityData;
+    private Hashtable<String, ArrayList<Blockette320>> randomCal;
     private StationMeta metadata;
     private Hashtable<String, String> synthetics;
     private MetricReader metricReader;
@@ -74,12 +77,35 @@ public class MetricData
     }
 
     public MetricData(	MetricReader metricReader, Hashtable<String,ArrayList<DataSet>> data, 
+                        Hashtable<String,ArrayList<Integer>> qualityData, StationMeta metadata,
+                        Hashtable<String,ArrayList<Blockette320>> randomCal)
+    {
+    	this.metricReader = metricReader;
+        this.data         = data;
+        this.qualityData  = qualityData;
+        this.randomCal    = randomCal;
+        this.metadata     = metadata;
+    }
+
+    public MetricData(	Hashtable<String,ArrayList<DataSet>> data, 
+                        Hashtable<String,ArrayList<Integer>> qualityData, StationMeta metadata,
+                        Hashtable<String,ArrayList<Blockette320>> randomCal)
+    {
+    	this.metricReader = null;
+        this.data         = data;
+        this.qualityData  = qualityData;
+        this.randomCal    = randomCal;
+        this.metadata     = metadata;
+    }
+
+
+    public MetricData(	MetricReader metricReader, Hashtable<String,ArrayList<DataSet>> data, 
                         Hashtable<String,ArrayList<Integer>> qualityData, StationMeta metadata)
     {
     	this.metricReader = metricReader;
-        this.data = data;
-        this.qualityData = qualityData;
-        this.metadata = metadata;
+        this.data         = data;
+        this.qualityData  = qualityData;
+        this.metadata     = metadata;
     }
 
     public MetricData(	MetricReader metricReader,
@@ -131,9 +157,9 @@ public class MetricData
 
 /**
  *
- * @ return ArrayList<DataSet> = All DataSets for a given channel (e.g., "00-BHZ")
+ * @return ArrayList<DataSet> = All DataSets for a given channel (e.g., "00-BHZ")
  *
-*/
+ */
     public ArrayList<DataSet> getChannelData(String location, String name)
     {
         String locationName = location + "-" + name;
@@ -152,6 +178,37 @@ public class MetricData
         return getChannelData(channel.getLocation(), channel.getChannel() );           
     }
 
+ // Random calibration info
+
+    public Boolean hasCalibrationData() {
+        if (randomCal == null) {
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+
+    public ArrayList<Blockette320> getChannelCalData(Channel channel)
+    {
+        return getChannelCalData(channel.getLocation(), channel.getChannel() );           
+    }
+    public ArrayList<Blockette320> getChannelCalData(String location, String name)
+    {
+        if (!hasCalibrationData()) return null; // randomCal was never created --> Probably not a calibration day
+
+        String locationName = location + "-" + name;
+        Set<String> keys = randomCal.keySet();
+        for (String key : keys){          // key looks like "IU_ANMO 00-BHZ (20.0 Hz)"
+           if (key.contains(locationName) ){
+              return randomCal.get(key); 
+           }
+        }
+        return null;           
+    }
+
+ // Timing quality info:
+
     public ArrayList<Integer> getChannelQualityData(Channel channel)
     {
         return getChannelQualityData(channel.getLocation(), channel.getChannel() );           
@@ -168,6 +225,134 @@ public class MetricData
         }
         return null;           
     }
+
+/**
+ *
+ */
+    public double[] getWindowedData(Channel channel, long windowStartEpoch, long windowEndEpoch, MetricData nextMetricData) 
+    {
+        if (windowStartEpoch > windowEndEpoch) {
+            System.out.format("== getWindowedData ERROR: Requested window Epoch [%d - %d] is NOT VALID "
+              + "(windowStartEpoch > windowEndEpoch\n", 
+                 windowStartEpoch, windowEndEpoch );
+            return null;
+        }
+
+        if (!hasChannelData(channel)){
+            System.out.format("== getWindowedData ERROR: We have NO data for channel=[%s]\n", channel);
+            return null;
+        }
+        ArrayList<DataSet>datasets = getChannelData(channel);
+        DataSet data = null;
+        Boolean windowFound = false;
+        int nSet=0;
+        for (int i=0; i<datasets.size(); i++) {
+            data = datasets.get(i);
+            long startEpoch     = data.getStartTime() / 1000;  // Convert microsecs --> millisecs
+            long endEpoch       = data.getEndTime()   / 1000;  // ...
+            if (windowStartEpoch >= startEpoch && windowStartEpoch < endEpoch) {
+                windowFound = true;
+                nSet = i;
+                break;
+            }
+        }
+
+        if (!windowFound) {
+            System.out.format("== getWindowedData ERROR: Requested window Epoch [%d - %d] was NOT FOUND "
+              + "within DataSet for channel=[%s]\n", windowStartEpoch, windowEndEpoch, channel);
+            return null;
+        }
+        else {
+            System.out.format("== getWindowedData: Requested window Epoch [%d - %d] WAS FOUND "
+              + "within DataSet[i=%d] for channel=[%s]\n", windowStartEpoch, windowEndEpoch, nSet, channel);
+        }
+
+        long dataStartEpoch     = data.getStartTime() / 1000;  // Convert microsecs --> millisecs
+        long dataEndEpoch       = data.getEndTime()   / 1000;  // ...
+        long interval           = data.getInterval()  / 1000;  // Convert microsecs --> millisecs (dt = sample interval)
+        double srate1           = data.getSampleRate(); 
+
+    // Requested Window must start in Day 1 (taken from current dataset(0))
+        if (windowStartEpoch < dataStartEpoch || windowStartEpoch > dataEndEpoch) {
+            System.out.format("== getWindowedData ERROR: Requested window Epoch [%d - %d] does NOT START "
+              + "in current day data window Epoch [%d - %d] for channel=[%s]\n", 
+                 windowStartEpoch, windowEndEpoch, dataStartEpoch, dataEndEpoch, channel );
+            return null;
+        }
+
+        Boolean spansDay = false;
+        DataSet nextData = null;
+
+        if (windowEndEpoch > dataEndEpoch) { // Window appears to span into next day
+            if (!nextMetricData.hasChannelData(channel)){
+                System.out.format("== getWindowedData ERROR: Requested Epoch window spans into next day, but we have NO data "
+                                 +"for channel=[%s] for next day\n", channel);
+                return null;
+            }
+
+            datasets = nextMetricData.getChannelData(channel);
+            nextData = datasets.get(0);
+
+            long nextDataStartEpoch     = nextData.getStartTime() / 1000;  // Convert microsecs --> millisecs
+            long nextDataEndEpoch       = nextData.getEndTime()   / 1000;  // ...
+            double srate2               = nextData.getSampleRate(); 
+
+            if (srate2 != srate1) {
+                System.out.format("== getWindowedData ERROR: Requested window Epoch [%d - %d] extends into "
+                + "nextData window Epoch [%d - %d] for channel=[%s] but srate1[%f] != srate2[%f]\n", 
+                    windowStartEpoch, windowEndEpoch, nextDataStartEpoch, nextDataEndEpoch, srate1, srate2 );
+                return null;
+            }
+
+    // Requested Window must end in Day 2 (taken from next day dataset(0))
+
+            if (windowEndEpoch > nextDataEndEpoch) {
+                System.out.format("== getWindowedData ERROR: Requested window Epoch [%d - %d] extends BEYOND "
+                + "found nextData window Epoch [%d - %d] for channel=[%s]\n", 
+                    windowStartEpoch, windowEndEpoch, nextDataStartEpoch, nextDataEndEpoch );
+                return null;
+            }
+
+            spansDay = true;
+
+        }
+
+        long windowMilliSecs = windowEndEpoch - windowStartEpoch;
+        int  nWindowPoints   = (int)(windowMilliSecs / interval);
+
+        System.out.format("== getWindowedData: Requested window Epoch [%d - %d] = [%d millisecs] = [%d points]\n",
+            windowStartEpoch, windowEndEpoch, windowMilliSecs, nWindowPoints);
+        System.out.format("== getWindowedData: DataEpoch [%d - %d] data srate1=%f interval=[%d] msecs\n",
+            dataStartEpoch, dataEndEpoch, srate1, interval);
+
+        double[] dataArray  = new double[nWindowPoints];
+
+        int[] series1 = data.getSeries();
+        int[] series2 = null;
+        if (spansDay) {
+             series2 = nextData.getSeries();
+        }
+        int j=0;
+
+        int  istart   = (int)((windowStartEpoch - dataStartEpoch) / interval);
+
+        for (int i=0; i<nWindowPoints; i++){
+            if( (istart + i) < data.getLength() ) {
+                dataArray[i] = (double)series1[i + istart];
+            }
+            else if (j < nextData.getLength()) {
+                dataArray[i] = (double)series2[j++];
+            }
+            else {
+                // We should never be here!
+            }
+        }
+
+        return dataArray;
+
+    } // end getWindowedData
+
+
 
 /**
  *  Return a full day (86400 sec) array of data assembled from a channel's DataSets
@@ -222,7 +407,6 @@ public class MetricData
                           //interval, nPointsPerDay, k );
         return data;
     }
-
 
 
 /*
@@ -426,14 +610,13 @@ public class MetricData
         dataList.add(eastDataSet);
         data.put(eastKey, dataList);
 
-/**
-        tmp = getChannelData(channelE).get(0);
-        System.out.format("== Got %s_%s %s-%s nsamps=%d nBlocks=%d\n", tmp.getNetwork(), tmp.getStation(), 
-                           tmp.getLocation(), tmp.getChannel(), tmp.getLength() , tmp.getBlockCount() );
-**/
-
     } // end createRotatedChannels()
 
+
+/**
+ *  getChannelOverlap - find the overlapping samples between 2+ channels
+ *
+ */
     public double[][] getChannelOverlap(Channel channelX, Channel channelY) {
         // Dummy var to hold startTime of overlap
         // Call the 3 param version below if you want the startTime back
@@ -441,10 +624,6 @@ public class MetricData
         return getChannelOverlap(channelX, channelY, foo);
     }
 
-/**
- *  getChannelOverlap - find the overlapping samples between 2+ channels
- *
- */
     public double[][] getChannelOverlap(Channel channelX, Channel channelY, long[] startTime) {
 
         ArrayList<ArrayList<DataSet>> dataLists = new ArrayList<ArrayList<DataSet>>();
@@ -536,6 +715,16 @@ public class MetricData
     }
 
 
+/**
+ *  valueDigestChanged - Determine if the current digest computed for a channel or channelArray
+ *                       has changed from the value stored in the database.
+ *  @return   null - If the digest has NOT changed or if unable to compute a digest (e.g., because
+ *                   the channels don't exist or we are unable to compute rotated channels, etc.)
+ *            null - Will cause the Metric that called valueDigestChanged to skip to the next channel
+ *  @return digest - If the digest has changed (OR if the database is NOT connected so that we couldn't
+ *                   get an old digest to compare).
+ *          digest - Will cause the Metric that called valueDigestChanged to execute its computeMetric().
+ */
     public ByteBuffer valueDigestChanged(Channel channel, MetricValueIdentifier id)
     {
         ChannelArray channelArray = new ChannelArray(channel.getLocation(), channel.getChannel());
@@ -615,12 +804,14 @@ public class MetricData
     }
 
 
+/**
+ *  getHash - Return the multi-buffer hash for a specified channel Array (data + metadata digest)
+ */
     public ByteBuffer getHash(Channel channel)
     {
         ChannelArray channelArray = new ChannelArray(channel.getLocation(), channel.getChannel());
         return getHash(channelArray);
     }
-
 
     private ByteBuffer getHash(ChannelArray channelArray)
     {
@@ -657,7 +848,6 @@ public class MetricData
         }
 
         return MemberDigest.multiBuffer(digests);
-
     }
 
 /**

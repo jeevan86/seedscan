@@ -160,7 +160,7 @@ public class MetaGenerator
 
     public StationMeta getStationMeta(Station station, Calendar timestamp){
       StationKey stnkey = new StationKey(station);  // Kind of redundant ...
-      System.out.format("===== getStationMeta(): station=%s net=%s epoch date=%s\n",stnkey.getName(),stnkey.getNetwork(),EpochData.epochToDateString(timestamp));
+      //System.out.format("===== getStationMeta(): station=%s net=%s epoch date=%s\n",stnkey.getName(),stnkey.getNetwork(),EpochData.epochToDateString(timestamp));
 
       StationData stationData = getStationData(station);
       if (stationData == null) { // This can happen if the file DATALESS.IW_LKWY.seed doesn't match
@@ -173,8 +173,8 @@ public class MetaGenerator
         System.out.println("MetaGenerator.getStationMeta(): CAN'T FIND STATION METADATA FOR REQUESTED EPOCH");
         return null;
       }
-      else {
-        blockette.print();
+      else { // Uncomment to print out a Blockette050 each time getStationMeta is called
+        //blockette.print();
       }
 
       StationMeta stationMeta = null;
