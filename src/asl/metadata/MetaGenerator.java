@@ -194,7 +194,8 @@ public class MetaGenerator
       for (ChannelKey key : keys){
         //System.out.println("==Channel:"+key );
         ChannelData channel = channels.get(key);
-        ChannelMeta channelMeta = new ChannelMeta(key,timestamp);
+        //ChannelMeta channelMeta = new ChannelMeta(key,timestamp);
+        ChannelMeta channelMeta = new ChannelMeta(key,timestamp,station);
 
      // See if this channel contains the requested epoch time and if so return the key (=Epoch Start timestamp)
       //channel.printEpochs();

@@ -20,8 +20,10 @@
 package asl.metadata.meta_new;
 
 import asl.metadata.*;
-import freq.Cmplx;
 import asl.security.MemberDigest;
+import asl.util.PlotMaker;
+import freq.Cmplx;
+
 import java.util.ArrayList;
 import java.util.TreeSet;
 import java.util.Hashtable;
@@ -33,6 +35,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
+import java.io.File;
 
 /** 
  * A ChannelMeta consists of a series of ResponseStages.
@@ -65,11 +68,23 @@ public class ChannelMeta extends MemberDigest
     private Boolean dayBreak = false;      // This will be set to true if channelMeta changes during requested day
     private Hashtable<Integer, ResponseStage> stages;
 
+    private Station station;
+
 // MTH: In order to add these, need to somehow get them into EpochData ... from higher ref
     private String knet = null;
     private String kstn = null;
 
     // constructor(s)
+    public ChannelMeta(ChannelKey channel, Calendar metaTimestamp, Station station)
+    {
+   // We need to call the super constructor to start the MessageDigest
+        super();
+        this.name     = channel.getName();
+        this.location = channel.getLocation();
+        this.metaTimestamp = metaTimestamp;
+        this.station = station;
+        stages = new Hashtable<Integer, ResponseStage>();
+    }
 
     public ChannelMeta(ChannelKey channel, Calendar metaTimestamp)
     {
@@ -235,6 +250,13 @@ public class ChannelMeta extends MemberDigest
     public String getName() {
         return name;
     }
+    public Channel getChannel() {
+        return new Channel( this.getLocation(), this.getName() );
+    }
+    public Station getStation() {
+        return station;
+    }
+
     public double getDepth() {
         return depth;
     }
@@ -615,6 +637,40 @@ public class ChannelMeta extends MemberDigest
         this.setChannelFlags(epochData.getChannelFlags() );
 
     } // end processEpochData
+
+
+    public void plotPoleZeroResp() {
+
+        int magMin = -4; // .0001 Hz
+        int magMax =  2; // 100 Hz
+        int nMags  =  magMax - magMin + 1; // +1 for 0 (for 10^0)
+        int nfreqPerMag = 45; // This should be factor of 9 ...
+        int factor = nfreqPerMag/9;
+
+        int nf = nMags * nfreqPerMag;
+        double freq[] = new double[nf];
+
+        int kk=0;
+        for (int im = magMin; im < magMax; im++){
+            double f0 = Math.pow(10, im);
+            double df = f0/(double)factor;
+            for (int i = 0; i < nfreqPerMag; i++){
+                freq[kk++] = f0 + i * df; 
+            }
+        }
+
+        PoleZeroStage pz = (PoleZeroStage)this.getStage(1);
+        Cmplx[] instResponse = pz.getResponse(freq);
+
+        double[] instRespAmp = new double[nf];
+        for (int k=0; k<nf; k++) {
+            instRespAmp[k] = instResponse[k].mag();
+        }
+
+        PlotMaker plotMaker = new PlotMaker(this.getStation(), this.getChannel(), this.getTimestamp());
+        plotMaker.plotSpecAmp(freq, instRespAmp, "pzResponse");
+
+    } // end plotResp
 
 }
 
