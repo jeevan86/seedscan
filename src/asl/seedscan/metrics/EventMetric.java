@@ -28,10 +28,10 @@ import asl.metadata.Channel;
 import asl.metadata.meta_new.ChannelMeta;
 import asl.seedsplitter.DataSet;
 
-public class TestMetric
+public class EventMetric
 extends Metric
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.TestMetric");
+    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.EventMetric");
 
     @Override public long getVersion()
     {
@@ -40,7 +40,7 @@ extends Metric
 
     @Override public String getName()
     {
-        return "TestMetric";
+        return "EventMetric";
     }
 
 
@@ -48,32 +48,47 @@ extends Metric
     {
         System.out.format("\n              [ == Metric %s == ]\n", getName() ); 
 
+	
+
     // Get a sorted list of continuous channels for this stationMeta and loop over:
 
-        ArrayList<Channel> channels = stationMeta.getChannelArray("BH");
+        ArrayList<Channel> channels = stationMeta.getContinuousChannels();
 
         for (Channel channel : channels){
 
-          //ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel));
+            ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel));
 
-            computeMetric(channel);
+            //logger.fine(String.format("%s: digest=%s\n", getName(), (digest == null) ? "null" : Hex.byteArrayToHexString(digest.array())));
 
-          //metricResult.addResult(channel, result, digest);
+        // At this point we KNOW we have metadata so we WILL compute a digest.  If the digest is null
+        //  then nothing has changed and we don't need to recompute the metric
+            if (digest == null) { 
+                System.out.format("%s INFO: Data and metadata have NOT changed for this channel:%s --> Skipping\n"
+                                ,getName(), channel);
+                continue;
+            }
+
+            double result = computeMetric(channel);
+
+            metricResult.addResult(channel, result, digest);
 
         }// end foreach channel
 
     } // end process()
 
-    private void computeMetric(Channel channel) {
+    private double computeMetric(Channel channel) {
 
+     // AvailabilityMetric still returns a result (availability=0) even when there is NO data for this channel
         if (!metricData.hasChannelData(channel)) {
+            return 0.;
         }
 
-     // Plot PoleZero Amp & Phase Response of this channel:
-        ChannelMeta chanMeta = stationMeta.getChanMeta(channel);
-        chanMeta.plotPoleZeroResp();
+        double availability = 0;
 
-/**
+     // The expected (=from metadata) number of samples:
+        ChannelMeta chanMeta = stationMeta.getChanMeta(channel);
+        int expectedPoints  = (int) (chanMeta.getSampleRate() * 24. * 60. * 60.); 
+
      // The actual (=from data) number of samples:
         ArrayList<DataSet>datasets = metricData.getChannelData(channel);
 
@@ -82,7 +97,16 @@ extends Metric
         for (DataSet dataset : datasets) {
             ndata   += dataset.getLength();
         } // end for each dataset
-**/
+
+        if (expectedPoints > 0) {
+            availability = 100. * (double)ndata/(double)expectedPoints;
+        }
+        else {
+            System.out.format("== AvailabilityMetric: WARNING: Expected points for channel=[%s] = 0!!\n", channel);
+            return NO_RESULT;
+        }
+
+        return availability;
 
     } // end computeMetric()
 

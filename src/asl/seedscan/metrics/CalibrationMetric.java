@@ -191,6 +191,7 @@ System.out.format("== %s: df=%f\n", getName(), df);
         for (int k=0; k<nf; k++) {
             ampResponse[k] = instResponse[k].mag();
         }
+/**
         Timeseries.timeout(ampResponse, "zampResp");
 
 
@@ -199,10 +200,10 @@ Timeseries.timeoutXY(freq, Gxx, "Gxx");
 Timeseries.timeout(Gyy, "Gyy");
 Timeseries.timeout(outData, "zoutData");
 Timeseries.timeout(inData, "zinData");
+**/
 
 
         System.out.format("== %s: [%d] windowed points outData\n", getName(), outData.length);
-System.exit(0);
 
         return 0.0;
 

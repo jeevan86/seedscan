@@ -63,7 +63,8 @@ public class PlotMaker
         this.date    = date;
     }
 
-    public void plotSpecAmp(double freq[], double[] amp, String plotString) {
+    public void plotSpecAmp(double freq[], double[] amp, double[] phase, String plotString) {
+    //public void plotSpecAmp(double freq[], double[] amp, String plotString) {
 
         String outputDir = ".";
 
@@ -89,15 +90,13 @@ public class PlotMaker
             return;
         }
 
-        //final XYSeries series1 = new XYSeries(channel.toString());
-        //final XYSeries series2 = new XYSeries("NLNM");
-
-        final XYSeries series1 = new XYSeries("foo");
+        final XYSeries series1 = new XYSeries("Amplitude");
+        final XYSeries series2 = new XYSeries("Phase");
 
         for (int k = 0; k < freq.length; k++){
             double dB = 20. * Math.log10( amp[k] );
             series1.add( freq[k], dB );
-            //series1.add( freq[k], amp[k] );
+            series2.add( freq[k], phase[k] );
         }
 
         //final XYItemRenderer renderer = new StandardXYItemRenderer();
@@ -112,11 +111,19 @@ public class PlotMaker
         renderer.setSeriesShapesVisible(1, true);
         renderer.setSeriesLinesVisible(1, false);
 
-        Paint[] paints = new Paint[] { Color.red, Color.black };
+        Paint[] paints = new Paint[] { Color.red, Color.blue };
         renderer.setSeriesPaint(0, paints[0]);
-        renderer.setSeriesPaint(1, paints[1]);
+        //renderer.setSeriesPaint(1, paints[1]);
 
-        final NumberAxis verticalAxis = new NumberAxis("Spec Amp dB");
+	final XYLineAndShapeRenderer renderer2 = new XYLineAndShapeRenderer();
+        renderer2.setSeriesPaint(0, paints[1]);
+        renderer2.setSeriesShapesVisible(0, false);
+        renderer2.setSeriesLinesVisible(0, true);
+
+	// Stroke is part of Java Swing ...
+	//renderer2.setBaseStroke( new Stroke( ... ) );
+
+        final NumberAxis verticalAxis = new NumberAxis("Spec Amp (dB)");
         verticalAxis.setRange( new Range(-40, 10));
         verticalAxis.setTickUnit( new NumberTickUnit(5) );
 
@@ -124,26 +131,42 @@ public class PlotMaker
         //verticalAxis.setRange( new Range(0.01 , 10) );
 
         final LogarithmicAxis horizontalAxis = new LogarithmicAxis("Frequency (Hz)");
-        horizontalAxis.setRange( new Range(0.001 , 100) );
+        //horizontalAxis.setRange( new Range(0.0001 , 100.5) );
+        horizontalAxis.setRange( new Range(0.00009 , 110) );
 
         final XYSeriesCollection seriesCollection = new XYSeriesCollection();
         seriesCollection.addSeries(series1);
-        //seriesCollection.addSeries(series2);
 
-        final XYPlot xyplot = new XYPlot((XYDataset)seriesCollection, horizontalAxis, verticalAxis, renderer);
+        final XYPlot xyplot = new XYPlot((XYDataset)seriesCollection, null, verticalAxis, renderer);
+        //final XYPlot xyplot = new XYPlot((XYDataset)seriesCollection, horizontalAxis, verticalAxis, renderer);
 
         xyplot.setDomainGridlinesVisible(true);  
         xyplot.setRangeGridlinesVisible(true);  
         xyplot.setRangeGridlinePaint(Color.black);  
         xyplot.setDomainGridlinePaint(Color.black);  
 
-        final JFreeChart chart = new JFreeChart(xyplot);
+        final NumberAxis phaseAxis = new NumberAxis("Phase (Deg)");
+        phaseAxis.setRange( new Range(-180, 180));
+        phaseAxis.setTickUnit( new NumberTickUnit(30) );
+        final XYSeriesCollection seriesCollection2 = new XYSeriesCollection();
+        seriesCollection2.addSeries(series2);
+        final XYPlot xyplot2 = new XYPlot((XYDataset)seriesCollection2, null, phaseAxis, renderer2);
+
+        //CombinedXYPlot combinedPlot = new CombinedXYPlot( horizontalAxis, CombinedXYPlot.VERTICAL );
+        CombinedDomainXYPlot combinedPlot = new CombinedDomainXYPlot( horizontalAxis );
+	combinedPlot.add(xyplot,1);
+	combinedPlot.add(xyplot2,1);
+	combinedPlot.setGap(15.);
+
+        //final JFreeChart chart = new JFreeChart(xyplot);
+        final JFreeChart chart = new JFreeChart(combinedPlot);
         chart.setTitle( new TextTitle(plotTitle) );
 
 // Here we need to see if test dir exists and create it if necessary ...
         try { 
             //ChartUtilities.saveChartAsJPEG(new File("chart.jpg"), chart, 500, 300);
-            ChartUtilities.saveChartAsPNG(outputFile, chart, 500, 300);
+            //ChartUtilities.saveChartAsPNG(outputFile, chart, 500, 300);
+            ChartUtilities.saveChartAsPNG(outputFile, chart, 1000, 800);
         } catch (IOException e) { 
             System.err.println("Problem occurred creating chart.");
 

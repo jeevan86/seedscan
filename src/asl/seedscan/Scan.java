@@ -27,6 +27,7 @@ public class Scan
 {
     private String pathPattern;
     private String datalessDir;
+    private String eventsDir;
     private int startDay;
     private int daysToScan;
     private ArrayList<MetricWrapper> metrics;
@@ -61,6 +62,17 @@ public class Scan
     public String getDatalessDir()
     {
         return datalessDir;
+    }
+
+    // events dir
+    public void setEventsDir(String eventsDir)
+    {
+        this.eventsDir = eventsDir;
+    }
+
+    public String getEventsDir()
+    {
+        return eventsDir;
     }
 
 

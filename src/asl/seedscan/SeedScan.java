@@ -242,6 +242,7 @@ public class SeedScan
                 Scan scan = new Scan();
                 scan.setPathPattern(scanCfg.getPath());
                 scan.setDatalessDir(scanCfg.getDatalessDir());
+                scan.setEventsDir(scanCfg.getEventsDir());
                 scan.setStartDay(scanCfg.getStartDay().intValue());
                 scan.setDaysToScan(scanCfg.getDaysToScan().intValue());
 
@@ -332,6 +333,10 @@ public class SeedScan
         getStationList = false;
         ArrayList<Station> stations;
 
+//MTH:
+System.out.format("== SeedScan: Events Dir=[%s]\n", scan.getEventsDir() );
+//System.exit(0);
+
     if (getStationList){
         String datalessDir = scan.getDatalessDir();
         //ArrayList<Station> stations = getStationList(datalessDir);
@@ -344,9 +349,11 @@ public class SeedScan
         //stations.add( new Station("IC","BJT") );
         //Adam suggest I use these stations for testing
         //stations.add( new Station("IU","WAKE") );
-        stations.add( new Station("IU","ANMO") );
-        stations.add( new Station("IU","SBA") );
-        stations.add( new Station("IU","GUMO") );
+        //stations.add( new Station("IU","ANMO") );
+        stations.add( new Station("IC","WMQ") );
+        //stations.add( new Station("NE","WES") );
+        //stations.add( new Station("IU","SBA") );
+        //stations.add( new Station("IU","GUMO") );
         //stations.add( new Station("IU","KIP") );
         //stations.add( new Station("IC","XAN") );
         //stations.add( new Station("IU","GRFO") );

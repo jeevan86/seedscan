@@ -316,11 +316,14 @@ public class Scanner
                 MetricResult results = metric.getMetricResult();
 
                 if (results == null){
+System.out.format("==== MetricResult results == null !!!\n");
                 }
                 else {
                     for (String id: results.getIdSet()) {
                         double value = results.getResult(id);
-                        System.out.format("  %s : %.2f\n", id, value);
+Calendar date = results.getDate();
+                        System.out.format("  %s : %.2f [%s]\n", id, value, EpochData.epochToDateString(date));
+                        //System.out.format("  %s : %.2f\n", id, value);
                     }
                     if (injector.isConnected()) {
                         try {

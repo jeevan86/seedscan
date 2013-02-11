@@ -663,12 +663,15 @@ public class ChannelMeta extends MemberDigest
         Cmplx[] instResponse = pz.getResponse(freq);
 
         double[] instRespAmp = new double[nf];
+        double[] instRespPhs = new double[nf];
         for (int k=0; k<nf; k++) {
             instRespAmp[k] = instResponse[k].mag();
+            instRespPhs[k] = instResponse[k].phs() * 180./Math.PI;
         }
 
         PlotMaker plotMaker = new PlotMaker(this.getStation(), this.getChannel(), this.getTimestamp());
-        plotMaker.plotSpecAmp(freq, instRespAmp, "pzResponse");
+        //plotMaker.plotSpecAmp(freq, instRespAmp, "pzResponse");
+        plotMaker.plotSpecAmp(freq, instRespAmp, instRespPhs, "pzResponse");
 
     } // end plotResp
 
