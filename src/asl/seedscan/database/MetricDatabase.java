@@ -54,7 +54,7 @@ public class MetricDatabase
 
         System.out.println("MetricDatabase Constructor(): Attempt to connect to the dbase");
         try {
-            logger.info(String.format("Connection String = \"%s\", User = \"%s\", Pass = \"%s\"", URI, username, password));
+            logger.info(String.format("Connection String = \"%s\", User = \"%s\", Pass = \"%s\"", this.URI, this.username, this.password));
             connection = DriverManager.getConnection(URI, username, password);
         } catch (SQLException e) {
             System.err.print(e);
@@ -163,7 +163,6 @@ public class MetricDatabase
     	int result = -1;
         try {
             for (String id: results.getIdSet()) {
-            	ResultSet resultSet = null;
             	Channel channel = MetricResult.createChannel(id);
 	            callStatement = connection.prepareCall("SELECT spInsertMetricData(?, ?, ?, ?, ?, ?, ?, ?)");
 	            java.sql.Date date = new java.sql.Date(results.getDate().getTime().getTime());
@@ -175,9 +174,7 @@ public class MetricDatabase
 	            callStatement.setString(6, channel.getChannel());
 	            callStatement.setDouble(7, results.getResult(id));
 	            callStatement.setBytes(8, results.getDigest(id).array());
-	            //callStatement.registerOutParameter(9, java.sql.Types.INTEGER);
-	            resultSet = callStatement.executeQuery();
-	            //result = callStatement.getInt(9);
+	            callStatement.executeQuery();
             }
             result = 0;
         }
