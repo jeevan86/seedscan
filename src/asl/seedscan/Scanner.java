@@ -24,11 +24,14 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.Enumeration;
 import java.io.FilenameFilter;
+import java.io.PrintWriter;
 
 import java.nio.ByteBuffer;
 import asl.util.Hex;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.lang.Runnable;
 import java.util.ArrayList;
@@ -50,6 +53,7 @@ import asl.metadata.meta_new.*;
 import asl.seedscan.metrics.*;
 
 import seed.Blockette320;
+import sac.*;
 
 public class Scanner
     implements Runnable
@@ -67,6 +71,8 @@ public class Scanner
     private MetricData nextMetricData = null;
 
     private FallOffQueue<SeedSplitProgress> progressQueue;
+
+    private String eventsDir = null;
 
     public Scanner(MetricReader reader, MetricInjector injector, Station station, Scan scan)
     {
@@ -100,6 +106,22 @@ public class Scanner
             return;
         }
 
+     // See if config.xml contained <cfg:events_dir> to use with EventMetrics
+        eventsDir  = scan.getEventsDir();
+
+        Boolean checkForEvents = true;
+        if ( eventsDir == null ) {
+            logger.warning("Scanner: eventsDir was NOT set in config.xml: <cfg:events_dir> --> Don't Compute Event Metrics");
+            checkForEvents = false;
+        }
+        else if ( !(new File(eventsDir)).exists() ) {
+            logger.severe(String.format( "Scanner: eventsDir=%s does NOT exist --> Skip Event Metrics", eventsDir) );
+            checkForEvents = false;
+        }
+        else {
+            logger.info(String.format( "Scanner: eventsDir=%s DOES exist --> Compute Event Metrics if asked", eventsDir) );
+        }
+
 
      // Loop over days to scan, from most recent (currentDay=startDay) to oldest (currentDay=startDay - daysToScan - 1)
      // e.g.,
@@ -130,6 +152,11 @@ public class Scanner
 
             stnMeta.printStationInfo();
 
+            if (checkForEvents) {
+                Boolean hasEvents = getEventData( timestamp );
+            }
+System.exit(0);
+
 // [2] Read in all the seed files for this station, for this day & for the next day
 //     If this isn't the first day of the scan then simply copy current into next so we
 //     don't have to reread all of the seed files in
@@ -159,6 +186,8 @@ public class Scanner
                 Metric metric = wrapper.getNewInstance();
                 metric.setData(currentMetricData);
                 metric.setDataNext(nextMetricData);
+
+                //metric.setEventData(eventData);
 
    // Hand off the crossPowerMap from metric to metric, adding to it each time
                 if (crossPowerMap != null) {
@@ -200,7 +229,164 @@ public class Scanner
         } // end loop over day to scan
     } // end scan()
 
+/**
+ * getEventData
+ * @param timestamp - The Calendar date for which we want to scan for events
+ */
+    private Boolean getEventData(GregorianCalendar timestamp) {
 
+        File[] events = null;
+
+        String yyyy = String.format("%4d",  timestamp.get(Calendar.YEAR) );
+        String mo   = String.format("%02d", timestamp.get(Calendar.MONTH) + 1);
+        String dd   = String.format("%02d", timestamp.get(Calendar.DAY_OF_MONTH));
+
+        File yearDir  = new File(eventsDir + "/" + yyyy); // e.g., ../xs0/events/2012
+
+        final String yyyymodd = yyyy + mo + dd;
+
+        FilenameFilter eventFilter = new FilenameFilter() {
+            public boolean accept(File dir, String name) {
+                File file = new File(dir + "/" + name);
+                if (name.contains(yyyymodd) && file.isDirectory() ) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        };
+
+        FilenameFilter sacFilter = new FilenameFilter() {
+            public boolean accept(File dir, String name) {
+                File file = new File(dir + "/" + name);
+                if (name.startsWith(station.getStation()) && name.endsWith(".sac") && (file.length() != 0) ) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        };
+
+
+
+
+    // Check that yearDir exists and is a Directory:
+
+        if (!yearDir.exists()) {
+            logger.severe(String.format( "Scanner: getEventData: eventsDir=%s does NOT exist --> Skip Event Metrics", yearDir) );
+            return false;
+        }
+        else if (!yearDir.isDirectory()) {
+            logger.severe(String.format( "Scanner: getEventData: eventsDir=%s is NOT a Directory --> Skip Event Metrics", yearDir) );
+            return false;
+        }
+        else {  // yearDir was found --> Scan for matching events
+            logger.info(String.format( "Scanner: getEventData: FOUND eventsDir=%s", yearDir) );
+
+            events = yearDir.listFiles(eventFilter);
+
+            if (events == null) {
+                logger.warning(String.format( "== Scanner: getEventData: No Matching events found for [yyyymodd=%s] "
+                                           + "in eventsDir=%s\n", yyyymodd, yearDir) );
+                return false;
+            }
+
+        // Loop over event dirs for this day and scan in CMT info, etc
+
+            for (File event : events) { // Loop over event "file" (really a directory - e.g., ../2012/C201204122255A/)
+                logger.info(String.format( "Scanner: getEventData: Found matching event dir=[%s]", event) );
+                File cmtFile = new File(event + "/" + "currCMTmineos" ); 
+                if (!cmtFile.exists()) {
+                    logger.severe(String.format( "Scanner: getEventData: Did NOT find cmtFile=currCMTmineos in dir=[%s]", event) );
+                    continue;
+                }
+                else {
+                    BufferedReader br = null;
+                    try { // to read cmtFile
+
+//C201204112255A 2012 102 22 55 10.80 18.1500 -102.9600 21.3000 1.0 5.2000 1.204e26 7.9 -7.49 -0.41 7.7 -4.18 2.99 1.0e25 0 0 0 0 0 0
+                        br = new BufferedReader(new FileReader(cmtFile));
+                        String line = br.readLine();
+
+                        if (line == null) {
+                            logger.severe(String.format( "Scanner: getEventData: cmtFile=currCMTmineos in dir=[%s] is EMPTY", event) );
+                            continue;
+                        }
+                        else {
+                            String[] args = line.trim().split("\\s+") ;
+                            if (args.length < 9) {
+                                logger.severe(String.format( "Scanner: getEventData: cmtFile=currCMTmineos in dir=[%s] is INVALID", event) );
+                                continue;
+                            }
+                            try {
+                                String idString = args[0];
+                                int year        = Integer.valueOf(args[1].trim());
+                                int dayOfYear   = Integer.valueOf(args[2].trim());
+                                int hh          = Integer.valueOf(args[3].trim());
+                                int mm          = Integer.valueOf(args[4].trim());
+                                double xsec     = Double.valueOf(args[5].trim());
+                                double lat      = Double.valueOf(args[6].trim());
+                                double lon      = Double.valueOf(args[7].trim());
+                                double dep      = Double.valueOf(args[8].trim());
+
+                                int sec    = (int)xsec;
+                                double foo = 1000*(xsec - sec);
+                                int msec   = (int)foo;
+
+                                GregorianCalendar gcal =  new GregorianCalendar( TimeZone.getTimeZone("GMT") );
+                                gcal.set(Calendar.YEAR, year);
+                                gcal.set(Calendar.DAY_OF_YEAR, dayOfYear);
+                                gcal.set(Calendar.HOUR, hh);
+                                gcal.set(Calendar.MINUTE, mm);
+                                gcal.set(Calendar.SECOND, sec);
+                                gcal.set(Calendar.MILLISECOND, msec);
+
+                                EventCMT eventCMT = new EventCMT.Builder(idString).calendar(gcal).latitude(lat).longitude(lon).depth(dep).build();
+                                eventCMT.printCMT();
+                          // At this point we've successfully read in the CMT info file for this event
+                          // So see if there are any synthetics for this station (e.g., HRV.XX.LXZ.modes.sac)
+                                File[] sacFiles = event.listFiles(sacFilter);
+                                for (File sacFile : sacFiles) {
+                                    System.out.format("== Found sacFile=%s\n", sacFile);
+                                    SacTimeSeries sac = new SacTimeSeries();
+                                    try {
+                                        sac.read(sacFile);
+                                    }
+                                    catch (Exception e) {
+                                    }
+                                    sac.printHeader(new PrintWriter(System.out, true) );
+                                }
+
+                            }
+                            catch (NumberFormatException e) {
+                                logger.severe(String.format( "== Scanner: getEventData: caught NumberFormatException=[%s] "
+                                           + "while trying to read cmtFile=[%s]\n", e, cmtFile) );
+                            }
+                        } // else line != null
+
+                    } // end try to read cmtFile 
+                    catch (IOException e) { 
+                        logger.severe(String.format( "== Scanner: getEventData: caught IOException=[%s] "
+                                          + "while trying to read cmtFile=[%s]\n", e, cmtFile) );
+                    }
+                    finally {
+                        try {
+                            if (br != null)br.close();
+                        }
+                        catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+
+                } // else cmtFile exists
+
+            } // for event
+
+        } // else yearDir was found
+
+    return true;
+
+    }
 
 /**
  *  Return a MetricData object for the station + timestamp
