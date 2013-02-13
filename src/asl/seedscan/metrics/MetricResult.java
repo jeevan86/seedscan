@@ -42,7 +42,7 @@ public class MetricResult
     public MetricResult(StationMeta stationInfo, String metricName)
     {
     	this.metricName = metricName;
-    	this.date = stationInfo.getTimestamp();
+    	this.date = (Calendar)stationInfo.getTimestamp().clone();
     	this.station = new Station(stationInfo.getNetwork(), stationInfo.getStation());
         this.valueMap = new Hashtable<String, Double>();
         this.digestMap = new Hashtable<String, ByteBuffer>();
