@@ -192,7 +192,7 @@ public class StationMeta
             Channel channel = channelKey.toChannel();
 
             if (channel.getChannel().contains(band) && channel.getLocation().equals(location) ){
-                System.out.format("== Channel [%s] contains band [%s]\n", channel, band);
+                //System.out.format("== Channel [%s] contains band [%s]\n", channel, band);
                 channelArrayList.add(channel);
             }
         }   

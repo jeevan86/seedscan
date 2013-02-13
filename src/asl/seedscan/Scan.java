@@ -30,6 +30,7 @@ public class Scan
     private String eventsDir;
     private int startDay;
     private int daysToScan;
+    private int startDate;
     private ArrayList<MetricWrapper> metrics;
 
     private Filter networks = null;
@@ -109,6 +110,11 @@ public class Scan
         metrics.clear();
     }
 
+    public void setStartDate(int startDate)
+    {
+        this.startDate = startDate;
+    }
+
     // start depth
     public void setStartDay(int startDay)
     {
@@ -118,6 +124,10 @@ public class Scan
     public int getStartDay()
     {
         return startDay;
+    }
+    public int getStartDate()
+    {
+        return startDate;
     }
 
     // scan depth

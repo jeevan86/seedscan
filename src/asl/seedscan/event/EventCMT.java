@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
  *
  */
-package asl.seedscan.metrics;
+package asl.seedscan.event;
 
 import java.util.logging.Logger;
 import java.util.GregorianCalendar;
@@ -83,6 +83,19 @@ public class EventCMT
 
     public String getEventID() {
         return eventID;
+    }
+
+    public String toString(){
+        return new String (String.format("== EventCMT: eventID=[%s] %d/%02d/%02d (%03d) %02d:%02d:%02d.%03d", 
+                eventID,
+                eventCal.get(Calendar.YEAR),
+                eventCal.get(Calendar.MONTH) + 1,
+                eventCal.get(Calendar.DAY_OF_MONTH),
+                eventCal.get(Calendar.DAY_OF_YEAR),
+                eventCal.get(Calendar.HOUR_OF_DAY),
+                eventCal.get(Calendar.MINUTE),
+                eventCal.get(Calendar.SECOND),
+                eventCal.get(Calendar.MILLISECOND) ) );
     }
 
     public void printCMT() {

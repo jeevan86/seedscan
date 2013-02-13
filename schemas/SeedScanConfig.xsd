@@ -42,6 +42,7 @@
     <xsd:element name="require_connection"    type="xsd:string" />
     <xsd:element name="force_update"    type="xsd:string" />
     <xsd:element name="start_day"   type="xsd:nonNegativeInteger" />
+    <xsd:element name="start_date"  type="xsd:nonNegativeInteger" />
     <xsd:element name="days_to_scan"    type="xsd:integer" />
     <xsd:element name="network_subset"  type="xsd:string" />
     <xsd:element name="station_subset"  type="xsd:string" />
@@ -160,6 +161,7 @@
             <xsd:element ref="cfg:dataless_dir"     minOccurs="1" maxOccurs="1"/>
             <xsd:element ref="cfg:events_dir"       minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="cfg:start_day"        minOccurs="1" maxOccurs="1"/>
+            <xsd:element ref="cfg:start_date"       minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="cfg:days_to_scan"     minOccurs="1" maxOccurs="1"/>
             <xsd:element ref="cfg:station_subset"   minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="cfg:network_subset"   minOccurs="0" maxOccurs="1"/>

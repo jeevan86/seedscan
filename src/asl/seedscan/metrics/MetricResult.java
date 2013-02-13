@@ -27,6 +27,8 @@ import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.logging.Logger;
 
 public class MetricResult
@@ -97,6 +99,11 @@ public class MetricResult
     public Set<String> getIdSet()
     {
         return valueMap.keySet();
+    }
+
+    public SortedSet<String> getIdSortedSet()
+    {
+        return new TreeSet<String>(valueMap.keySet());
     }
 
  // Static methods

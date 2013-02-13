@@ -22,6 +22,7 @@ import asl.metadata.*;
 import asl.metadata.meta_new.*;
 import asl.seedscan.database.MetricValueIdentifier;
 import asl.seedsplitter.DataSet;
+import asl.seedscan.event.*;
 
 import freq.Cmplx;
 import timeutils.Timeseries;
@@ -38,7 +39,6 @@ import asl.seedsplitter.SeedSplitter;
 import asl.seedsplitter.Sequence;
 import asl.seedsplitter.SequenceRangeException;
 
-
 public abstract class Metric
 {
     private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.Metric");
@@ -54,6 +54,8 @@ public abstract class Metric
     protected MetricResult metricResult = null;
 
     protected MetricData   nextMetricData = null;
+
+    private Hashtable<String, EventCMT> eventTable = null;
 
     public Metric()
     {
@@ -104,6 +106,19 @@ public abstract class Metric
             crossPowerMap.put(key, crossPower);
         }
         return crossPower;
+    }
+
+    public Hashtable<String, EventCMT> getEventTable()
+    {
+            return eventTable;
+    }
+
+    public void setEventTable(Hashtable<String, EventCMT> events)
+    {
+        if (eventTable == null) {
+            eventTable = new Hashtable<String, EventCMT>();
+        }
+        eventTable = events;
     }
 
     public void setData(MetricData metricData)

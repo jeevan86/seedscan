@@ -245,6 +245,7 @@ public class SeedScan
                 scan.setEventsDir(scanCfg.getEventsDir());
                 scan.setStartDay(scanCfg.getStartDay().intValue());
                 scan.setDaysToScan(scanCfg.getDaysToScan().intValue());
+                scan.setStartDate(scanCfg.getStartDate().intValue());
 
                 for (MetricT met: scanCfg.getMetrics().getMetric()) {
                     try {
@@ -321,7 +322,7 @@ public class SeedScan
 
         for (String key : scans.keySet() ) {
            scan = scans.get(key);
-           System.out.format("== SeedScan Scan=[%s] startDay=%d daysToScan=%d\n", key, scan.getStartDay(), scan.getDaysToScan() );
+           System.out.format("== SeedScan Scan=[%s] startDay=%d startDate=%d daysToScan=%d\n", key, scan.getStartDay(), scan.getStartDate(), scan.getDaysToScan() );
         }
         scan = scans.get("daily");
 
@@ -330,7 +331,7 @@ public class SeedScan
 
 // Set getStationList = false if you want to manually control the StationList below ...
         Boolean getStationList = true;
-        //getStationList = false;
+        getStationList = false;
         ArrayList<Station> stations;
 
 //MTH:
@@ -349,7 +350,7 @@ System.out.format("== SeedScan: Events Dir=[%s]\n", scan.getEventsDir() );
         //stations.add( new Station("IC","BJT") );
         //Adam suggest I use these stations for testing
         //stations.add( new Station("IU","WAKE") );
-        //stations.add( new Station("IU","ANMO") );
+        stations.add( new Station("IU","ANMO") );
         stations.add( new Station("IC","WMQ") );
         //stations.add( new Station("NE","WES") );
         //stations.add( new Station("IU","SBA") );
