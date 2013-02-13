@@ -19,40 +19,25 @@
 
 package asl.seedscan.event;
 
-import java.util.TimeZone;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.Enumeration;
-import java.io.FilenameFilter;
-import java.io.PrintWriter;
+import java.util.logging.Logger;
 
-import java.nio.ByteBuffer;
-import asl.util.Hex;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.Hashtable;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TimeZone;
+import java.util.TreeSet;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.FileReader;
 import java.io.IOException;
-import java.lang.Runnable;
-import java.util.ArrayList;
-import java.util.GregorianCalendar;
-import java.util.Calendar;
-import java.util.Hashtable;
-import java.util.logging.Logger;
-import java.util.concurrent.BlockingQueue;
+import java.io.PrintWriter;
 
-import asl.concurrent.FallOffQueue;
-import asl.seedsplitter.DataSet;
-import asl.seedsplitter.SeedSplitProgress;
-import asl.seedsplitter.SeedSplitter;
-import asl.seedscan.database.MetricDatabase;
-import asl.seedscan.database.MetricInjector;
-import asl.seedscan.database.MetricReader;
-import asl.metadata.*;
-import asl.metadata.meta_new.*;
-import asl.seedscan.metrics.*;
-
-import seed.Blockette320;
+import asl.metadata.Station;
 import sac.*;
 
 public class EventLoader
@@ -103,6 +88,61 @@ public class EventLoader
         String dd   = String.format("%02d", timestamp.get(Calendar.DAY_OF_MONTH));
         final String yyyymodd = yyyy + mo + dd;
         return yyyymodd;
+    }
+
+    public Hashtable<String, SacTimeSeries> getDaySynthetics(GregorianCalendar timestamp, final Station station) {
+
+        final String key = makeKey(timestamp);
+
+        if (cmtTree == null) return null;       // No events loaded
+
+        if (!cmtTree.containsKey(key)) return null;// No events loaded for this day
+
+        Hashtable<String, EventCMT> dayCMTs = cmtTree.get(key);
+        if (dayCMTs == null) return null; // Not sure why this would happen
+
+        FilenameFilter sacFilter = new FilenameFilter() {
+            public boolean accept(File dir, String name) {
+                File file = new File(dir + "/" + name);
+                if (name.startsWith(station.getStation()) && name.endsWith(".sac") && (file.length() != 0) ) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        };
+
+        Hashtable<String, SacTimeSeries> eventSynthetics = null;
+
+        String year    = key.substring(0,4);
+        String yearDir = eventsDirectory + "/" + year;
+
+        SortedSet<String> keys = new TreeSet<String>(dayCMTs.keySet());
+        for (String idString : keys){
+            //System.out.format("== getDaySynthetics: Got EventCMT idString=[%s] --> [%s]\n",idString, dayCMTs.get(idString) );
+            File eventDir = new File(yearDir + "/" + idString);
+
+            if (!eventDir.exists()) {
+            }
+
+            File[] sacFiles = eventDir.listFiles(sacFilter);
+
+            for (File sacFile : sacFiles) {
+                System.out.format("== Found sacFile=%s [%s]\n", sacFile, sacFile.getName());
+                SacTimeSeries sac = new SacTimeSeries();
+                try {
+                    sac.read(sacFile);
+                }
+                catch (Exception e) {
+                }
+                //sac.printHeader(new PrintWriter(System.out, true) );
+                if (eventSynthetics == null) {
+                    eventSynthetics = new Hashtable<String, SacTimeSeries>();
+                }
+                eventSynthetics.put(sacFile.getName(), sac); // e.g., key="HRV.XX.LXZ.modes.sac"
+            }
+        }
+        return eventSynthetics;
     }
 
 

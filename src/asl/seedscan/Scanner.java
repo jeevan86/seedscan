@@ -155,6 +155,7 @@ public class Scanner
                 for (String key : keys){
                     //System.out.format("== Scanner: Got EventCMT key=[%s] --> [%s]\n",key, eventCMTs.get(key) ); 
                 }
+                Hashtable<String, SacTimeSeries> eventSynthetics = eventLoader.getDaySynthetics( timestamp, station );
             }
             else {
                 //System.out.format("== Scanner: NO CMTs FOUND for this day\n");

@@ -38,6 +38,7 @@ import asl.seedsplitter.DataSet;
 import asl.seedsplitter.SeedSplitter;
 import asl.seedsplitter.Sequence;
 import asl.seedsplitter.SequenceRangeException;
+import sac.SacTimeSeries;
 
 public abstract class Metric
 {
@@ -56,6 +57,7 @@ public abstract class Metric
     protected MetricData   nextMetricData = null;
 
     private Hashtable<String, EventCMT> eventTable = null;
+    private Hashtable<String, SacTimeSeries> eventSynthetics = null;
 
     public Metric()
     {
@@ -108,16 +110,23 @@ public abstract class Metric
         return crossPower;
     }
 
+    public Hashtable<String, SacTimeSeries> getEventSynthetics()
+    {
+            return eventSynthetics;
+    }
+
     public Hashtable<String, EventCMT> getEventTable()
     {
             return eventTable;
     }
 
+    public void setEventSynthetics(Hashtable<String, SacTimeSeries> eventSynthetics)
+    {
+        this.eventSynthetics = eventSynthetics;
+    }
+
     public void setEventTable(Hashtable<String, EventCMT> events)
     {
-        if (eventTable == null) {
-            eventTable = new Hashtable<String, EventCMT>();
-        }
         eventTable = events;
     }
 
