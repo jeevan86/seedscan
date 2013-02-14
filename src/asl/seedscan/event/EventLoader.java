@@ -82,7 +82,7 @@ public class EventLoader
 
     }
 
-    private final String makeKey(GregorianCalendar timestamp) {
+    private final String makeKey(Calendar timestamp) {
         String yyyy = String.format("%4d",  timestamp.get(Calendar.YEAR) );
         String mo   = String.format("%02d", timestamp.get(Calendar.MONTH) + 1);
         String dd   = String.format("%02d", timestamp.get(Calendar.DAY_OF_MONTH));
@@ -90,7 +90,8 @@ public class EventLoader
         return yyyymodd;
     }
 
-    public Hashtable<String, SacTimeSeries> getDaySynthetics(GregorianCalendar timestamp, final Station station) {
+    //public Hashtable<String, SacTimeSeries> getDaySynthetics(Calendar timestamp, final Station station) {
+    public Hashtable<String, Hashtable<String, SacTimeSeries>> getDaySynthetics(Calendar timestamp, final Station station) {
 
         final String key = makeKey(timestamp);
 
@@ -112,7 +113,8 @@ public class EventLoader
             }
         };
 
-        Hashtable<String, SacTimeSeries> eventSynthetics = null;
+        Hashtable<String, Hashtable<String, SacTimeSeries>> allEventSynthetics = null;
+        //Hashtable<String, SacTimeSeries> eventSynthetics = null;
 
         String year    = key.substring(0,4);
         String yearDir = eventsDirectory + "/" + year;
@@ -123,9 +125,11 @@ public class EventLoader
             File eventDir = new File(yearDir + "/" + idString);
 
             if (!eventDir.exists()) {
+System.out.format("== WARNING: EventLoader.getDaySynthetics: eventDir=[%s] does NOT EXIST!\n", eventDir);
             }
 
             File[] sacFiles = eventDir.listFiles(sacFilter);
+            Hashtable<String, SacTimeSeries> eventSynthetics = null;
 
             for (File sacFile : sacFiles) {
                 System.out.format("== Found sacFile=%s [%s]\n", sacFile, sacFile.getName());
@@ -135,18 +139,23 @@ public class EventLoader
                 }
                 catch (Exception e) {
                 }
-                //sac.printHeader(new PrintWriter(System.out, true) );
                 if (eventSynthetics == null) {
                     eventSynthetics = new Hashtable<String, SacTimeSeries>();
                 }
                 eventSynthetics.put(sacFile.getName(), sac); // e.g., key="HRV.XX.LXZ.modes.sac"
             }
+
+            if (allEventSynthetics == null) {
+                allEventSynthetics = new Hashtable<String, Hashtable<String, SacTimeSeries>>();
+            }
+            allEventSynthetics.put(idString, eventSynthetics);
         }
-        return eventSynthetics;
+        //return eventSynthetics;
+        return allEventSynthetics;
     }
 
 
-    public Hashtable<String, EventCMT> getDayEvents(GregorianCalendar timestamp) {
+    public Hashtable<String, EventCMT> getDayEvents(Calendar timestamp) {
 
         final String key = makeKey(timestamp);
 

@@ -160,7 +160,7 @@ public class MetaGenerator
 
     public StationMeta getStationMeta(Station station, Calendar timestamp){
       StationKey stnkey = new StationKey(station);  // Kind of redundant ...
-      //System.out.format("===== getStationMeta(): station=%s net=%s epoch date=%s\n",stnkey.getName(),stnkey.getNetwork(),EpochData.epochToDateString(timestamp));
+      System.out.format("===== getStationMeta(): station=%s net=%s epoch date=%s\n",stnkey.getName(),stnkey.getNetwork(),EpochData.epochToDateString(timestamp));
 
       StationData stationData = getStationData(station);
       if (stationData == null) { // This can happen if the file DATALESS.IW_LKWY.seed doesn't match
@@ -195,6 +195,7 @@ public class MetaGenerator
         //System.out.println("==Channel:"+key );
         ChannelData channel = channels.get(key);
         //ChannelMeta channelMeta = new ChannelMeta(key,timestamp);
+//System.out.format("== MetaGen: newChannelMeta(key=%s station=%s)\n", key, station);
         ChannelMeta channelMeta = new ChannelMeta(key,timestamp,station);
 
      // See if this channel contains the requested epoch time and if so return the key (=Epoch Start timestamp)

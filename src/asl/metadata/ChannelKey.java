@@ -28,14 +28,13 @@ implements Comparable<ChannelKey>
 {
     private static final Logger logger = Logger.getLogger("asl.metadata.ChannelKey");
     private static final int CHANNEL_EPOCH_BLOCKETTE_NUMBER = 52;
-    private final String errorMsg = "Error: Location code must be 2 chars (\"--\", \"00\", \"10\", etc.)";
 
     private String location = null;
     private String name = null;
 
     // constructor(s)
     public ChannelKey(Blockette blockette)
-    throws WrongBlocketteException
+    throws WrongBlocketteException, RuntimeException
     {
         if (blockette.getNumber() != CHANNEL_EPOCH_BLOCKETTE_NUMBER) {
             throw new WrongBlocketteException();
@@ -58,26 +57,28 @@ implements Comparable<ChannelKey>
     }
 
 
-// Valid locations: "--", "00", "10", "20", ...
-//       Should we allow no location to be given here and use default="--" ?
-
     private void setLocation(String location) {
 
-        //if (location == null) {
-           //throw new RuntimeException("Error: No channel location code given");
-        //}
+        String validCodes = "\"--\", \"00\", \"10\", etc.";
+
+    // Temp fix for station US_WMOK which has some channel blockettes tagged with location="HR"
+        if (location.equals("HR")) {  // Add to this any unruly location code you want to flag ...
+            location = "XX";
+            logger.severe( String.format("ChannelKey.setLocation: Got location code=HR --> I'll set it to XX and continue parsing dataless") );
+        }
+
         if (location == null || location.equals("") ){
-          location = "--";
+            location = "--";
         }
         else {
-          if (location.length() != 2) {
-             throw new RuntimeException(errorMsg);
-          }
-          Pattern pattern  = Pattern.compile("^[0-9][0-9]$");
-          Matcher matcher  = pattern.matcher(location);
-          if (!matcher.matches() && !location.equals("--") ) {
-             throw new RuntimeException(errorMsg);
-          }
+            if (location.length() != 2) {
+                throw new RuntimeException( String.format("Error: Location code=[%s] is a valid 2-char code (e.g., %s)", location, validCodes) );
+            }
+            Pattern pattern  = Pattern.compile("^[0-9][0-9]$");
+            Matcher matcher  = pattern.matcher(location);
+            if (!matcher.matches() && !location.equals("--") && !location.equals("XX") ) {
+                throw new RuntimeException( String.format("Error: Location code=[%s] is NOT valid (e.g., %s)", location, validCodes) );
+            }
         }
         this.location = location;
 
@@ -89,8 +90,7 @@ implements Comparable<ChannelKey>
         }
     // MTH: For now we'll allow either 3-char ("LHZ") or 4-char ("LHND") channels
         if (channel.length() < 3 || channel.length() > 4) { 
-System.out.format("== Offending channel=[%s]\n", channel);
-            throw new RuntimeException("ChannelKey.setChannel(): We only allow 3 or 4 character channels!");
+            throw new RuntimeException( String.format("Error: Channel code=[%s] is NOT valid (must be 3 or 4-chars long)", channel) );
         }
         this.name = channel;
     }

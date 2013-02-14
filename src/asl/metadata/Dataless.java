@@ -326,7 +326,15 @@ public class Dataless
                     if (station == null) {
                         throw new BlocketteOutOfOrderException();
                     }
-                    ChannelKey channelKey = new ChannelKey(blockette);
+                    //ChannelKey channelKey = new ChannelKey(blockette);
+                    ChannelKey channelKey = null;
+                    try {
+                        channelKey = new ChannelKey(blockette);
+                    }
+                    catch (Exception e) {
+System.out.format("== Dataless: caught ChannelKey Exception:%s\n", e);
+System.exit(0);
+                    }
 //System.out.println(" ==Dataless: look for channelKey:" + channelKey);
                     if (!station.hasChannel(channelKey)) {
                         //channel = new ChannelData(channelKey.getLocation(), channelKey.getName());

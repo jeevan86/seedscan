@@ -185,7 +185,8 @@ extends PowerBandMetric
             }
             else if (NLNMPeriods[k] >= lowPeriod){
                 double difference = psdInterp[k] - NLNMPowers[k];
-                deviation += Math.sqrt( Math.pow(difference, 2) );
+                //deviation += Math.sqrt( Math.pow(difference, 2) );
+                deviation += difference;
                 nPeriods++;
             }
         }

@@ -81,19 +81,22 @@ public class ChannelMeta extends MemberDigest
         super();
         this.name     = channel.getName();
         this.location = channel.getLocation();
-        this.metaTimestamp = metaTimestamp;
+        this.metaTimestamp = (Calendar)metaTimestamp.clone();
         this.station = station;
         stages = new Hashtable<Integer, ResponseStage>();
     }
 
     public ChannelMeta(ChannelKey channel, Calendar metaTimestamp)
     {
+        this(channel, metaTimestamp, null);
+/**
    // We need to call the super constructor to start the MessageDigest
         super();
         this.name     = channel.getName();
         this.location = channel.getLocation();
-        this.metaTimestamp = metaTimestamp;
+        this.metaTimestamp = (Calendar)metaTimestamp.clone();
         stages = new Hashtable<Integer, ResponseStage>();
+**/
     }
     public ChannelMeta(String location, String channel, Calendar metaTimestamp)
     {
@@ -281,7 +284,7 @@ public class ChannelMeta extends MemberDigest
         return dayBreak;
     }
     public Calendar getTimestamp() {
-        return metaTimestamp;
+        return (Calendar)metaTimestamp.clone();
     }
 
    // Stages

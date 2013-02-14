@@ -25,8 +25,14 @@ import java.nio.ByteBuffer;
 import asl.util.Hex;
 
 import asl.metadata.Channel;
+import asl.metadata.EpochData;
 import asl.metadata.meta_new.ChannelMeta;
 import asl.seedsplitter.DataSet;
+
+import asl.seedscan.event.EventCMT;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 public class TestMetric
 extends Metric
@@ -50,13 +56,16 @@ extends Metric
 
     // Get a sorted list of continuous channels for this stationMeta and loop over:
 
-        ArrayList<Channel> channels = stationMeta.getChannelArray("BH");
+        //ArrayList<Channel> channels = stationMeta.getChannelArray("BH");
+        ArrayList<Channel> channels = stationMeta.getChannelArray("00","BH");
 
         for (Channel channel : channels){
 
           //ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel));
 
-            computeMetric(channel);
+            System.out.format("== %s: stationMeta.hasChannel(%s)=%s\n", getName(), channel, stationMeta.hasChannel(channel) );
+
+            //computeMetric(channel);
 
           //metricResult.addResult(channel, result, digest);
 
@@ -68,6 +77,28 @@ extends Metric
 
         if (!metricData.hasChannelData(channel)) {
         }
+
+     // Test EventCMT cal
+        GregorianCalendar gcal =  new GregorianCalendar( TimeZone.getTimeZone("GMT") );
+        gcal.set(Calendar.YEAR, 2012);
+        gcal.set(Calendar.DAY_OF_YEAR, 100);
+        gcal.set(Calendar.HOUR_OF_DAY, 20);
+        gcal.set(Calendar.MINUTE, 30);
+        gcal.set(Calendar.SECOND, 40);
+        gcal.set(Calendar.MILLISECOND, 500);
+
+        EventCMT eventCMT = new EventCMT.Builder("TestEvent").calendar(gcal).latitude(45.45).longitude(-75.55).depth(12.5).build();
+        eventCMT.printCMT();
+        gcal.set(Calendar.YEAR, 2010);
+
+        Calendar cal2 = eventCMT.getCalendar();
+System.out.format("== eventCMT.timeInMillis = [%d]\n", cal2.getTimeInMillis() );
+
+        System.out.format("== Old cal2 = [%s]\n", EpochData.epochToDateString(cal2) );
+        cal2.setTimeInMillis( cal2.getTimeInMillis() + 86400000L );
+        System.out.format("== New cal2 = [%s]\n", EpochData.epochToDateString(cal2) );
+
+        eventCMT.printCMT();
 
      // Plot PoleZero Amp & Phase Response of this channel:
         ChannelMeta chanMeta = stationMeta.getChanMeta(channel);

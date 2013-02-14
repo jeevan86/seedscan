@@ -61,7 +61,7 @@ public class StationMeta
         this.longitude= Double.parseDouble(blockette.getFieldValue(5,0));
         this.elevation= Double.parseDouble(blockette.getFieldValue(6,0));
         channels = new Hashtable<ChannelKey,ChannelMeta>();
-        this.metaTimestamp = timestamp;
+        this.metaTimestamp = (Calendar)timestamp.clone();
         this.blockette50= blockette;
     }
 
@@ -117,7 +117,7 @@ public class StationMeta
         return channels.size();
     }
     public Calendar getTimestamp() {
-        return metaTimestamp;
+        return (Calendar)metaTimestamp.clone();
     }
 
 /**  

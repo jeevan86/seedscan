@@ -57,7 +57,8 @@ public abstract class Metric
     protected MetricData   nextMetricData = null;
 
     private Hashtable<String, EventCMT> eventTable = null;
-    private Hashtable<String, SacTimeSeries> eventSynthetics = null;
+    //private Hashtable<String, SacTimeSeries> eventSynthetics = null;
+    private Hashtable<String, Hashtable<String, SacTimeSeries>> eventSynthetics = null;
 
     public Metric()
     {
@@ -110,9 +111,16 @@ public abstract class Metric
         return crossPower;
     }
 
-    public Hashtable<String, SacTimeSeries> getEventSynthetics()
+    //public Hashtable<String, Hashtable<String, SacTimeSeries>> getEventSynthetics()
+    public Hashtable<String, SacTimeSeries> getEventSynthetics(String eventIdString)
     {
-            return eventSynthetics;
+            if (eventSynthetics.containsKey( eventIdString ) ){
+                return eventSynthetics.get( eventIdString );
+            }
+            else {
+                System.out.format("== Metric.getEventSynthetics - Synthetics not found for eventIdString=[%s]\n", eventIdString);
+                return null;
+            }
     }
 
     public Hashtable<String, EventCMT> getEventTable()
@@ -120,7 +128,8 @@ public abstract class Metric
             return eventTable;
     }
 
-    public void setEventSynthetics(Hashtable<String, SacTimeSeries> eventSynthetics)
+    //public void setEventSynthetics(Hashtable<String, SacTimeSeries> eventSynthetics)
+    public void setEventSynthetics(Hashtable<String, Hashtable<String, SacTimeSeries>> eventSynthetics)
     {
         this.eventSynthetics = eventSynthetics;
     }
@@ -147,6 +156,11 @@ public abstract class Metric
     public MetricResult getMetricResult()
     {
         return metricResult;
+    }
+
+    public String getDay()
+    {
+        return (EpochData.epochToDateString( stationMeta.getTimestamp() ) );
     }
 
     public abstract long getVersion();

@@ -150,12 +150,14 @@ public class Scanner
             System.out.format("\n==Scanner: scan Station=%s Day=%s\n", station, EpochData.epochToDateString(timestamp) );
 
             Hashtable<String, EventCMT> eventCMTs = eventLoader.getDayEvents( timestamp );
+            Hashtable<String, Hashtable<String, SacTimeSeries>> eventSynthetics = null;
+            //Hashtable<String, SacTimeSeries> eventSynthetics = null;
             if (eventCMTs != null) {
                 SortedSet<String> keys = new TreeSet<String>(eventCMTs.keySet());
                 for (String key : keys){
                     //System.out.format("== Scanner: Got EventCMT key=[%s] --> [%s]\n",key, eventCMTs.get(key) ); 
                 }
-                Hashtable<String, SacTimeSeries> eventSynthetics = eventLoader.getDaySynthetics( timestamp, station );
+                eventSynthetics = eventLoader.getDaySynthetics( timestamp, station );
             }
             else {
                 //System.out.format("== Scanner: NO CMTs FOUND for this day\n");
@@ -195,6 +197,9 @@ public class Scanner
                     metric.setDataNext(nextMetricData);
                     if (eventCMTs != null) {
                         metric.setEventTable( eventCMTs );
+                        if (eventSynthetics != null) {
+                            metric.setEventSynthetics( eventSynthetics );
+                        }
                     }
 
    // Hand off the crossPowerMap from metric to metric, adding to it each time

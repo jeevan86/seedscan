@@ -19,7 +19,6 @@
 package asl.seedscan.event;
 
 import java.util.logging.Logger;
-import java.util.GregorianCalendar;
 import java.util.Calendar;
 
 public class EventCMT
@@ -31,14 +30,14 @@ public class EventCMT
     private final double eventLon;
     private final double eventDep;
     private final double eventMw;
-    private final GregorianCalendar eventCal;
+    private final Calendar eventCal;
 
     public static class Builder {
         // Required params
         private final String eventID;
 
         // Optional params
-        private GregorianCalendar eventCal;
+        private Calendar eventCal;
         private double eventLat=-999.;
         private double eventLon=-999.;
         private double eventDep=-999.;
@@ -47,8 +46,8 @@ public class EventCMT
         public Builder(String eventID) {
             this.eventID  = eventID;
         } 
-        public Builder calendar(GregorianCalendar val) {
-            eventCal = val; return this;
+        public Builder calendar(Calendar val) {
+            eventCal = (Calendar)val.clone(); return this;
         } 
         public Builder latitude(double val) {
             eventLat = val; return this;
@@ -70,7 +69,6 @@ public class EventCMT
 
 
     // constructor
-    //public EventCMT(String eventID, double latitude, double longitude, double depth, GregorianCalendar calendar)
     private EventCMT(Builder builder)
     {
         eventID  = builder.eventID;
@@ -83,6 +81,9 @@ public class EventCMT
 
     public String getEventID() {
         return eventID;
+    }
+    public Calendar getCalendar() {
+        return (Calendar)eventCal.clone();
     }
 
     public String toString(){
