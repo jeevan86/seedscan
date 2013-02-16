@@ -160,8 +160,10 @@ extends Metric
     //    compute the PSD of each
     //    Calibration input channel seed files (e.g., BC0.512.seed) do not have location code so it defaults to "--":
 
-        double[] outData = metricData.getWindowedData(channel, calStartEpoch, calStartEpoch + calDuration, nextMetricData);
-        double[] inData  = metricData.getWindowedData(new Channel("--",channelExtension), calStartEpoch, calStartEpoch + calDuration, nextMetricData);
+        //double[] outData = metricData.getWindowedData(channel, calStartEpoch, calStartEpoch + calDuration, nextMetricData);
+        double[] outData = metricData.getWindowedData(channel, calStartEpoch, calStartEpoch + calDuration);
+        //double[] inData  = metricData.getWindowedData(new Channel("--",channelExtension), calStartEpoch, calStartEpoch + calDuration, nextMetricData);
+        double[] inData  = metricData.getWindowedData(new Channel("--",channelExtension), calStartEpoch, calStartEpoch + calDuration);
 
      // Compute/Get the 1-sided psd[f] using Peterson's algorithm (24 hrs, 13 segments, etc.)
 

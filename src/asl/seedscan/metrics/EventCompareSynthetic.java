@@ -67,6 +67,8 @@ extends Metric
             SortedSet<String> keys = new TreeSet<String>(eventCMTs.keySet());
             for (String key : keys){
                 System.out.format("== %s: Got EventCMT key=[%s] --> [%s]\n", getName(), key, eventCMTs.get(key) );
+                long eventStartTime = (eventCMTs.get(key)).getTimeInMillis();
+
                 Hashtable<String, SacTimeSeries> synthetics = getEventSynthetics(key);
                 if (synthetics == null) {
                     System.out.format("== %s: No synthetics found for key=[%s] for this station\n", getName(), key);
@@ -78,13 +80,29 @@ extends Metric
                     for (String fileKey : fileKeys){
                         SacTimeSeries sac = synthetics.get(fileKey);
                         SacHeader hdr = sac.getHeader();
-                        System.out.format("== %s: Found SacFile key=[%s] kstnm=%s kcmpnm=%s delta=%f npts=%d\n", getName(), fileKey,
-                                            hdr.getKstnm(), hdr.getKcmpnm(), hdr.getDelta(), hdr.getNpts());
+                        System.out.format("Found SacFile key=[%s] kstnm=%s kcmpnm=%s delta=%f npts=%d kstart=[%4d-%03d %02d:%02d:%02d.%03d]\n", 
+                            fileKey, hdr.getKstnm(), hdr.getKcmpnm(), hdr.getDelta(), hdr.getNpts(),
+                            hdr.getNzyear(), hdr.getNzjday(), hdr.getNzhour(), hdr.getNzmin(), hdr.getNzsec(), hdr.getNzmsec());
+                            long eventDurationMilliSecs = (long)(hdr.getNpts() * hdr.getDelta() * 1000);
+                            long eventEndTime = eventStartTime + eventDurationMilliSecs;
+                            Channel channel = new Channel("00", "LHZ");
+                        //double[] data = metricData.getWindowedData( channel, eventStartTime, eventEndTime);
+                        double[] data = metricData.getFilteredDisplacement(channel, eventStartTime, eventEndTime, 1.0, 10.0);
+                        SacTimeSeries sacOut = new SacTimeSeries(hdr, data);
+                        try {
+                            sacOut.write("sacOut.sac");
+                        }
+                        catch (Exception e) {
+                            System.out.format("== sac write: caught exception:%s\n", e);
+                        }
                         
                     }
                 }
             }
         }
+
+
+
 
             //ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel));
 

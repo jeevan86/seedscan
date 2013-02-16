@@ -332,10 +332,8 @@ public class Dataless
                         channelKey = new ChannelKey(blockette);
                     }
                     catch (Exception e) {
-System.out.format("== Dataless: caught ChannelKey Exception:%s\n", e);
-System.exit(0);
+                        logger.severe( String.format("Dataless: caught new ChannelKey Exception:%s", e) );
                     }
-//System.out.println(" ==Dataless: look for channelKey:" + channelKey);
                     if (!station.hasChannel(channelKey)) {
                         //channel = new ChannelData(channelKey.getLocation(), channelKey.getName());
                         channel = new ChannelData(channelKey);

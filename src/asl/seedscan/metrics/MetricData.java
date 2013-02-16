@@ -36,8 +36,10 @@ import asl.seedsplitter.Sequence;
 import asl.seedsplitter.SequenceRangeException;
 import asl.util.Hex;
 
-import seed.Blockette320;
+import timeutils.Timeseries;
+import freq.Cmplx;
 
+import seed.Blockette320;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -56,6 +58,14 @@ public class MetricData
     private StationMeta metadata;
     private Hashtable<String, String> synthetics;
     private MetricReader metricReader;
+
+    private MetricData nextMetricData;
+
+// Attach nextMetricData here for windows that span into next day
+// We SHOULD remove it from Metric.java
+    public void setNextMetricData( MetricData nextMetricData ) {
+        this.nextMetricData = nextMetricData;
+    }
 
   //constructor(s)
     public MetricData(	MetricReader metricReader, Hashtable<String,
@@ -226,10 +236,172 @@ public class MetricData
         return null;           
     }
 
+    public double[] getFilteredDisplacement(Channel channel, long windowStartEpoch, long windowEndEpoch,
+                                            double freqMin, double freqMax) 
+    {
+        if (!metadata.hasChannel(channel)) {
+            logger.severe( String.format("Error: Metadata NOT found for channel=[%s] --> Can't return Displacement",channel) );
+            return null;
+        }
+        double[] timeseries = getWindowedData(channel, windowStartEpoch, windowEndEpoch);
+        if (timeseries == null) {
+            logger.severe( String.format("Error: Did not get requested window for channel=[%s] --> Can't return Displacement",channel) );
+            return null;
+        }
+        double filtered[] = removeInstrumentAndFilter(channel, timeseries, freqMin, freqMax);
+
+        return filtered;
+
+    }
+
+    public double bpass(int n,int n1,int n2,int n3,int n4) {
+
+             if (n<=n1 || n>=n4) return(0.);
+        else if (n>=n2 && n<=n3) return(1.);
+        else if (n>n1  && n<n2 ) return( .5*(1-Math.cos(Math.PI*(n-n1)/(n2-n1))) );
+        else if (n>n3  && n<n4 ) return( .5*(1-Math.cos(Math.PI*(n4-n)/(n4-n3))) );
+        else return(-9999999.);
+    }
+
+
+    public double[] removeInstrumentAndFilter(Channel channel, double[] timeseries, double freqMin, double freqMax){
+
+// Check freqMax > freqMin, etc:
+
+        ChannelMeta chanMeta = metadata.getChanMeta(channel);
+        double srate = chanMeta.getSampleRate();
+        int ndata    = timeseries.length; 
+
+        if (srate == 0) throw new RuntimeException("Error: Got srate=0");
+
+     // Find smallest power of 2 >= ndata:
+        int nfft=1;
+        while (nfft < ndata) nfft = (nfft << 1);
+
+     // We are going to do an nfft point FFT which will return 
+     //   nfft/2+1 +ve frequencies (including  DC + Nyq)
+        int nf=nfft/2 + 1;
+
+        double dt = 1./srate;
+        double df = 1./(nfft*dt);
+
+        Cmplx[]  xfft = new Cmplx[nf];
+
+        double[] data = new double[timeseries.length];
+        for (int i=0; i<timeseries.length; i++){
+            data[i] = timeseries[i];
+        }
+        Timeseries.detrend(data);
+        Timeseries.debias(data);
+        double wss = Timeseries.costaper(data,.01);
+
+        // fft2 returns just the (nf = nfft/2 + 1) positive frequencies
+        xfft = Cmplx.fft2(data);
+        double f1 = .001;
+        double f2 = .002;
+        double f3 = .02;
+        double f4 = .05;
+        int k1=(int)(f1/df); int k2=(int)(f2/df);
+        int k3=(int)(f3/df); int k4=(int)(f4/df);
+
+        for(int k = 0; k < nf; k++){
+            double taper = bpass(k,k1,k2,k3,k4);
+            xfft[k] = Cmplx.mul(xfft[k],taper);
+        }
+
+        Cmplx[] cfft = new Cmplx[nfft];
+        cfft[0]    = xfft[0];     // DC
+        cfft[nf-1] = xfft[nf-1];  // Nyq
+        for(int k = 1; k < nf-1; k++){      // Reflect spec about the Nyquist to get -ve freqs
+            cfft[k]        = xfft[k];
+            cfft[2*nf-2-k] = xfft[k].conjg();
+        }
+
+        float[] foo = Cmplx.fftInverse(cfft, ndata);
+
+        double[] dfoo=new double[ndata];
+        for (int i=0; i<foo.length; i++){
+            dfoo[i] = (double)foo[i];
+        }
+        return dfoo;
+
+/**
+ * N input time samples --> Pad in real array of length 2N --> four1 outputs N (+ve + -ve) Complex spectra
+ *     stored in real array of length 2N.
+ * fft2 then returns the (nf = N/2 + 1) +ve freqs + DC + Nyq as nf Complex values: 
+ * 
+ * nf Complex spec = +ve f's + DC + Nyq ... numbered [0],...[nf-1]
+ *    Real            Imag         f
+ * xfft[0].re      xfft[0].im      DC
+ * xfft[1].re      xfft[1].im      df  
+ * xfft[2].re      xfft[2].im      2df
+ *     :               :            :
+ * xfft[nf-1].re   xfft[nf-1].im  fNyq = (nf-1)df = (N/2)df
+ */
+
+/**
+ * In order to use fftInverse (which uses four1), I need to repack this complex array into a larger
+ * one with the -ve freqs reflected about the Nyquist:
+ *    Real            Imag         f
+ * xfft[0].re      xfft[0].im      DC
+ * xfft[1].re      xfft[1].im      df  
+ * xfft[2].re      xfft[2].im      2df
+ * xfft[3].re      xfft[3].im      3df
+ *     :               :            :
+ * xfft[nf-3].re   xfft[nf-3].im  (nf-3)df
+ * xfft[nf-2].re   xfft[nf-2].im  (nf-2)df
+ * xfft[nf-1].re   xfft[nf-1].im  (nf-1)df = (N/2)df = fNyq
+ * xfft[nf  ].re   xfft[nf  ].im -(nf-2)df
+ * xfft[nf+1].re   xfft[nf+1].im -(nf-3)df
+ *     :               :            :
+ * xfft[2nf-5].re  xfft[2nf-5].im  -3df
+ * xfft[2nf-4].re  xfft[2nf-4].im  -2df
+ * xfft[2nf-3].re  xfft[2nf-3].im  -df
+
+ * N/2 - 1 +ve f's
+ *     +
+ * N/2 - 1 -ve f's
+ *     +
+ *     2   =DC + Nyq
+ *==================
+ *  = N freqs total --> nf = N/2+1 --> (N = 2nf-2), indexed from [0], [1], ..., [2nf-3]
+ */
+
+
+/**
+
+        double[] freq = new double[nf];
+        for(int k = 0; k < nf; k++){
+            freq[k] = (double)k * df;
+        }
+
+     // Get the instrument response for Displacement and remove it
+        Cmplx[]  instrumentResponse = chanMeta.getResponse(freq, 1);
+        for(int k = 0; k < nf; k++){
+            xfft[k] = Cmplx.div( xfft[k], instrumentResponse[k] );
+        }
+**/
+
+/**
+            if (responseMag[k] == 0) {
+                throw new RuntimeException("NLNMDeviation Error: responseMag[k]=0 --> divide by zero!");
+            }
+            else {   // Divide out (squared)instrument response & Convert to dB:
+                psdC[k] = Cmplx.div(psdC[k], responseMagC[k]);
+                psd[k] = psd[k]/responseMag[k];
+            }
+        }
+
+        return dataPad;
+**/
+
+    }
+
+
 /**
  *
  */
-    public double[] getWindowedData(Channel channel, long windowStartEpoch, long windowEndEpoch, MetricData nextMetricData) 
+    public double[] getWindowedData(Channel channel, long windowStartEpoch, long windowEndEpoch) 
     {
         if (windowStartEpoch > windowEndEpoch) {
             System.out.format("== getWindowedData ERROR: Requested window Epoch [%d - %d] is NOT VALID "
@@ -284,6 +456,11 @@ public class MetricData
         DataSet nextData = null;
 
         if (windowEndEpoch > dataEndEpoch) { // Window appears to span into next day
+            if (nextMetricData == null) {
+                logger.severe( String.format("== getWindowedData: Requested Epoch window[%d-%d] spans into next day, but we have NO data "
+                                 +"for channel=[%s] for next day\n", windowStartEpoch, windowEndEpoch, channel) );
+                return null;
+            }
             if (!nextMetricData.hasChannelData(channel)){
                 System.out.format("== getWindowedData ERROR: Requested Epoch window spans into next day, but we have NO data "
                                  +"for channel=[%s] for next day\n", channel);

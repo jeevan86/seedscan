@@ -148,7 +148,10 @@ System.out.format("== WARNING: EventLoader.getDaySynthetics: eventDir=[%s] does 
             if (allEventSynthetics == null) {
                 allEventSynthetics = new Hashtable<String, Hashtable<String, SacTimeSeries>>();
             }
-            allEventSynthetics.put(idString, eventSynthetics);
+
+            if (eventSynthetics != null) {  // Add this event synthetics IF we found the sacFiles
+                allEventSynthetics.put(idString, eventSynthetics);
+            }
         }
         //return eventSynthetics;
         return allEventSynthetics;

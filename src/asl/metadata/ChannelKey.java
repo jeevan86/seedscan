@@ -34,7 +34,7 @@ implements Comparable<ChannelKey>
 
     // constructor(s)
     public ChannelKey(Blockette blockette)
-    throws WrongBlocketteException, RuntimeException
+    throws WrongBlocketteException
     {
         if (blockette.getNumber() != CHANNEL_EPOCH_BLOCKETTE_NUMBER) {
             throw new WrongBlocketteException();
@@ -72,7 +72,7 @@ implements Comparable<ChannelKey>
         }
         else {
             if (location.length() != 2) {
-                throw new RuntimeException( String.format("Error: Location code=[%s] is a valid 2-char code (e.g., %s)", location, validCodes) );
+                throw new RuntimeException( String.format("Error: Location code=[%s] is NOT a valid 2-char code (e.g., %s)", location, validCodes) );
             }
             Pattern pattern  = Pattern.compile("^[0-9][0-9]$");
             Matcher matcher  = pattern.matcher(location);

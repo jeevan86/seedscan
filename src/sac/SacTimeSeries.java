@@ -78,6 +78,17 @@ public class SacTimeSeries {
         header.setLeven(TRUE);
         setY(data);
     }
+    public SacTimeSeries(SacHeader header, double[] doubleData) {
+        float[] data = new float[doubleData.length];
+        for (int i=0; i<data.length; i++){
+            data[i] = (float)doubleData[i];
+        }
+        this.header = header;
+        header.setIftype(ITIME);
+        header.setLeven(TRUE);
+        setY(data);
+    }
+
 
     public SacTimeSeries(File file) throws FileNotFoundException, IOException {
         read(file);

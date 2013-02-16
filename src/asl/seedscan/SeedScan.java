@@ -239,13 +239,24 @@ public class SeedScan
                     System.exit(1);
                 }
 
+            // This should really be handled by jaxb by setting it up in schemas/SeedScanConfig.xsd
+                if(scanCfg.getStartDay() == null && scanCfg.getStartDate() == null) {
+                    System.out.format("== SeedScan Error: Must set EITHER cfg:start_day -OR- cfg:start_date in config.xml to start Scan!");
+                    System.exit(0);
+                }
+
+
                 Scan scan = new Scan();
                 scan.setPathPattern(scanCfg.getPath());
                 scan.setDatalessDir(scanCfg.getDatalessDir());
                 scan.setEventsDir(scanCfg.getEventsDir());
-                scan.setStartDay(scanCfg.getStartDay().intValue());
                 scan.setDaysToScan(scanCfg.getDaysToScan().intValue());
-                scan.setStartDate(scanCfg.getStartDate().intValue());
+                if (scanCfg.getStartDay() != null) {
+                    scan.setStartDay(scanCfg.getStartDay().intValue());
+                }
+                if (scanCfg.getStartDate() != null) {
+                    scan.setStartDate(scanCfg.getStartDate().intValue());
+                }
 
                 for (MetricT met: scanCfg.getMetrics().getMetric()) {
                     try {
@@ -350,7 +361,7 @@ System.out.format("== SeedScan: Events Dir=[%s]\n", scan.getEventsDir() );
         //stations.add( new Station("IC","BJT") );
         //Adam suggest I use these stations for testing
         //stations.add( new Station("IU","WAKE") );
-        stations.add( new Station("IU","ANMO") );
+        //stations.add( new Station("IU","ANMO") );
         //stations.add( new Station("IC","WMQ") );
         stations.add( new Station("US","WMOK") );
         //stations.add( new Station("NE","WES") );

@@ -94,8 +94,8 @@ public class Scanner
     {
         GregorianCalendar timestamp = new GregorianCalendar(TimeZone.getTimeZone("GMT") );
 
+        // Look for cfg:start_date first:
         if (scan.getStartDate() > 1990001 && scan.getStartDate() < 2014365) {
-               // Use cfg:start_date
             timestamp.set(Calendar.YEAR, scan.getStartDate() / 1000);
             timestamp.set(Calendar.DAY_OF_YEAR, scan.getStartDate() % 1000);
         }
@@ -175,6 +175,7 @@ public class Scanner
                 nextMetricData    = currentMetricData;
             }
             currentMetricData = getMetricData(timestamp);
+            currentMetricData.setNextMetricData(nextMetricData);
 
             if (currentMetricData == null) {  // Found no data for this station + day
              // See if the scan asks for the data AvailabilityMetric and if so --> process it

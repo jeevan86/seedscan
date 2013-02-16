@@ -85,6 +85,9 @@ public class EventCMT
     public Calendar getCalendar() {
         return (Calendar)eventCal.clone();
     }
+    public long getTimeInMillis() {
+        return eventCal.getTimeInMillis();
+    }
 
     public String toString(){
         return new String (String.format("== EventCMT: eventID=[%s] %d/%02d/%02d (%03d) %02d:%02d:%02d.%03d", 
