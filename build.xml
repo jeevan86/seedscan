@@ -142,6 +142,7 @@
         <java classname="${project.main}" classpathref="test.class.path" fork="true">
             <jvmarg value="-Xms64m"/>
             <jvmarg value="-Xmx2048m"/>
+            <jvmarg value="-Djava.awt.headless=true"/>
         </java>
     </target>
     
