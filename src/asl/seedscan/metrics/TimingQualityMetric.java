@@ -55,8 +55,6 @@ extends Metric
 
             ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel));
 
-            //logger.fine(String.format("%s: digest=%s\n", getName(), (digest == null) ? "null" : Hex.byteArrayToHexString(digest.array())));
-
         // At this point we KNOW we have metadata so we WILL compute a digest.  If the digest is null
         //  then nothing has changed and we don't need to recompute the metric
             if (digest == null) { 

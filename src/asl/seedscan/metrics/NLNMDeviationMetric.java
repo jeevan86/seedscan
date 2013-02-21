@@ -80,7 +80,7 @@ extends PowerBandMetric
 
     private double[] NLNMPeriods;
     private double[] NLNMPowers;
-    private Boolean DEBUG = true;
+    private Boolean DEBUG = false;
     private final String outputDir = "outputs";
 
     public void process()
@@ -103,7 +103,6 @@ extends PowerBandMetric
          // Update: At this point we KNOW we have metadata since it is driving the channel loop
 
             ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel));
-            //logger.fine(String.format("%s: digest=%s\n", getName(), (digest == null) ? "null" : Hex.byteArrayToHexString(digest.array())));
 
             if (digest == null) {
                 System.out.format("%s INFO: Data and metadata have NOT changed for this channel:%s --> Skipping\n"

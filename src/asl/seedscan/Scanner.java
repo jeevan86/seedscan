@@ -175,13 +175,9 @@ public class Scanner
                 nextMetricData    = currentMetricData;
             }
             currentMetricData = getMetricData(timestamp);
-            currentMetricData.setNextMetricData(nextMetricData);
-
-            if (currentMetricData == null) {  // Found no data for this station + day
-             // See if the scan asks for the data AvailabilityMetric and if so --> process it
-             //  printNoAvailability(stnMeta);
-             //  continue; // Go to next day and see if we have data for it
-            } 
+            if (currentMetricData != null) {     // This doesn't mean nextMetricData isn't null!
+                currentMetricData.setNextMetricData(nextMetricData);
+            }
 
             Runtime runtime = Runtime.getRuntime();
             System.out.println(" Java total memory=" + runtime.totalMemory() );
