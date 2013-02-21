@@ -361,9 +361,12 @@ System.out.format("== SeedScan: Events Dir=[%s]\n", scan.getEventsDir() );
         //stations.add( new Station("IC","BJT") );
         //Adam suggest I use these stations for testing
         //stations.add( new Station("IU","WAKE") );
-        //stations.add( new Station("IU","ANMO") );
+        stations.add( new Station("IU","ANMO") );
+        //stations.add( new Station("IU","TUC") );
+        //stations.add( new Station("US","MNTX") );
         //stations.add( new Station("IC","WMQ") );
-        stations.add( new Station("US","WMOK") );
+        //stations.add( new Station("IU","HRV") );
+        //stations.add( new Station("US","WMOK") );
         //stations.add( new Station("NE","WES") );
         //stations.add( new Station("IU","SBA") );
         //stations.add( new Station("IU","GUMO") );

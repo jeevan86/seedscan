@@ -88,6 +88,15 @@ public class EventCMT
     public long getTimeInMillis() {
         return eventCal.getTimeInMillis();
     }
+    public double getLatitude() {
+        return eventLat;
+    }
+    public double getLongitude() {
+        return eventLon;
+    }
+    public double getDepth() {
+        return eventDep;
+    }
 
     public String toString(){
         return new String (String.format("== EventCMT: eventID=[%s] %d/%02d/%02d (%03d) %02d:%02d:%02d.%03d", 

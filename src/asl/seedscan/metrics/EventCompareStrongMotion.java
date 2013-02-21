@@ -21,6 +21,7 @@ import asl.seedscan.event.*;
 
 import java.util.logging.Logger;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Hashtable;
 import java.util.TreeSet;
 import java.util.SortedSet;
@@ -32,10 +33,24 @@ import asl.metadata.Channel;
 import asl.metadata.meta_new.ChannelMeta;
 import asl.seedsplitter.DataSet;
 
+import sac.SacTimeSeries;
+import sac.SacHeader;
+import edu.sc.seis.TauP.Arrival;
+import edu.sc.seis.TauP.SphericalCoords;
+import edu.sc.seis.TauP.TauP_Time;
+
 public class EventCompareStrongMotion
 extends Metric
 {
     private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.EventCompareStrongMotion");
+
+    private static final double SMALLEST_PERIOD = 1;
+    //private static final double  LARGEST_PERIOD = 500;
+    private static final double  LARGEST_PERIOD = 30;
+    private static Hashtable<String, EventCMT> eventCMTs = null;
+
+    private static final double fmin = 1./LARGEST_PERIOD;
+    private static final double fmax = 1./SMALLEST_PERIOD;
 
     @Override public long getVersion()
     {
@@ -52,73 +67,191 @@ extends Metric
     {
         System.out.format("\n              [ == Metric %s == ]\n", getName() ); 
 
-            Hashtable<String, EventCMT> eventCMTs = getEventTable();
-            if (eventCMTs != null) {
-                SortedSet<String> keys = new TreeSet<String>(eventCMTs.keySet());
-                for (String key : keys){
-                    System.out.format("== %s: Got EventCMT key=[%s] --> [%s]\n", getName(), key, eventCMTs.get(key) );
+        System.out.format("== %s: Day=[%s]\n", getName(), getDay() );
+
+        eventCMTs = getEventTable();
+        if (eventCMTs == null) {
+            logger.info(String.format("No Event CMTs found for Day=[%s] --> Skip EventCompareStrongMotion Metric", getDay()) );
+            return;
+        }
+
+        String[] locs  = {"00", "10", "20"};
+        String[] chans = {"LHZ", "LHND", "LHED"};
+
+        ByteBuffer[] digestArray = new ByteBuffer[locs.length * chans.length];
+        Channel[] channels       = new Channel[locs.length * chans.length];
+/**
+ *      channels[0] = 00-LHZ  
+ *      channels[1] = 00-LHND
+ *      channels[2] = 00-LHED
+ *      channels[3] = 10-LHZ 
+ *      channels[4] = 10-LHND
+ *      channels[5] = 10-LHED
+ *      channels[6] = 20-LNZ
+ *      channels[7] = 20-LNND
+ *      channels[8] = 20-LNED
+ */
+
+        Boolean computeEventMetric = false;
+
+        int iChan=0;
+        for (int j=0; j < 2; j++) {
+            for (int i=0; i < chans.length; i++) {
+                Channel channel   = new Channel(locs[j],chans[i]);
+                ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel));
+                if (digest != null) computeEventMetric = true;
+
+                channels[iChan]   = channel;
+                digestArray[iChan]= digest;
+                iChan++;
+            }
+        }
+        channels[6] = new Channel("20", "LNZ");
+        channels[7] = new Channel("20", "LNND");
+        channels[8] = new Channel("20", "LNED");
+
+        //if (computeEventMetric) {
+        //}
+
+        int nChannels = 6; // Hard-wire for now
+        double[] results = new double[nChannels];
+        int nEvents = 0;
+
+       // Loop over Events for this day
+
+        SortedSet<String> eventKeys = new TreeSet<String>(eventCMTs.keySet());
+        for (String key : eventKeys){
+            Hashtable<String, SacTimeSeries> synthetics = getEventSynthetics(key);
+            SacHeader hdr = null;
+            if (synthetics == null) {
+                System.out.format("== %s: No synthetics found for key=[%s] for this station\n", getName(), key);
+            }
+            else {
+            // 1. Load up 3-comp synthetics x 2 = 6
+                SacTimeSeries[] sacSynthetics = new SacTimeSeries[nChannels];
+                String[] kcmp = {"Z","N","E"};
+                for (int i=0; i<3; i++){
+                    String fileKey = getStation() + ".XX.LX" + kcmp[i] + ".modes.sac"; // e.g., "ANMO.XX.LXZ.modes.sac"
+                    if (synthetics.containsKey(fileKey)) {
+                        sacSynthetics[i]   = synthetics.get(fileKey); 
+                        sacSynthetics[i+3] = synthetics.get(fileKey); 
+                    }
+                    else {
+                        logger.severe(String.format("Error: Did not find sac synthetic=[%s] in Hashtable", fileKey) );
+                    }
                 }
+
+                hdr    = sacSynthetics[0].getHeader();
+            }
+
+
+            long eventStartTime = (eventCMTs.get(key)).getTimeInMillis();
+            double stla  = stationMeta.getLatitude();
+            double stlo  = stationMeta.getLongitude();
+            double evla  = eventCMTs.get(key).getLatitude();
+            double evlo  = eventCMTs.get(key).getLongitude();
+            double evdep = eventCMTs.get(key).getDepth();
+            double gcarc = SphericalCoords.distance(evla, evlo, stla, stlo);
+            double azim  = SphericalCoords.azimuth(evla, evlo, stla, stlo);
+            TauP_Time timeTool = null;
+            try {
+                timeTool = new TauP_Time("prem");
+                timeTool.parsePhaseList("P,S");
+                timeTool.depthCorrect(evdep);
+                timeTool.calculate(gcarc);
+            }
+            catch(Exception e) {
+            }
+
+            System.out.format("== Event:%s <evla,evlo> = <%.2f, %.2f> Station:%s <%.2f, %.2f> gcarc=%f azim=%f\n",
+                key, evla, evlo, getStation(), stla, stlo, gcarc, azim );
+
+            List<Arrival> arrivals = timeTool.getArrivals();
+            //ArrayList<Arrival> arrivals = (ArrayList<Arrival>)timeTool.getArrivals();
+            for (int i=0; i<arrivals.size(); i++){
+                Arrival arrival = arrivals.get(i);
+                System.out.println(arrival.getName()+" arrives at "+ (arrival.getDist()*180.0/Math.PI)+" degrees after "+ arrival.getTime()+" seconds.");
+            }
+            if (arrivals.size() != 2) { // Either we don't have both P & S or we don't have just P & S
+                logger.severe(String.format("Error: Expected P and/or S arrival times not found"));
+            }
+            long arrivalTimeP = 0;
+            if (arrivals.get(0).getName().equals("P")){
+                arrivalTimeP = (long)arrivals.get(0).getTime() * 1000L;
             }
             else {
-                System.out.format("== Scanner: NO CMTs FOUND for this day\n");
+                logger.severe(String.format("Error: Expected P arrival time not found"));
             }
-
-
-    // Get a sorted list of continuous channels for this stationMeta and loop over:
-        ArrayList<Channel> channels = stationMeta.getChannelArray("00","LH");
-
-        for (Channel channel : channels){
-
-            ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel));
-
-            //logger.fine(String.format("%s: digest=%s\n", getName(), (digest == null) ? "null" : Hex.byteArrayToHexString(digest.array())));
-
-        // At this point we KNOW we have metadata so we WILL compute a digest.  If the digest is null 
-        //  then nothing has changed (OR we DON'T have data for this channel) and we don't need to recompute the metric
-            if (digest == null) { 
-                System.out.format("%s INFO: Data and metadata have NOT changed for this channel:%s --> Skipping\n"
-                                ,getName(), channel);
-                continue;
-            }
-
-            double result = computeMetric(channel);
-
-            if (result == NO_RESULT) {
-                // Do nothing --> skip to next channel
+            long arrivalTimeS = 0;
+            if (arrivals.get(1).getName().equals("S")){
+                arrivalTimeS = (long)arrivals.get(1).getTime() * 1000L;
             }
             else {
-                metricResult.addResult(channel, result, digest);
+                logger.severe(String.format("Error: Expected S arrival time not found"));
             }
 
-        }// end foreach channel
+            long windowStartTime = eventStartTime + arrivalTimeP - 120*1000; // P time - 120sec, in millisecs
+            long windowEndTime   = eventStartTime + arrivalTimeS + 60*1000;  // S time + 60sec, in millisecs
+
+            //ArrayList<double[]> dataDisp00  = metricData.getZNE("00", "LH", windowStartTime, windowEndTime, fmin, fmax);
+            long duration = 8000000L; // 8000 sec = 8000000 msecs
+            ArrayList<double[]> dataDisp00  = metricData.getZNE("00", "LH", eventStartTime, eventStartTime + duration, fmin, fmax);
+            ArrayList<double[]> dataDisp10  = metricData.getZNE("10", "LH", eventStartTime, eventStartTime + duration, fmin, fmax);
+            ArrayList<double[]> dataDisp20  = metricData.getZNE("20", "LN", eventStartTime, eventStartTime + duration, fmin, fmax);
+
+            dataDisp00.addAll(dataDisp10);
+            dataDisp00.addAll(dataDisp20);
+
+                for (int i=0; i<dataDisp00.size(); i++){
+                    //results[i] += rmsDiff(dataDisp.get(i), sacSynthetics[i]);
+                    SacTimeSeries sac = new SacTimeSeries(hdr, dataDisp00.get(i));
+                    hdr.setKcmpnm(channels[i].toString());
+                    String filename = key + "." + getStation() + "." + channels[i].toString() + ".sac2";
+                    try {
+                        sac.write(filename);
+                    }
+                    catch (Exception E) {
+                    }
+                }
+
+                nEvents++;
+
+        } // eventKeys: end loop over events
+
+System.exit(0);
+
+        for (int i=0; i<nChannels; i++) {
+            Channel channel = channels[i];
+            double result = results[i] / (double)nEvents;
+            ByteBuffer digest = digestArray[i];
+            metricResult.addResult(channel, result, digest);
+            //System.out.format("== metricResult.addResult(%s, %12.6f, %s)\n", channel, result, Hex.byteArrayToHexString(digest.array()) );
+        }
+
     } // end process()
+
+    private double rmsDiff(double[] data, SacTimeSeries sac) {
+        float[] synth = sac.getY(); 
+
+        if (data.length != synth.length) {
+            logger.severe( String.format("Error: data npts=%d != synth npts=%d --> don't compute RMS", data.length, synth.length) );
+            return NO_RESULT;
+        }
+        double rms=0.;
+        for (int i=0; i<data.length; i++){
+            rms += Math.pow( (data[i] - synth[i]), 2 ); 
+        }
+        rms /= (double)data.length;
+        rms  =  Math.sqrt(rms);
+
+        return rms;
+    }
 
 
     private double computeMetric(Channel channel) {
 
-System.out.format("== computeMetric: channel=%s\n", channel);
+        System.out.format("\n== computeMetric: channel=%s\n", channel);
 
-/**
-        ArrayList<DataSet>datasets = metricData.getChannelData(channel);
-        if (datasets == null) {  // No data --> Skip this channel
-            System.out.format("== Error: Metric=%s --> No datasets found for channel=[%s]\n",
-                               getName(), channel);
-            return NO_RESULT;
-        }
-
-     // First count any interior gaps (= gaps that aren't at the beginning/end of the day)
-        int gapCount = datasets.size()-1;
-
-        long firstSetStartTime = datasets.get(0).getStartTime();  // time in microsecs since epoch
-        long interval          = datasets.get(0).getInterval();   // sample dt in microsecs
-
-     // stationMeta.getTimestamp() returns a Calendar object for the expected day
-     //   convert it from milisecs to microsecs
-        long expectedStartTime = stationMeta.getTimestamp().getTimeInMillis() * 1000;
-        double gapThreshold = interval / 2.;
-
-        return (double)gapCount;
-**/
         return (double)0.;
 
     } // end computeMetric()

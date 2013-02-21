@@ -135,7 +135,8 @@ extends Metric
 
             System.out.format("== %s: channel=[%s] calEndEpoch > dataEndEpoch --> Cal appears to span day\n", getName(), channel);
 
-            calBlocks = nextMetricData.getChannelCalData(channel);
+            //calBlocks = nextMetricData.getChannelCalData(channel);
+            calBlocks = metricData.getNextMetricData().getChannelCalData(channel);
 
             if (calBlocks == null) {
                 System.out.format("== %s: No DAY 2 cal blocks found for channel=[%s]\n", getName(), channel);

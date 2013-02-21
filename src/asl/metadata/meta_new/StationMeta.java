@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Hashtable;
+import java.util.logging.Logger;
 import java.util.TreeSet;
 import asl.metadata.*;
 
@@ -36,6 +37,9 @@ import asl.metadata.*;
  */
 public class StationMeta
 {
+
+    private static final Logger logger = Logger.getLogger("asl.metadata.meta_new.StationMeta");
+
     private String network = null;
     private String name = null;
     private String comment = null;
@@ -146,6 +150,47 @@ public class StationMeta
     }
 
 /**
+ *  Return ordered primary + secondary seismic channels that have matching band
+ *  
+ *  e.g., if band = "LH" then return channels[0] = "00-LHZ"
+ *                                   channels[1] = "00-LH1" -or- "00-LHN"                             
+ *                                   channels[2] = "00-LH2" -or- "00-LHE"                             
+ *                                   channels[3] = "10-LHZ"
+ *                                   channels[4] = "10-LH1" -or- "10-LHN"                             
+ *                                   channels[5] = "10-LH2" -or- "10-LHE"                             
+ */
+    public ArrayList<Channel> getZNEChannelArray(String band) {
+        if (!Channel.validBandCode(band.substring(0,1)) || !Channel.validInstrumentCode(band.substring(1,2)) ) {
+            return null;
+        }
+        TreeSet<ChannelKey> keys = new TreeSet<ChannelKey>();
+        keys.addAll(channels.keySet());
+
+        ArrayList<Channel> channelArrayList = new ArrayList<Channel>();
+
+        String[] location = {"00", "10"}; 
+        String[] chan     = {band+"Z", band+"1", band+"2", band+"Z", band+"N", band+"E"}; 
+
+    // Add found Primary + Secondary seismic channels to channel array in order:
+        for (int i=0; i<2; i++){
+            for (int j=0; j<3; j++){
+                if (keys.contains(     new ChannelKey(location[i], chan[j]) ) ){
+                    channelArrayList.add( new Channel(location[i], chan[j]) );
+                }
+                else if (keys.contains(new ChannelKey(location[i], chan[j+3]) ) ){
+                    channelArrayList.add( new Channel(location[i], chan[j+3]) );
+                }
+                else {
+                    logger.severe( String.format("Error: CAN'T find Channel=[%s-%s] OR Channel=[%s-%s] in metadata",
+                                                  location[i], chan[j], location[i], chan[j+3]) );
+                }
+            }
+        }
+
+        return channelArrayList;
+    }
+
+/**
  *  Return ArrayList of all channels contained in this stationMeta
  *    that match the 2-char band
  *  e.g., if band = "LH" then return "00-LHZ", "00-LH1", "00-LH2", "00-LHN", "00-LHE",
@@ -171,6 +216,49 @@ public class StationMeta
         }
         return channelArrayList;
     }
+
+/** Handle horizontal naming conventions (e.g., LH1,2 versus LHN,E)
+ *
+ *                                    "00"        "LH"         "1"
+ */
+    public Channel getChannel(String location, String band, String comp) {
+
+        String name = null;
+
+        if (comp.equals("1")) {
+            name = band + "1";
+            if (hasChannel(location, name)) {       // Do we have LH1 ?
+                return new Channel(location, name);
+            }
+            else {
+                name = band + "N";
+                if (hasChannel(location, name)) {       // Do we have LHN ?
+                    return new Channel(location, name); 
+                }
+            }
+        return null;
+
+        }
+        else if (comp.equals("2")) {
+            name = band + "2";
+            if (hasChannel(location, name)) {       // Do we have LH2 ?
+                return new Channel(location, name);
+            }
+            else {
+                name = band + "E";
+                if (hasChannel(location, name)) {       // Do we have LHE ?
+                    return new Channel(location, name); 
+                }
+            }
+        return null;
+
+        }
+        else {
+            System.out.format("== StationMeta.getChannel: Channel=[%d-%d%d] NOT FOUND\n",location, band, comp);
+            return null;
+        }
+    }
+
 
 /*
  *  Same as above but limit return channels to those containing the specified location

@@ -51,33 +51,39 @@ public class EventLoader
     private static Hashtable<String, Hashtable<String, EventCMT>> cmtTree = null;
 
     public EventLoader( String directoryPath ) {
-        // Should only try to load the eventsDir ONCE, across all calls from Scanner
-        if (!eventsDirectoryLoaded) {
-            eventsDirectoryValid  = loadEventsDirectory( directoryPath );
-            eventsDirectoryLoaded = true;
-        }
-        else {
-            logger.info(String.format( "eventsDir already initialized to:%s [valid=%s]", eventsDirectory, eventsDirectoryValid) );
-        }
+        loadEventsDirectory( directoryPath );
     }
 
-    private Boolean loadEventsDirectory( String directoryPath ){
+/**
+ * We only want 1 (Scanner) thread at a time in here!
+ * And it should only need to be entered one time for a given Scan
+ */
+    synchronized private static void loadEventsDirectory( String directoryPath ){
+
+        if (eventsDirectoryLoaded) {
+            logger.info(String.format( "eventsDir already initialized to:%s [valid=%s]", eventsDirectory, eventsDirectoryValid) );
+            return;
+        }
+
+        eventsDirectoryLoaded = true;
+
         if ( directoryPath == null ) {
             logger.warning("eventsDir was NOT set in config.xml: <cfg:events_dir> --> Don't Compute Event Metrics");
-            return false;
+            return;
         }
         else if ( !(new File(directoryPath)).exists() ) {
             logger.severe(String.format( "eventsDir=%s does NOT exist --> Skip Event Metrics", directoryPath) );
-            return false;
+            return;
         }
         else if ( !(new File(directoryPath)).isDirectory() ) {
             logger.severe(String.format( "eventsDir=%s is NOT a directory --> Skip Event Metrics", directoryPath) );
-            return false;
+            return;
         }
         else {
             logger.info(String.format( "eventsDir=%s DOES exist --> Compute Event Metrics if asked", directoryPath) );
             eventsDirectory = directoryPath;
-            return true;
+            eventsDirectoryValid = true;
+            return;
         }
 
     }
@@ -158,7 +164,9 @@ System.out.format("== WARNING: EventLoader.getDaySynthetics: eventDir=[%s] does 
     }
 
 
-    public Hashtable<String, EventCMT> getDayEvents(Calendar timestamp) {
+    //public Hashtable<String, EventCMT> getDayEvents(Calendar timestamp) {
+
+    synchronized public Hashtable<String, EventCMT> getDayEvents(Calendar timestamp) {
 
         final String key = makeKey(timestamp);
 

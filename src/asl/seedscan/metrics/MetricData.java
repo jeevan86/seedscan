@@ -62,9 +62,11 @@ public class MetricData
     private MetricData nextMetricData;
 
 // Attach nextMetricData here for windows that span into next day
-// We SHOULD remove it from Metric.java
     public void setNextMetricData( MetricData nextMetricData ) {
         this.nextMetricData = nextMetricData;
+    }
+    public MetricData getNextMetricData() {
+        return nextMetricData;
     }
 
   //constructor(s)
@@ -236,6 +238,111 @@ public class MetricData
         return null;           
     }
 
+/**
+ *  Return the 3 component displacement (ZNE) in MICRONS for this location + band (e.g., "00-LH") for this time+freq window
+ */
+    public ArrayList<double[]> getZNE(String location, String band, long windowStartEpoch, long windowEndEpoch,
+                                      double freqMin, double freqMax) 
+    {
+        ArrayList<double[]> dispZNE = new ArrayList<double[]>();
+
+        Channel vertChannel = new Channel(location, (band + "Z") ); // e.g., "00-LHZ"
+        double[] z = getFilteredDisplacement(vertChannel, windowStartEpoch, windowEndEpoch, freqMin, freqMax);
+        dispZNE.add(z);
+
+        Channel channel1 = metadata.getChannel(location, band, "1"); // e.g., could be "00-LH1" -or- "00-LHN"
+        Channel channel2 = metadata.getChannel(location, band, "2"); // e.g., could be "00-LH2" -or- "00-LHE"
+
+        if (channel1 == null) {
+        }
+        if (channel2 == null) {
+        }
+
+    // Metadata: <channel1, channel2> --> Data: <x, y>  ===> Get displ and rotate <x,y> to <N,E>
+
+        double[] x = getFilteredDisplacement(channel1, windowStartEpoch, windowEndEpoch, freqMin, freqMax);
+        double[] y = getFilteredDisplacement(channel2, windowStartEpoch, windowEndEpoch, freqMin, freqMax);
+
+        if (x.length != y.length) {
+        }
+        int ndata = x.length;
+
+        double srate1 = metadata.getChanMeta(channel1).getSampleRate();
+        double srate2 = metadata.getChanMeta(channel2).getSampleRate();
+
+        if (srate1 != srate2) {
+            throw new RuntimeException("MetricData.createRotatedChannels(): Error: srate1 != srate2 !!");
+        }
+
+        double[] n = new double[ndata];
+        double[] e = new double[ndata];
+
+        double az1 = (metadata.getChanMeta( channel1 )).getAzimuth(); 
+        double az2 = (metadata.getChanMeta( channel2 )).getAzimuth(); 
+
+System.out.format("==== rotate_xy_to_ne: az1=%f az2=%f\n", az1, az2);
+        rotate_xy_to_ne(az1, az2, x, y, n, e);
+
+        dispZNE.add(n);
+        dispZNE.add(e);
+
+        return dispZNE;
+
+    }
+
+    private void rotate_xy_to_ne(double az1, double az2, double[] x, double[] y, double[] n, double[] e) {
+
+    // INITIALLY: Lets assume the horizontal channels are PERPENDICULAR and use a single azimuth to rotate
+    //  We'll check the azimuths and flip signs to put channel1 to +N half and channel 2 to +E
+
+        int quadrant=0;
+        double  azimuth=-999;
+        int sign1 = 1;
+        int sign2 = 1;
+        if (az1 >= 0 && az1 < 90) {
+            quadrant = 1;
+            azimuth  = az1;
+        }
+        else if (az1 >= 90 && az1 < 180) {
+            quadrant = 2;
+            azimuth  = az1 - 180;
+            sign1    =-1;
+        }
+        else if (az1 >= 180 && az1 < 270) {
+            quadrant = 3;
+            azimuth  = az1 - 180;
+            sign1    =-1;
+        }
+        else if (az1 >= 270 && az1 < 360) {
+            quadrant = 4;
+            azimuth  = az1 - 360;
+        }
+        else { // ?? 
+            System.out.format("== OOPS: MetricData.createRotatedChannels(): Don't know how to rotate az1=%f\n", az1);
+        }
+
+        sign2 = 1;
+        if (az2 >= 0 && az2 < 180) {
+            sign2    = 1;
+        }
+        else if (az2 >= 180 && az2 < 360) {
+            sign2    =-1;
+        }
+        else { // ?? 
+            System.out.format("== OOPS: MetricData.createRotatedChannels(): Don't know how to rotate az2=%f\n", az2);
+        }
+
+        double cosAz   = Math.cos( azimuth * Math.PI/180 );
+        double sinAz   = Math.sin( azimuth * Math.PI/180 );
+
+        for (int i=0; i<x.length; i++){
+            n[i] = sign1 * x[i] * cosAz - sign2 * y[i] * sinAz;
+            e[i] = sign1 * x[i] * sinAz + sign2 * y[i] * cosAz;
+        }
+
+    } // end rotate_xy_to_ne
+
+
     public double[] getFilteredDisplacement(Channel channel, long windowStartEpoch, long windowEndEpoch,
                                             double freqMin, double freqMax) 
     {
@@ -266,7 +373,10 @@ public class MetricData
 
     public double[] removeInstrumentAndFilter(Channel channel, double[] timeseries, double freqMin, double freqMax){
 
-// Check freqMax > freqMin, etc:
+        if (freqMax <= freqMin) {
+            logger.severe( String.format("Error: freqMax (=%f) <= freqMin (=%f)", freqMax, freqMin) );
+            return null;
+        }
 
         ChannelMeta chanMeta = metadata.getChanMeta(channel);
         double srate = chanMeta.getSampleRate();
@@ -295,22 +405,44 @@ public class MetricData
         Timeseries.debias(data);
         double wss = Timeseries.costaper(data,.01);
 
+        double[] freq = new double[nf];
+        for(int k = 0; k < nf; k++){
+            freq[k] = (double)k * df;
+        }
+     // Get the instrument response for Displacement
+        Cmplx[]  instrumentResponse = chanMeta.getResponse(freq, 1);
+        //Cmplx[]  instrumentResponse = chanMeta.getResponse(freq, 2);
+
         // fft2 returns just the (nf = nfft/2 + 1) positive frequencies
         xfft = Cmplx.fft2(data);
-        double f1 = .001;
-        double f2 = .002;
-        double f3 = .02;
-        double f4 = .05;
+        //double f1 = .002;
+        //double f2 = .003;
+        //double f3 = .2;
+        //double f4 = .5;
+
+        double f1 = freqMin * .9;
+        double f2 = freqMin;
+        double f3 = freqMax;
+        double f4 = freqMax * 1.1;
+        double fNyq = (double)(nf-1)*df;
+
+        if (f4 > fNyq) {
+            f4 = fNyq;
+        }
+
         int k1=(int)(f1/df); int k2=(int)(f2/df);
         int k3=(int)(f3/df); int k4=(int)(f4/df);
 
         for(int k = 0; k < nf; k++){
             double taper = bpass(k,k1,k2,k3,k4);
-            xfft[k] = Cmplx.mul(xfft[k],taper);
+            xfft[k] = Cmplx.div(xfft[k],instrumentResponse[k]);     // Remove instrument
+            xfft[k] = Cmplx.mul(xfft[k],taper);                     // Bandpass
+//System.out.format("== k=%04d f=%8.4f taper=%8.4f\n", k, freq[k], taper);
         }
 
         Cmplx[] cfft = new Cmplx[nfft];
-        cfft[0]    = xfft[0];     // DC
+        cfft[0]    = new Cmplx(0.0, 0.0);     // DC
+        //cfft[0]    = xfft[0];     // DC
         cfft[nf-1] = xfft[nf-1];  // Nyq
         for(int k = 1; k < nf-1; k++){      // Reflect spec about the Nyquist to get -ve freqs
             cfft[k]        = xfft[k];
@@ -321,7 +453,7 @@ public class MetricData
 
         double[] dfoo=new double[ndata];
         for (int i=0; i<foo.length; i++){
-            dfoo[i] = (double)foo[i];
+            dfoo[i] = (double)foo[i] * 1000000.;  // Convert meters --> micrometers (=microns)
         }
         return dfoo;
 
@@ -368,33 +500,6 @@ public class MetricData
  */
 
 
-/**
-
-        double[] freq = new double[nf];
-        for(int k = 0; k < nf; k++){
-            freq[k] = (double)k * df;
-        }
-
-     // Get the instrument response for Displacement and remove it
-        Cmplx[]  instrumentResponse = chanMeta.getResponse(freq, 1);
-        for(int k = 0; k < nf; k++){
-            xfft[k] = Cmplx.div( xfft[k], instrumentResponse[k] );
-        }
-**/
-
-/**
-            if (responseMag[k] == 0) {
-                throw new RuntimeException("NLNMDeviation Error: responseMag[k]=0 --> divide by zero!");
-            }
-            else {   // Divide out (squared)instrument response & Convert to dB:
-                psdC[k] = Cmplx.div(psdC[k], responseMagC[k]);
-                psd[k] = psd[k]/responseMag[k];
-            }
-        }
-
-        return dataPad;
-**/
-
     }
 
 
@@ -435,8 +540,8 @@ public class MetricData
             return null;
         }
         else {
-            System.out.format("== getWindowedData: Requested window Epoch [%d - %d] WAS FOUND "
-              + "within DataSet[i=%d] for channel=[%s]\n", windowStartEpoch, windowEndEpoch, nSet, channel);
+            //System.out.format("== getWindowedData: Requested window Epoch [%d - %d] WAS FOUND "
+              //+ "within DataSet[i=%d] for channel=[%s]\n", windowStartEpoch, windowEndEpoch, nSet, channel);
         }
 
         long dataStartEpoch     = data.getStartTime() / 1000;  // Convert microsecs --> millisecs
@@ -497,10 +602,12 @@ public class MetricData
         long windowMilliSecs = windowEndEpoch - windowStartEpoch;
         int  nWindowPoints   = (int)(windowMilliSecs / interval);
 
+/**
         System.out.format("== getWindowedData: Requested window Epoch [%d - %d] = [%d millisecs] = [%d points]\n",
             windowStartEpoch, windowEndEpoch, windowMilliSecs, nWindowPoints);
         System.out.format("== getWindowedData: DataEpoch [%d - %d] data srate1=%f interval=[%d] msecs\n",
             dataStartEpoch, dataEndEpoch, srate1, interval);
+**/
 
         double[] dataArray  = new double[nWindowPoints];
 

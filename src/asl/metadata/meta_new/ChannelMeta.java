@@ -425,7 +425,7 @@ public class ChannelMeta extends MemberDigest
             if (n < 0) {
                 for (int i=0; i<freqs.length; i++){
                   Cmplx iw    = new Cmplx(0.0, 2*Math.PI*freqs[i]);
-                  for (int j=1; j<n; j++) iw = Cmplx.mul(iw, iw);
+                  for (int j=1; j<Math.abs(n); j++) iw = Cmplx.mul(iw, iw);
                   response[i] = Cmplx.mul(iw, response[i]);
                 }
             }

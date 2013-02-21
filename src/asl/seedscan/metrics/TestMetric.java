@@ -57,17 +57,20 @@ extends Metric
     // Get a sorted list of continuous channels for this stationMeta and loop over:
 
         //ArrayList<Channel> channels = stationMeta.getChannelArray("BH");
-        ArrayList<Channel> channels = stationMeta.getChannelArray("00","BH");
+        //ArrayList<Channel> channels = stationMeta.getChannelArray("00","BH");
+
+        ArrayList<Channel> channels = stationMeta.getChannelArray("LH");
 
         for (Channel channel : channels){
+            System.out.format("== Channel:[%s]\n", channel);
 
-          //ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel));
+            //ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel));
 
-            System.out.format("== %s: stationMeta.hasChannel(%s)=%s\n", getName(), channel, stationMeta.hasChannel(channel) );
+            //System.out.format("== %s: stationMeta.hasChannel(%s)=%s\n", getName(), channel, stationMeta.hasChannel(channel) );
 
-            //computeMetric(channel);
+            computeMetric(channel);
 
-          //metricResult.addResult(channel, result, digest);
+            //metricResult.addResult(channel, result, digest);
 
         }// end foreach channel
 
@@ -79,6 +82,7 @@ extends Metric
         }
 
      // Test EventCMT cal
+/**
         GregorianCalendar gcal =  new GregorianCalendar( TimeZone.getTimeZone("GMT") );
         gcal.set(Calendar.YEAR, 2012);
         gcal.set(Calendar.DAY_OF_YEAR, 100);
@@ -99,6 +103,7 @@ System.out.format("== eventCMT.timeInMillis = [%d]\n", cal2.getTimeInMillis() );
         System.out.format("== New cal2 = [%s]\n", EpochData.epochToDateString(cal2) );
 
         eventCMT.printCMT();
+**/
 
      // Plot PoleZero Amp & Phase Response of this channel:
         ChannelMeta chanMeta = stationMeta.getChanMeta(channel);
