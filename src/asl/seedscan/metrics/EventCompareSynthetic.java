@@ -146,15 +146,38 @@ extends Metric
                 long eventEndTime = eventStartTime + eventDurationMilliSecs;
 
             // 2. Load up Displacement Array
-                ArrayList<double[]> dataDisp  = metricData.getZNE("00", "LH", eventStartTime, eventEndTime, fmin, fmax);
-                ArrayList<double[]> dataDisp2 = metricData.getZNE("10", "LH", eventStartTime, eventEndTime, fmin, fmax);
-                dataDisp.addAll(dataDisp2);
+                //ArrayList<double[]> dataDisp  = metricData.getZNE("00", "LH", eventStartTime, eventEndTime, fmin, fmax);
+                //ArrayList<double[]> dataDisp2 = metricData.getZNE("10", "LH", eventStartTime, eventEndTime, fmin, fmax);
+                //dataDisp.addAll(dataDisp2);
+                ArrayList<double[]> dataDisp = new ArrayList<double[]>();
+                double[] data  = metricData.getWindowedData(new Channel("00", "LHZ"), eventStartTime, eventEndTime);
+                dataDisp.add(data);
+                data  = metricData.getWindowedData(new Channel("10", "LHZ"), eventStartTime, eventEndTime);
+                dataDisp.add(data);
+hdr.setKcmpnm("00-LHZ");
+                    SacTimeSeries sac = new SacTimeSeries(hdr, dataDisp.get(0));
+                    String filename = key + "." + getStation() + "." + "00-LHZ" + ".sac";
+                    try {
+                        sac.write(filename);
+                    }
+                    catch (Exception E) {
+                    }
+hdr.setKcmpnm("10-LHZ");
+                    sac = new SacTimeSeries(hdr, dataDisp.get(1));
+                    filename = key + "." + getStation() + "." + "10-LHZ" + ".sac";
+                    try {
+                        sac.write(filename);
+                    }
+                    catch (Exception E) {
+                    }
 
+
+/**
             // 3. Calc RMS difference for each channel
-                for (int i=0; i<nChannels; i++){
+                //for (int i=0; i<nChannels; i++){
+                for (int i=0; i<2; i++){
                     results[i] += rmsDiff(dataDisp.get(i), sacSynthetics[i]);
                     SacTimeSeries sac = new SacTimeSeries(hdr, dataDisp.get(i));
-                    //String filename = "sac." + channels[i].toString();
                     String filename = key + "." + getStation() + "." + channels[i].toString() + ".sac";
                     try {
                         sac.write(filename);
@@ -162,6 +185,7 @@ extends Metric
                     catch (Exception E) {
                     }
                 }
+**/
 
                 nEvents++;
 

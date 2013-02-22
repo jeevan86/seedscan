@@ -345,10 +345,6 @@ public class SeedScan
         getStationList = false;
         ArrayList<Station> stations;
 
-//MTH:
-System.out.format("== SeedScan: Events Dir=[%s]\n", scan.getEventsDir() );
-//System.exit(0);
-
     if (getStationList){
         String datalessDir = scan.getDatalessDir();
         //ArrayList<Station> stations = getStationList(datalessDir);

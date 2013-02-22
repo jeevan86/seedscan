@@ -45,8 +45,9 @@ extends Metric
     private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.EventCompareStrongMotion");
 
     private static final double SMALLEST_PERIOD = 1;
+    //private static final double SMALLEST_PERIOD = 100;
     //private static final double  LARGEST_PERIOD = 500;
-    private static final double  LARGEST_PERIOD = 30;
+    private static final double  LARGEST_PERIOD = 50;
     private static Hashtable<String, EventCMT> eventCMTs = null;
 
     private static final double fmin = 1./LARGEST_PERIOD;
@@ -217,8 +218,6 @@ extends Metric
                 nEvents++;
 
         } // eventKeys: end loop over events
-
-System.exit(0);
 
         for (int i=0; i<nChannels; i++) {
             Channel channel = channels[i];

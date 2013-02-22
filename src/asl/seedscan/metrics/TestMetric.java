@@ -27,6 +27,7 @@ import asl.util.Hex;
 import asl.metadata.Channel;
 import asl.metadata.EpochData;
 import asl.metadata.meta_new.ChannelMeta;
+import asl.metadata.meta_new.PoleZeroStage;
 import asl.seedsplitter.DataSet;
 
 import asl.seedscan.event.EventCMT;
@@ -59,7 +60,10 @@ extends Metric
         //ArrayList<Channel> channels = stationMeta.getChannelArray("BH");
         //ArrayList<Channel> channels = stationMeta.getChannelArray("00","BH");
 
-        ArrayList<Channel> channels = stationMeta.getChannelArray("LH");
+        //ArrayList<Channel> channels = stationMeta.getChannelArray("LH");
+        ArrayList<Channel> channels = new ArrayList<Channel>();
+        channels.add( new Channel("00", "LHZ") );
+        channels.add( new Channel("10", "LHZ") );
 
         for (Channel channel : channels){
             System.out.format("== Channel:[%s]\n", channel);
@@ -69,8 +73,6 @@ extends Metric
             //System.out.format("== %s: stationMeta.hasChannel(%s)=%s\n", getName(), channel, stationMeta.hasChannel(channel) );
 
             computeMetric(channel);
-
-            //metricResult.addResult(channel, result, digest);
 
         }// end foreach channel
 
@@ -108,6 +110,8 @@ System.out.format("== eventCMT.timeInMillis = [%d]\n", cal2.getTimeInMillis() );
      // Plot PoleZero Amp & Phase Response of this channel:
         ChannelMeta chanMeta = stationMeta.getChanMeta(channel);
         chanMeta.plotPoleZeroResp();
+        PoleZeroStage pz = (PoleZeroStage)chanMeta.getStage(1);
+        pz.print();
 
 /**
      // The actual (=from data) number of samples:
