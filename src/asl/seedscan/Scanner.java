@@ -77,6 +77,8 @@ public class Scanner
     private static String eventsDir = null;
     private static Hashtable<String, EventCMT> oneDayEventCMTs = null;
 
+    private static long MB = 1048576L; // 1024*1024 - for java Runtime outputs
+
     public Scanner(MetricReader reader, MetricInjector injector, Station station, Scan scan)
     {
         this.reader = reader;
@@ -93,6 +95,8 @@ public class Scanner
     public void scan()
     {
         GregorianCalendar timestamp = new GregorianCalendar(TimeZone.getTimeZone("GMT") );
+
+        Runtime runtime = Runtime.getRuntime();
 
         // Look for cfg:start_date first:
         if (scan.getStartDate() > 1990001 && scan.getStartDate() < 2014365) {
@@ -168,19 +172,27 @@ public class Scanner
 //     If this isn't the first day of the scan then simply copy current into next so we
 //     don't have to reread all of the seed files in
 
+/** Not a good idea!
             if (i == 0) {
                 nextMetricData    = getMetricData(nextDayTimestamp);
             }
             else {
                 nextMetricData    = currentMetricData;
             }
+**/
+            currentMetricData = null;
+            nextMetricData   = null;
+
             currentMetricData = getMetricData(timestamp);
+            nextMetricData    = getMetricData(nextDayTimestamp);
+
             if (currentMetricData != null) {     // This doesn't mean nextMetricData isn't null!
                 currentMetricData.setNextMetricData(nextMetricData);
             }
 
-            Runtime runtime = Runtime.getRuntime();
-            System.out.println(" Java total memory=" + runtime.totalMemory() );
+            System.out.format("== Scanner: totalMemory=[%d] freeMemory=[%d] usedMemory=[%d]\n", runtime.totalMemory()/MB,
+                                  runtime.freeMemory()/MB, (runtime.totalMemory() - runtime.freeMemory())/MB );
+
 
 // [3] Loop over Metrics to compute, for this station, for this day
 
