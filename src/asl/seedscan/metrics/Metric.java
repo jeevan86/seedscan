@@ -54,8 +54,6 @@ public abstract class Metric
     protected MetricData   metricData   = null;
     protected MetricResult metricResult = null;
 
-    protected MetricData   nextMetricData = null;
-
     private Hashtable<String, EventCMT> eventTable = null;
     //private Hashtable<String, SacTimeSeries> eventSynthetics = null;
     private Hashtable<String, Hashtable<String, SacTimeSeries>> eventSynthetics = null;
@@ -144,13 +142,6 @@ public abstract class Metric
         this.metricData = metricData;
         stationMeta = metricData.getMetaData();
         metricResult = new MetricResult(stationMeta, getName());
-    }
-
-    // Same as above but for the next day
-    public void setDataNext(MetricData metricData)
-    {
-        this.nextMetricData = metricData;
-        //stationMeta = metricData.getMetaData();
     }
 
     public MetricResult getMetricResult()

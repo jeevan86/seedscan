@@ -61,10 +61,11 @@ public class MetricData
 
     private MetricData nextMetricData;
 
-// Attach nextMetricData here for windows that span into next day
-// We SHOULD remove it from Metric.java
     public void setNextMetricData( MetricData nextMetricData ) {
         this.nextMetricData = nextMetricData;
+    }
+    public void setNextMetricDataToNull( ) {
+        this.nextMetricData = null;
     }
 
   //constructor(s)

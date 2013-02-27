@@ -172,19 +172,16 @@ public class Scanner
 //     If this isn't the first day of the scan then simply copy current into next so we
 //     don't have to reread all of the seed files in
 
-/** Not a good idea!
             if (i == 0) {
                 nextMetricData    = getMetricData(nextDayTimestamp);
             }
             else {
+              // Need to null out ref to next day before passing currentMetricData to avoid chaining refs
+                currentMetricData.setNextMetricDataToNull();
                 nextMetricData    = currentMetricData;
             }
-**/
             currentMetricData = null;
-            nextMetricData   = null;
-
             currentMetricData = getMetricData(timestamp);
-            nextMetricData    = getMetricData(nextDayTimestamp);
 
             if (currentMetricData != null) {     // This doesn't mean nextMetricData isn't null!
                 currentMetricData.setNextMetricData(nextMetricData);
@@ -203,7 +200,6 @@ public class Scanner
 
                 if (currentMetricData != null) {
                     metric.setData(currentMetricData);
-                    metric.setDataNext(nextMetricData);
                     if (eventCMTs != null) {
                         metric.setEventTable( eventCMTs );
                         if (eventSynthetics != null) {
@@ -260,51 +256,10 @@ public class Scanner
     } // end scan()
 
 /**
- * getEventData
- * @param timestamp - The Calendar date for which we want to scan for events
- */
-
-/**
-    //private Boolean getEventData(GregorianCalendar timestamp) {
-    private Hashtable<String, EventCMT> getEventData(GregorianCalendar timestamp) {
-
-        FilenameFilter sacFilter = new FilenameFilter() {
-            public boolean accept(File dir, String name) {
-                File file = new File(dir + "/" + name);
-                if (name.startsWith(station.getStation()) && name.endsWith(".sac") && (file.length() != 0) ) {
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-        };
-
-                          // At this point we've successfully read in the CMT info file for this event
-                          // So see if there are any synthetics for this station (e.g., HRV.XX.LXZ.modes.sac)
-                                File[] sacFiles = event.listFiles(sacFilter);
-                                for (File sacFile : sacFiles) {
-                                    System.out.format("== Found sacFile=%s\n", sacFile);
-                                    SacTimeSeries sac = new SacTimeSeries();
-                                    try {
-                                        sac.read(sacFile);
-                                    }
-                                    catch (Exception e) {
-                                    }
-                                    sac.printHeader(new PrintWriter(System.out, true) );
-                                }
-
-    return null;
-
-    }
-
-**/
-
-/**
  *  Return a MetricData object for the station + timestamp
  *  If a StationMeta is passed in, then this must be for the current Day so 
  *  attach a MetricReader to the MetricData, otherwise don't
  */
-    //private MetricData getMetricData(GregorianCalendar timestamp, Station station, StationMeta stnMeta) {
     private MetricData getMetricData(GregorianCalendar timestamp) {
 
       //System.out.format("== getMetricData: request data for Station=[%s] Day=[%s]\n", station, EpochData.epochToDateString(timestamp));
@@ -381,18 +336,6 @@ public class Scanner
 
         Hashtable<String,ArrayList<Blockette320>> calibrationTable = null;
         calibrationTable = splitter.getCalTable();
-
-/**
-        MetricData metricData = null;
-        if (stnMeta != null) {
-            metricData  = new MetricData(reader, table, qualityTable, stnMeta, calibrationTable);
-        }   
-        else {
-            StationMeta stationMeta = metaGen.getStationMeta(station, timestamp); 
-            metricData  = new MetricData(table, qualityTable, stationMeta, calibrationTable);
-        }   
-        return metricData;
-**/
 
         return new MetricData(reader, table, qualityTable, stationMeta, calibrationTable);
 

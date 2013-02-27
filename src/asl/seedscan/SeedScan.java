@@ -356,40 +356,11 @@ System.out.format("== SeedScan: Events Dir=[%s]\n", scan.getEventsDir() );
     }
     else {
         stations = new ArrayList<Station>();
-        //ArrayList<Station> stations = new ArrayList<Station>();
-        //stations.add( new Station("IC","MDJ") );
-        //stations.add( new Station("IC","BJT") );
-        //Adam suggest I use these stations for testing
-        //stations.add( new Station("IU","WAKE") );
         //stations.add( new Station("IU","ANMO") );
         //stations.add( new Station("IC","WMQ") );
-        stations.add( new Station("US","WMOK") );
-        //stations.add( new Station("NE","WES") );
-        //stations.add( new Station("IU","SBA") );
-        //stations.add( new Station("IU","GUMO") );
-        //stations.add( new Station("IU","KIP") );
-        //stations.add( new Station("IC","XAN") );
-        //stations.add( new Station("IU","GRFO") );
-        //stations.add( new Station("NE","WES") );
-        //stations.add( new Station("IC","KMI") );
-        //stations.add( new Station("IW","MFID") );
-        //stations.add( new Station("IU","MAJO") );
-        //stations.add( new Station("IU","KEV") ); //KEV gives an divide by 0 error when included
-        //stations.add( new Station("IU","KIP" ) );
-        //stations.add( new Station("IU","ANTO") );
-        //stations.add( new Station("IU","DWPF") );
-        //stations.add( new Station("IU","PMSA") );
-        //stations.add( new Station("IU","OTAV" ) );
-        //stations.add( new Station("BK","CMB") );
-        //stations.add( new Station("IU","HRV") );
-        //stations.add( new Station("CI","PASC") );
-        //End Adam's suggestion
-        //stations.add( new Station("IU","SNZO") );
-        //stations.add( new Station("IW","LKWY") );
-        //stations.add( new Station("US","LKWY") );
-        //stations.add( new Station("IU","ANTO") );
-        //stations.add( new Station("GT","LPAZ") );
-        //stations.add( new Station("IC","KMI") );
+        //stations.add( new Station("US","WMOK") );
+        //stations.add( new Station("IU","QSPA") );
+        stations.add( new Station("IU","MACI") );
     }
 
         for (Station station : stations){
