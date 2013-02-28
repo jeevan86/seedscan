@@ -177,8 +177,10 @@ public class Scanner
             }
             else {
               // Need to null out ref to next day before passing currentMetricData to avoid chaining refs
-                currentMetricData.setNextMetricDataToNull();
-                nextMetricData    = currentMetricData;
+                if (currentMetricData != null) {
+                    currentMetricData.setNextMetricDataToNull();
+                    nextMetricData    = currentMetricData;
+                }
             }
             currentMetricData = null;
             currentMetricData = getMetricData(timestamp);

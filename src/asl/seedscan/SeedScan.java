@@ -345,23 +345,23 @@ public class SeedScan
         //getStationList = false;
         ArrayList<Station> stations;
 
-//MTH:
-System.out.format("== SeedScan: Events Dir=[%s]\n", scan.getEventsDir() );
-//System.exit(0);
+        if (getStationList){
+            String datalessDir = scan.getDatalessDir();
+            stations = getStationList(datalessDir);
+        }
+        else {
+            stations = new ArrayList<Station>();
+            //stations.add( new Station("IU","ANMO") );
+            //stations.add( new Station("IC","WMQ") );
+            //stations.add( new Station("US","WMOK") );
+            //stations.add( new Station("IU","QSPA") );
+            stations.add( new Station("IU","MACI") );
+        }
 
-    if (getStationList){
-        String datalessDir = scan.getDatalessDir();
-        //ArrayList<Station> stations = getStationList(datalessDir);
-        stations = getStationList(datalessDir);
-    }
-    else {
-        stations = new ArrayList<Station>();
-        //stations.add( new Station("IU","ANMO") );
-        //stations.add( new Station("IC","WMQ") );
-        //stations.add( new Station("US","WMOK") );
-        //stations.add( new Station("IU","QSPA") );
-        stations.add( new Station("IU","MACI") );
-    }
+        if (stations == null) {
+            logger.severe("ERROR: Found NO stations to scan --> EXITTING SeedScan");
+            System.exit(0);
+        }
 
         for (Station station : stations){
             System.out.format("== SeedScan: Got station:[%s]\n", station);
@@ -431,10 +431,12 @@ System.out.format("== SeedScan: Events Dir=[%s]\n", scan.getEventsDir() );
     private static ArrayList<Station> getStationList( String path ){
         File dir = new File(path);
         if (!dir.exists()) {
-            logger.info("Path '" +dir+ "' does not exist.");
+            logger.severe("Path '" +dir+ "' does not exist.");
+            System.exit(0);
         }
         else if (!dir.isDirectory()) {
-            logger.info("Path '" +dir+ "' is not a directory.");
+            logger.severe("Path '" +dir+ "' is not a directory.");
+            System.exit(0);
         }
 
         FilenameFilter textFilter = new FilenameFilter() {
