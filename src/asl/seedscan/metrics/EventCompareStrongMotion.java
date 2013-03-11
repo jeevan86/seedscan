@@ -44,10 +44,10 @@ extends Metric
 {
     private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.EventCompareStrongMotion");
 
+    //private static final double SMALLEST_PERIOD = 4;
+    private static final double  LARGEST_PERIOD = 500;
     private static final double SMALLEST_PERIOD = 1;
-    //private static final double SMALLEST_PERIOD = 100;
-    //private static final double  LARGEST_PERIOD = 500;
-    private static final double  LARGEST_PERIOD = 50;
+    //private static final double  LARGEST_PERIOD = 100;
     private static Hashtable<String, EventCMT> eventCMTs = null;
 
     private static final double fmin = 1./LARGEST_PERIOD;
@@ -76,11 +76,13 @@ extends Metric
             return;
         }
 
-        String[] locs  = {"00", "10", "20"};
+        String[] locs  = {"00", "10"};
         String[] chans = {"LHZ", "LHND", "LHED"};
 
-        ByteBuffer[] digestArray = new ByteBuffer[locs.length * chans.length];
-        Channel[] channels       = new Channel[locs.length * chans.length];
+        int nChannels = 9;
+
+        ByteBuffer[] digestArray = new ByteBuffer[nChannels];
+        Channel[] channels       = new Channel[nChannels];
 /**
  *      channels[0] = 00-LHZ  
  *      channels[1] = 00-LHND
@@ -114,7 +116,7 @@ extends Metric
         //if (computeEventMetric) {
         //}
 
-        int nChannels = 6; // Hard-wire for now
+        //int nChannels = 6; // Hard-wire for now
         double[] results = new double[nChannels];
         int nEvents = 0;
 
@@ -196,6 +198,7 @@ extends Metric
 
             //ArrayList<double[]> dataDisp00  = metricData.getZNE("00", "LH", windowStartTime, windowEndTime, fmin, fmax);
             long duration = 8000000L; // 8000 sec = 8000000 msecs
+
             ArrayList<double[]> dataDisp00  = metricData.getZNE("00", "LH", eventStartTime, eventStartTime + duration, fmin, fmax);
             ArrayList<double[]> dataDisp10  = metricData.getZNE("10", "LH", eventStartTime, eventStartTime + duration, fmin, fmax);
             ArrayList<double[]> dataDisp20  = metricData.getZNE("20", "LN", eventStartTime, eventStartTime + duration, fmin, fmax);
@@ -203,21 +206,31 @@ extends Metric
             dataDisp00.addAll(dataDisp10);
             dataDisp00.addAll(dataDisp20);
 
-                for (int i=0; i<dataDisp00.size(); i++){
-                    //results[i] += rmsDiff(dataDisp.get(i), sacSynthetics[i]);
-                    SacTimeSeries sac = new SacTimeSeries(hdr, dataDisp00.get(i));
-                    hdr.setKcmpnm(channels[i].toString());
-                    String filename = key + "." + getStation() + "." + channels[i].toString() + ".sac2";
-                    try {
-                        sac.write(filename);
-                    }
-                    catch (Exception E) {
-                    }
-                }
+/**
+            ArrayList<double[]> dataDisp00  = new ArrayList<double[]>();
+            double[] data = metricData.getWindowedData(new Channel("00", "LHZ"), eventStartTime, eventStartTime + duration);
+            dataDisp00.add(data);
+            for (int i=0; i<1; i++){
+**/
 
-                nEvents++;
+            for (int i=0; i<3; i++){
+                int j=3*i;
+                String kcmp = channels[j].toString();
+                hdr.setKcmpnm(kcmp);
+                SacTimeSeries sac = new SacTimeSeries(hdr, dataDisp00.get(j));
+                String filename = key + "." + getStation() + "." + kcmp + ".sac2";
+                try {
+                    sac.write(filename);
+                }
+                catch (Exception E) {
+                }
+            }
+
+            nEvents++;
 
         } // eventKeys: end loop over events
+
+/**
 
         for (int i=0; i<nChannels; i++) {
             Channel channel = channels[i];
@@ -226,6 +239,7 @@ extends Metric
             metricResult.addResult(channel, result, digest);
             //System.out.format("== metricResult.addResult(%s, %12.6f, %s)\n", channel, result, Hex.byteArrayToHexString(digest.array()) );
         }
+**/
 
     } // end process()
 

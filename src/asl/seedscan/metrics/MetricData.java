@@ -68,6 +68,9 @@ public class MetricData
     public MetricData getNextMetricData() {
         return nextMetricData;
     }
+    public void setNextMetricDataToNull( ) {
+        this.nextMetricData = null;
+    }
 
   //constructor(s)
     public MetricData(	MetricReader metricReader, Hashtable<String,
@@ -415,15 +418,17 @@ System.out.format("==== rotate_xy_to_ne: az1=%f az2=%f\n", az1, az2);
 
         // fft2 returns just the (nf = nfft/2 + 1) positive frequencies
         xfft = Cmplx.fft2(data);
-        //double f1 = .002;
-        //double f2 = .003;
-        //double f3 = .2;
-        //double f4 = .5;
+        double f1 = .008;
+        double f2 = .01;
+        double f3 = .4;
+        double f4 = .5;
 
+/**
         double f1 = freqMin * .9;
         double f2 = freqMin;
         double f3 = freqMax;
         double f4 = freqMax * 1.1;
+**/
         double fNyq = (double)(nf-1)*df;
 
         if (f4 > fNyq) {
@@ -549,6 +554,8 @@ System.out.format("==== rotate_xy_to_ne: az1=%f az2=%f\n", az1, az2);
         long interval           = data.getInterval()  / 1000;  // Convert microsecs --> millisecs (dt = sample interval)
         double srate1           = data.getSampleRate(); 
 
+System.out.format("== windowStartEpoch=[%d] dataStartEpoch=[%d]\n", windowStartEpoch, dataStartEpoch);
+
     // Requested Window must start in Day 1 (taken from current dataset(0))
         if (windowStartEpoch < dataStartEpoch || windowStartEpoch > dataEndEpoch) {
             System.out.format("== getWindowedData ERROR: Requested window Epoch [%d - %d] does NOT START "
@@ -618,7 +625,9 @@ System.out.format("==== rotate_xy_to_ne: az1=%f az2=%f\n", az1, az2);
         }
         int j=0;
 
-        int  istart   = (int)((windowStartEpoch - dataStartEpoch) / interval);
+        //int  istart   = (int)((windowStartEpoch - dataStartEpoch) / interval);
+        // MTH: this seems to line it up better with rdseed output window but doesn't seem right ...
+        int  istart   = (int)((windowStartEpoch - dataStartEpoch) / interval) + 1;
 
         for (int i=0; i<nWindowPoints; i++){
             if( (istart + i) < data.getLength() ) {

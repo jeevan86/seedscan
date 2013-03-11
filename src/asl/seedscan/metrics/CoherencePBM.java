@@ -71,7 +71,7 @@ extends PowerBandMetric
         return "CoherencePBM";
     }
 
-    private Boolean DEBUG = true;
+    private Boolean DEBUG = false;
     private final String outputDir = "outputs";
 
     public void process()
