@@ -77,7 +77,7 @@ implements Comparable<ChannelKey>
             Pattern pattern  = Pattern.compile("^[0-9][0-9]$");
             Matcher matcher  = pattern.matcher(location);
             if (!matcher.matches() && !location.equals("--") && !location.equals("XX") ) {
-                throw new RuntimeException( String.format("Error: Location code=[%s] is NOT valid (e.g., %s)", location, validCodes) );
+                //throw new RuntimeException( String.format("Error: Location code=[%s] is NOT valid (e.g., %s)", location, validCodes) );
             }
         }
         this.location = location;
