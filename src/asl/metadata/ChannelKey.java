@@ -61,6 +61,13 @@ implements Comparable<ChannelKey>
 
         String validCodes = "\"--\", \"00\", \"10\", etc.";
 
+    // MTH: Known abnormal location codes:
+    //      HR - High res instrument, later replaced by 10  - seen in US seed files
+    //      XX - seen in II seed files
+    //      P1 - Princeton Modes Synthetic - seen in II seed files
+    //      P3 - Princeton  SEM  Synthetic - seen in II seed files
+    
+
     // Temp fix for station US_WMOK which has some channel blockettes tagged with location="HR"
         if (location.equals("HR")) {  // Add to this any unruly location code you want to flag ...
             location = "XX";
