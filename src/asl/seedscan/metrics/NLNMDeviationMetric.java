@@ -18,31 +18,11 @@
  */
 package asl.seedscan.metrics;
 
-import org.jfree.chart.*;
-import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.axis.LogarithmicAxis;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.renderer.xy.*;
-import org.jfree.chart.plot.*;
-import org.jfree.chart.title.TextTitle;
-import org.jfree.chart.axis.NumberTickUnit;
-import org.jfree.data.xy.*;
-import org.jfree.data.Range;
-import org.jfree.util.ShapeUtilities;
-
-import java.awt.Rectangle;
-import java.awt.Shape;
-import java.awt.Color;
-import java.awt.Stroke;
-import java.awt.BasicStroke;
-import java.awt.Paint;
-
 import java.io.IOException;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.File;
 import java.nio.ByteBuffer;
-import asl.util.Hex;
 
 import java.util.logging.Logger;
 import java.util.ArrayList;
@@ -50,6 +30,8 @@ import java.util.Calendar;
 
 import asl.metadata.Channel;
 import asl.metadata.Station;
+import asl.util.Hex;
+import asl.util.PlotMaker;
 
 import timeutils.Timeseries;
 
@@ -201,7 +183,8 @@ extends PowerBandMetric
         deviation = deviation/(double)nPeriods;
 
         if (getMakePlots()) {   // Output files like 2012160.IU_ANMO.00-LHZ.png = psd
-            plotPSD(channel, psdInterp);
+            PlotMaker plotMaker = new PlotMaker(metricResult.getStation(), channel, metricResult.getDate());
+            plotMaker.plotPSD(NLNMPeriods, NLNMPowers, psdInterp, "NLNM", "psd");
         }
 
         return deviation;
@@ -269,100 +252,6 @@ extends PowerBandMetric
         return true;
 
     } // end readNLNM
-
-
-    private void plotPSD(Channel channel, double[] psdInterp) {
-
-        // See if outputDir exists. If not, then try to make it and if that
-        //   fails then return
-
-        File dir = new File(outputDir);
-        Boolean allIsOkay;
-        if (dir.exists()) {           // Dir exists --> check write permissions
-            if (!dir.isDirectory()) {
-                allIsOkay = false;        // The filename exists but it is NOT a directory
-            }
-            else {
-                allIsOkay = dir.canWrite();
-            }
-        }
-        else {                      // Dir doesn't exist --> try to make it
-            allIsOkay = dir.mkdir();
-        }
-
-        Station station        = metricResult.getStation();
-        Calendar date          = metricResult.getDate();
-        final String plotTitle = String.format("%04d%03d.%s.%s", date.get(Calendar.YEAR), date.get(Calendar.DAY_OF_YEAR)
-                                                ,station, channel);
-        final String pngName   = String.format("%s/%04d%03d.%s.%s.png", outputDir, date.get(Calendar.YEAR), date.get(Calendar.DAY_OF_YEAR)
-                                                ,station, channel);
-
-        File outputFile = new File(pngName);
-        if (outputFile.exists()) {
-            if (!outputFile.canWrite()) {
-                allIsOkay = false;
-            }
-        }
-
-        if (!allIsOkay) {
-            System.out.format("== plotPSD: request to output plot=[%s] but we are unable to create it "
-                              + " --> skip plot\n", pngName );
-            return;
-        }
-
-        final XYSeries series1 = new XYSeries(channel.toString());
-        final XYSeries series2 = new XYSeries("NLNM");
-
-        for (int k = 0; k < NLNMPeriods.length; k++){
-            series1.add( NLNMPeriods[k], psdInterp[k] );
-            series2.add( NLNMPeriods[k], NLNMPowers[k] );
-        }
-
-        //final XYItemRenderer renderer = new StandardXYItemRenderer();
-        final XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
-        Rectangle rectangle = new Rectangle(3, 3);
-        renderer.setSeriesShape(0, rectangle);
-        renderer.setSeriesShapesVisible(0, true);
-        renderer.setSeriesLinesVisible(0, false);
-
-        renderer.setSeriesShape(1, rectangle);
-        renderer.setSeriesShapesVisible(1, true);
-        renderer.setSeriesLinesVisible(1, false);
-
-        Paint[] paints = new Paint[] { Color.red, Color.black };
-        renderer.setSeriesPaint(0, paints[0]);
-        renderer.setSeriesPaint(1, paints[1]);
-
-        final NumberAxis rangeAxis1 = new NumberAxis("PSD 10log10(m**2/s**4)/Hz dB");
-        rangeAxis1.setRange( new Range(-190, -120));
-        rangeAxis1.setTickUnit( new NumberTickUnit(5.0) );
-
-        final LogarithmicAxis horizontalAxis = new LogarithmicAxis("Period (sec)");
-        horizontalAxis.setRange( new Range(0.05 , 10000) );
-
-        final XYSeriesCollection seriesCollection = new XYSeriesCollection();
-        seriesCollection.addSeries(series1);
-        seriesCollection.addSeries(series2);
-
-        final XYPlot xyplot = new XYPlot((XYDataset)seriesCollection, horizontalAxis, rangeAxis1, renderer);
-
-        xyplot.setDomainGridlinesVisible(true);  
-        xyplot.setRangeGridlinesVisible(true);  
-        xyplot.setRangeGridlinePaint(Color.black);  
-        xyplot.setDomainGridlinePaint(Color.black);  
-
-        final JFreeChart chart = new JFreeChart(xyplot);
-        chart.setTitle( new TextTitle(plotTitle) );
-
-// Here we need to see if test dir exists and create it if necessary ...
-        try { 
-            //ChartUtilities.saveChartAsJPEG(new File("chart.jpg"), chart, 500, 300);
-            ChartUtilities.saveChartAsPNG(outputFile, chart, 500, 300);
-        } catch (IOException e) { 
-            System.err.println("Problem occurred creating chart.");
-
-        }
-    } // end plotPSD
 
 
 } // end class

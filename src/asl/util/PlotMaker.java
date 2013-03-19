@@ -52,8 +52,9 @@ import java.awt.Paint;
 public class PlotMaker 
 {
     private Station station;
-    private Channel channel;
+    private Channel channel, channelX, channelY;
     private Calendar date;
+    private final String outputDir = "outputs";
 
     // constructor(s)
     public PlotMaker(Station station, Channel channel, Calendar date)
@@ -62,11 +63,149 @@ public class PlotMaker
         this.channel = channel;
         this.date    = date;
     }
+    public PlotMaker(Station station, Channel channelX, Channel channelY, Calendar date)
+    {
+        this.station  = station;
+        this.channelX = channelX;
+        this.channelY = channelY;
+        this.date     = date;
+    }
+
+
+    public void plotPSD(double per[], double[] model, double[] psd, String modelName, String plotString) {
+
+        // plotTitle = "2012074.IU_ANMO.00-BHZ " + plotString
+        final String plotTitle = String.format("%04d%03d.%s.%s %s", date.get(Calendar.YEAR), date.get(Calendar.DAY_OF_YEAR)
+                                                ,station, channel, plotString);
+        // plot filename = "2012074.IU_ANMO.00-BHZ" + plotString + ".png"
+        final String pngName   = String.format("%s/%04d%03d.%s.%s.%s.png", outputDir, date.get(Calendar.YEAR), date.get(Calendar.DAY_OF_YEAR)
+                                                ,station, channel, plotString);
+        File outputFile = new File(pngName);
+
+        // Check that we will be able to output the file without problems and if not --> return
+        if (!checkFileOut(outputFile)) {
+            System.out.format("== plotPSD: request to output plot=[%s] but we are unable to create it "
+                              + " --> skip plot\n", pngName );
+            return;
+        }
+
+        final XYSeries series1 = new XYSeries(modelName);
+        final XYSeries series2 = new XYSeries(channel.toString());
+
+        for (int k = 0; k < per.length; k++){
+            series1.add( per[k], model[k] );
+            series2.add( per[k], psd[k] );
+        }
+
+        //final XYItemRenderer renderer = new StandardXYItemRenderer();
+        final XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
+        Rectangle rectangle = new Rectangle(3, 3);
+
+        renderer.setSeriesShape(0, rectangle);
+        renderer.setSeriesShapesVisible(0, true);
+        renderer.setSeriesLinesVisible(0, false);
+
+        renderer.setSeriesShape(1, rectangle);
+        renderer.setSeriesShapesVisible(1, true);
+        renderer.setSeriesLinesVisible(1, false);
+
+        Paint[] paints = new Paint[] { Color.black, Color.red };
+        renderer.setSeriesPaint(0, paints[0]);
+        renderer.setSeriesPaint(1, paints[1]);
+
+        final NumberAxis rangeAxis1 = new NumberAxis("PSD 10log10(m**2/s**4)/Hz dB");
+        rangeAxis1.setRange( new Range(-190, -120));
+        rangeAxis1.setTickUnit( new NumberTickUnit(5.0) );
+
+        final LogarithmicAxis horizontalAxis = new LogarithmicAxis("Period (sec)");
+        horizontalAxis.setRange( new Range(0.05 , 10000) );
+
+        final XYSeriesCollection seriesCollection = new XYSeriesCollection();
+        seriesCollection.addSeries(series1);
+        seriesCollection.addSeries(series2);
+
+        final XYPlot xyplot = new XYPlot((XYDataset)seriesCollection, horizontalAxis, rangeAxis1, renderer);
+
+        xyplot.setDomainGridlinesVisible(true);  
+        xyplot.setRangeGridlinesVisible(true);  
+        xyplot.setRangeGridlinePaint(Color.black);  
+        xyplot.setDomainGridlinePaint(Color.black);  
+
+        final JFreeChart chart = new JFreeChart(xyplot);
+        chart.setTitle( new TextTitle(plotTitle) );
+
+        try { 
+            ChartUtilities.saveChartAsPNG(outputFile, chart, 500, 300);
+        } catch (IOException e) { 
+            System.err.println("Problem occurred creating chart.");
+
+        }
+    } // end plotPSD
+
+
+    public void plotCoherence(double per[], double[] gamma, String plotString) {
+
+        final String plotTitle = String.format("%04d%03d.%s.%s-%s", date.get(Calendar.YEAR), date.get(Calendar.DAY_OF_YEAR)
+                                                ,station, channelX, channelY);
+        final String pngName   = String.format("%s/%04d%03d.%s.%s-%s.%s.png", outputDir,date.get(Calendar.YEAR),date.get(Calendar.DAY_OF_YEAR)
+                                                ,station, channelX, channelY, plotString);
+
+        File outputFile = new File(pngName);
+
+        // Check that we will be able to output the file without problems and if not --> return
+        if (!checkFileOut(outputFile)) {
+            System.out.format("== plotCoherence: request to output plot=[%s] but we are unable to create it "
+                              + " --> skip plot\n", pngName );
+            return;
+        }
+
+        final String legend    = String.format("%s--%s",channelX, channelY);
+        final XYSeries series1 = new XYSeries(legend);
+
+        for (int k = 0; k < gamma.length; k++){
+            series1.add( per[k], gamma[k] );
+        }
+
+        //final XYItemRenderer renderer1 = new StandardXYItemRenderer();
+        final XYLineAndShapeRenderer renderer1 = new XYLineAndShapeRenderer();
+        Rectangle rectangle = new Rectangle(3, 3);
+        renderer1.setSeriesShape(0, rectangle);
+        renderer1.setSeriesShapesVisible(0, true);
+        renderer1.setSeriesLinesVisible(0, false);
+
+        Paint[] paints = new Paint[] { Color.red, Color.black };
+        renderer1.setSeriesPaint(0, paints[0]);
+
+        final NumberAxis rangeAxis1 = new NumberAxis("Coherence, Gamma");
+        rangeAxis1.setRange( new Range(0, 1.2));
+        rangeAxis1.setTickUnit( new NumberTickUnit(0.1) );
+
+        final LogarithmicAxis horizontalAxis = new LogarithmicAxis("Period (sec)");
+        horizontalAxis.setRange( new Range(0.05 , 10000) );
+
+        final XYSeriesCollection seriesCollection = new XYSeriesCollection();
+        seriesCollection.addSeries(series1);
+
+        final XYPlot xyplot = new XYPlot((XYDataset)seriesCollection, horizontalAxis, rangeAxis1, renderer1);
+
+        xyplot.setDomainGridlinesVisible(true);  
+        xyplot.setRangeGridlinesVisible(true);  
+        xyplot.setRangeGridlinePaint(Color.black);  
+        xyplot.setDomainGridlinePaint(Color.black);  
+
+        final JFreeChart chart = new JFreeChart(xyplot);
+        chart.setTitle( new TextTitle(plotTitle) );
+
+        try { 
+            ChartUtilities.saveChartAsPNG(outputFile, chart, 500, 300);
+        } catch (IOException e) { 
+            System.err.println("Problem occurred creating chart.");
+
+        }
+    } // end plotCoherence
+
 
     public void plotSpecAmp(double freq[], double[] amp, double[] phase, String plotString) {
-    //public void plotSpecAmp(double freq[], double[] amp, String plotString) {
-
-        String outputDir = ".";
 
         // plotTitle = "2012074.IU_ANMO.00-BHZ " + plotString
         final String plotTitle = String.format("%04d%03d.%s.%s %s", date.get(Calendar.YEAR), date.get(Calendar.DAY_OF_YEAR)
@@ -75,17 +214,11 @@ public class PlotMaker
         final String pngName   = String.format("%s/%04d%03d.%s.%s.%s.png", outputDir, date.get(Calendar.YEAR), date.get(Calendar.DAY_OF_YEAR)
                                                 ,station, channel, plotString);
 
-        Boolean allIsOkay = true;
-
         File outputFile = new File(pngName);
-        if (outputFile.exists()) {
-            if (!outputFile.canWrite()) {
-                allIsOkay = false;
-            }
-        }
 
-        if (!allIsOkay) {
-            System.out.format("== plotPSD: request to output plot=[%s] but we are unable to create it "
+        // Check that we will be able to output the file without problems and if not --> return
+        if (!checkFileOut(outputFile)) {
+            System.out.format("== plotSpecAmp: request to output plot=[%s] but we are unable to create it "
                               + " --> skip plot\n", pngName );
             return;
         }
@@ -172,6 +305,45 @@ public class PlotMaker
 
         }
     } // end plotResp
+
+
+    private Boolean checkFileOut( File file) {
+
+        // Check that dir either exists or can be created
+
+        File dir = file.getParentFile();
+
+        Boolean allIsOkay = true;
+
+        if (dir.exists()) {             // Dir exists --> check write permissions
+            if (!dir.isDirectory()) {
+                allIsOkay = false;      // The filename exists but it is NOT a directory
+            }
+            else {
+                allIsOkay = dir.canWrite();
+            }
+        }
+        else {                          // Dir doesn't exist --> try to make it
+            allIsOkay = dir.mkdir();
+        }
+
+        if (!allIsOkay) {               // We were unable to make output dir --> return false
+            return false;
+        }
+
+        // Check that if file already exists it can be overwritten
+
+        if (file.exists()) {
+            if (!file.canWrite()) {
+                return false;
+            }
+        }
+
+        return true;
+
+    }
+
+
 
 }
 
