@@ -71,7 +71,6 @@ extends PowerBandMetric
         return "CoherencePBM";
     }
 
-    private Boolean DEBUG = false;
     private final String outputDir = "outputs";
 
     public void process()
@@ -97,7 +96,7 @@ extends PowerBandMetric
 
             ChannelArray channelArray = new ChannelArray(channelX, channelY);
 
-            ByteBuffer digest = metricData.valueDigestChanged(channelArray, createIdentifier(channelX, channelY));
+            ByteBuffer digest = metricData.valueDigestChanged(channelArray, createIdentifier(channelX, channelY), getForceUpdate());
 
             if (digest == null) { 
                 System.out.format("%s INFO: Data and metadata have NOT changed for channelX=%s + channelY=%s --> Skipping\n"
@@ -203,7 +202,7 @@ extends PowerBandMetric
         }
         averageValue /= (double)nPeriods;
 
-        if (DEBUG){
+        if (getMakePlots()){
             plotCoherence(channelX, channelY, per, gammaPer);
         }
 

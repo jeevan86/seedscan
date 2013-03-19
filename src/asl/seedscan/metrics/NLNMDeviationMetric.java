@@ -74,18 +74,19 @@ extends PowerBandMetric
 
     public NLNMDeviationMetric(){
         super();
-        addArgument("modelfile");
+        addArgument("nlnm-modelfile");
     }
 
 
     private double[] NLNMPeriods;
     private double[] NLNMPowers;
-    private Boolean DEBUG = false;
     private final String outputDir = "outputs";
 
     public void process()
     {
         System.out.format("\n              [ == Metric %s == ]\n", getName() ); 
+
+   // First see if the file exists
 
    // Read in the NLNM
         if (!readNLNM() ){
@@ -102,7 +103,8 @@ extends PowerBandMetric
          // Check to see that we have data + metadata & see if the digest has changed wrt the database:
          // Update: At this point we KNOW we have metadata since it is driving the channel loop
 
-            ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel));
+            //ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel));
+            ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel), getForceUpdate() );
 
             if (digest == null) {
                 System.out.format("%s INFO: Data and metadata have NOT changed for this channel:%s --> Skipping\n"
@@ -198,7 +200,7 @@ extends PowerBandMetric
         }
         deviation = deviation/(double)nPeriods;
 
-        if (DEBUG) {   // Output files like 2012160.IU_ANMO.00-LHZ.png = psd
+        if (getMakePlots()) {   // Output files like 2012160.IU_ANMO.00-LHZ.png = psd
             plotPSD(channel, psdInterp);
         }
 
@@ -208,7 +210,7 @@ extends PowerBandMetric
 
 
 /** readNLNM() - Read in Peterson's NewLowNoiseModel from file specified in config.xml
- **       e.g., <cfg:argument cfg:name="modelfile">/Users/mth/mth/Projects/xs0/NLNM.ascii/</cfg:argument>
+ **       e.g., <cfg:argument cfg:name="nlnm-modelfile">/Users/mth/mth/Projects/xs0/NLNM.ascii/</cfg:argument>
  **             NLNM Periods will be read into NLNMPeriods[]
  **             NLNM Powers  will be read into NLNMPowers[]
  **/
@@ -217,7 +219,7 @@ extends PowerBandMetric
 
         String fileName = null;
         try {
-            fileName = get("modelfile");
+            fileName = get("nlnm-modelfile");
         } catch (NoSuchFieldException ex) {
           System.out.format("%s Error: Model Name ('model') was not specified in config.xml!\n", getName());
           return false;

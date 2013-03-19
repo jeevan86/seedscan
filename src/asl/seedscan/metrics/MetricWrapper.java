@@ -40,20 +40,8 @@ public class MetricWrapper
     public void add(String name, String value)
     throws NoSuchFieldException
     {
+        // We are actually calling Metric.add(name,value):
         arguments.add(name, value);
-    }
-
-/**
- * if forceUpdate is set then we will compute this metric even if if
- *    the metric digests haven't changed
-*/
-    public void setForceUpdate(String forceUpdateString){
-        if (forceUpdateString == null) 
-            return;
-        if (forceUpdateString.toLowerCase().equals("yes") || 
-            forceUpdateString.toLowerCase().equals("true") ) {
-                 arguments.setForceUpdate();
-        }
     }
 
     public String get(String name)
@@ -69,11 +57,12 @@ public class MetricWrapper
             Enumeration<String> names = arguments.names();
             while (names.hasMoreElements()) {
                 String name = names.nextElement();
-                metric.add(name, arguments.get(name));
+        // MTH: added this condition so that some arguments in config.xml (e.g., <cfg:argument name=forceupdate value=../>
+        //      could be optional and we don't want a NullPointer error when we try to put a null value:
+                if (arguments.get(name) != null) {
+                    metric.add(name, arguments.get(name));
+                }
             }
-// MTH: Not sure why, but we have to reset this for this particular instance of the metric ??
-            if (arguments.getForceUpdate())
-                metric.setForceUpdate();
             return metric;
         } catch (InstantiationException ex) {
             String message = ex.getClass().getName() + " in MetricWrapper.getNewInstance(), should never happen!";

@@ -54,7 +54,7 @@ extends Metric
 
         for (Channel channel : channels){
 
-            ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel));
+            ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel), getForceUpdate());
 
         // At this point we KNOW we have metadata so we WILL compute a digest.  If the digest is null
         //  then nothing has changed and we don't need to recompute the metric

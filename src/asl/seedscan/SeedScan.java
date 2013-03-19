@@ -262,10 +262,8 @@ public class SeedScan
                     try {
                         Class metricClass = Class.forName(met.getClassName());
                         MetricWrapper wrapper = new MetricWrapper(metricClass);
-                    // MTH: met.getForceUpdate may equal null, "yes"/"no", "true"/"false", etc.
-                        wrapper.setForceUpdate(met.getForceUpdate());
-
                         for (ArgumentT arg: met.getArgument()) {
+//System.out.format("== SeedScan: wrapper.add(name=%s, value=%s)\n", arg.getName(), arg.getValue() );
                             wrapper.add(arg.getName(), arg.getValue());
                         }
                         scan.addMetric(wrapper);
@@ -351,11 +349,11 @@ public class SeedScan
         }
         else {
             stations = new ArrayList<Station>();
-            //stations.add( new Station("IU","ANMO") );
+            stations.add( new Station("IU","ANMO") );
             //stations.add( new Station("IC","WMQ") );
             //stations.add( new Station("US","WMOK") );
             //stations.add( new Station("IU","QSPA") );
-            stations.add( new Station("IU","MACI") );
+            //stations.add( new Station("IU","MACI") );
         }
 
         if (stations == null) {
