@@ -1018,18 +1018,31 @@ System.out.format("== windowStartEpoch=[%d] dataStartEpoch=[%d]\n", windowStartE
  *                   get an old digest to compare).
  *          digest - Will cause the Metric that called valueDigestChanged to execute its computeMetric().
  */
+
+
     public ByteBuffer valueDigestChanged(Channel channel, MetricValueIdentifier id)
     {
         ChannelArray channelArray = new ChannelArray(channel.getLocation(), channel.getChannel());
         return valueDigestChanged(channelArray, id);
     }
-
     public ByteBuffer valueDigestChanged(ChannelArray channelArray, MetricValueIdentifier id)
+    {
+        return valueDigestChanged(channelArray, id, false);
+    }
+
+    public ByteBuffer valueDigestChanged(Channel channel, MetricValueIdentifier id, Boolean forceUpdate)
+    {
+        ChannelArray channelArray = new ChannelArray(channel.getLocation(), channel.getChannel());
+        return valueDigestChanged(channelArray, id, forceUpdate);
+    }
+
+    public ByteBuffer valueDigestChanged(ChannelArray channelArray, MetricValueIdentifier id, Boolean forceUpdate)
     {
         String metricName = id.getMetricName();
         Station station   = id.getStation();
         Calendar date     = id.getDate();
         String channelId  = MetricResult.createResultId(id.getChannel());
+
 /**
         logger.fine(String.format(
                     "MetricValueIdentifier --> date=%04d-%02d-%02d (%03d) %02d:%02d:%02d | metricName=%s station=%s channel=%s",
@@ -1084,7 +1097,15 @@ System.out.format("== windowStartEpoch=[%d] dataStartEpoch=[%d]\n", windowStartE
             }
             else if (newDigest.compareTo(oldDigest) == 0) {
                 logger.fine("Digests are Equal !!");
-                newDigest = null;
+                if (forceUpdate) {  // Don't do anything --> return the digest to force the metric computation
+                    String msg = String.format("== valueDigestChanged: metricName=%s Digests are Equal BUT forceUpdate=[%s]"
+                    + " so compute the metric anyway!\n", metricName, forceUpdate);
+                    System.out.println(msg);
+                    logger.warning(msg);
+                }
+                else {
+                    newDigest = null;
+                }
             }
             logger.fine(String.format( "valueDigestChanged() --> oldDigest = getMetricValueDigest(%s, %s, %s, %s)",
                                        EpochData.epochToDateString(date), metricName, station, channelId));

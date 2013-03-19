@@ -18,31 +18,11 @@
  */
 package asl.seedscan.metrics;
 
-import org.jfree.chart.*;
-import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.axis.LogarithmicAxis;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.renderer.xy.*;
-import org.jfree.chart.plot.*;
-import org.jfree.chart.title.TextTitle;
-import org.jfree.chart.axis.NumberTickUnit;
-import org.jfree.data.xy.*;
-import org.jfree.data.Range;
-import org.jfree.util.ShapeUtilities;
-
-import java.awt.Rectangle;
-import java.awt.Shape;
-import java.awt.Color;
-import java.awt.Stroke;
-import java.awt.BasicStroke;
-import java.awt.Paint;
-
 import java.io.IOException;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.File;
 import java.nio.ByteBuffer;
-import asl.util.Hex;
 
 import java.util.logging.Logger;
 import java.util.ArrayList;
@@ -51,6 +31,8 @@ import java.util.Calendar;
 import asl.metadata.Channel;
 import asl.metadata.Station;
 import asl.seedscan.ArchivePath;
+import asl.util.Hex;
+import asl.util.PlotMaker;
 
 import timeutils.Timeseries;
 
@@ -102,7 +84,7 @@ extends PowerBandMetric
 
          // Check to see that we have data + metadata & see if the digest has changed wrt the database:
 
-            ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel));
+            ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel), getForceUpdate());
 
             if (digest == null) {
                 System.out.format("%s INFO: Data and metadata have NOT changed for this channel:%s --> Skipping\n"
@@ -207,6 +189,12 @@ extends PowerBandMetric
         }
 
         deviation = deviation/(double)nPeriods;
+
+        if (getMakePlots()) {  
+            PlotMaker plotMaker = new PlotMaker(metricResult.getStation(), channel, metricResult.getDate());
+            plotMaker.plotPSD(ModelPeriods, ModelPowers, psdInterp, "StationModel", "psd-stn");
+        }
+
         return deviation;
 
     } // end computeMetric()

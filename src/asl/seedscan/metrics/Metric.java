@@ -48,6 +48,8 @@ public abstract class Metric
     private Hashtable<CrossPowerKey, CrossPower> crossPowerMap;
 
     private Boolean forceUpdate = false;
+    private Boolean makePlots   = false;
+
     protected final double NO_RESULT = -999.999; 
 
     protected StationMeta  stationMeta  = null;
@@ -62,6 +64,10 @@ public abstract class Metric
     {
         arguments = new Hashtable<String, String>();
         crossPowerMap = new Hashtable<CrossPowerKey, CrossPower>();
+
+        // MTH: 03-18-13: Added to allow these optional arguments to each cfg:metric in config.xml
+        addArgument("makeplots");
+        addArgument("forceupdate");
     }
     
     public MetricValueIdentifier createIdentifier(Channel channel)
@@ -165,12 +171,17 @@ public abstract class Metric
 /**
  * MTH
  */
-    public final void setForceUpdate()
-    {
+    private void setForceUpdate(){
         this.forceUpdate = true;
-    } 
+    }
     public Boolean getForceUpdate(){
         return forceUpdate;
+    }
+    private void setMakePlots(){
+        this.makePlots = true;
+    }
+    public Boolean getMakePlots(){
+        return makePlots;
     }
 
 
@@ -187,6 +198,17 @@ public abstract class Metric
             throw new NoSuchFieldException("Argument '" +name+ "' is not recognized.");
         }
         arguments.put(name, value);
+
+        if (name.equals("forceupdate")) {
+            if (value.toLowerCase().equals("true") || value.toLowerCase().equals("yes") ) {
+                setForceUpdate();
+            }
+        }
+        else if (name.equals("makeplots")) {
+            if (value.toLowerCase().equals("true") || value.toLowerCase().equals("yes") ) {
+                setMakePlots();
+            }
+        }
     }
 
     public final String get(String name)

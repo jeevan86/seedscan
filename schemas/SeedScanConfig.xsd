@@ -40,7 +40,6 @@
     <xsd:element name="dataless_dir"  type="xsd:string" />
     <xsd:element name="events_dir"    type="xsd:string" />
     <xsd:element name="require_connection"    type="xsd:string" />
-    <xsd:element name="force_update"    type="xsd:string" />
     <xsd:element name="start_day"   type="xsd:nonNegativeInteger" />
     <xsd:element name="start_date"  type="xsd:nonNegativeInteger" />
     <xsd:element name="days_to_scan"    type="xsd:integer" />
@@ -204,7 +203,6 @@
         <xsd:sequence>
             <xsd:element ref="cfg:class_name" minOccurs="1" maxOccurs="1" />
             <xsd:element ref="cfg:argument" minOccurs="0" maxOccurs="unbounded" />
-            <xsd:element ref="cfg:force_update"     minOccurs="0" maxOccurs="1"/>
         </xsd:sequence>
     </xsd:complexType>
 
