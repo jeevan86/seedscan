@@ -350,6 +350,8 @@ public class SeedScan
         else {
             stations = new ArrayList<Station>();
             stations.add( new Station("IU","ANMO") );
+            //stations.add( new Station("IU","ANTO") );
+            //stations.add( new Station("IU","TUC") );
             //stations.add( new Station("IC","WMQ") );
             //stations.add( new Station("US","WMOK") );
             //stations.add( new Station("IU","QSPA") );

@@ -21,6 +21,7 @@ package asl.util;
 
 import asl.metadata.Station;
 import asl.metadata.Channel;
+import java.util.ArrayList;
 import java.util.Calendar;
 
 import java.io.IOException;
@@ -53,6 +54,7 @@ public class PlotMaker
 {
     private Station station;
     private Channel channel, channelX, channelY;
+    private Channel[] channels;
     private Calendar date;
     private final String outputDir = "outputs";
 
@@ -69,6 +71,118 @@ public class PlotMaker
         this.channelX = channelX;
         this.channelY = channelY;
         this.date     = date;
+    }
+    public PlotMaker(Station station, Channel[] channels, Calendar date)
+    {
+        this.station = station;
+        this.channels= channels;
+        this.date    = date;
+    }
+
+    public void plotZNE_3x3(ArrayList<double[]> channelData, double[] xsecs, int nstart, int nend, String eventString, String plotString) {
+
+        // Expecting 9 channels packed like:            Panel   Trace1  Trace2  Trace3
+        // channels[0] = 00-LHZ                           1     00-LHZ   10-LHZ   20-LHZ
+        // channels[1] = 00-LHND                          2     00-LHND  10-LHND  20-LHND
+        // channels[2] = 00-LHED                          3     00-LHED  10-LHED  20-LHED
+        // channels[3] = 10-LHZ                           
+        // channels[4] = 10-LHND                          
+        // channels[5] = 10-LHED                          
+        // channels[6] = 20-LHZ                           
+        // channels[7] = 20-LHND                         
+        // channels[8] = 20-LHED                        
+
+        final String plotTitle = String.format("%04d%03d [Stn:%s] [Event:%s] %s", date.get(Calendar.YEAR), date.get(Calendar.DAY_OF_YEAR)
+                                                ,station, eventString, plotString);
+        final String pngName   = String.format("%s/%s.%s.%s.png", outputDir, eventString, station, plotString);
+        File outputFile = new File(pngName);
+
+        // Check that we will be able to output the file without problems and if not --> return
+        if (!checkFileOut(outputFile)) {
+            System.out.format("== plotZNE_3x3: request to output plot=[%s] but we are unable to create it "
+                              + " --> skip plot\n", pngName );
+            return;
+        }
+
+        if (channelData.size() != channels.length) {
+            System.out.format("== plotZNE_3x3: Error: We have [%d channels] but [%d channelData]\n", channels.length, channelData.size() );
+            return;
+        }
+    
+        XYSeries[] series = new XYSeries[ channels.length ];
+        for (int i=0; i<channels.length; i++) {
+            series[i] = new XYSeries(channels[i].toString());
+            double[] data = channelData.get(i);
+            //for (int k = 0; k < xsecs.length; k++){
+            for (int k = 0; k < data.length; k++){
+                series[i].add( xsecs[k], data[k] );
+            }
+        }
+
+// Use the first data array, within the plotted range (nstart - nend) to scale the plots:
+        double[] data = channelData.get(0);
+        double ymax = 0;
+        for (int k = nstart; k < nend; k++){
+            if (data[k] > ymax) ymax=data[k];
+        }
+
+
+        final XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
+        Paint[] paints = new Paint[] { Color.red, Color.blue , Color.green};
+        for (int i=0; i<paints.length; i++){
+            renderer.setSeriesPaint(i, paints[i]);
+            renderer.setSeriesLinesVisible(i, true);
+            renderer.setSeriesShapesVisible(i, false);
+        }
+
+        final NumberAxis verticalAxis = new NumberAxis("Displacement (m)");
+        verticalAxis.setRange( new Range(-ymax, ymax));
+        //verticalAxis.setTickUnit( new NumberTickUnit(5) );
+
+        final NumberAxis horizontalAxis = new NumberAxis("Time (s)");
+        horizontalAxis.setRange( new Range(nstart , nend) );
+        //horizontalAxis.setRange( new Range(0.00009 , 110) );
+        final NumberAxis hAxis = new NumberAxis("Time (s)");
+        hAxis.setRange( new Range(nstart , nend) );
+
+        final XYSeriesCollection seriesCollection1 = new XYSeriesCollection();
+        seriesCollection1.addSeries(series[0]);
+        seriesCollection1.addSeries(series[3]);
+        seriesCollection1.addSeries(series[6]);
+        //final XYPlot xyplot1 = new XYPlot((XYDataset)seriesCollection1, null, verticalAxis, renderer);
+        //final XYPlot xyplot1 = new XYPlot((XYDataset)seriesCollection1, horizontalAxis, verticalAxis, renderer);
+        final XYPlot xyplot1 = new XYPlot((XYDataset)seriesCollection1, hAxis, verticalAxis, renderer);
+
+        final XYSeriesCollection seriesCollection2 = new XYSeriesCollection();
+        seriesCollection2.addSeries(series[1]);
+        seriesCollection2.addSeries(series[4]);
+        seriesCollection2.addSeries(series[7]);
+        final XYPlot xyplot2 = new XYPlot((XYDataset)seriesCollection2, null, verticalAxis, renderer);
+
+        final XYSeriesCollection seriesCollection3 = new XYSeriesCollection();
+        seriesCollection3.addSeries(series[2]);
+        seriesCollection3.addSeries(series[5]);
+        seriesCollection3.addSeries(series[8]);
+        final XYPlot xyplot3 = new XYPlot((XYDataset)seriesCollection3, null, verticalAxis, renderer);
+
+
+        //CombinedXYPlot combinedPlot = new CombinedXYPlot( horizontalAxis, CombinedXYPlot.VERTICAL );
+        CombinedDomainXYPlot combinedPlot = new CombinedDomainXYPlot( horizontalAxis );
+        combinedPlot.add(xyplot1,1);
+        combinedPlot.add(xyplot2,1);
+        combinedPlot.add(xyplot3,1);
+        combinedPlot.setGap(15.);
+
+        final JFreeChart chart = new JFreeChart(combinedPlot);
+        chart.setTitle( new TextTitle(plotTitle) );
+
+        try {
+            ChartUtilities.saveChartAsPNG(outputFile, chart, 1400, 800);
+        } catch (IOException e) {
+            System.err.println("Problem occurred creating chart.");
+
+        }
+
     }
 
 
@@ -226,10 +340,12 @@ public class PlotMaker
         final XYSeries series1 = new XYSeries("Amplitude");
         final XYSeries series2 = new XYSeries("Phase");
 
+        double maxdB = 0.;
         for (int k = 0; k < freq.length; k++){
             double dB = 20. * Math.log10( amp[k] );
             series1.add( freq[k], dB );
             series2.add( freq[k], phase[k] );
+            if (dB > maxdB) { maxdB = dB;}
         }
 
         //final XYItemRenderer renderer = new StandardXYItemRenderer();
@@ -256,8 +372,16 @@ public class PlotMaker
 	// Stroke is part of Java Swing ...
 	//renderer2.setBaseStroke( new Stroke( ... ) );
 
+        double ymax;
+        if (maxdB < 10) {
+            ymax = 10.;
+        }
+        else {
+            ymax = maxdB + 2;;
+        }
+
         final NumberAxis verticalAxis = new NumberAxis("Spec Amp (dB)");
-        verticalAxis.setRange( new Range(-40, 10));
+        verticalAxis.setRange( new Range(-40, ymax));
         verticalAxis.setTickUnit( new NumberTickUnit(5) );
 
         //final LogarithmicAxis verticalAxis = new LogarithmicAxis("Amplitude Response");

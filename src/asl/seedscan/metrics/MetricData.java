@@ -20,12 +20,17 @@ package asl.seedscan.metrics;
 
 import asl.seedscan.database.*;
 
+import sac.SacTimeSeries;     // Temp testing
+import sac.SacHeader;
+
+
 import asl.metadata.Channel;
 import asl.metadata.ChannelArray;
 import asl.metadata.EpochData;
 import asl.metadata.Station;
 import asl.metadata.meta_new.StationMeta;
 import asl.metadata.meta_new.ChannelMeta;
+import asl.metadata.meta_new.ChannelMeta.ResponseUnits;
 import asl.security.MemberDigest;
 import asl.seedsplitter.BlockLocator;
 import asl.seedsplitter.ContiguousBlock;
@@ -35,6 +40,7 @@ import asl.seedsplitter.IllegalSampleRateException;
 import asl.seedsplitter.Sequence;
 import asl.seedsplitter.SequenceRangeException;
 import asl.util.Hex;
+import asl.util.PlotMaker;
 
 import timeutils.Timeseries;
 import freq.Cmplx;
@@ -60,6 +66,7 @@ public class MetricData
     private MetricReader metricReader;
 
     private MetricData nextMetricData;
+
 
 // Attach nextMetricData here for windows that span into next day
     public void setNextMetricData( MetricData nextMetricData ) {
@@ -244,13 +251,13 @@ public class MetricData
 /**
  *  Return the 3 component displacement (ZNE) in MICRONS for this location + band (e.g., "00-LH") for this time+freq window
  */
-    public ArrayList<double[]> getZNE(String location, String band, long windowStartEpoch, long windowEndEpoch,
-                                      double freqMin, double freqMax) 
+    public ArrayList<double[]> getZNE(ResponseUnits responseUnits, String location, String band, long windowStartEpoch, long windowEndEpoch,
+                                      double f1, double f2, double f3, double f4) 
     {
         ArrayList<double[]> dispZNE = new ArrayList<double[]>();
 
         Channel vertChannel = new Channel(location, (band + "Z") ); // e.g., "00-LHZ"
-        double[] z = getFilteredDisplacement(vertChannel, windowStartEpoch, windowEndEpoch, freqMin, freqMax);
+        double[] z = getFilteredDisplacement(responseUnits, vertChannel, windowStartEpoch, windowEndEpoch, f1, f2, f3, f4);
         dispZNE.add(z);
 
         Channel channel1 = metadata.getChannel(location, band, "1"); // e.g., could be "00-LH1" -or- "00-LHN"
@@ -263,8 +270,8 @@ public class MetricData
 
     // Metadata: <channel1, channel2> --> Data: <x, y>  ===> Get displ and rotate <x,y> to <N,E>
 
-        double[] x = getFilteredDisplacement(channel1, windowStartEpoch, windowEndEpoch, freqMin, freqMax);
-        double[] y = getFilteredDisplacement(channel2, windowStartEpoch, windowEndEpoch, freqMin, freqMax);
+        double[] x = getFilteredDisplacement(responseUnits, channel1, windowStartEpoch, windowEndEpoch, f1, f2, f3, f4);
+        double[] y = getFilteredDisplacement(responseUnits, channel2, windowStartEpoch, windowEndEpoch, f1, f2, f3, f4);
 
         if (x.length != y.length) {
         }
@@ -345,9 +352,12 @@ System.out.format("==== rotate_xy_to_ne: az1=%f az2=%f\n", az1, az2);
 
     } // end rotate_xy_to_ne
 
-
-    public double[] getFilteredDisplacement(Channel channel, long windowStartEpoch, long windowEndEpoch,
-                                            double freqMin, double freqMax) 
+/**
+ *  The name is a little misleading: getFilteredDisplacement will return whatever output units
+ *    are requested: DISPLACEMENT, VELOCITY, ACCELERATION
+ */
+    public double[] getFilteredDisplacement(ResponseUnits responseUnits, Channel channel, long windowStartEpoch, long windowEndEpoch,
+                                            double f1, double f2, double f3, double f4) 
     {
         if (!metadata.hasChannel(channel)) {
             logger.severe( String.format("Error: Metadata NOT found for channel=[%s] --> Can't return Displacement",channel) );
@@ -358,7 +368,7 @@ System.out.format("==== rotate_xy_to_ne: az1=%f az2=%f\n", az1, az2);
             logger.severe( String.format("Error: Did not get requested window for channel=[%s] --> Can't return Displacement",channel) );
             return null;
         }
-        double filtered[] = removeInstrumentAndFilter(channel, timeseries, freqMin, freqMax);
+        double filtered[] = removeInstrumentAndFilter(responseUnits, channel, timeseries, f1, f2, f3, f4);
 
         return filtered;
 
@@ -374,10 +384,11 @@ System.out.format("==== rotate_xy_to_ne: az1=%f az2=%f\n", az1, az2);
     }
 
 
-    public double[] removeInstrumentAndFilter(Channel channel, double[] timeseries, double freqMin, double freqMax){
+    public double[] removeInstrumentAndFilter(ResponseUnits responseUnits, Channel channel, double[] timeseries, 
+                                              double f1, double f2, double f3, double f4){
 
-        if (freqMax <= freqMin) {
-            logger.severe( String.format("Error: freqMax (=%f) <= freqMin (=%f)", freqMax, freqMin) );
+        if (!(f1 < f2 && f2 < f3 && f3 < f4)) {
+            logger.severe( String.format("removeInstrumentAndFilter: Error: invalid freq: range: [%f-%f ----- %f-%f]", f1, f2, f3, f4) );
             return null;
         }
 
@@ -398,8 +409,6 @@ System.out.format("==== rotate_xy_to_ne: az1=%f az2=%f\n", az1, az2);
         double dt = 1./srate;
         double df = 1./(nfft*dt);
 
-        Cmplx[]  xfft = new Cmplx[nf];
-
         double[] data = new double[timeseries.length];
         for (int i=0; i<timeseries.length; i++){
             data[i] = timeseries[i];
@@ -413,22 +422,12 @@ System.out.format("==== rotate_xy_to_ne: az1=%f az2=%f\n", az1, az2);
             freq[k] = (double)k * df;
         }
      // Get the instrument response for Displacement
-        Cmplx[]  instrumentResponse = chanMeta.getResponse(freq, 1);
-        //Cmplx[]  instrumentResponse = chanMeta.getResponse(freq, 2);
+        //Cmplx[]  instrumentResponse = chanMeta.getResponse(freq, 1);
+        Cmplx[]  instrumentResponse = chanMeta.getResponse(freq, responseUnits);
 
         // fft2 returns just the (nf = nfft/2 + 1) positive frequencies
-        xfft = Cmplx.fft2(data);
-        double f1 = .008;
-        double f2 = .01;
-        double f3 = .4;
-        double f4 = .5;
+        Cmplx[] xfft = Cmplx.fft2(data);
 
-/**
-        double f1 = freqMin * .9;
-        double f2 = freqMin;
-        double f3 = freqMax;
-        double f4 = freqMax * 1.1;
-**/
         double fNyq = (double)(nf-1)*df;
 
         if (f4 > fNyq) {
@@ -439,15 +438,16 @@ System.out.format("==== rotate_xy_to_ne: az1=%f az2=%f\n", az1, az2);
         int k3=(int)(f3/df); int k4=(int)(f4/df);
 
         for(int k = 0; k < nf; k++){
+
             double taper = bpass(k,k1,k2,k3,k4);
-            xfft[k] = Cmplx.div(xfft[k],instrumentResponse[k]);     // Remove instrument
-            xfft[k] = Cmplx.mul(xfft[k],taper);                     // Bandpass
-//System.out.format("== k=%04d f=%8.4f taper=%8.4f\n", k, freq[k], taper);
+        // Remove instrument: We use conjg() here since the SEED inst resp FFT convention F(w) ~ e^-iwt
+        //  while the Numerical Recipes convention is F(w) ~ e^+iwt
+            xfft[k] = Cmplx.div(xfft[k],instrumentResponse[k].conjg()); // Remove instrument
+            xfft[k] = Cmplx.mul(xfft[k],taper);                         // Bandpass
         }
 
         Cmplx[] cfft = new Cmplx[nfft];
-        cfft[0]    = new Cmplx(0.0, 0.0);     // DC
-        //cfft[0]    = xfft[0];     // DC
+        cfft[0]    = new Cmplx(0.0, 0.0);   // DC
         cfft[nf-1] = xfft[nf-1];  // Nyq
         for(int k = 1; k < nf-1; k++){      // Reflect spec about the Nyquist to get -ve freqs
             cfft[k]        = xfft[k];
@@ -458,7 +458,8 @@ System.out.format("==== rotate_xy_to_ne: az1=%f az2=%f\n", az1, az2);
 
         double[] dfoo=new double[ndata];
         for (int i=0; i<foo.length; i++){
-            dfoo[i] = (double)foo[i] * 1000000.;  // Convert meters --> micrometers (=microns)
+            //dfoo[i] = (double)foo[i] * 1000000.;  // Convert meters --> micrometers (=microns)
+            dfoo[i] = (double)foo[i];
         }
         return dfoo;
 
@@ -508,6 +509,28 @@ System.out.format("==== rotate_xy_to_ne: az1=%f az2=%f\n", az1, az2);
     }
 
 
+    public ArrayList<double[]> window(ArrayList<double[]> dataArrayIn, double delta, double xstart, double xend) {
+
+        int nstart = (int)(xstart/delta);
+        int nend   = (int)(xend/delta);
+        int npts   = nend - nstart + 1;
+
+        ArrayList<double[]> dataArrayOut = new ArrayList<double[]>( dataArrayIn.size() );
+
+        for (int i=0; i<dataArrayIn.size(); i++) {
+            double[] channelIn  = dataArrayIn.get(i);
+            double[] channelOut = new double[npts];
+            for (int j=0; j<npts; j++) { 
+                channelOut[j] = channelIn[j + nstart];
+            }
+            dataArrayOut.add(channelOut);
+        }
+
+        return dataArrayOut;
+    }
+
+
+
 /**
  *
  */
@@ -553,8 +576,6 @@ System.out.format("==== rotate_xy_to_ne: az1=%f az2=%f\n", az1, az2);
         long dataEndEpoch       = data.getEndTime()   / 1000;  // ...
         long interval           = data.getInterval()  / 1000;  // Convert microsecs --> millisecs (dt = sample interval)
         double srate1           = data.getSampleRate(); 
-
-System.out.format("== windowStartEpoch=[%d] dataStartEpoch=[%d]\n", windowStartEpoch, dataStartEpoch);
 
     // Requested Window must start in Day 1 (taken from current dataset(0))
         if (windowStartEpoch < dataStartEpoch || windowStartEpoch > dataEndEpoch) {

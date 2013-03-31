@@ -74,6 +74,10 @@ public class ChannelMeta extends MemberDigest
     private String knet = null;
     private String kstn = null;
 
+    public enum ResponseUnits {
+        DISPLACEMENT, VELOCITY, ACCELERATION;
+    }
+
     // constructor(s)
     public ChannelMeta(ChannelKey channel, Calendar metaTimestamp, Station station)
     {
@@ -380,17 +384,30 @@ public class ChannelMeta extends MemberDigest
 
 //  Return complex response computed at given freqs[0,...length]
 
+    public Cmplx[] getResponse(double[] freqs, ResponseUnits responseOut){
+        int outUnits=0;
+        switch (responseOut) {
+            case DISPLACEMENT:
+                outUnits = 1;
+                //System.out.println("== responseOut = DISPLACEMENT");
+                break;
+            case VELOCITY:
+                outUnits = 2;
+                //System.out.println("== responseOut = VELOCITY");
+                break;
+            case ACCELERATION:
+                outUnits = 3;
+                //System.out.println("== responseOut = ACCELERATION");
+                break;
+        }
 /**
+    }
  *  @outUnits = 0 Return Response in default units of seed file]
  *  @outUnits = 1 Return [Displacement] Response
  *  @outUnits = 2 Return [Velocity    ] Response
  *  @outUnits = 3 Return [Acceleration] Response
-**/
     public Cmplx[] getResponse(double[] freqs, int outUnits){
-
-      if (outUnits < 0 || outUnits > 3) {
-          throw new RuntimeException("getResponse(): Requested outUnits Unrecognized");
-      }
+**/
 
       if (freqs.length == 0) {
           throw new RuntimeException("getResponse(): freqs.length = 0!");
@@ -412,31 +429,43 @@ public class ChannelMeta extends MemberDigest
  //   1 - Displacement
  //   2 - Velocity
  //   3 - Acceleration
- // X(w) = U(w)/I(w) --> X'(w) = (iw)X(w) = U(w)/I'(w), where I'(w)=I(w)/(iw)
- //  so, for instance, if the response units are Velocity (inUnits=2) and we want our 
- //  output units = Acceleration (outUnits=3), then
+ //
+ // In the Four Trans convention used by SEED:
+ //   x(t)  ~ Int[ X(w)e^+iwt ] dw
+ // so
+ //   x'(t) ~ Int[ iw * X(w)e^+iwt ] dw
+ // or
+ //   FFT[x'(t)] = iw x FFT[x(t)]
+ //
+ // x(t) = v(t) * i(t) 
+ // X(w) = V(w) x I(w) --> V(w) = X(w)/I(w) = FFT[u'(t)] = iw x U(w) where U(w) = FFT[u(t)]
+ // or     U(w) = X(w)/{iw x I(w)}
+ //        U(w) = X(w)/II(w)       where II(w) = iw x I(w) <-- divide by this response to achieve integration
+ //
+ //  So, integration     n times: multiply I(w) by (iw)^n
+ //      differentiation n times: multiply I(w) by (-i/w)^n
+ //
+ //  Ex: if the response units are Velocity (inUnits=2) and we want our output units = Acceleration (outUnits=3), then
  //  n = 3 - 2 = 1, and we return I'(w)=I(w)/(iw) = -i/w * I(w)
- //  So, differentiation n times: multiply I(w) by (-i/w)^n
- //      integration     n times: multiply I(w) by (iw)^n
 
         int inUnits = stage.getInputUnits();
         if (inUnits > 0) {
             int n = outUnits - inUnits;
-            if (n < 0) {
+            if (n < 0) {                    // INTEGRATION RESPONSE I(w) x (iw)^n
                 for (int i=0; i<freqs.length; i++){
                   Cmplx iw    = new Cmplx(0.0, 2*Math.PI*freqs[i]);
                   for (int j=1; j<Math.abs(n); j++) iw = Cmplx.mul(iw, iw);
                   response[i] = Cmplx.mul(iw, response[i]);
                 }
             }
-            else if (n > 0) {
+            else if (n > 0) {               // DIFFERENTIATION RESPONSE I(w) / (iw)^n
                 for (int i=0; i<freqs.length; i++){
                   Cmplx iw    = new Cmplx(0.0, -1.0/(2*Math.PI*freqs[i]) );
                   for (int j=1; j<Math.abs(n); j++) iw = Cmplx.mul(iw, iw);
                   response[i] = Cmplx.mul(iw, response[i]);
                 }
             }
-        } // end mul by (iw)^n
+        } 
 
       }
       else {

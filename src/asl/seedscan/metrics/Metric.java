@@ -24,6 +24,8 @@ import asl.seedscan.database.MetricValueIdentifier;
 import asl.seedsplitter.DataSet;
 import asl.seedscan.event.*;
 
+import asl.metadata.meta_new.ChannelMeta.ResponseUnits;
+
 import freq.Cmplx;
 import timeutils.Timeseries;
 
@@ -383,8 +385,10 @@ public abstract class Metric
         }
 
      // Get the instrument response for Acceleration and remove it from the PSD
-        Cmplx[]  instrumentResponseX = chanMetaX.getResponse(freq, 3);
-        Cmplx[]  instrumentResponseY = chanMetaY.getResponse(freq, 3);
+        //Cmplx[]  instrumentResponseX = chanMetaX.getResponse(freq, 3);
+        //Cmplx[]  instrumentResponseY = chanMetaY.getResponse(freq, 3);
+        Cmplx[]  instrumentResponseX = chanMetaX.getResponse(freq, ResponseUnits.ACCELERATION);
+        Cmplx[]  instrumentResponseY = chanMetaY.getResponse(freq, ResponseUnits.ACCELERATION);
 
         double[] responseMag        = new double[nf];
         Cmplx[] responseMagC        = new Cmplx[nf];
