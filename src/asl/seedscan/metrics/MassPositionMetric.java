@@ -48,7 +48,9 @@ extends Metric
 
     public void process()
     {
-        System.out.format("\n              [ == Metric %s == ]\n", getName() ); 
+        System.out.format("\n              [ == Metric %s == ]    [== Station %s ==]    [== Day %s ==]\n", 
+                          getName(), getStation(), getDay() );
+
 
    // Create a channel array to use for loop
         ArrayList<Channel> channels = stationMeta.getChannelArray("VM"); // Get all VM? channels in metadata

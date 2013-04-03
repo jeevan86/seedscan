@@ -74,15 +74,25 @@ extends Metric
 
     public void process()
     {
-        System.out.format("\n              [ == Metric %s == ]\n", getName() ); 
 
-        System.out.format("== %s: Day=[%s]\n", getName(), getDay() );
+        System.out.format("\n              [ == Metric %s == ]    [== Station %s ==]    [== Day %s ==]\n", 
+                          getName(), getStation(), getDay() );
 
         eventCMTs = getEventTable();
         if (eventCMTs == null) {
             logger.info(String.format("No Event CMTs found for Day=[%s] --> Skip EventCompareStrongMotion Metric", getDay()) );
             return;
         }
+
+     // If station doesn't have a strongmotion sensor then don't try to compute this metric:
+        if (!weHaveChannels("20", "LN")) {
+            logger.info(String.format("== %s: Day=[%s] Stn=[%s] - metadata + data NOT found for loc=20 band=LN --> Skip Metric", 
+                        getName(), getDay(), getStation()) );
+            return;
+        }
+
+        Boolean compute00 = weHaveChannels("00", "LH");
+        Boolean compute10 = weHaveChannels("10", "LH");
 
 /**  iDigest/
  *   iMetric   ChannelX                v. ChannelY
@@ -111,20 +121,40 @@ extends Metric
         channels[7] = new Channel("20", "LNND"); 
         channels[8] = new Channel("20", "LNED"); 
 
-        for (int i=0; i<nDigests; i++) {
-            Channel channelX = channels[i];
-            Channel channelY = null;
-            if (i < 3){
-                channelY = channels[i+6];
+        if (compute00) {
+            for (int i=0; i<3; i++) {
+                Channel channelX = channels[i];
+                Channel channelY = channels[i+6];
+                ChannelArray channelArray = new ChannelArray(channelX, channelY);
+                digestArray[i] = metricData.valueDigestChanged(channelArray, createIdentifier(channelX, channelY), getForceUpdate());
+                results[i] = 0.;
             }
-            else {
-                channelY = channels[i+3];
+        }
+        if (compute10) {
+            for (int i=3; i<6; i++) {
+                Channel channelX = channels[i];
+                Channel channelY = channels[i+3];
+                ChannelArray channelArray = new ChannelArray(channelX, channelY);
+                digestArray[i] = metricData.valueDigestChanged(channelArray, createIdentifier(channelX, channelY), getForceUpdate());
+                results[i] = 0.;
             }
+        }
 
-            ChannelArray channelArray = new ChannelArray(channelX, channelY);
-            ByteBuffer digest = metricData.valueDigestChanged(channelArray, createIdentifier(channelX, channelY), getForceUpdate());
-            digestArray[i] = digest;
-            results[i] = 0.;
+        if (compute00) {
+            if (digestArray[0] == null && digestArray[1] == null && digestArray[2] == null) {
+                compute00 = false;
+            }
+        }
+        if (compute10) {
+            if (digestArray[3] == null && digestArray[4] == null && digestArray[5] == null) {
+                compute10 = false;
+            }
+        }
+
+        if (!compute00 && !compute10) {
+            logger.info(String.format("== %s: Day=[%s] Stn=[%s] - digest==null (or missing)for BOTH 00-LH and 10-LH chans --> Skip Metric", 
+                        getName(), getDay(), getStation()) );
+            return;
         }
 
         int nEvents = 0;
@@ -143,58 +173,92 @@ extends Metric
             long eventStartTime = eventCMT.getTimeInMillis();   // Event origin epoch time in millisecs
             long eventEndTime   = eventStartTime + duration;
 
-            ResponseUnits units = ResponseUnits.DISPLACEMENT;
-            ArrayList<double[]> dataDisp00  = metricData.getZNE(units, "00", "LH", eventStartTime, eventEndTime, f1, f2, f3, f4);
-            ArrayList<double[]> dataDisp10  = metricData.getZNE(units, "10", "LH", eventStartTime, eventEndTime, f1, f2, f3, f4);
-            ArrayList<double[]> dataDisp20  = metricData.getZNE(units, "20", "LN", eventStartTime, eventEndTime, f1, f2, f3, f4);
-            dataDisp00.addAll(dataDisp10);
-            dataDisp00.addAll(dataDisp20);
-
         // Use P and S arrival times to trim the window down for comparison:
             double[] arrivalTimes = getEventArrivalTimes(eventCMT);
+            if (arrivalTimes == null) {
+                System.out.format("== %s: arrivalTimes==null for stn=[%s]: Distance to stn probably > 97-deg --> Don't compute metric\n", getName(), getStation());
+                continue;
+            }
             int nstart = (int)(arrivalTimes[0] - 120.); // P - 120 sec
             int nend   = (int)(arrivalTimes[1] + 60.);  // S + 120 sec
 
-            if (getMakePlots()){
-                double[] xsecs = new double[ dataDisp00.get(0).length ];
-                for (int k=0; k<xsecs.length; k++){
-                    xsecs[k] = (float)k;        // hard-wired for LH? dt=1.0
+            ResponseUnits units = ResponseUnits.DISPLACEMENT;
+            ArrayList<double[]> dataDisp    = new ArrayList<double[]>();
+
+            ArrayList<double[]> dataDisp00  = null;
+            if (compute00) {
+                dataDisp00  = metricData.getZNE(units, "00", "LH", eventStartTime, eventEndTime, f1, f2, f3, f4);
+                if (dataDisp00 != null) {
+                    dataDisp.addAll(dataDisp00);
                 }
-                PlotMaker plotMaker = new PlotMaker(metricResult.getStation(), channels, metricResult.getDate());
-                plotMaker.plotZNE_3x3(dataDisp00, xsecs, nstart, nend, key, "strongmotion");
+            }
+            ArrayList<double[]> dataDisp10  = null;
+            if (compute10) {
+                dataDisp10  = metricData.getZNE(units, "10", "LH", eventStartTime, eventEndTime, f1, f2, f3, f4);
+                if (dataDisp10 != null) {
+                    dataDisp.addAll(dataDisp10);
+                }
+            }
+            ArrayList<double[]> dataDisp20  = metricData.getZNE(units, "20", "LN", eventStartTime, eventEndTime, f1, f2, f3, f4);
+            if (dataDisp20 != null) {
+                dataDisp.addAll(dataDisp20);
             }
 
-            for (int i=0; i<nDigests; i++) {
-                int j = 0;
-                if (i < 3){
-                    j = i + 6;
+            if ((dataDisp00 == null && dataDisp10 == null) || dataDisp20 == null) {
+                System.out.format("== %s: getZNE returned null data --> skip this event\n", getName() );
+                continue;
+            }
+
+            if (getMakePlots()){
+                if (compute00 && compute10){
+                    double[] xsecs = new double[ dataDisp00.get(0).length ];
+                    for (int k=0; k<xsecs.length; k++){
+                        xsecs[k] = (float)k;        // hard-wired for LH? dt=1.0
+                    }
+                    PlotMaker plotMaker = new PlotMaker(metricResult.getStation(), channels, metricResult.getDate());
+                    plotMaker.plotZNE_3x3(dataDisp, xsecs, nstart, nend, key, "StrongMotionCompare");
                 }
-                else {
-                    j = i + 3;
-                }
+            }
 
         // Displacements are in meters so rmsDiff's will be small
         //   scale rmsDiffs to micrometers:
-                results[i] += 1.e6 * rmsDiff( dataDisp00.get(i), dataDisp00.get(j), nstart, nend);
+
+            if (compute00) {
+                for (int i=0; i<3; i++) {
+                    results[i] += 1.e6 * rmsDiff( dataDisp00.get(i), dataDisp20.get(i), nstart, nend);
+                }
+            }
+            if (compute10) {
+                for (int i=0; i<3; i++) {
+                    results[i+3] += 1.e6 * rmsDiff( dataDisp10.get(i), dataDisp20.get(i), nstart, nend);
+                }
             }
 
             nEvents++;
 
         } // eventKeys: end loop over events
 
-        for (int i=0; i<nDigests; i++) {
-            Channel channelX = channels[i];
-            Channel channelY = null;
-            if (i < 3){
-                channelY = channels[i+6];
+        if (nEvents == 0) { // Didn't make any measurements for this station
+            return;
+        }
+
+        if (compute00) {
+            for (int i=0; i<3; i++) {
+                Channel channelX = channels[i];
+                Channel channelY = channels[i+6];
+                double result = results[i]/(double)nEvents;
+                ByteBuffer digest = digestArray[i];
+                metricResult.addResult(channelX, channelY, result, digest);
             }
-            else {
-                channelY = channels[i+3];
+        }
+        if (compute10) {
+            for (int i=3; i<6; i++) {
+                Channel channelX = channels[i];
+                Channel channelY = channels[i+3];
+                double result = results[i]/(double)nEvents;
+                ByteBuffer digest = digestArray[i];
+                metricResult.addResult(channelX, channelY, result, digest);
             }
-         // Average over all events for this day
-            double result = results[i]/(double)nEvents;
-            ByteBuffer digest = digestArray[i];
-            metricResult.addResult(channelX, channelY, result, digest);
         }
 
     } // end process()
@@ -214,15 +278,6 @@ extends Metric
 
         return rms;
     }
-
-
-    private double computeMetric(Channel channel) {
-
-        System.out.format("\n== computeMetric: channel=%s\n", channel);
-
-        return (double)0.;
-
-    } // end computeMetric()
 
 
     private double[] getEventArrivalTimes(EventCMT eventCMT) {
@@ -252,8 +307,11 @@ extends Metric
                 //Arrival arrival = arrivals.get(i);
                 //System.out.println(arrival.getName()+" arrives at "+ (arrival.getDist()*180.0/Math.PI)+" degrees after "+ arrival.getTime()+" seconds.");
             //}
+// We could screen by max distance (e.g., 90 deg for P direct)
+// or by counting arrivals (since you won't get a P arrival beyond about 97 deg or so)
             if (arrivals.size() != 2) { // Either we don't have both P & S or we don't have just P & S
-                logger.severe(String.format("Error: Expected P and/or S arrival times not found"));
+                logger.severe(String.format("Error: Expected P and/or S arrival times not found [gcarc=%8.4f]",gcarc));
+                return null;
             }
 
             double arrivalTimeP = 0.;
@@ -271,8 +329,10 @@ extends Metric
                 logger.severe(String.format("Error: Expected S arrival time not found"));
             }
 
-            System.out.format("== Event:%s <evla,evlo> = <%.2f, %.2f> Station:%s <%.2f, %.2f> gcarc=%f azim=%f eventEpoch=[%d] tP=%.3f tS=%.3f\n",
-                eventCMT.getEventID(), evla, evlo, getStation(), stla, stlo, gcarc, azim, eventStartTime, arrivalTimeP, arrivalTimeS );
+            System.out.format("== Event:%s <evla,evlo> = <%.2f, %.2f> Station:%s <%.2f, %.2f> gcarc=%.2f azim=%.2f tP=%.3f tS=%.3f\n",
+                eventCMT.getEventID(), evla, evlo, getStation(), stla, stlo, gcarc, azim, arrivalTimeP, arrivalTimeS );
+            //System.out.format("== Event:%s <evla,evlo> = <%.2f, %.2f> Station:%s <%.2f, %.2f> gcarc=%.2f azim=%.2f eventEpoch=[%d] tP=%.3f tS=%.3f\n",
+                //eventCMT.getEventID(), evla, evlo, getStation(), stla, stlo, gcarc, azim, eventStartTime, arrivalTimeP, arrivalTimeS );
 
             double[] arrivalTimes = new double[2];
             arrivalTimes[0] = arrivalTimeP;

@@ -209,7 +209,10 @@ public class StationMeta
         for (ChannelKey channelKey : keys){
             Channel channel = channelKey.toChannel();
 
-            if (channel.getChannel().contains(band) ){
+            //if (channel.getChannel().contains(band) ){
+          // We need to restrict ourselves to 3-char channels so we don't also return
+          //   the derived channels (e.g., LHND, LHED)
+            if (channel.getChannel().contains(band) && channel.getChannel().length() == 3){
                 //System.out.format("== Channel [%s] contains band [%s]\n", channel, band);
                 channelArrayList.add(channel);
             }
@@ -338,7 +341,28 @@ public class StationMeta
       }
     }
 
- // addRotatedChannelMeta(s):
+    public Boolean hasChannels(String location, String band) {
+        if (!Channel.validLocationCode(location)) {
+            return null;
+        }
+        if (!Channel.validBandCode(band.substring(0,1)) || !Channel.validInstrumentCode(band.substring(1,2)) ) {
+            return null;
+        }
+    // First try kcmp = "Z", "1", "2"
+        ChannelArray chanArray = new ChannelArray(location, band + "Z", band + "1", band + "2");
+        if (hasChannels(chanArray)) {
+            return true;
+        }    
+    // Then try kcmp = "Z", "N", "E"
+        chanArray = new ChannelArray(location, band + "Z", band + "N", band + "E");
+        if (hasChannels(chanArray)) {
+            return true;
+        }    
+    // If we're here then we didn't find either combo --> return false
+        return false;
+    }
+
+
 
 /**
  *  Not sure yet if we need this to drive addRotatedChannel below 

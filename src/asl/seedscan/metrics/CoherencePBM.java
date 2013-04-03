@@ -57,7 +57,14 @@ extends PowerBandMetric
 
     public void process()
     {
-        System.out.format("\n              [ == Metric %s == ]\n", getName() ); 
+        System.out.format("\n              [ == Metric %s == ]    [== Station %s ==]    [== Day %s ==]\n", 
+                          getName(), getStation(), getDay() );
+
+        if (!weHaveChannels("00", "LH") || !weHaveChannels("10", "LH") ){
+            logger.info(String.format("== %s: Day=[%s] Stn=[%s] - metadata + data NOT found for EITHER loc=00 -OR- loc=10 + band=LH --> Skip Metric",
+                        getName(), getDay(), getStation()) );
+            return;
+        }
 
         for (int i=0; i < 3; i++) {
             Channel channelX = null;

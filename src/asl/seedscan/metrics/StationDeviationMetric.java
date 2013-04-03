@@ -62,7 +62,10 @@ extends PowerBandMetric
 
     public void process()
     {
-        System.out.format("\n              [ == Metric %s == ]\n", getName() ); 
+        System.out.format("\n              [ == Metric %s == ]    [== Station %s ==]    [== Day %s ==]\n", 
+                          getName(), getStation(), getDay() );
+
+   //System.out.format("== %s: getForceUpdate=[%s]\n", getName(), getForceUpdate() );
 
    // Get the path to the station models that was read in from config.xml
    //  <cfg:argument cfg:name="modelpath">/Users/mth/mth/Projects/xs0/stationmodel/${NETWORK}_${STATION}/</cfg:argument>

@@ -23,6 +23,7 @@ import asl.metadata.Station;
 import asl.metadata.Channel;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.awt.Font;
 
 import java.io.IOException;
 import java.io.File;
@@ -36,6 +37,7 @@ import org.jfree.chart.renderer.xy.*;
 import org.jfree.chart.plot.*;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.axis.NumberTickUnit;
+import org.jfree.chart.annotations.XYTextAnnotation;
 import org.jfree.data.xy.*;
 import org.jfree.data.Range;
 import org.jfree.util.ShapeUtilities;
@@ -152,18 +154,29 @@ public class PlotMaker
         //final XYPlot xyplot1 = new XYPlot((XYDataset)seriesCollection1, null, verticalAxis, renderer);
         //final XYPlot xyplot1 = new XYPlot((XYDataset)seriesCollection1, horizontalAxis, verticalAxis, renderer);
         final XYPlot xyplot1 = new XYPlot((XYDataset)seriesCollection1, hAxis, verticalAxis, renderer);
+        double x = .95 * xsecs[nend];
+        double y = .90 * ymax;
+        XYTextAnnotation annotation1 = new XYTextAnnotation("Vertical", x, y);
+        annotation1.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        xyplot1.addAnnotation(annotation1);
 
         final XYSeriesCollection seriesCollection2 = new XYSeriesCollection();
         seriesCollection2.addSeries(series[1]);
         seriesCollection2.addSeries(series[4]);
         seriesCollection2.addSeries(series[7]);
         final XYPlot xyplot2 = new XYPlot((XYDataset)seriesCollection2, null, verticalAxis, renderer);
+        XYTextAnnotation annotation2 = new XYTextAnnotation("North-South", x, y);
+        annotation2.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        xyplot2.addAnnotation(annotation2);
 
         final XYSeriesCollection seriesCollection3 = new XYSeriesCollection();
         seriesCollection3.addSeries(series[2]);
         seriesCollection3.addSeries(series[5]);
         seriesCollection3.addSeries(series[8]);
         final XYPlot xyplot3 = new XYPlot((XYDataset)seriesCollection3, null, verticalAxis, renderer);
+        XYTextAnnotation annotation3 = new XYTextAnnotation("East-West", x, y);
+        annotation3.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        xyplot3.addAnnotation(annotation3);
 
 
         //CombinedXYPlot combinedPlot = new CombinedXYPlot( horizontalAxis, CombinedXYPlot.VERTICAL );

@@ -230,7 +230,7 @@ public class Scanner
    //   MetricResult.getResult(id) returns value = String
                 
                 MetricResult results = metric.getMetricResult();
-                System.out.format("Results for %s:\n", metric.getClass().getName());
+                //System.out.format("Results for %s:\n", metric.getClass().getName());
                 if (results == null){
                 }
                 else {
@@ -238,7 +238,7 @@ public class Scanner
                         double value = results.getResult(id);
                         ByteBuffer digest = results.getDigest(id);
                         //System.out.format("  %s : %.2f [%s]\n", id, value, Hex.byteArrayToHexString(digest.array()) );
-                        System.out.format("%s  [%s] [%s] %s : %.2f [%s]\n", results.getMetricName(), 
+                        System.out.format("%30s [%7s] [%s] %15s:%6.2f [%s]\n", results.getMetricName(), 
                                 results.getStation(), EpochData.epochToDateString(results.getDate()), id, value, Hex.byteArrayToHexString(digest.array()) );
                     }
                     if (injector.isConnected()) {

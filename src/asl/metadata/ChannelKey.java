@@ -71,7 +71,8 @@ implements Comparable<ChannelKey>
     // Temp fix for station US_WMOK which has some channel blockettes tagged with location="HR"
         if (location.equals("HR")) {  // Add to this any unruly location code you want to flag ...
             location = "XX";
-            logger.severe( String.format("ChannelKey.setLocation: Got location code=HR --> I'll set it to XX and continue parsing dataless") );
+            //logger.severe( String.format("ChannelKey.setLocation: Got location code=HR --> I'll set it to XX and continue parsing dataless") );
+            logger.severe( String.format("ChannelKey.setLocation: Got location code=HR chan=%s--> I'll set it to XX and continue parsing dataless", name) );
         }
 
         if (location == null || location.equals("") ){
@@ -79,7 +80,7 @@ implements Comparable<ChannelKey>
         }
         else {
             if (location.length() != 2) {
-                throw new RuntimeException( String.format("Error: Location code=[%s] is NOT a valid 2-char code (e.g., %s)", location, validCodes) );
+                throw new RuntimeException( String.format("Error: Location code=[%s] chan=[%s] is NOT a valid 2-char code (e.g., %s)", location, name, validCodes) );
             }
             Pattern pattern  = Pattern.compile("^[0-9][0-9]$");
             Matcher matcher  = pattern.matcher(location);

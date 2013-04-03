@@ -66,7 +66,8 @@ extends PowerBandMetric
 
     public void process()
     {
-        System.out.format("\n              [ == Metric %s == ]\n", getName() ); 
+        System.out.format("\n              [ == Metric %s == ]    [== Station %s ==]    [== Day %s ==]\n", 
+                          getName(), getStation(), getDay() );
 
    // First see if the file exists
 

@@ -21,6 +21,9 @@ import asl.seedscan.event.*;
 
 import java.util.logging.Logger;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
 import java.util.Hashtable;
 import java.util.TreeSet;
 import java.util.SortedSet;
@@ -30,6 +33,7 @@ import asl.util.Hex;
 import asl.util.PlotMaker;
 
 import asl.metadata.Channel;
+import asl.metadata.EpochData;
 import asl.metadata.meta_new.ChannelMeta;
 import asl.metadata.meta_new.ChannelMeta.ResponseUnits;
 import asl.seedsplitter.DataSet;
@@ -72,15 +76,17 @@ extends Metric
 
     public void process()
     {
-        System.out.format("\n              [ == Metric %s == ]\n", getName() ); 
-
-        System.out.format("== %s: Day=[%s]\n", getName(), getDay() );
+        System.out.format("\n              [ == Metric %s == ]    [== Station %s ==]    [== Day %s ==]\n", 
+                          getName(), getStation(), getDay() );
 
         eventCMTs = getEventTable();
         if (eventCMTs == null) {
             logger.info(String.format("No Event CMTs found for Day=[%s] --> Skip EventCompareSynthetic Metric", getDay()) );
             return;
         }
+
+        Boolean compute00 = weHaveChannels("00", "LH");
+        Boolean compute10 = weHaveChannels("10", "LH");
 
 /**  iDigest/
  *   iMetric   ChannelX                v. ChannelY
@@ -109,22 +115,38 @@ extends Metric
         channels[7] = new Channel("XX", "LHN");
         channels[8] = new Channel("XX", "LHE");
 
-
-        for (int i=0; i<nDigests; i++) {
-            Channel channelX = channels[i];
-            Channel channelY = null;
-            if (i < 3){
-                channelY = channels[i+6];
-            }
-            else {
-                channelY = channels[i+3];
-            }
 // Probably won't use channelY = synth in the metric identifier
-            //ChannelArray channelArray = new ChannelArray(channelX, channelY);
-            //ByteBuffer digest = metricData.valueDigestChanged(channelArray, createIdentifier(channelX, channelY), getForceUpdate());
-            ByteBuffer digest = metricData.valueDigestChanged(channelX, createIdentifier(channelX), getForceUpdate());
-            digestArray[i] = digest;
-            results[i] = 0.;
+
+        if (compute00) {
+            for (int i=0; i<3; i++) {
+                Channel channelX = channels[i];
+                digestArray[i] = metricData.valueDigestChanged(channelX, createIdentifier(channelX), getForceUpdate());
+                results[i] = 0.;
+            }
+        }
+        if (compute10) {
+            for (int i=3; i<6; i++) {
+                Channel channelX = channels[i];
+                digestArray[i] = metricData.valueDigestChanged(channelX, createIdentifier(channelX), getForceUpdate());
+                results[i] = 0.;
+            }
+        }
+
+        if (compute00) {
+            if (digestArray[0] == null && digestArray[1] == null && digestArray[2] == null) {
+                compute00 = false;
+            }
+        }
+        if (compute10) {
+            if (digestArray[3] == null && digestArray[4] == null && digestArray[5] == null) {
+                compute10 = false;
+            }
+        }
+
+        if (!compute00 && !compute10) {
+            logger.info(String.format("== %s: Day=[%s] Stn=[%s] - digest==null (or missing)for BOTH 00-LH and 10-LH chans --> Skip Metric",
+                        getName(), getDay(), getStation()) );
+            return;
         }
 
 // This is a little wonky: For instance, the digest for channel 00-LHND will be computed using only metadata + data
@@ -133,7 +155,6 @@ extends Metric
 //                         the digest.  Also, valueDigestChanged --> checkForRotatedChannels --> createRotatedChannelData
 //                         will create rotated data + metadata for both horizontals (e.g., 00-LHND, 00-LHED) but
 //                         how do we get the rotated data for the next day ?
-
 
         int nEvents = 0;
 
@@ -144,81 +165,152 @@ extends Metric
             Hashtable<String, SacTimeSeries> synthetics = getEventSynthetics(key);
             if (synthetics == null) {
                 System.out.format("== %s: No synthetics found for key=[%s] for this station\n", getName(), key);
+                continue;
             }
-            else {
-            // We do have synthetics for this station for this event --> Compare to data
-
-            // 1. Load up 3-comp synthetics
-                SacTimeSeries[] sacSynthetics = new SacTimeSeries[3];
-                String[] kcmp = {"Z","N","E"};
-                for (int i=0; i<3; i++){
-                    String fileKey = getStation() + ".XX.LX" + kcmp[i] + ".modes.sac"; // e.g., "ANMO.XX.LXZ.modes.sac"
-                    if (synthetics.containsKey(fileKey)) {
-                        sacSynthetics[i]   = synthetics.get(fileKey); 
-                        MyFilter.bandpass(sacSynthetics[i], f1, f2, f3, f4);
-                    }
-                    else {
-                        logger.severe(String.format("Error: Did not find sac synthetic=[%s] in Hashtable", fileKey) );
-                    }
+         // We do have synthetics for this station for this event --> Compare to data
+         // 1. Load up 3-comp synthetics
+            SacTimeSeries[] sacSynthetics = new SacTimeSeries[3];
+            String[] kcmp = {"Z","N","E"};
+            for (int i=0; i<3; i++){
+                String fileKey = getStation() + ".XX.LX" + kcmp[i] + ".modes.sac.proc"; // e.g., "ANMO.XX.LXZ.modes.sac.proc"
+                if (synthetics.containsKey(fileKey)) {
+                    sacSynthetics[i]   = synthetics.get(fileKey); 
+                    MyFilter.bandpass(sacSynthetics[i], f1, f2, f3, f4);
                 }
+                else {
+                    logger.severe(String.format("Error: Did not find sac synthetic=[%s] in Hashtable", fileKey) );
+                }
+            }
 
-            long eventStartTime = (eventCMTs.get(key)).getTimeInMillis();
-eventStartTime += 27.9 * 1000L;
+            try {
+                //sacSynthetics[0].write("synth.z");
+            }
+            catch (Exception e){
+            }
+            hdr = sacSynthetics[0].getHeader();
+
+            long eventStartTime = getSacStartTimeInMillis(hdr);
+            //long eventStartTime = (eventCMTs.get(key)).getTimeInMillis();
             long duration = 8000000L; // 8000 sec = 8000000 msecs
             long eventEndTime   = eventStartTime + duration;
 
             // 2. Load up Displacement Array
-                ResponseUnits units = ResponseUnits.DISPLACEMENT;
-                //ResponseUnits units = ResponseUnits.ACCELERATION;
-                ArrayList<double[]> dataDisp  = metricData.getZNE(units, "00", "LH", eventStartTime, eventEndTime, f1, f2, f3, f4);
-                ArrayList<double[]> dataDisp2 = metricData.getZNE(units, "10", "LH", eventStartTime, eventEndTime, f1, f2, f3, f4);
-                ArrayList<double[]> dataDisp3 = sacArrayToDouble(sacSynthetics);
-                dataDisp.addAll(dataDisp2);
+            //ResponseUnits units = ResponseUnits.ACCELERATION;
+            ResponseUnits units = ResponseUnits.DISPLACEMENT;
+            ArrayList<double[]> dataDisp  = new ArrayList<double[]>();
+
+            ArrayList<double[]> dataDisp00  = null;
+            if (compute00) {
+                dataDisp00  = metricData.getZNE(units, "00", "LH", eventStartTime, eventEndTime, f1, f2, f3, f4);
+                if (dataDisp00 != null) {
+                    dataDisp.addAll(dataDisp00);
+                }
+            }
+            ArrayList<double[]> dataDisp10  = null;
+            if (compute10) {
+                dataDisp10  = metricData.getZNE(units, "10", "LH", eventStartTime, eventEndTime, f1, f2, f3, f4);
+                if (dataDisp10 != null) {
+                    dataDisp.addAll(dataDisp10);
+                }
+            }
+            ArrayList<double[]> dataDisp3 = sacArrayToDouble(sacSynthetics);
+            if (dataDisp3 == null) {
+                System.out.format("== %s: Error loading sac synthetics for stn=[%s] --> skip\n", getName(), getStation() );
+                continue;
+            }
+            else {
                 dataDisp.addAll(dataDisp3);
+            }
+
+            if (dataDisp00 == null && dataDisp10 == null) {
+                System.out.format("== %s: getZNE returned null data --> skip this event\n", getName() );
+                continue;
+            }
+
+
+            //double[] data = MyFilter.filterdata(dataDisp.get(0), 1.0, f2, f4);
+            //writeSacFile(data, hdr, "00.lhz.sac.filt");
+            //writeSacFile(dataDisp.get(0), hdr, "00.lhz.sac");
 
             // Window to use for comparisons
-                int nstart=0;
-                int nend=4000;
+            int nstart=0;
+            //int nend=4000;
+            int nend=hdr.getNpts();
 
             if (getMakePlots()){
-                double[] xsecs = new double[ dataDisp.get(0).length ];
-                for (int k=0; k<xsecs.length; k++){
-                    xsecs[k] = (float)k;        // hard-wired for LH? dt=1.0
+                if (compute00 && compute10){
+                    double[] xsecs = new double[ dataDisp.get(0).length ];
+                    for (int k=0; k<xsecs.length; k++){
+                        xsecs[k] = (float)k;        // hard-wired for LH? dt=1.0
+                    }
+                    PlotMaker plotMaker = new PlotMaker(metricResult.getStation(), channels, metricResult.getDate());
+                    plotMaker.plotZNE_3x3(dataDisp, xsecs, nstart, nend, key, "SyntheticCompare");
                 }
-                PlotMaker plotMaker = new PlotMaker(metricResult.getStation(), channels, metricResult.getDate());
-                plotMaker.plotZNE_3x3(dataDisp, xsecs, nstart, nend, key, "synthetic");
             }
 
-            for (int i=0; i<nDigests; i++) {
-                int j = 0;
-                if (i < 3){
-                    j = i + 6;
-                }
-                else {
-                    j = i + 3;
-                }
         // Displacements are in meters so rmsDiff's will be small
         //   scale rmsDiffs to micrometers:
-                results[i] += 1.e6 * rmsDiff( dataDisp.get(i), dataDisp.get(j), nstart, nend);
+
+            if (compute00) {
+                for (int i=0; i<3; i++) {
+                    results[i] += 1.e6 * rmsDiff( dataDisp00.get(i), dataDisp3.get(i), nstart, nend);
+                }
+            }
+            if (compute10) {
+                for (int i=0; i<3; i++) {
+                    results[i+3] += 1.e6 * rmsDiff( dataDisp10.get(i), dataDisp3.get(i), nstart, nend);
+                }
             }
 
-            } // else
-
-                nEvents++;
+            nEvents++;
 
         } // eventKeys: end loop over events
 
-        for (int i=0; i<nDigests; i++) {
-         // Average over all events for this day
-            Channel channelX  = channels[i];
-            ByteBuffer digest = digestArray[i];
-            double result     = results[i]/(double)nEvents;
-            metricResult.addResult(channelX, result, digest);
+        if (nEvents == 0) { // Didn't make any measurements for this station
+            return;
         }
 
+        if (compute00) {
+            for (int i=0; i<3; i++) {
+                Channel channelX = channels[i];
+                double result = results[i]/(double)nEvents;
+                ByteBuffer digest = digestArray[i];
+                metricResult.addResult(channelX, result, digest);
+            }
+        }
+        if (compute10) {
+            for (int i=3; i<6; i++) {
+                Channel channelX = channels[i];
+                double result = results[i]/(double)nEvents;
+                ByteBuffer digest = digestArray[i];
+                metricResult.addResult(channelX, result, digest);
+            }
+        }
 
     } // end process()
 
+    private long getSacStartTimeInMillis(SacHeader hdr){
+        GregorianCalendar gcal =  new GregorianCalendar( TimeZone.getTimeZone("GMT") );
+        gcal.set(Calendar.YEAR,        hdr.getNzyear());
+        gcal.set(Calendar.DAY_OF_YEAR, hdr.getNzjday());
+        gcal.set(Calendar.HOUR_OF_DAY, hdr.getNzhour());
+        gcal.set(Calendar.MINUTE,      hdr.getNzmin());
+        gcal.set(Calendar.SECOND,      hdr.getNzsec());
+        gcal.set(Calendar.MILLISECOND, hdr.getNzmsec());
+
+        return gcal.getTimeInMillis();
+    }
+
+    private void writeSacFile(double[] data, SacHeader hdr, String filename) {
+    //setNpts(int npts) {
+
+        SacTimeSeries sac = new SacTimeSeries(hdr, data);
+        try {
+            sac.write(filename);
+        }
+        catch (Exception e) {
+        }
+    }
 
     private ArrayList<double[]> sacArrayToDouble( SacTimeSeries[] sacArray ) {
         ArrayList<double[]> sacDouble = new ArrayList<double[]>();

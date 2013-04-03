@@ -457,4 +457,16 @@ public abstract class Metric
     } // end computePSD
 
 
+
+    public Boolean weHaveChannels(String location, String band) {
+        if (!stationMeta.hasChannels(location, band)) {
+            return false;
+        }
+        if (!metricData.hasChannels(location, band)) {
+            return false;
+        }
+        return true;
+    }
+
+
 } // end class

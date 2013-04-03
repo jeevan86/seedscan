@@ -111,7 +111,8 @@ public class EventLoader
         FilenameFilter sacFilter = new FilenameFilter() {
             public boolean accept(File dir, String name) {
                 File file = new File(dir + "/" + name);
-                if (name.startsWith(station.getStation()) && name.endsWith(".sac") && (file.length() != 0) ) {
+                //if (name.startsWith(station.getStation()) && name.endsWith(".sac") && (file.length() != 0) ) {
+                if (name.startsWith(station.getStation()) && name.contains(".sac") && (file.length() != 0) ) {
                     return true;
                 } else {
                     return false;
@@ -148,7 +149,7 @@ System.out.format("== WARNING: EventLoader.getDaySynthetics: eventDir=[%s] does 
                 if (eventSynthetics == null) {
                     eventSynthetics = new Hashtable<String, SacTimeSeries>();
                 }
-                eventSynthetics.put(sacFile.getName(), sac); // e.g., key="HRV.XX.LXZ.modes.sac"
+                eventSynthetics.put(sacFile.getName(), sac); // e.g., key="HRV.XX.LXZ.modes.sac.proc"
             }
 
             if (allEventSynthetics == null) {

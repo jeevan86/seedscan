@@ -46,7 +46,8 @@ extends Metric
 
     public void process()
     {
-        System.out.format("\n              [ == Metric %s == ]\n", getName() ); 
+        System.out.format("\n              [ == Metric %s == ]    [== Station %s ==]    [== Day %s ==]\n", 
+                          getName(), getStation(), getDay() );
 
     // Get a sorted list of continuous channels for this stationMeta and loop over:
         ArrayList<Channel> channels = stationMeta.getContinuousChannels();

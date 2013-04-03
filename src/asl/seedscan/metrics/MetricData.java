@@ -148,6 +148,29 @@ public class MetricData
         return metadata;
     }
 
+    public Boolean hasChannels(String location, String band) {
+        if (!Channel.validLocationCode(location)) {
+            return null;
+        }
+        if (!Channel.validBandCode(band.substring(0,1)) || !Channel.validInstrumentCode(band.substring(1,2)) ) {
+            return null;
+        }
+    // First try kcmp = "Z", "1", "2"
+        ChannelArray chanArray = new ChannelArray(location, band + "Z", band + "1", band + "2");
+        if (hasChannelArrayData(chanArray)) {
+            return true;
+        }   
+    // Then try kcmp = "Z", "N", "E"
+        chanArray = new ChannelArray(location, band + "Z", band + "N", band + "E");
+        if (hasChannelArrayData(chanArray)) {
+            return true;
+        }    
+    // If we're here then we didn't find either combo --> return false
+        return false;
+    }
+
+
+
     public Boolean hasChannelArrayData(ChannelArray channelArray)
     {
         for (Channel channel : channelArray.getChannels() ) {
@@ -273,6 +296,11 @@ public class MetricData
         double[] x = getFilteredDisplacement(responseUnits, channel1, windowStartEpoch, windowEndEpoch, f1, f2, f3, f4);
         double[] y = getFilteredDisplacement(responseUnits, channel2, windowStartEpoch, windowEndEpoch, f1, f2, f3, f4);
 
+        if (x == null || y == null || z == null) {
+            System.out.format("== getZNE: getFilteredDisplacement returned null --> There is probably something wrong with this station\n");
+            return null;
+        }
+
         if (x.length != y.length) {
         }
         int ndata = x.length;
@@ -290,7 +318,7 @@ public class MetricData
         double az1 = (metadata.getChanMeta( channel1 )).getAzimuth(); 
         double az2 = (metadata.getChanMeta( channel2 )).getAzimuth(); 
 
-System.out.format("==== rotate_xy_to_ne: az1=%f az2=%f\n", az1, az2);
+//System.out.format("==== rotate_xy_to_ne: az1=%.2f az2=%.2f\n", az1, az2);
         rotate_xy_to_ne(az1, az2, x, y, n, e);
 
         dispZNE.add(n);
@@ -823,8 +851,10 @@ System.out.format("==== rotate_xy_to_ne: az1=%f az2=%f\n", az1, az2);
             System.out.format("== OOPS: MetricData.createRotatedChannels(): Don't know how to rotate az2=%f\n", az2);
         }
 
+/**
         System.out.format("== MetricData.createRotatedChannels for [%s-%s]: az1=%.2f --> azimuth=%.2f az2=%.2f"
           + " Quadrant=%d (sign1=%d, sign2=%d)\n", location, channelPrefix, az1, azimuth, az2, quadrant, sign1, sign2);
+**/
 
         double cosAz   = Math.cos( azimuth * Math.PI/180 );
         double sinAz   = Math.sin( azimuth * Math.PI/180 );
