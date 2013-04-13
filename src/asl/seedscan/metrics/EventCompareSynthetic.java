@@ -49,8 +49,8 @@ extends Metric
 {
     private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.EventCompareSynthetic");
 
-    private static final double PERIOD1 = 600;
-    private static final double PERIOD2 = 500;
+    private static final double PERIOD1 = 500;
+    private static final double PERIOD2 = 400;
     private static final double PERIOD3 = 165;
     private static final double PERIOD4 = 85;
 
@@ -205,12 +205,18 @@ extends Metric
                 if (dataDisp00 != null) {
                     dataDisp.addAll(dataDisp00);
                 }
+                else {
+                    compute00 = false;
+                }
             }
             ArrayList<double[]> dataDisp10  = null;
             if (compute10) {
                 dataDisp10  = metricData.getZNE(units, "10", "LH", eventStartTime, eventEndTime, f1, f2, f3, f4);
                 if (dataDisp10 != null) {
                     dataDisp.addAll(dataDisp10);
+                }
+                else {
+                    compute10 = false;
                 }
             }
             ArrayList<double[]> dataDisp3 = sacArrayToDouble(sacSynthetics);

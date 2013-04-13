@@ -191,12 +191,18 @@ extends Metric
                 if (dataDisp00 != null) {
                     dataDisp.addAll(dataDisp00);
                 }
+                else {
+                    compute00 = false;
+                }
             }
             ArrayList<double[]> dataDisp10  = null;
             if (compute10) {
                 dataDisp10  = metricData.getZNE(units, "10", "LH", eventStartTime, eventEndTime, f1, f2, f3, f4);
                 if (dataDisp10 != null) {
                     dataDisp.addAll(dataDisp10);
+                }
+                else {
+                    compute10 = false;
                 }
             }
             ArrayList<double[]> dataDisp20  = metricData.getZNE(units, "20", "LN", eventStartTime, eventEndTime, f1, f2, f3, f4);

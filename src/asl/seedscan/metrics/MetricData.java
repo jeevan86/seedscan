@@ -273,6 +273,7 @@ public class MetricData
 
 /**
  *  Return the 3 component displacement (ZNE) in MICRONS for this location + band (e.g., "00-LH") for this time+freq window
+ *         Return null if ANY of the requested channels of data are not found
  */
     public ArrayList<double[]> getZNE(ResponseUnits responseUnits, String location, String band, long windowStartEpoch, long windowEndEpoch,
                                       double f1, double f2, double f3, double f4) 
