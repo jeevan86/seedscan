@@ -22,6 +22,9 @@ import java.io.PrintWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import sac.SacTimeSeries;
+import sac.SacHeader;
+
 public class Timeseries
 {
     public static void detrend(double[] timeseries)
@@ -283,6 +286,38 @@ public class Timeseries
             interpolatedValues[i] = y[0];
         }
         return interpolatedValues;
+    }
+
+    public static void writeSacFile(double[] data, double dt, String filename, String kstnm, String kcmpnm) {
+        writeSacFile(data, dt, filename, kstnm, kcmpnm, null);
+    }
+    public static void writeSacFile(double[] data, double dt, String filename, String kstnm, String kcmpnm, String kevnm) {
+
+        SacHeader hdr = null;
+        try {
+            hdr = new SacHeader("/Users/mth/mth/Projects/asl/resources/sac.file");
+        }
+        catch (Exception e) {
+            System.out.format("== Timeseries.writeSacFile: Error when attempting to read in default sac hdr [%s]\n", e);
+        }
+
+        hdr.setDelta((float)dt);
+        if (kstnm != null) {
+            hdr.setKstnm(kstnm);
+        }
+        if (kcmpnm != null) {
+            hdr.setKcmpnm(kcmpnm);
+        }
+        if (kevnm != null) {
+            hdr.setKevnm(kevnm);
+        }
+
+        SacTimeSeries sac = new SacTimeSeries(hdr, data);
+        try {
+            sac.write(filename);
+        }
+        catch (Exception e) {
+        }
     }
 
 

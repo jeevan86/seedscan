@@ -121,13 +121,14 @@ public class PlotMaker
             }
         }
 
+// I. Panel I = Verticals
+
 // Use the first data array, within the plotted range (nstart - nend) to scale the plots:
         double[] data = channelData.get(0);
         double ymax = 0;
         for (int k = nstart; k < nend; k++){
             if (data[k] > ymax) ymax=data[k];
         }
-
 
         final XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
         Paint[] paints = new Paint[] { Color.red, Color.blue , Color.green};
@@ -160,24 +161,45 @@ public class PlotMaker
         annotation1.setFont(new Font("SansSerif", Font.PLAIN, 14));
         xyplot1.addAnnotation(annotation1);
 
+// II. Panel II = North
+
+// Use the first data array, within the plotted range (nstart - nend) to scale the plots:
+        data = channelData.get(1);
+        ymax = 0;
+        for (int k = nstart; k < nend; k++){
+            if (data[k] > ymax) ymax=data[k];
+        }
+        final NumberAxis verticalAxisN = new NumberAxis("Displacement (m)");
+        verticalAxisN.setRange( new Range(-ymax, ymax));
+
         final XYSeriesCollection seriesCollection2 = new XYSeriesCollection();
         seriesCollection2.addSeries(series[1]);
         seriesCollection2.addSeries(series[4]);
         seriesCollection2.addSeries(series[7]);
-        final XYPlot xyplot2 = new XYPlot((XYDataset)seriesCollection2, null, verticalAxis, renderer);
+        final XYPlot xyplot2 = new XYPlot((XYDataset)seriesCollection2, null, verticalAxisN, renderer);
         XYTextAnnotation annotation2 = new XYTextAnnotation("North-South", x, y);
         annotation2.setFont(new Font("SansSerif", Font.PLAIN, 14));
         xyplot2.addAnnotation(annotation2);
+
+// III. Panel III = East
+
+// Use the first data array, within the plotted range (nstart - nend) to scale the plots:
+        data = channelData.get(2);
+        ymax = 0;
+        for (int k = nstart; k < nend; k++){
+            if (data[k] > ymax) ymax=data[k];
+        }
+        final NumberAxis verticalAxisE = new NumberAxis("Displacement (m)");
+        verticalAxisE.setRange( new Range(-ymax, ymax));
 
         final XYSeriesCollection seriesCollection3 = new XYSeriesCollection();
         seriesCollection3.addSeries(series[2]);
         seriesCollection3.addSeries(series[5]);
         seriesCollection3.addSeries(series[8]);
-        final XYPlot xyplot3 = new XYPlot((XYDataset)seriesCollection3, null, verticalAxis, renderer);
+        final XYPlot xyplot3 = new XYPlot((XYDataset)seriesCollection3, null, verticalAxisE, renderer);
         XYTextAnnotation annotation3 = new XYTextAnnotation("East-West", x, y);
         annotation3.setFont(new Font("SansSerif", Font.PLAIN, 14));
         xyplot3.addAnnotation(annotation3);
-
 
         //CombinedXYPlot combinedPlot = new CombinedXYPlot( horizontalAxis, CombinedXYPlot.VERTICAL );
         CombinedDomainXYPlot combinedPlot = new CombinedDomainXYPlot( horizontalAxis );

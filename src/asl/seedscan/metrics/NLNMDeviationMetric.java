@@ -59,7 +59,6 @@ extends PowerBandMetric
         addArgument("nlnm-modelfile");
     }
 
-
     private double[] NLNMPeriods;
     private double[] NLNMPowers;
     private final String outputDir = "outputs";
@@ -69,9 +68,7 @@ extends PowerBandMetric
         System.out.format("\n              [ == Metric %s == ]    [== Station %s ==]    [== Day %s ==]\n", 
                           getName(), getStation(), getDay() );
 
-   // First see if the file exists
-
-   // Read in the NLNM
+   // Read in the NLNM or return
         if (!readNLNM() ){
             System.out.format("%s: Did not read in NLNM model --> Do Nothing!\n", getName());
             return;  // Can't do anything if we didn't read in a NLNM model so skip to the next metric
@@ -86,7 +83,6 @@ extends PowerBandMetric
          // Check to see that we have data + metadata & see if the digest has changed wrt the database:
          // Update: At this point we KNOW we have metadata since it is driving the channel loop
 
-            //ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel));
             ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel), getForceUpdate() );
 
             if (digest == null) {

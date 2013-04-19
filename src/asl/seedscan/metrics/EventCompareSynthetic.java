@@ -179,6 +179,7 @@ extends Metric
                 }
                 else {
                     logger.severe(String.format("Error: Did not find sac synthetic=[%s] in Hashtable", fileKey) );
+                    return;
                 }
             }
 
