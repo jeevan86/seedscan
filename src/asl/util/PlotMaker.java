@@ -354,6 +354,120 @@ public class PlotMaker
     } // end plotCoherence
 
 
+    public void plotSpecAmp2(double freq[], double[] amp1, double[] phase1, double[] amp2, double[] phase2, String plotString) {
+
+        final String plotTitle = String.format("%04d%03d.%s.%s %s", date.get(Calendar.YEAR), date.get(Calendar.DAY_OF_YEAR)
+                                                ,station, channel, plotString);
+        final String pngName   = String.format("%s/%04d%03d.%s.%s.%s.png", outputDir, date.get(Calendar.YEAR), date.get(Calendar.DAY_OF_YEAR)
+                                                ,station, channel, plotString);
+        File outputFile = new File(pngName);
+
+        // Check that we will be able to output the file without problems and if not --> return
+        if (!checkFileOut(outputFile)) {
+            System.out.format("== plotSpecAmp: request to output plot=[%s] but we are unable to create it "
+                              + " --> skip plot\n", pngName );
+            return;
+        }
+
+        final XYSeries series1 = new XYSeries("Amp_PZ");
+        final XYSeries series1b= new XYSeries("Amp_Cal");
+
+        final XYSeries series2 = new XYSeries("Phase_PZ");
+        final XYSeries series2b= new XYSeries("Phase_Cal");
+
+        double maxdB = 0.;
+        for (int k = 0; k < freq.length; k++){
+            double dB = 20. * Math.log10( amp1[k] );
+            //series1.add( freq[k], dB );
+            series1.add( freq[k], 20. * Math.log10( amp1[k] ) );
+            series1b.add( freq[k], 20. * Math.log10( amp2[k] ));
+            series2.add( freq[k], phase1[k] );
+            series2b.add( freq[k], phase2[k] );
+            if (dB > maxdB) { maxdB = dB;}
+        }
+
+        //final XYItemRenderer renderer = new StandardXYItemRenderer();
+        final XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
+        Rectangle rectangle = new Rectangle(3, 3);
+        renderer.setSeriesShape(0, rectangle);
+        //renderer.setSeriesShapesVisible(0, true);
+        renderer.setSeriesShapesVisible(0, false);
+        renderer.setSeriesLinesVisible(0, true);
+
+        renderer.setSeriesShape(1, rectangle);
+        renderer.setSeriesShapesVisible(1, true);
+        renderer.setSeriesLinesVisible(1, false);
+
+        Paint[] paints = new Paint[] { Color.red, Color.blue };
+        renderer.setSeriesPaint(0, paints[0]);
+        //renderer.setSeriesPaint(1, paints[1]);
+
+	final XYLineAndShapeRenderer renderer2 = new XYLineAndShapeRenderer();
+        renderer2.setSeriesPaint(0, paints[1]);
+        renderer2.setSeriesShapesVisible(0, false);
+        renderer2.setSeriesLinesVisible(0, true);
+
+	// Stroke is part of Java Swing ...
+	//renderer2.setBaseStroke( new Stroke( ... ) );
+
+        double ymax;
+        if (maxdB < 10) {
+            ymax = 10.;
+        }
+        else {
+            ymax = maxdB + 2;;
+        }
+
+        final NumberAxis verticalAxis = new NumberAxis("Spec Amp (dB)");
+        verticalAxis.setRange( new Range(-40, ymax));
+        verticalAxis.setTickUnit( new NumberTickUnit(5) );
+
+        //final LogarithmicAxis verticalAxis = new LogarithmicAxis("Amplitude Response");
+        //verticalAxis.setRange( new Range(0.01 , 10) );
+
+        final LogarithmicAxis horizontalAxis = new LogarithmicAxis("Frequency (Hz)");
+        //horizontalAxis.setRange( new Range(0.0001 , 100.5) );
+        horizontalAxis.setRange( new Range(0.00009 , 110) );
+
+        final XYSeriesCollection seriesCollection = new XYSeriesCollection();
+        seriesCollection.addSeries(series1);
+        seriesCollection.addSeries(series1b);
+
+        final XYPlot xyplot = new XYPlot((XYDataset)seriesCollection, null, verticalAxis, renderer);
+        //final XYPlot xyplot = new XYPlot((XYDataset)seriesCollection, horizontalAxis, verticalAxis, renderer);
+
+        xyplot.setDomainGridlinesVisible(true);  
+        xyplot.setRangeGridlinesVisible(true);  
+        xyplot.setRangeGridlinePaint(Color.black);  
+        xyplot.setDomainGridlinePaint(Color.black);  
+
+        final NumberAxis phaseAxis = new NumberAxis("Phase (Deg)");
+        phaseAxis.setRange( new Range(-180, 180));
+        phaseAxis.setTickUnit( new NumberTickUnit(30) );
+        final XYSeriesCollection seriesCollection2 = new XYSeriesCollection();
+        seriesCollection2.addSeries(series2);
+        seriesCollection2.addSeries(series2b);
+        final XYPlot xyplot2 = new XYPlot((XYDataset)seriesCollection2, null, phaseAxis, renderer2);
+
+        //CombinedXYPlot combinedPlot = new CombinedXYPlot( horizontalAxis, CombinedXYPlot.VERTICAL );
+        CombinedDomainXYPlot combinedPlot = new CombinedDomainXYPlot( horizontalAxis );
+	combinedPlot.add(xyplot,1);
+	combinedPlot.add(xyplot2,1);
+	combinedPlot.setGap(15.);
+
+        //final JFreeChart chart = new JFreeChart(xyplot);
+        final JFreeChart chart = new JFreeChart(combinedPlot);
+        chart.setTitle( new TextTitle(plotTitle) );
+
+        try { 
+            ChartUtilities.saveChartAsPNG(outputFile, chart, 1000, 800);
+        } catch (IOException e) { 
+            System.err.println("Problem occurred creating chart.");
+
+        }
+    } // end plotResp
+
+
     public void plotSpecAmp(double freq[], double[] amp, double[] phase, String plotString) {
 
         // plotTitle = "2012074.IU_ANMO.00-BHZ " + plotString

@@ -381,6 +381,20 @@ public class ChannelMeta extends MemberDigest
       return false;
     }
 
+/*
+ **   Return complex PoleZero response computed at given freqs[]
+ **    If stage1 != PoleZero stage --> return null
+ */
+    public Cmplx[] getPoleZeroResponse(double[] freqs){
+        PoleZeroStage pz = (PoleZeroStage)this.getStage(1);
+        if (pz != null) {
+            return pz.getResponse(freqs);
+        }
+        else {
+            return null;
+        }
+    }
+
 
 //  Return complex response computed at given freqs[0,...length]
 
@@ -389,15 +403,12 @@ public class ChannelMeta extends MemberDigest
         switch (responseOut) {
             case DISPLACEMENT:
                 outUnits = 1;
-                //System.out.println("== responseOut = DISPLACEMENT");
                 break;
             case VELOCITY:
                 outUnits = 2;
-                //System.out.println("== responseOut = VELOCITY");
                 break;
             case ACCELERATION:
                 outUnits = 3;
-                //System.out.println("== responseOut = ACCELERATION");
                 break;
         }
 /**
@@ -448,6 +459,7 @@ public class ChannelMeta extends MemberDigest
  //  Ex: if the response units are Velocity (inUnits=2) and we want our output units = Acceleration (outUnits=3), then
  //  n = 3 - 2 = 1, and we return I'(w)=I(w)/(iw) = -i/w * I(w)
 
+ // *** This only works for polezero stageType = 'A' [Laplace (rad/s)] so that s=i2pi*f --> for 'B' we should use s=if here!
         int inUnits = stage.getInputUnits();
         if (inUnits > 0) {
             int n = outUnits - inUnits;

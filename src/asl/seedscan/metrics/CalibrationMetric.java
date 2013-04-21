@@ -33,6 +33,7 @@ import asl.util.Hex;
 import asl.metadata.*;
 import asl.metadata.meta_new.*;
 import asl.seedsplitter.*;
+import asl.util.PlotMaker;
 
 import seed.Blockette320;
 
@@ -165,8 +166,8 @@ extends Metric
 
         double[] outData = metricData.getWindowedData(channel, calStartEpoch, calStartEpoch + calDuration);
         double[] inData  = metricData.getWindowedData(new Channel("--",channelExtension), calStartEpoch, calStartEpoch + calDuration);
-Timeseries.writeSacFile(outData, srate, "dataOut", getStation(), channel.getChannel());  
-Timeseries.writeSacFile(inData,  srate, "dataIn",  getStation(), channelExtension);  
+        //Timeseries.writeSacFile(outData, srate, "dataOut", getStation(), channel.getChannel());  
+        //Timeseries.writeSacFile(inData,  srate, "dataIn",  getStation(), channelExtension);  
 
      // Compute/Get the 1-sided psd[f] using Peterson's algorithm (24 hrs, 13 segments, etc.)
 
@@ -179,41 +180,43 @@ Timeseries.writeSacFile(inData,  srate, "dataIn",  getStation(), channelExtensio
         double[] freq = new double[nf];
         double[] freqResponse = new double[nf];
         double df     = params[0];
-System.out.format("== %s: df=%f\n", getName(), df);
-Timeseries.writeSacFile(Gxx, df, "Gxx", getStation(), channelExtension);  
-Timeseries.writeSacFile(Gyy, df, "Gyy", getStation(), channel.getChannel());  
+        //System.out.format("== %s: df=%f\n", getName(), df);
+        //Timeseries.writeSacFile(Gxx, df, "Gxx", getStation(), channelExtension);  
+        //Timeseries.writeSacFile(Gyy, df, "Gyy", getStation(), channel.getChannel());  
 
+        double[] ampCalibration = new double[nf];
+        double[] phsCalibration = new double[nf];
         for (int k=0; k<nf; k++) {
             freq[k] = (double)k * df;
             freqResponse[k] = Gyy[k] / Gxx[k];
-            freqResponse[k] = Math.sqrt(freqResponse[k]);
+            //freqResponse[k] = Math.sqrt(freqResponse[k]);
+            freqResponse[k] = Math.sqrt(freqResponse[k]) * 2. * Math.PI * freq[k];
+            ampCalibration[k] = freqResponse[k];
+            phsCalibration[k] = 0.;
         }
 Timeseries.writeSacFile(freqResponse, df, "Hf", getStation(), channel.getChannel());  
 
         ChannelMeta chanMeta = stationMeta.getChanMeta(channel);
-        //Cmplx[] instResponse = chanMeta.getResponse(freq, 0);
-        //Cmplx[] instResponse = (PoleZeroStage)(chanMeta.getStage(1)).getResponse(freq);
-        PoleZeroStage pz = (PoleZeroStage)chanMeta.getStage(1);
-        Cmplx[] instResponse = pz.getResponse(freq);
-
+        Cmplx[] instResponse = chanMeta.getPoleZeroResponse(freq);
         double[] ampResponse = new double[nf];
+        double[] phsResponse = new double[nf];
         for (int k=0; k<nf; k++) {
             ampResponse[k] = instResponse[k].mag();
+            phsResponse[k] = instResponse[k].phs() * 180./Math.PI;
         }
 Timeseries.writeSacFile(ampResponse, df, "If", getStation(), channel.getChannel());  
-/**
-        Timeseries.timeout(ampResponse, "zampResp");
-
-
-Timeseries.timeoutXY(freq, Gxx, "Gxx");
-//Timeseries.timeoutXY(freq, Gyy, "Gyy");
-Timeseries.timeout(Gyy, "Gyy");
-Timeseries.timeout(outData, "zoutData");
-Timeseries.timeout(inData, "zinData");
-**/
-
 
         System.out.format("== %s: [%d] windowed points outData\n", getName(), outData.length);
+chanMeta.print();
+//chanMeta = stationMeta.getChanMeta( new Channel("--", "BC0") );
+//chanMeta.print();
+
+        if (getMakePlots()){
+            PlotMaker plotMaker = new PlotMaker(metricResult.getStation(), channel, metricResult.getDate());
+            plotMaker.plotSpecAmp2(freq, ampResponse, phsResponse, ampCalibration, phsCalibration, "CalibrationMetric");
+            //plotMaker.plotSpecAmp(freq, ampResponse, phsResponse, "CalibrationMetric");
+        }
+
 System.exit(0);
 
         return 0.0;
