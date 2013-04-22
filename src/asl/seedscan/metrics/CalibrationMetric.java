@@ -38,6 +38,7 @@ import asl.util.PlotMaker;
 import seed.Blockette320;
 
 import freq.Cmplx;
+import timeutils.PSD;
 import timeutils.Timeseries;
 
 
@@ -211,9 +212,27 @@ chanMeta.print();
 //chanMeta = stationMeta.getChanMeta( new Channel("--", "BC0") );
 //chanMeta.print();
 
+        PSD psdX         = new PSD(inData, inData, srate);
+        Cmplx[] Gx       = psdX.getSpectrum();
+        PSD psdXY        = new PSD(inData, outData, srate);
+        Cmplx[] Gxy      = psdXY.getSpectrum();
+        Cmplx[] Hf       = new Cmplx[Gxy.length];
+        double[] calAmp  = new double[Gxy.length];
+        double[] calPhs  = new double[Gxy.length];
+        for (int k=0; k<Gxy.length; k++) {
+            Hf[k]     = Cmplx.div( Gxy[k], Gx[k] );
+            calAmp[k] = Hf[k].mag();
+            calPhs[k] = Hf[k].phs() * 180./Math.PI;
+        }
+Timeseries.writeSacFile(calAmp, df, "calAmp", getStation(), channel.getChannel());  
+Timeseries.writeSacFile(calPhs, df, "calPhs", getStation(), channel.getChannel());  
+
+System.out.format("== Computation complete --> now plot\n");
+
         if (getMakePlots()){
             PlotMaker plotMaker = new PlotMaker(metricResult.getStation(), channel, metricResult.getDate());
-            plotMaker.plotSpecAmp2(freq, ampResponse, phsResponse, ampCalibration, phsCalibration, "CalibrationMetric");
+            plotMaker.plotSpecAmp2(freq, ampResponse, phsResponse, calAmp, calPhs, "CalibrationMetric");
+            //plotMaker.plotSpecAmp2(freq, ampResponse, phsResponse, ampCalibration, phsCalibration, "CalibrationMetric");
             //plotMaker.plotSpecAmp(freq, ampResponse, phsResponse, "CalibrationMetric");
         }
 

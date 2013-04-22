@@ -369,6 +369,8 @@ public class PlotMaker
             return;
         }
 
+System.out.format("== plotSpecAmp2: nfreq=%d npts=%d pngName=%s\n", freq.length, amp2.length, pngName);
+
         final XYSeries series1 = new XYSeries("Amp_PZ");
         final XYSeries series1b= new XYSeries("Amp_Cal");
 

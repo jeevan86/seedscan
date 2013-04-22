@@ -340,7 +340,7 @@ public class SeedScan
 
 // Set getStationList = false if you want to manually control the StationList below ...
         Boolean getStationList = true;
-        //getStationList = false;
+        getStationList = false;
         ArrayList<Station> stations;
 
         if (getStationList){
@@ -349,7 +349,7 @@ public class SeedScan
         }
         else {
             stations = new ArrayList<Station>();
-            stations.add( new Station("IC","KMI") );
+            //stations.add( new Station("IC","KMI") );
             stations.add( new Station("IU","ANMO") );
             //stations.add( new Station("IU","ANTO") );
             //stations.add( new Station("IU","TUC") );
