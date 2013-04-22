@@ -32,6 +32,7 @@ public class PSD
         this.dt    = dt;
 System.out.format("== PSD(): dt=%.4f ndata=%d\n", dt, ndata);
         computePSD();
+System.out.format("== PSD(): df=%.4f freq[1]=%f freq[nf-1]=%f\n", df, freq[1], freq[freq.length-1]);
     }
 
     public final Cmplx[] getSpectrum() {
@@ -39,6 +40,9 @@ System.out.format("== PSD(): dt=%.4f ndata=%d\n", dt, ndata);
     }
     public final double[] getFreq() {
         return freq;
+    }
+    public final double getDeltaF() {
+        return df;
     }
 
     public double[] getMagnitude() {
@@ -191,8 +195,6 @@ System.out.format("== PSD(): dt=%.4f ndata=%d\n", dt, ndata);
             psd[k]  = psdCFsmooth[k];
         }
         //psd[0]=0; // Reset DC
-
-        //return psd;
 
     } // end computePSD
 

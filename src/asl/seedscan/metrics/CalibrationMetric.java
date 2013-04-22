@@ -172,30 +172,27 @@ extends Metric
 
      // Compute/Get the 1-sided psd[f] using Peterson's algorithm (24 hrs, 13 segments, etc.)
 
-        double[] params = new double[1];
-        double[] Gxx   = getSpectrum(inData, srate, params);
-        double[] Gyy   = getSpectrum(outData, srate, params);
-        //double[] Gxy   = getSpectrum(inData, outData);
+        double dt = 1.0/srate;
+        PSD psdX         = new PSD(inData, inData, dt);
+        Cmplx[] Gx       = psdX.getSpectrum();
+        double df        = psdX.getDeltaF();
+        double[] freq    = psdX.getFreq();
+        int nf           = freq.length;
 
-        int nf        = Gxx.length;
-        double[] freq = new double[nf];
-        double[] freqResponse = new double[nf];
-        double df     = params[0];
-        //System.out.format("== %s: df=%f\n", getName(), df);
-        //Timeseries.writeSacFile(Gxx, df, "Gxx", getStation(), channelExtension);  
-        //Timeseries.writeSacFile(Gyy, df, "Gyy", getStation(), channel.getChannel());  
-
-        double[] ampCalibration = new double[nf];
-        double[] phsCalibration = new double[nf];
-        for (int k=0; k<nf; k++) {
-            freq[k] = (double)k * df;
-            freqResponse[k] = Gyy[k] / Gxx[k];
-            //freqResponse[k] = Math.sqrt(freqResponse[k]);
-            freqResponse[k] = Math.sqrt(freqResponse[k]) * 2. * Math.PI * freq[k];
-            ampCalibration[k] = freqResponse[k];
-            phsCalibration[k] = 0.;
+        PSD psdXY        = new PSD(inData, outData, dt);
+        Cmplx[] Gxy      = psdXY.getSpectrum();
+        Cmplx[] Hf       = new Cmplx[Gxy.length];
+        double[] calAmp  = new double[Gxy.length];
+        double[] calPhs  = new double[Gxy.length];
+        Cmplx ic         = new Cmplx(0.0 , 1.0);
+        for (int k=0; k<Gxy.length; k++) {
+          // Cal coils generate an ACCERLATION but we want the intrument response to VELOCITY:
+            Cmplx iw  = Cmplx.mul(ic , 2.*Math.PI*freq[k]);
+            Hf[k]     = Cmplx.div( Gxy[k], Gx[k] );
+            Hf[k]     = Cmplx.mul( Hf[k], iw );
+            calAmp[k] = Hf[k].mag();
+            calPhs[k] = Hf[k].phs() * 180./Math.PI;
         }
-Timeseries.writeSacFile(freqResponse, df, "Hf", getStation(), channel.getChannel());  
 
         ChannelMeta chanMeta = stationMeta.getChanMeta(channel);
         Cmplx[] instResponse = chanMeta.getPoleZeroResponse(freq);
@@ -205,199 +202,24 @@ Timeseries.writeSacFile(freqResponse, df, "Hf", getStation(), channel.getChannel
             ampResponse[k] = instResponse[k].mag();
             phsResponse[k] = instResponse[k].phs() * 180./Math.PI;
         }
-Timeseries.writeSacFile(ampResponse, df, "If", getStation(), channel.getChannel());  
+        //Timeseries.writeSacFile(ampResponse, df, "If", getStation(), channel.getChannel());  
 
-        System.out.format("== %s: [%d] windowed points outData\n", getName(), outData.length);
-chanMeta.print();
-//chanMeta = stationMeta.getChanMeta( new Channel("--", "BC0") );
-//chanMeta.print();
-
-        PSD psdX         = new PSD(inData, inData, srate);
-        Cmplx[] Gx       = psdX.getSpectrum();
-        PSD psdXY        = new PSD(inData, outData, srate);
-        Cmplx[] Gxy      = psdXY.getSpectrum();
-        Cmplx[] Hf       = new Cmplx[Gxy.length];
-        double[] calAmp  = new double[Gxy.length];
-        double[] calPhs  = new double[Gxy.length];
-        for (int k=0; k<Gxy.length; k++) {
-            Hf[k]     = Cmplx.div( Gxy[k], Gx[k] );
-            calAmp[k] = Hf[k].mag();
-            calPhs[k] = Hf[k].phs() * 180./Math.PI;
+        final double MIDBAND_PERIOD = 20.0; // Period at which to normalize the H(f) magnitudes
+        double midFreq = 1.0/MIDBAND_PERIOD;
+        int index = (int)(midFreq/df);
+System.out.format("=== df=%f nf=%d fmin=[%f] fmax=[%f] index=%d midFreq=%.4f\n", df, nf, freq[1], freq[nf-1], index, midFreq);
+        double magScale = ampResponse[index] / calAmp[index];
+        for (int k=0; k<nf; k++) {
+            calAmp[k] *= magScale; // Scale estimated inst response to metadata midband gain
         }
-Timeseries.writeSacFile(calAmp, df, "calAmp", getStation(), channel.getChannel());  
-Timeseries.writeSacFile(calPhs, df, "calPhs", getStation(), channel.getChannel());  
-
-System.out.format("== Computation complete --> now plot\n");
 
         if (getMakePlots()){
             PlotMaker plotMaker = new PlotMaker(metricResult.getStation(), channel, metricResult.getDate());
             plotMaker.plotSpecAmp2(freq, ampResponse, phsResponse, calAmp, calPhs, "CalibrationMetric");
-            //plotMaker.plotSpecAmp2(freq, ampResponse, phsResponse, ampCalibration, phsCalibration, "CalibrationMetric");
-            //plotMaker.plotSpecAmp(freq, ampResponse, phsResponse, "CalibrationMetric");
         }
-
-System.exit(0);
 
         return 0.0;
 
     } // end computeMetric()
-
-
-    public double[] getSpectrum( double[] data, double srate, double[] params) {
-
-        if (data == null || data.length <= 0 || srate == 0) {
-        } 
-
-        int ndata = data.length; 
-
-     // Compute PSD for this channel using the following algorithm:
-     //   Break up the data (one day) into 13 overlapping segments of 75% 
-     //   Remove the trend and mean 
-     //   Apply a taper (cosine) 
-     //   Zero pad to a power of 2 
-     //   Compute FFT 
-     //   Average all 13 FFTs 
-     //   Remove response 
-
-     // For 13 windows with 75% overlap, each window will contain ndata/4 points
-     // ** Still need to handle the case of multiple datasets with gaps!
-
-        int nseg_pnts = ndata / 4;  
-        int noff      = nseg_pnts / 4;  
-
-     // Find smallest power of 2 >= nseg_pnts:
-        int nfft=1;
-        while (nfft < nseg_pnts) nfft = (nfft << 1);
-
-     // We are going to do an nfft point FFT which will return 
-     //   nfft/2+1 +ve frequencies (including  DC + Nyq)
-        int nf=nfft/2 + 1;
-
-        if (srate == 0) throw new RuntimeException("Error: Got srate=0");
-        double dt = 1./srate;
-        double df = 1./(nfft*dt);
-
-        params[0] = df;
-
-        double[] xseg = new double[nseg_pnts];
-        double[] yseg = new double[nseg_pnts];
-
-        Cmplx[]  xfft = null;
-        Cmplx[]  yfft = null;
-        double[] psd  = new double[nf];
-        Cmplx[]  psdC = new Cmplx[nf];
-        double   wss  = 0.;
-
-        int iwin=0;
-        int ifst=0;
-        int ilst=nseg_pnts-1;
-        int offset = 0;
-
-// Initialize the Cmplx array
-       for(int k = 0; k < nf; k++){
-            psdC[k] = new Cmplx(0., 0.);
-        }
-
-        while (ilst < ndata) // ndata needs to come from largest dataset
-        {
-           for(int k=0; k<nseg_pnts; k++) {     // Load current window
-            xseg[k] = (double)data[k+offset]; 
-            yseg[k] = (double)data[k+offset]; 
-           }
-           //Timeseries.timeout(xseg,"xseg");
-           Timeseries.detrend(xseg);
-           Timeseries.detrend(yseg);
-           Timeseries.debias(xseg);
-           Timeseries.debias(yseg);
-
-           wss = Timeseries.costaper(xseg,.10);
-           wss = Timeseries.costaper(yseg,.10);
-// MTH: Maybe want to assert here that wss > 0 to avoid divide-by-zero below ??
-
-        // fft2 returns just the (nf = nfft/2 + 1) positive frequencies
-           xfft = Cmplx.fft2(xseg);
-           yfft = Cmplx.fft2(yseg);
-
-        // Load up the 1-sided PSD:
-           for(int k = 0; k < nf; k++){
-            // when X=Y, X*Y.conjg is Real and (X*Y.conjg).mag() simply returns the Real part as a double 
-                psd[k] = psd[k] + Cmplx.mul(xfft[k], yfft[k].conjg()).mag() ;
-                psdC[k]= Cmplx.add(psdC[k], Cmplx.mul(xfft[k], yfft[k].conjg()) );
-           }
-
-           iwin ++;
-           offset += noff;
-           ilst   += noff;
-           ifst   += noff;
-        } //end while
-        int nwin = iwin;    // Should have nwin = 13
-
-     // Divide the summed psd[]'s by the number of windows (=13) AND
-     //   Normalize the PSD ala Bendat & Piersol, to units of (time series)^2 / Hz AND
-     //   At same time, correct for loss of power in window due to 10% cosine taper
-
-        double psdNormalization = 2.0 * dt / (double)nfft;
-        double windowCorrection = wss / (double)nseg_pnts;  // =.875 for 10% cosine taper
-        psdNormalization = psdNormalization / windowCorrection;
-        psdNormalization = psdNormalization / (double)nwin; 
-
-        double[] freq = new double[nf];
-
-        for(int k = 0; k < nf; k++){
-            psd[k]  = psd[k]*psdNormalization;
-            psdC[k]  = Cmplx.mul(psdC[k], psdNormalization);
-            freq[k] = (double)k * df;
-        }
-
-/**
-     // We still have psd[f] so this is a good point to do any smoothing over neighboring frequencies:
-        int nsmooth = 11;
-        int nhalf   = 5;
-        int nw = nf - nsmooth;
-        double[] psdFsmooth = new double[nf];
-        Cmplx[] psdCFsmooth = new Cmplx[nf];
-
-        int iw=0;
-
-        for (iw = 0; iw < nhalf; iw++) {
-            psdFsmooth[iw] = psd[iw];
-            psdCFsmooth[iw]= psdC[iw];
-        }
-
-        // iw is really icenter of nsmooth point window
-        for (; iw < nf - nhalf; iw++) {
-            int k1 = iw - nhalf;
-            int k2 = iw + nhalf;
-
-            double sum = 0;
-            Cmplx sumC = new Cmplx(0., 0.);
-            for (int k = k1; k < k2; k++) {
-                sum  = sum + psd[k];
-                sumC = Cmplx.add(sumC, psdC[k]);
-            }
-            psdFsmooth[iw] = sum / (double)nsmooth;
-            psdCFsmooth[iw]= Cmplx.div(sumC, (double)nsmooth);
-        }
-
-     // Copy the remaining point into the smoothed array
-        for (; iw < nf; iw++) {
-            psdFsmooth[iw] = psd[iw];
-            psdCFsmooth[iw]= psdC[iw];
-        }
-
-     // Copy Frequency smoothed spectrum back into psd[f] and proceed as before
-        for ( int k = 0; k < nf; k++){
-            //psd[k]  = psdFsmooth[k];
-            psd[k]  = psdCFsmooth[k].mag();
-            //psd[k]  = psdC[k].mag();
-        }
-        psd[0]=0; // Reset DC
-
-**/
-
-        return psd;
-
-    } // end computePSD
-
 
 }

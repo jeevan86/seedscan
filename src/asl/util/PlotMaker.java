@@ -368,6 +368,9 @@ public class PlotMaker
                               + " --> skip plot\n", pngName );
             return;
         }
+    // Plot x-axis (frequency) range
+        final double XMIN = .00009;
+        final double XMAX = freq[freq.length-1];
 
 System.out.format("== plotSpecAmp2: nfreq=%d npts=%d pngName=%s\n", freq.length, amp2.length, pngName);
 
@@ -382,9 +385,9 @@ System.out.format("== plotSpecAmp2: nfreq=%d npts=%d pngName=%s\n", freq.length,
             double dB = 20. * Math.log10( amp1[k] );
             //series1.add( freq[k], dB );
             series1.add( freq[k], 20. * Math.log10( amp1[k] ) );
-            series1b.add( freq[k], 20. * Math.log10( amp2[k] ));
+            series1b.add(freq[k], 20. * Math.log10( amp2[k] ));
             series2.add( freq[k], phase1[k] );
-            series2b.add( freq[k], phase2[k] );
+            series2b.add(freq[k], phase2[k] );
             if (dB > maxdB) { maxdB = dB;}
         }
 
@@ -429,7 +432,8 @@ System.out.format("== plotSpecAmp2: nfreq=%d npts=%d pngName=%s\n", freq.length,
 
         final LogarithmicAxis horizontalAxis = new LogarithmicAxis("Frequency (Hz)");
         //horizontalAxis.setRange( new Range(0.0001 , 100.5) );
-        horizontalAxis.setRange( new Range(0.00009 , 110) );
+        //horizontalAxis.setRange( new Range(0.00009 , 110) );
+        horizontalAxis.setRange( new Range(XMIN, XMAX) );
 
         final XYSeriesCollection seriesCollection = new XYSeriesCollection();
         seriesCollection.addSeries(series1);
