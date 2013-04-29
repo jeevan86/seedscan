@@ -25,14 +25,11 @@ public class PSD
         if (dt <= 0.) {
             throw new RuntimeException("== PSD Error: Invalid dt --> Can't create new PSD");
         }
-
         this.dataX = dataX;
         this.dataY = dataY;
         this.ndata = dataX.length;
         this.dt    = dt;
-System.out.format("== PSD(): dt=%.4f ndata=%d\n", dt, ndata);
         computePSD();
-System.out.format("== PSD(): df=%.4f freq[1]=%f freq[nf-1]=%f\n", df, freq[1], freq[freq.length-1]);
     }
 
     public final Cmplx[] getSpectrum() {
@@ -54,8 +51,7 @@ System.out.format("== PSD(): df=%.4f freq[1]=%f freq[nf-1]=%f\n", df, freq[1], f
     }
 
 /**
- * computePSD - Done here so that it can be passed from metric to metric,
- *              rather than re-computing it for each metric that needs it
+ * computePSD 
  *
  * Use Peterson's algorithm (24 hrs = 13 segments with 75% overlap, etc.)
  *
@@ -65,11 +61,11 @@ System.out.format("== PSD(): df=%.4f freq[1]=%f freq[nf-1]=%f\n", df, freq[1], f
  *  frequency smoothing --> has same effect with nsegs replaced by nfrequencies to smooth
  *  The combination of both will reduce error by sqrt(1 / nfreqs * nsegs)
  *
- * @return psd[f] - Contains smoothed crosspower-spectral density
- *                  computed for nf = nfft/2 + 1 frequencies (+ve freqs + DC + Nyq)
+ * @psd[f] - Contains smoothed crosspower-spectral density
+ *           computed for nf = nfft/2 + 1 frequencies (+ve freqs + DC + Nyq)
+ *
  * @author Mike Hagerty
 */
-
     private void computePSD() {
 
      // Compute PSD using the following algorithm:
@@ -197,9 +193,6 @@ System.out.format("== PSD(): df=%.4f freq[1]=%f freq[nf-1]=%f\n", df, freq[1], f
         //psd[0]=0; // Reset DC
 
     } // end computePSD
-
-
-
 
 } // end class
 

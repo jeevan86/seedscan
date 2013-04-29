@@ -29,6 +29,7 @@ import asl.metadata.EpochData;
 import asl.metadata.meta_new.ChannelMeta;
 import asl.metadata.meta_new.PoleZeroStage;
 import asl.seedsplitter.DataSet;
+import asl.seedsplitter.Sequence;
 
 import asl.seedscan.event.EventCMT;
 import java.util.Calendar;
@@ -60,10 +61,12 @@ extends Metric
         //ArrayList<Channel> channels = stationMeta.getChannelArray("BH");
         //ArrayList<Channel> channels = stationMeta.getChannelArray("00","BH");
 
-        //ArrayList<Channel> channels = stationMeta.getChannelArray("LH");
+        ArrayList<Channel> channels = stationMeta.getChannelArray("LH");
+/**
         ArrayList<Channel> channels = new ArrayList<Channel>();
         channels.add( new Channel("00", "LHZ") );
         channels.add( new Channel("10", "LHZ") );
+**/
 
         for (Channel channel : channels){
             System.out.format("== Channel:[%s]\n", channel);
@@ -72,7 +75,24 @@ extends Metric
 
             //System.out.format("== %s: stationMeta.hasChannel(%s)=%s\n", getName(), channel, stationMeta.hasChannel(channel) );
 
-            computeMetric(channel);
+            ArrayList<DataSet> datasets = metricData.getChannelData(channel);
+            int i=0;
+            for (DataSet set: datasets) {
+                long npts =  (set.getEndTime() - set.getStartTime()) / set.getInterval()  + 1;
+                System.out.format("  Channel=[%s] DataSet[%d]: %s - %s (%d data points)\n", channel, i,
+                                     Sequence.timestampToString(set.getStartTime()), Sequence.timestampToString(set.getEndTime()),
+                                     npts );
+/**
+                                    + " (" + ((set.getEndTime() - set.getStartTime()) / set.getInterval() + 1) + " data points)");
+                System.out.println("  Channel=[%s] DataSet[" +i+ "]: " + Sequence.timestampToString(set.getStartTime()) + " - " 
+                                    + Sequence.timestampToString(set.getEndTime()) 
+                                    + " (" + ((set.getEndTime() - set.getStartTime()) / set.getInterval() + 1) + " data points)");
+**/
+                i++;
+            }
+
+
+            //computeMetric(channel);
 
         }// end foreach channel
 

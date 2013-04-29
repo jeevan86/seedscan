@@ -179,6 +179,19 @@ extends Metric
         double[] freq    = psdX.getFreq();
         int nf           = freq.length;
 
+        ChannelMeta chanMeta = stationMeta.getChanMeta(channel);
+        ResponseStage stage  = chanMeta.getStage(1);
+        double s=0;
+        if (stage.getStageType() == 'A') {
+            s = 2. * Math.PI;
+        }
+        else if (stage.getStageType() == 'B') {
+            s = 1.;
+        }
+        else {
+            throw new RuntimeException("Error: Unrecognized stage1 type != {'A' || 'B'} --> can't compute!");
+        }
+
         PSD psdXY        = new PSD(inData, outData, dt);
         Cmplx[] Gxy      = psdXY.getSpectrum();
         Cmplx[] Hf       = new Cmplx[Gxy.length];
@@ -187,14 +200,15 @@ extends Metric
         Cmplx ic         = new Cmplx(0.0 , 1.0);
         for (int k=0; k<Gxy.length; k++) {
           // Cal coils generate an ACCERLATION but we want the intrument response to VELOCITY:
-            Cmplx iw  = Cmplx.mul(ic , 2.*Math.PI*freq[k]);
+// Note that for metadata stage 1 = 'A' [Laplace rad/s] so that    s=i*2pi*f
+//   most II stations have stage1 = 'B' [Analog Hz] and should use s=i*f
+            Cmplx iw  = Cmplx.mul(ic , s*freq[k]);
             Hf[k]     = Cmplx.div( Gxy[k], Gx[k] );
             Hf[k]     = Cmplx.mul( Hf[k], iw );
             calAmp[k] = Hf[k].mag();
             calPhs[k] = Hf[k].phs() * 180./Math.PI;
         }
 
-        ChannelMeta chanMeta = stationMeta.getChanMeta(channel);
         Cmplx[] instResponse = chanMeta.getPoleZeroResponse(freq);
         double[] ampResponse = new double[nf];
         double[] phsResponse = new double[nf];
@@ -215,7 +229,7 @@ System.out.format("=== df=%f nf=%d fmin=[%f] fmax=[%f] index=%d midFreq=%.4f\n",
 
         if (getMakePlots()){
             PlotMaker plotMaker = new PlotMaker(metricResult.getStation(), channel, metricResult.getDate());
-            plotMaker.plotSpecAmp2(freq, ampResponse, phsResponse, calAmp, calPhs, "CalibrationMetric");
+            plotMaker.plotSpecAmp2(freq, ampResponse, phsResponse, calAmp, calPhs, "calib");
         }
 
         return 0.0;

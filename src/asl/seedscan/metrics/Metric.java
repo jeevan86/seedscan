@@ -28,6 +28,7 @@ import asl.metadata.meta_new.ChannelMeta.ResponseUnits;
 
 import freq.Cmplx;
 import timeutils.Timeseries;
+import timeutils.PSD;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -238,12 +239,6 @@ public abstract class Metric
  *
  * Use Peterson's algorithm (24 hrs = 13 segments with 75% overlap, etc.)
  *
- * From Bendat & Piersol p.328:
- *  time segment averaging --> reduces the normalized standard error by sqrt (1 / nsegs)
- *                             and increases the resolution bandwidth to nsegs * df
- *  frequency smoothing --> has same effect with nsegs replaced by nfrequencies to smooth
- *  The combination of both will reduce error by sqrt(1 / nfreqs * nsegs)
- *
  * @param channelX - X-channel used for power-spectral-density computation
  * @param channelY - Y-channel used for power-spectral-density computation
  * @param params[] - Dummy array used to pass df (frequency spacing) back up 
@@ -253,8 +248,6 @@ public abstract class Metric
  * @author Mike Hagerty
 */
     private final double[] computePSD(Channel channelX, Channel channelY, double[] params) {
-
-        //System.out.format("== Metric.computePSD(channelX=%s, channelY=%s)\n", channelX, channelY);
 
         int ndata      = 0;
         double srate   = 0;  // srate = sample frequency, e.g., 20Hz
@@ -281,176 +274,39 @@ public abstract class Metric
         srate = srateX;
         ndata = chanXData.length; 
 
-        //ndata = (ndataX < ndataY) ? ndataX : ndataY;
-
-     // Compute PSD for this channel using the following algorithm:
-     //   Break up the data (one day) into 13 overlapping segments of 75% 
-     //   Remove the trend and mean 
-     //   Apply a taper (cosine) 
-     //   Zero pad to a power of 2 
-     //   Compute FFT 
-     //   Average all 13 FFTs 
-     //   Remove response 
-
-     // For 13 windows with 75% overlap, each window will contain ndata/4 points
-     // ** Still need to handle the case of multiple datasets with gaps!
-
-        int nseg_pnts = ndata / 4;  
-        int noff      = nseg_pnts / 4;  
-
-     // Find smallest power of 2 >= nseg_pnts:
-        int nfft=1;
-        while (nfft < nseg_pnts) nfft = (nfft << 1);
-
-     // We are going to do an nfft point FFT which will return 
-     //   nfft/2+1 +ve frequencies (including  DC + Nyq)
-        int nf=nfft/2 + 1;
-
         if (srate == 0) throw new RuntimeException("Error: Got srate=0");
         double dt = 1./srate;
-        double df = 1./(nfft*dt);
+
+        PSD psdRaw    = new PSD(chanXData, chanYData, dt);
+        Cmplx[] spec  = psdRaw.getSpectrum();
+        double[] freq = psdRaw.getFreq();
+        double df     = psdRaw.getDeltaF();
+        int nf = freq.length;
 
         params[0] = df;
 
-        double[] xseg = new double[nseg_pnts];
-        double[] yseg = new double[nseg_pnts];
-
-        Cmplx[]  xfft = null;
-        Cmplx[]  yfft = null;
-        double[] psd  = new double[nf];
-        Cmplx[]  psdC = new Cmplx[nf];
-        double   wss  = 0.;
-
-        int iwin=0;
-        int ifst=0;
-        int ilst=nseg_pnts-1;
-        int offset = 0;
-
-// Initialize the Cmplx array
-       for(int k = 0; k < nf; k++){
-            psdC[k] = new Cmplx(0., 0.);
-        }
-
-        while (ilst < ndata) // ndata needs to come from largest dataset
-        {
-           for(int k=0; k<nseg_pnts; k++) {     // Load current window
-            xseg[k] = chanXData[k+offset]; 
-            yseg[k] = chanYData[k+offset]; 
-            //xseg[k]=(double)intArrayX[k+offset]; 
-            //yseg[k]=(double)intArrayY[k+offset]; 
-           }
-           //Timeseries.timeout(xseg,"xseg");
-           Timeseries.detrend(xseg);
-           Timeseries.detrend(yseg);
-           Timeseries.debias(xseg);
-           Timeseries.debias(yseg);
-
-           wss = Timeseries.costaper(xseg,.10);
-           wss = Timeseries.costaper(yseg,.10);
-// MTH: Maybe want to assert here that wss > 0 to avoid divide-by-zero below ??
-
-        // fft2 returns just the (nf = nfft/2 + 1) positive frequencies
-           xfft = Cmplx.fft2(xseg);
-           yfft = Cmplx.fft2(yseg);
-
-        // Load up the 1-sided PSD:
-           for(int k = 0; k < nf; k++){
-            // when X=Y, X*Y.conjg is Real and (X*Y.conjg).mag() simply returns the Real part as a double 
-                psd[k] = psd[k] + Cmplx.mul(xfft[k], yfft[k].conjg()).mag() ;
-                psdC[k]= Cmplx.add(psdC[k], Cmplx.mul(xfft[k], yfft[k].conjg()) );
-           }
-
-           iwin ++;
-           offset += noff;
-           ilst   += noff;
-           ifst   += noff;
-        } //end while
-        int nwin = iwin;    // Should have nwin = 13
-
-     // Divide the summed psd[]'s by the number of windows (=13) AND
-     //   Normalize the PSD ala Bendat & Piersol, to units of (time series)^2 / Hz AND
-     //   At same time, correct for loss of power in window due to 10% cosine taper
-
-        double psdNormalization = 2.0 * dt / (double)nfft;
-        double windowCorrection = wss / (double)nseg_pnts;  // =.875 for 10% cosine taper
-        psdNormalization = psdNormalization / windowCorrection;
-        psdNormalization = psdNormalization / (double)nwin; 
-
-        double[] freq = new double[nf];
-
-        for(int k = 0; k < nf; k++){
-            psd[k]  = psd[k]*psdNormalization;
-            psdC[k]  = Cmplx.mul(psdC[k], psdNormalization);
-            freq[k] = (double)k * df;
-        }
-
      // Get the instrument response for Acceleration and remove it from the PSD
-        //Cmplx[]  instrumentResponseX = chanMetaX.getResponse(freq, 3);
-        //Cmplx[]  instrumentResponseY = chanMetaY.getResponse(freq, 3);
         Cmplx[]  instrumentResponseX = chanMetaX.getResponse(freq, ResponseUnits.ACCELERATION);
         Cmplx[]  instrumentResponseY = chanMetaY.getResponse(freq, ResponseUnits.ACCELERATION);
 
-        double[] responseMag        = new double[nf];
         Cmplx[] responseMagC        = new Cmplx[nf];
+
+        double[] psd  = new double[nf]; // Will hold the 1-sided PSD magnitude
+        psd[0]=0; 
 
      // We're computing the squared magnitude as we did with the FFT above
      //   Start from k=1 to skip DC (k=0) where the response=0
-        psd[0]=0; 
-        for(int k = 1; k < nf; k++){
 
-            responseMag[k]  = Cmplx.mul(instrumentResponseX[k], instrumentResponseY[k].conjg()).mag() ;
+        for(int k = 1; k < nf; k++){
             responseMagC[k] = Cmplx.mul(instrumentResponseX[k], instrumentResponseY[k].conjg()) ;
-            if (responseMag[k] == 0) {
-                throw new RuntimeException("NLNMDeviation Error: responseMag[k]=0 --> divide by zero!");
+            if (responseMagC[k].mag() == 0) {
+                throw new RuntimeException("NLNMDeviation Error: responseMagC[k]=0 --> divide by zero!");
             }
             else {   // Divide out (squared)instrument response & Convert to dB:
-                psdC[k] = Cmplx.div(psdC[k], responseMagC[k]);
-                psd[k] = psd[k]/responseMag[k];
+                spec[k] = Cmplx.div(spec[k], responseMagC[k]);
+                psd[k]  = spec[k].mag();
             }
         }
-
-     // We still have psd[f] so this is a good point to do any smoothing over neighboring frequencies:
-        int nsmooth = 11;
-        int nhalf   = 5;
-        int nw = nf - nsmooth;
-        double[] psdFsmooth = new double[nf];
-        Cmplx[] psdCFsmooth = new Cmplx[nf];
-
-        int iw=0;
-
-        for (iw = 0; iw < nhalf; iw++) {
-            psdFsmooth[iw] = psd[iw];
-            psdCFsmooth[iw]= psdC[iw];
-        }
-
-        // iw is really icenter of nsmooth point window
-        for (; iw < nf - nhalf; iw++) {
-            int k1 = iw - nhalf;
-            int k2 = iw + nhalf;
-
-            double sum = 0;
-            Cmplx sumC = new Cmplx(0., 0.);
-            for (int k = k1; k < k2; k++) {
-                sum  = sum + psd[k];
-                sumC = Cmplx.add(sumC, psdC[k]);
-            }
-            psdFsmooth[iw] = sum / (double)nsmooth;
-            psdCFsmooth[iw]= Cmplx.div(sumC, (double)nsmooth);
-        }
-
-     // Copy the remaining point into the smoothed array
-        for (; iw < nf; iw++) {
-            psdFsmooth[iw] = psd[iw];
-            psdCFsmooth[iw]= psdC[iw];
-        }
-
-     // Copy Frequency smoothed spectrum back into psd[f] and proceed as before
-        for ( int k = 0; k < nf; k++){
-            //psd[k]  = psdFsmooth[k];
-            psd[k]  = psdCFsmooth[k].mag();
-            //psd[k]  = psdC[k].mag();
-        }
-        psd[0]=0; // Reset DC
 
         return psd;
 

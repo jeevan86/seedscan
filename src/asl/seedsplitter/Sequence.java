@@ -336,7 +336,15 @@ extends MemberDigest
         
         if (this.subSequenceOf(seq)) {
             logger.fine("Subsequence. Just _reset().");
-            seq._reset();
+            //MTH: 2013-04-27 This seems wrong:
+            //seq._reset();
+            DataSet dataSet = (DataSet)this;
+            System.out.format("== Sequence.mergeInto() [%s_%s %s-%s] this=[%s-%s] is a subSequence of seq=[%s-%s] --> this._reset()\n", 
+                dataSet.getNetwork(), dataSet.getStation(), dataSet.getLocation(), dataSet.getChannel(), 
+                DataSet.timestampToString(this.getStartTime()), DataSet.timestampToString(this.getEndTime()), 
+                DataSet.timestampToString(seq.getStartTime()), DataSet.timestampToString(seq.getEndTime()) 
+            );
+            this._reset();
             return;
         }
 

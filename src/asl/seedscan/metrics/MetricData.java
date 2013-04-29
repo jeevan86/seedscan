@@ -724,6 +724,8 @@ public class MetricData
             long startTime = dataset.getStartTime();  // microsecs since Jan. 1, 1970
             long endTime   = dataset.getEndTime();
             int length     = dataset.getLength();
+            //System.out.format("== getPaddedDayData: channel=[%s] dataset #%d startTime=%d endTime=%d length=%d\n",
+            //channel, i, startTime, endTime, length);
             int[] series   = dataset.getSeries();
 
             if (i == 0) {

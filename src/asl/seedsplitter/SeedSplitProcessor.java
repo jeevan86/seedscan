@@ -525,8 +525,18 @@ implements Runnable
                 iter = tree.iterator();
                 currDataSet = null;
                 lastDataSet = (DataSet)iter.next();
+//MTH
+//System.out.format("== chanKey:[%s] First DataSet:[%s - %s] BlockCount=[%d] Length=[%d]\n", chanKey,
+//    DataSet.timestampToString(lastDataSet.getStartTime()), DataSet.timestampToString(lastDataSet.getEndTime()), 
+//    lastDataSet.getBlockCount(), lastDataSet.getLength() );
+
                 while (iter.hasNext()) {
                     currDataSet = (DataSet)iter.next();
+//MTH
+//System.out.format("== chanKey:[%s] Next DataSet:[%s - %s] BlockCount=[%d] Length=[%d]\n", chanKey,
+//    DataSet.timestampToString(currDataSet.getStartTime()), DataSet.timestampToString(currDataSet.getEndTime()), 
+//    currDataSet.getBlockCount(), currDataSet.getLength() );
+
                     try {
                         logger.finer("Merging DataSets...");
                         currDataSet.mergeInto(lastDataSet);

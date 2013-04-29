@@ -222,6 +222,9 @@ public class PlotMaker
 
 
     public void plotPSD(double per[], double[] model, double[] psd, String modelName, String plotString) {
+        plotPSD(per, model, null, null, psd, modelName, plotString);
+    }
+    public void plotPSD(double per[], double[] model, double[] nhnmPer, double[] nhnm, double[] psd, String modelName, String plotString) {
 
         // plotTitle = "2012074.IU_ANMO.00-BHZ " + plotString
         final String plotTitle = String.format("%04d%03d.%s.%s %s", date.get(Calendar.YEAR), date.get(Calendar.DAY_OF_YEAR)
@@ -238,12 +241,25 @@ public class PlotMaker
             return;
         }
 
+        Boolean plotNHNM = false;
+        //if (nhnm.length > 0) {
+        if (nhnm != null) {
+            plotNHNM = true;
+        }
+
         final XYSeries series1 = new XYSeries(modelName);
         final XYSeries series2 = new XYSeries(channel.toString());
+        final XYSeries series3 = new XYSeries("NHNM");
 
         for (int k = 0; k < per.length; k++){
             series1.add( per[k], model[k] );
             series2.add( per[k], psd[k] );
+        }
+
+        if (plotNHNM){
+            for (int k = 0; k < nhnmPer.length; k++){
+                series3.add( nhnmPer[k], nhnm[k] );
+            }
         }
 
         //final XYItemRenderer renderer = new StandardXYItemRenderer();
@@ -251,19 +267,25 @@ public class PlotMaker
         Rectangle rectangle = new Rectangle(3, 3);
 
         renderer.setSeriesShape(0, rectangle);
-        renderer.setSeriesShapesVisible(0, true);
-        renderer.setSeriesLinesVisible(0, false);
+        renderer.setSeriesShapesVisible(0, false);
+        renderer.setSeriesLinesVisible(0, true);
 
         renderer.setSeriesShape(1, rectangle);
         renderer.setSeriesShapesVisible(1, true);
         renderer.setSeriesLinesVisible(1, false);
 
-        Paint[] paints = new Paint[] { Color.black, Color.red };
+        renderer.setSeriesShape(2, rectangle);
+        renderer.setSeriesShapesVisible(2, false);
+        renderer.setSeriesLinesVisible(2, true);
+
+        Paint[] paints = new Paint[] { Color.blue, Color.red , Color.black};
         renderer.setSeriesPaint(0, paints[0]);
         renderer.setSeriesPaint(1, paints[1]);
+        renderer.setSeriesPaint(2, paints[2]);
 
         final NumberAxis rangeAxis1 = new NumberAxis("PSD 10log10(m**2/s**4)/Hz dB");
-        rangeAxis1.setRange( new Range(-190, -120));
+        //rangeAxis1.setRange( new Range(-190, -120));
+        rangeAxis1.setRange( new Range(-190, -95));
         rangeAxis1.setTickUnit( new NumberTickUnit(5.0) );
 
         final LogarithmicAxis horizontalAxis = new LogarithmicAxis("Period (sec)");
@@ -272,6 +294,10 @@ public class PlotMaker
         final XYSeriesCollection seriesCollection = new XYSeriesCollection();
         seriesCollection.addSeries(series1);
         seriesCollection.addSeries(series2);
+
+        if (plotNHNM){
+            seriesCollection.addSeries(series3);
+        }
 
         final XYPlot xyplot = new XYPlot((XYDataset)seriesCollection, horizontalAxis, rangeAxis1, renderer);
 

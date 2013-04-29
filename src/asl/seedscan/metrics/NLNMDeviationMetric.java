@@ -61,7 +61,10 @@ extends PowerBandMetric
 
     private double[] NLNMPeriods;
     private double[] NLNMPowers;
+    private double[] NHNMPeriods;
+    private double[] NHNMPowers;
     private final String outputDir = "outputs";
+    private Boolean highNoiseModelExists = false;
 
     public void process()
     {
@@ -73,6 +76,7 @@ extends PowerBandMetric
             System.out.format("%s: Did not read in NLNM model --> Do Nothing!\n", getName());
             return;  // Can't do anything if we didn't read in a NLNM model so skip to the next metric
         }
+        highNoiseModelExists = readNHNM();
 
         ArrayList<Channel> channels = stationMeta.getChannelArray("LH"); // Get all LH channels in metadata
 
@@ -181,7 +185,12 @@ extends PowerBandMetric
 
         if (getMakePlots()) {   // Output files like 2012160.IU_ANMO.00-LHZ.png = psd
             PlotMaker plotMaker = new PlotMaker(metricResult.getStation(), channel, metricResult.getDate());
-            plotMaker.plotPSD(NLNMPeriods, NLNMPowers, psdInterp, "NLNM", "psd");
+            if (highNoiseModelExists){
+                plotMaker.plotPSD(NLNMPeriods, NLNMPowers, NHNMPeriods, NHNMPowers, psdInterp, "NLNM", "psd-nlnm");
+            }
+            else {
+                plotMaker.plotPSD(NLNMPeriods, NLNMPowers, psdInterp, "NLNM", "psd-nlnm");
+            }
         }
 
         return deviation;
@@ -249,6 +258,63 @@ extends PowerBandMetric
         return true;
 
     } // end readNLNM
+
+    private Boolean readNHNM() {
+
+        String fileName = "/Users/mth/mth/Projects/asl/resources/NHNM.ascii";
+/**
+        try {
+            fileName = get("nlnm-modelfile");
+        } catch (NoSuchFieldException ex) {
+          System.out.format("%s Error: Model Name ('model') was not specified in config.xml!\n", getName());
+          return false;
+        }
+**/
+
+   // First see if the file exists
+        if (!(new File(fileName).exists())) {
+            System.out.format("=== %s: NLNM file=%s does NOT exist!\n", getName(), fileName);
+            return false;
+        }
+   // Temp ArrayList(s) to read in unknown number of (x,y) pairs:
+        ArrayList<Double> tmpPers = new ArrayList<Double>();
+        ArrayList<Double> tmpPows = new ArrayList<Double>();
+        BufferedReader br = null;
+        try {
+            String line;
+            br = new BufferedReader(new FileReader(fileName));
+            while ((line = br.readLine()) != null) {
+                String[] args = line.trim().split("\\s+") ;
+                if (args.length != 2) {
+                    String message = "==Error reading NLNM: got " + args.length + " args on one line!";
+                    throw new RuntimeException(message);
+                }
+                tmpPers.add( Double.valueOf(args[0].trim()).doubleValue() );
+                tmpPows.add( Double.valueOf(args[1].trim()).doubleValue() );
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (br != null)br.close();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+        Double[] modelPeriods  = tmpPers.toArray(new Double[]{});
+        Double[] modelPowers   = tmpPows.toArray(new Double[]{});
+
+        NHNMPeriods = new double[modelPeriods.length];
+        NHNMPowers  = new double[modelPowers.length];
+
+        for (int i=0; i<modelPeriods.length; i++){
+            NHNMPeriods[i] = modelPeriods[i];
+            NHNMPowers[i]  = modelPowers[i];
+        }
+
+        return true;
+
+    } // end readHLNM
 
 
 } // end class

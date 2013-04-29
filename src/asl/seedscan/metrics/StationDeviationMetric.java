@@ -195,7 +195,7 @@ extends PowerBandMetric
 
         if (getMakePlots()) {  
             PlotMaker plotMaker = new PlotMaker(metricResult.getStation(), channel, metricResult.getDate());
-            plotMaker.plotPSD(ModelPeriods, ModelPowers, psdInterp, "StationModel", "psd-stn");
+            plotMaker.plotPSD(ModelPeriods, ModelPowers, psdInterp, "StationModel", "psd-stnd");
         }
 
         return deviation;
