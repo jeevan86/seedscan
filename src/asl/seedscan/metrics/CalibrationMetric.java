@@ -84,29 +84,42 @@ extends Metric
                 continue;
             }
 
-            double result = computeMetric(channel);
+            //double result = computeMetric(channel);
+        // We're computing 2 results (amp + phase diff) but we don't actually have a way yet to load
+        // 2 responses for a single metric (= single channel + powerband, etc.) into the database
+            double[] results = computeMetric(channel);
 
-            if (result == NO_RESULT) {
+            //if (result == NO_RESULT) {
+            if (results == null) {
                 // Do nothing --> skip to next channel
             }
             else {
-                metricResult.addResult(channel, result, digest);
+                //metricResult.addResult(channel, result, digest);
+                metricResult.addResult(channel, results[0], digest);
+                //for (int i=0; i<results.length; i++) {
+                    //metricResult.addResult(channel, results[i], digest);
+                //}
             }
 
         }// end foreach channel
     } // end process()
 
-    private double computeMetric(Channel channel) {
+    //private double computeMetric(Channel channel) {
+    private double[] computeMetric(Channel channel) {
+
+        double[] result = new double[2];
 
         if (!metricData.hasChannelData(channel)) {
-            return NO_RESULT;
+            return null;
+            //return NO_RESULT;
         }
 
         ArrayList<Blockette320> calBlocks = metricData.getChannelCalData(channel);
 
         if (calBlocks == null) {
             System.out.format("== %s: No cal blocks found for channel=[%s]\n", getName(), channel);
-            return NO_RESULT;
+            return null;
+            //return NO_RESULT;
         }
 
         if (calBlocks.size() > 1) {
@@ -131,7 +144,8 @@ extends Metric
         if ( blockette320.getCalibrationCalendar().get(Calendar.HOUR) == 0 ){
             // This appears to be the 2nd half of a cal that began on the previous day --> Skip
             System.out.format("== %s: cal appears to be the 2nd half of a cal from previous day --> Skip\n", getName());
-            return NO_RESULT;
+            //return NO_RESULT;
+            return null;
         }
 
         if ( calEndEpoch > dataEndEpoch ) {
@@ -200,12 +214,13 @@ extends Metric
         Cmplx ic         = new Cmplx(0.0 , 1.0);
         for (int k=0; k<Gxy.length; k++) {
           // Cal coils generate an ACCERLATION but we want the intrument response to VELOCITY:
-// Note that for metadata stage 1 = 'A' [Laplace rad/s] so that    s=i*2pi*f
-//   most II stations have stage1 = 'B' [Analog Hz] and should use s=i*f
+          // Note that for metadata stage 1 = 'A' [Laplace rad/s] so that    s=i*2pi*f
+          //   most II stations have stage1 = 'B' [Analog Hz] and should use s=i*f
             Cmplx iw  = Cmplx.mul(ic , s*freq[k]);
             Hf[k]     = Cmplx.div( Gxy[k], Gx[k] );
             Hf[k]     = Cmplx.mul( Hf[k], iw );
-            calAmp[k] = Hf[k].mag();
+            //calAmp[k] = Hf[k].mag();
+            calAmp[k] = 20. * Math.log10( Hf[k].mag() );
             calPhs[k] = Hf[k].phs() * 180./Math.PI;
         }
 
@@ -213,26 +228,82 @@ extends Metric
         double[] ampResponse = new double[nf];
         double[] phsResponse = new double[nf];
         for (int k=0; k<nf; k++) {
-            ampResponse[k] = instResponse[k].mag();
+            //ampResponse[k] = instResponse[k].mag();
+            ampResponse[k] = 20. * Math.log10( instResponse[k].mag() );
             phsResponse[k] = instResponse[k].phs() * 180./Math.PI;
         }
-        //Timeseries.writeSacFile(ampResponse, df, "If", getStation(), channel.getChannel());  
 
         final double MIDBAND_PERIOD = 20.0; // Period at which to normalize the H(f) magnitudes
+
         double midFreq = 1.0/MIDBAND_PERIOD;
         int index = (int)(midFreq/df);
-System.out.format("=== df=%f nf=%d fmin=[%f] fmax=[%f] index=%d midFreq=%.4f\n", df, nf, freq[1], freq[nf-1], index, midFreq);
-        double magScale = ampResponse[index] / calAmp[index];
+        double midAmp   = ampResponse[index];
+        double magDiff  = calAmp[index] - midAmp;
+
+        // Scale calAmp to = ampResponse at the mid-band frequency
         for (int k=0; k<nf; k++) {
-            calAmp[k] *= magScale; // Scale estimated inst response to metadata midband gain
+            calAmp[k] -= magDiff;  // subtract offset from the decibel spectrum
         }
+
+        // Get cornerFreq = Freq where ampResponse falls by -3dB below midAmp
+        double cornerFreq = 0.;
+        for (int k=index; k>=0; k--) {
+            if (Math.abs(midAmp - ampResponse[k]) >= 3) {
+                cornerFreq = freq[k];
+                break;
+            }
+        }
+
+        if (cornerFreq <= 0.) {
+            throw new RuntimeException("CalibrationMetric: Error - cornerFreq == 0!");
+        }
+        // Get an octave window of periods with cornerPer in the Geometric Mean: Tc = sqrt(Ts*Tl)
+        double cornerPer = 1./cornerFreq;
+        double Ts = cornerPer / Math.sqrt(2);
+        double Tl = 2.*Ts;
+
+        double diff = 0.;
+        int nPer = 0;
+        for (int k=0; k<freq.length; k++) {
+            double per = 1./freq[k];
+            if ( (per >= Ts) && (per <= Tl) ){
+                diff += Math.abs( ampResponse[k] - calAmp[k] );
+                nPer++;
+               //System.out.format("== Count Per[%d]=%.2f ampResp[k]-calAmp[k]=%.6f\n", nPer, per, Math.abs(ampResponse[k]-calAmp[k]) );
+            }
+        }
+
+        if (nPer <= 0) {}
+        diff /= (double)nPer;
+        System.out.format("== diff=%.6f\n", diff);
+
+        // Compute phase difference between Tl and Tmin (= 1/1.0 Hz)
+        double Tmin = 1.;
+        double phaseDiff = 0.;
+        nPer = 0;
+        for (int k=0; k<freq.length; k++) {
+            double per = 1./freq[k];
+            if ( (per >= Tmin) && (per <= Tl) ){
+                phaseDiff += Math.abs( phsResponse[k] - calPhs[k] );
+                nPer++;
+               //System.out.format("== Count Per[%d]=%.2f phsResp[k]-calPhs[k]=%.6f\n", nPer, per, Math.abs(phsResponse[k]-calPhs[k]) );
+            }
+        }
+        if (nPer <= 0) {}
+        phaseDiff /= (double)nPer;
+        System.out.format("== phaseDiff=%.6f\n", phaseDiff);
 
         if (getMakePlots()){
             PlotMaker plotMaker = new PlotMaker(metricResult.getStation(), channel, metricResult.getDate());
             plotMaker.plotSpecAmp2(freq, ampResponse, phsResponse, calAmp, calPhs, "calib");
         }
 
-        return 0.0;
+    // diff = average absolute diff (in dB) between calAmp and ampResponse in (per) octave containing Tc: Ts < Tc < Tl
+    // phaseDiff = average absolute diff (in deg) between calPhs and phsResponse over all periods from Nyq to Tl
+        result[0]=diff;
+        result[1]=phaseDiff;
+
+        return result;
 
     } // end computeMetric()
 

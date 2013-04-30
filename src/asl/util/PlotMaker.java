@@ -408,10 +408,13 @@ System.out.format("== plotSpecAmp2: nfreq=%d npts=%d pngName=%s\n", freq.length,
 
         double maxdB = 0.;
         for (int k = 0; k < freq.length; k++){
-            double dB = 20. * Math.log10( amp1[k] );
+            double dB = amp1[k];
+            //double dB = 20. * Math.log10( amp1[k] );
             //series1.add( freq[k], dB );
-            series1.add( freq[k], 20. * Math.log10( amp1[k] ) );
-            series1b.add(freq[k], 20. * Math.log10( amp2[k] ));
+            //series1.add( freq[k], 20. * Math.log10( amp1[k] ) );
+            //series1b.add(freq[k], 20. * Math.log10( amp2[k] ));
+            series1.add( freq[k], amp1[k] );
+            series1b.add(freq[k], amp2[k] );
             series2.add( freq[k], phase1[k] );
             series2b.add(freq[k], phase2[k] );
             if (dB > maxdB) { maxdB = dB;}
