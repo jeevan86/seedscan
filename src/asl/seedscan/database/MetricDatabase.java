@@ -64,7 +64,7 @@ public class MetricDatabase
         }
     }
 
-    public Boolean isConnected()
+    public boolean isConnected()
     {
     	Connection foo = getConnection();
         if (foo == null) 

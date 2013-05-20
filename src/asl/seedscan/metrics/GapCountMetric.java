@@ -19,7 +19,7 @@
 package asl.seedscan.metrics;
 
 import java.util.logging.Logger;
-import java.util.ArrayList;
+import java.util.List;
 
 import java.nio.ByteBuffer;
 import asl.util.Hex;
@@ -51,7 +51,7 @@ extends Metric
 
 
     // Get a sorted list of continuous channels for this stationMeta and loop over:
-        ArrayList<Channel> channels = stationMeta.getContinuousChannels();
+        List<Channel> channels = stationMeta.getContinuousChannels();
 
         for (Channel channel : channels){
 
@@ -80,7 +80,7 @@ extends Metric
 
     private double computeMetric(Channel channel) {
 
-        ArrayList<DataSet>datasets = metricData.getChannelData(channel);
+        List<DataSet>datasets = metricData.getChannelData(channel);
         if (datasets == null) {  // No data --> Skip this channel
             System.out.format("== Error: Metric=%s --> No datasets found for channel=[%s]\n",
                                getName(), channel);

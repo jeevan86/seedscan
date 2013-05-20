@@ -36,7 +36,7 @@ extends TaskThread<MetricResult>
 		this.metricDB = metricDB;
 	}
 
-    public Boolean isConnected() {
+    public boolean isConnected() {
         //System.out.println("== MetricInjector.isConnected() = " + metricDB.isConnected() );
         return metricDB.isConnected();
     }

@@ -20,6 +20,7 @@ package asl.seedscan.metrics;
 
 import java.util.logging.Logger;
 import java.util.ArrayList;
+import java.util.List;
 
 import java.nio.ByteBuffer;
 import asl.util.Hex;
@@ -58,10 +59,7 @@ extends Metric
 
     // Get a sorted list of continuous channels for this stationMeta and loop over:
 
-        //ArrayList<Channel> channels = stationMeta.getChannelArray("BH");
-        //ArrayList<Channel> channels = stationMeta.getChannelArray("00","BH");
-
-        ArrayList<Channel> channels = stationMeta.getChannelArray("LH");
+        List<Channel> channels = stationMeta.getChannelArray("LH");
 /**
         ArrayList<Channel> channels = new ArrayList<Channel>();
         channels.add( new Channel("00", "LHZ") );

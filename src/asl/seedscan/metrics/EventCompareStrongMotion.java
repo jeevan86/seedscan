@@ -91,8 +91,8 @@ extends Metric
             return;
         }
 
-        Boolean compute00 = weHaveChannels("00", "LH");
-        Boolean compute10 = weHaveChannels("10", "LH");
+        boolean compute00 = weHaveChannels("00", "LH");
+        boolean compute10 = weHaveChannels("10", "LH");
 
 /**  iDigest/
  *   iMetric   ChannelX                v. ChannelY

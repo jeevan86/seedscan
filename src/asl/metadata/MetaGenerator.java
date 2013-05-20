@@ -55,7 +55,7 @@ public class MetaGenerator
     private Collection<String> rawDataless;
     private ArrayList<String> strings = null;
     private StationData stationData = null;
-    private Boolean successfullyLoaded = false;
+    private boolean successfullyLoaded = false;
     private String datalessDir = null;
 
     public MetaGenerator(Station station)
@@ -134,7 +134,7 @@ public class MetaGenerator
 
     } // end loadDataless()
 
-    public Boolean isLoaded() {
+    public boolean isLoaded() {
       return successfullyLoaded;
     } 
 

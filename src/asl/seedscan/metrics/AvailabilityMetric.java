@@ -19,7 +19,7 @@
 package asl.seedscan.metrics;
 
 import java.util.logging.Logger;
-import java.util.ArrayList;
+import java.util.List;
 
 import java.nio.ByteBuffer;
 import asl.util.Hex;
@@ -51,7 +51,7 @@ extends Metric
 
     // Get a sorted list of continuous channels for this stationMeta and loop over:
 
-        ArrayList<Channel> channels = stationMeta.getContinuousChannels();
+        List<Channel> channels = stationMeta.getContinuousChannels();
 
         for (Channel channel : channels){
 
@@ -87,7 +87,7 @@ extends Metric
         int expectedPoints  = (int) (chanMeta.getSampleRate() * 24. * 60. * 60.); 
 
      // The actual (=from data) number of samples:
-        ArrayList<DataSet>datasets = metricData.getChannelData(channel);
+        List<DataSet>datasets = metricData.getChannelData(channel);
 
         int ndata    = 0;
 

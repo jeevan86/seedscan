@@ -49,6 +49,7 @@ import seed.Blockette320;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Hashtable;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -80,15 +81,6 @@ public class MetricData
     }
 
   //constructor(s)
-    public MetricData(	MetricReader metricReader, Hashtable<String,
-    					ArrayList<DataSet>> data, StationMeta metadata,
-    					Hashtable<String, String> synthetics)
-    {
-    	this.metricReader = metricReader;
-        this.data = data;
-        this.metadata = metadata;
-        this.synthetics = synthetics;
-    }
 
     public MetricData(	MetricReader metricReader, Hashtable<String,
     					ArrayList<DataSet>> data, StationMeta metadata)
@@ -109,34 +101,6 @@ public class MetricData
         this.metadata     = metadata;
     }
 
-    public MetricData(	Hashtable<String,ArrayList<DataSet>> data, 
-                        Hashtable<String,ArrayList<Integer>> qualityData, StationMeta metadata,
-                        Hashtable<String,ArrayList<Blockette320>> randomCal)
-    {
-    	this.metricReader = null;
-        this.data         = data;
-        this.qualityData  = qualityData;
-        this.randomCal    = randomCal;
-        this.metadata     = metadata;
-    }
-
-
-    public MetricData(	MetricReader metricReader, Hashtable<String,ArrayList<DataSet>> data, 
-                        Hashtable<String,ArrayList<Integer>> qualityData, StationMeta metadata)
-    {
-    	this.metricReader = metricReader;
-        this.data         = data;
-        this.qualityData  = qualityData;
-        this.metadata     = metadata;
-    }
-
-    public MetricData(	MetricReader metricReader,
-    					Hashtable<String, ArrayList<DataSet>> data)
-    {
-    	this.metricReader = metricReader;
-        this.data = data;
-    }
-
     // MTH: Added simple constructor for AvailabilityMetric when there is NO data
     public MetricData( StationMeta metadata)
     {
@@ -148,12 +112,12 @@ public class MetricData
         return metadata;
     }
 
-    public Boolean hasChannels(String location, String band) {
+    public boolean hasChannels(String location, String band) {
         if (!Channel.validLocationCode(location)) {
-            return null;
+            return false;
         }
         if (!Channel.validBandCode(band.substring(0,1)) || !Channel.validInstrumentCode(band.substring(1,2)) ) {
-            return null;
+            return false;
         }
     // First try kcmp = "Z", "1", "2"
         ChannelArray chanArray = new ChannelArray(location, band + "Z", band + "1", band + "2");
@@ -170,8 +134,7 @@ public class MetricData
     }
 
 
-
-    public Boolean hasChannelArrayData(ChannelArray channelArray)
+    public boolean hasChannelArrayData(ChannelArray channelArray)
     {
         for (Channel channel : channelArray.getChannels() ) {
             if (!hasChannelData(channel) )
@@ -180,16 +143,16 @@ public class MetricData
         return true;
     }
 
-    public Boolean hasChannelData(Channel channel)
+    public boolean hasChannelData(Channel channel)
     {
         return hasChannelData( channel.getLocation(), channel.getChannel() );
     }
 
-    public Boolean hasChannelData(String location, String name)
+    public boolean hasChannelData(String location, String name)
     {
         if (data == null) { return false; }
 
-        Boolean hasChannel = false;
+        boolean hasChannel = false;
         String locationName = location + "-" + name;
         Set<String> keys = data.keySet();
         for (String key : keys){          // key looks like "IU_ANMO 00-BHZ (20.0 Hz)"
@@ -225,7 +188,7 @@ public class MetricData
 
  // Random calibration info
 
-    public Boolean hasCalibrationData() {
+    public boolean hasCalibrationData() {
         if (randomCal == null) {
             return false;
         }
@@ -578,7 +541,7 @@ public class MetricData
         }
         ArrayList<DataSet>datasets = getChannelData(channel);
         DataSet data = null;
-        Boolean windowFound = false;
+        boolean windowFound = false;
         int nSet=0;
         for (int i=0; i<datasets.size(); i++) {
             data = datasets.get(i);
@@ -614,7 +577,7 @@ public class MetricData
             return null;
         }
 
-        Boolean spansDay = false;
+        boolean spansDay = false;
         DataSet nextData = null;
 
         if (windowEndEpoch > dataEndEpoch) { // Window appears to span into next day
@@ -762,7 +725,7 @@ public class MetricData
  */
     public void createRotatedChannelData(String location, String channelPrefix)
     {
-        Boolean use12 = true; // Use ?H1,?H2 to rotate, else use ?HN,?HE
+        boolean use12 = true; // Use ?H1,?H2 to rotate, else use ?HN,?HE
 
     // Raw horizontal channels used for rotation
         Channel channel1 = new Channel(location, String.format("%s1", channelPrefix) );
@@ -1084,13 +1047,13 @@ public class MetricData
         return valueDigestChanged(channelArray, id, false);
     }
 
-    public ByteBuffer valueDigestChanged(Channel channel, MetricValueIdentifier id, Boolean forceUpdate)
+    public ByteBuffer valueDigestChanged(Channel channel, MetricValueIdentifier id, boolean forceUpdate)
     {
         ChannelArray channelArray = new ChannelArray(channel.getLocation(), channel.getChannel());
         return valueDigestChanged(channelArray, id, forceUpdate);
     }
 
-    public ByteBuffer valueDigestChanged(ChannelArray channelArray, MetricValueIdentifier id, Boolean forceUpdate)
+    public ByteBuffer valueDigestChanged(ChannelArray channelArray, MetricValueIdentifier id, boolean forceUpdate)
     {
         String metricName = id.getMetricName();
         Station station   = id.getStation();
@@ -1123,7 +1086,7 @@ public class MetricData
     // Check for data and if it doesn't exist, then return a null digest, EXCEPT if this is the
     // AvailabilityMetric that is requesting the digest (in which case return a digest for the metadata alone)
 
-        Boolean availabilityMetric = false;
+        boolean availabilityMetric = false;
         if (id.getMetricName().contains("AvailabilityMetric") ) {
             availabilityMetric = true;
         }

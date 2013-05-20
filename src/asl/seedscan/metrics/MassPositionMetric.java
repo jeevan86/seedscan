@@ -20,13 +20,15 @@ package asl.seedscan.metrics;
 
 import java.nio.ByteBuffer;
 import java.util.logging.Logger;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.GregorianCalendar;
 import java.util.Calendar;
 
-import asl.metadata.*;
-import asl.metadata.meta_new.*;
-import asl.seedsplitter.*;
+import asl.metadata.Channel;
+import asl.metadata.meta_new.ChannelMeta;
+import asl.metadata.meta_new.PolynomialStage;
+import asl.metadata.meta_new.ResponseStage;
+import asl.seedsplitter.DataSet;
 
 import java.nio.ByteBuffer;
 import asl.util.Hex;
@@ -52,8 +54,8 @@ extends Metric
                           getName(), getStation(), getDay() );
 
 
-   // Create a channel array to use for loop
-        ArrayList<Channel> channels = stationMeta.getChannelArray("VM"); // Get all VM? channels in metadata
+   // Get all VM? channels in metadata to use for loop
+        List<Channel> channels = stationMeta.getChannelArray("VM"); 
 
    // Loop over channels, get metadata & data for channel and Calculate Metric
 
@@ -78,7 +80,7 @@ extends Metric
 
     private double computeMetric(Channel channel) {
         ChannelMeta chanMeta = stationMeta.getChanMeta(channel);
-        ArrayList<DataSet>datasets = metricData.getChannelData(channel);
+        List<DataSet>datasets = metricData.getChannelData(channel);
 
         double a0 = 0;
         double a1 = 0;

@@ -29,7 +29,7 @@ extends TaskThread<QueryContext<? extends Object>>
 		this.metricDB = metricDB;
 	}
 
-    public Boolean isConnected() {
+    public boolean isConnected() {
         //System.out.println("== MetricReader.isConnected() = " + metricDB.isConnected() );
         return metricDB.isConnected();
     }

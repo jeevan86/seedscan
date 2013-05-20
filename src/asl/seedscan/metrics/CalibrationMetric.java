@@ -20,6 +20,7 @@ package asl.seedscan.metrics;
 
 import java.util.logging.Logger;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.GregorianCalendar;
@@ -30,9 +31,11 @@ import java.util.TreeSet;
 import java.nio.ByteBuffer;
 import asl.util.Hex;
 
-import asl.metadata.*;
-import asl.metadata.meta_new.*;
-import asl.seedsplitter.*;
+import asl.metadata.Channel;
+import asl.metadata.EpochData;
+import asl.metadata.meta_new.ChannelMeta;
+import asl.metadata.meta_new.ResponseStage;
+import asl.seedsplitter.DataSet;
 import asl.util.PlotMaker;
 
 import seed.Blockette320;
@@ -70,7 +73,7 @@ extends Metric
         }
 
     // Get all BH? channels for this stationMeta:
-        ArrayList<Channel> channels = stationMeta.getChannelArray("BH");
+        List<Channel> channels = stationMeta.getChannelArray("BH");
 
         for (Channel channel : channels){
 
@@ -168,7 +171,7 @@ extends Metric
                 String nextChannelExtension = blockette320.getCalInputChannel();  // e.g., "BC0"
             // Compare millisecs between end of previous cal and start of this cal
                 if ( Math.abs(nextCalStartEpoch - calEndEpoch) < 1800000 ) { // They are within 1800 (?) secs of each other
-                    Boolean calSpansNextDay = true;
+                    boolean calSpansNextDay = true;
                     calDuration += nextCalDuration; 
                 }
             }

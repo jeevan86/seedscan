@@ -19,6 +19,7 @@
 package asl.metadata.meta_new;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Hashtable;
@@ -159,7 +160,7 @@ public class StationMeta
  *                                   channels[4] = "10-LH1" -or- "10-LHN"                             
  *                                   channels[5] = "10-LH2" -or- "10-LHE"                             
  */
-    public ArrayList<Channel> getZNEChannelArray(String band) {
+    public List<Channel> getZNEChannelArray(String band) {
         if (!Channel.validBandCode(band.substring(0,1)) || !Channel.validInstrumentCode(band.substring(1,2)) ) {
             return null;
         }
@@ -197,7 +198,7 @@ public class StationMeta
  *                                   "10-LHZ", "10-LH1", "10-LH2", ..
  *                           -or-    "---LHZ", "---LH1", "---LH2", "---LHN", "---LHE", 
  */
-    public ArrayList<Channel> getChannelArray(String band) {
+    public List<Channel> getChannelArray(String band) {
         if (!Channel.validBandCode(band.substring(0,1)) || !Channel.validInstrumentCode(band.substring(1,2)) ) {
             return null;
         }
@@ -267,7 +268,7 @@ public class StationMeta
  *  Same as above but limit return channels to those containing the specified location
  *       as well as the specified band
  */
-    public ArrayList<Channel> getChannelArray(String location, String band) {
+    public List<Channel> getChannelArray(String location, String band) {
         if (!Channel.validLocationCode(location)) {
             return null;
         }
@@ -293,16 +294,14 @@ public class StationMeta
 /**
  *  Return a (sorted) ArrayList of channels that are continuous (channelFlag="C?")
  **/
-    public ArrayList<Channel> getContinuousChannels() {
+    public List<Channel> getContinuousChannels() {
         TreeSet<ChannelKey> keys = new TreeSet<ChannelKey>();
         keys.addAll(channels.keySet());
 
         ArrayList<Channel> channelArrayList = new ArrayList<Channel>();
 
         for (ChannelKey channelKey : keys){
-
             Channel channel = channelKey.toChannel();
-
             String channelFlags  = getChanMeta(channelKey).getChannelFlags();
 
             if (channelFlags.substring(0,1).equals("C") ){
@@ -313,18 +312,18 @@ public class StationMeta
     }
 
 
- // Boolean hasChannel methods:
+ // boolean hasChannel methods:
 
-    public Boolean hasChannel(ChannelKey channelKey) {
+    public boolean hasChannel(ChannelKey channelKey) {
       return channels.containsKey(channelKey);
     }
-    public Boolean hasChannel(Channel channel) {
+    public boolean hasChannel(Channel channel) {
       return hasChannel(new ChannelKey(channel.getLocation(), channel.getChannel()) );
     }
-    public Boolean hasChannel(String location, String name) {
+    public boolean hasChannel(String location, String name) {
       return hasChannel(new ChannelKey(location, name) );
     }
-    public Boolean hasChannels(ChannelArray channelArray) {
+    public boolean hasChannels(ChannelArray channelArray) {
       for (Channel channel : channelArray.getChannels() ){
         if (!hasChannel(channel)){
             return false;
@@ -332,7 +331,7 @@ public class StationMeta
       }
       return true; // If we made it to here then it must've found all channels
     }
-    public Boolean hasChannels(String location, String chan1, String chan2, String chan3) {
+    public boolean hasChannels(String location, String chan1, String chan2, String chan3) {
       if ( hasChannel(location, chan1) && hasChannel(location, chan2) && hasChannel(location, chan3) ){
           return true;
       }
@@ -341,12 +340,14 @@ public class StationMeta
       }
     }
 
-    public Boolean hasChannels(String location, String band) {
+    public boolean hasChannels(String location, String band) {
         if (!Channel.validLocationCode(location)) {
-            return null;
+            //return null;
+            return false;
         }
         if (!Channel.validBandCode(band.substring(0,1)) || !Channel.validInstrumentCode(band.substring(1,2)) ) {
-            return null;
+            //return null;
+            return false;
         }
     // First try kcmp = "Z", "1", "2"
         ChannelArray chanArray = new ChannelArray(location, band + "Z", band + "1", band + "2");
@@ -385,7 +386,7 @@ public class StationMeta
         String origChannelName = null;
         double azimuth;
 
-        Boolean found = false;
+        boolean found = false;
 
         if (derivedChannelName.contains("ND") ) {                         // Derived     Orig
             origChannelName = derivedChannelName.replace("ND", "1");       // "LHND" --> "LH1"

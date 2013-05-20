@@ -47,7 +47,7 @@ public class Channel
  *  but will trip over derived channels (e.g., "00-10, LHND-LHND") and
  *  non-seismic channels (e.g., LDF)
  */
-    public static Boolean validLocationCode(String location) {
+    public static boolean validLocationCode(String location) {
         if (location.length() != 2) {
             return false;
         }
@@ -59,7 +59,7 @@ public class Channel
         }
         return true;
     }
-    public static Boolean validBandCode(String band) {
+    public static boolean validBandCode(String band) {
         if (band.length() != 1) {
             return false;
         }
@@ -70,7 +70,7 @@ public class Channel
         }
         return true;
     }
-    public static Boolean validInstrumentCode(String instrument) {
+    public static boolean validInstrumentCode(String instrument) {
         if (instrument.length() != 1) {
             return false;
         }
@@ -81,7 +81,7 @@ public class Channel
         }
         return true;
     }
-    public static Boolean validOrientationCode(String orientation) {
+    public static boolean validOrientationCode(String orientation) {
         if (orientation.length() != 1) {
             return false;
         }

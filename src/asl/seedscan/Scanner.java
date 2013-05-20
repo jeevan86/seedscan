@@ -275,7 +275,7 @@ public class Scanner
         String path = pathEngine.makePath(scan.getPathPattern());
         File dir = new File(path);
         File[] files = null;
-        Boolean dataExists = true;
+        boolean dataExists = true;
 
 /** MTH: There are some non-seed files (e.g., data_avail.txt) included in files[].
  **      For some reason the file netday.index causes the splitter to hang.

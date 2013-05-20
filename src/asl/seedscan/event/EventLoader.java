@@ -45,8 +45,8 @@ public class EventLoader
     private static final Logger logger = Logger.getLogger("asl.seedscan.event.EventLoader");
 
     private static String  eventsDirectory = null;
-    private static Boolean eventsDirectoryLoaded = false;
-    private static Boolean eventsDirectoryValid  = false;
+    private static boolean eventsDirectoryLoaded = false;
+    private static boolean eventsDirectoryValid  = false;
 
     private static Hashtable<String, Hashtable<String, EventCMT>> cmtTree = null;
 

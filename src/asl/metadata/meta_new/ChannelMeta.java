@@ -65,7 +65,7 @@ public class ChannelMeta extends MemberDigest
     private double azimuth;
     private double depth;
     private Calendar metaTimestamp = null; // This should be same as the stationMeta metaTimestamp
-    private Boolean dayBreak = false;      // This will be set to true if channelMeta changes during requested day
+    private boolean dayBreak = false;      // This will be set to true if channelMeta changes during requested day
     private Hashtable<Integer, ResponseStage> stages;
 
     private Station station;
@@ -284,7 +284,7 @@ public class ChannelMeta extends MemberDigest
     {
         return channelFlags;
     }
-    public Boolean hasDayBreak() {
+    public boolean hasDayBreak() {
         return dayBreak;
     }
     public Calendar getTimestamp() {
@@ -326,8 +326,8 @@ public class ChannelMeta extends MemberDigest
     {
 //  If we have a seismic channel we need to ensure a valid response
 
-        Boolean isSeismicChannel = false;
-        Boolean isMassPosition   = false;
+        boolean isSeismicChannel = false;
+        boolean isMassPosition   = false;
 
         String seismicCodes = "HN"; // The 2nd char of channels: BH?, LH?, UH?, VH?, EH?, HH?, EN?, LN?, HN?
         if (seismicCodes.contains(this.getName().substring(1,2))) {

@@ -26,6 +26,7 @@ import java.nio.ByteBuffer;
 
 import java.util.logging.Logger;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Calendar;
 
 import asl.metadata.Channel;
@@ -64,7 +65,7 @@ extends PowerBandMetric
     private double[] NHNMPeriods;
     private double[] NHNMPowers;
     private final String outputDir = "outputs";
-    private Boolean highNoiseModelExists = false;
+    private boolean highNoiseModelExists = false;
 
     public void process()
     {
@@ -78,7 +79,8 @@ extends PowerBandMetric
         }
         highNoiseModelExists = readNHNM();
 
-        ArrayList<Channel> channels = stationMeta.getChannelArray("LH"); // Get all LH channels in metadata
+// Get all LH channels in metadata
+        List<Channel> channels = stationMeta.getChannelArray("LH"); 
 
    // Loop over channels, get metadata & data for channel and Calculate Metric
 
@@ -204,7 +206,7 @@ extends PowerBandMetric
  **             NLNM Powers  will be read into NLNMPowers[]
  **/
 
-    private Boolean readNLNM() {
+    private boolean readNLNM() {
 
         String fileName = null;
         try {
@@ -259,7 +261,7 @@ extends PowerBandMetric
 
     } // end readNLNM
 
-    private Boolean readNHNM() {
+    private boolean readNHNM() {
 
         String fileName = "/Users/mth/mth/Projects/asl/resources/NHNM.ascii";
 /**

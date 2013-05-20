@@ -26,6 +26,7 @@ import java.nio.ByteBuffer;
 
 import java.util.logging.Logger;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Calendar;
 
 import asl.metadata.Channel;
@@ -79,7 +80,8 @@ extends PowerBandMetric
         ArchivePath pathEngine = new ArchivePath(new Station(stationMeta.getNetwork(), stationMeta.getStation() ) );
         ModelDir  = pathEngine.makePath(pathPattern);
 
-        ArrayList<Channel> channels = stationMeta.getChannelArray("LH"); // Get all LH channels in metadata
+    // Get all LH channels in metadata
+        List<Channel> channels = stationMeta.getChannelArray("LH"); 
 
    // Loop over channels, get metadata & data for channel and Calculate Metric
 
@@ -203,7 +205,7 @@ extends PowerBandMetric
     } // end computeMetric()
 
 
-    private Boolean readModel(String fName) {
+    private boolean readModel(String fName) {
 
    // ../stationmodel/IU_ANMO/ANMO.00.LHZ.90
         String fileName = ModelDir + fName;

@@ -20,6 +20,7 @@ package asl.seedscan.metrics;
 
 import java.util.logging.Logger;
 import java.util.ArrayList;
+import java.util.List;
 
 import java.nio.ByteBuffer;
 import asl.util.Hex;
@@ -50,7 +51,7 @@ extends Metric
                           getName(), getStation(), getDay() );
 
     // Get a sorted list of continuous channels for this stationMeta and loop over:
-        ArrayList<Channel> channels = stationMeta.getContinuousChannels();
+        List<Channel> channels = stationMeta.getContinuousChannels();
 
         for (Channel channel : channels){
 
@@ -82,7 +83,7 @@ extends Metric
             return NO_RESULT;
         }
 
-        ArrayList<Integer> qualities = metricData.getChannelQualityData(channel);
+        List<Integer> qualities = metricData.getChannelQualityData(channel);
 
         if (qualities == null) {
             return NO_RESULT;
@@ -94,7 +95,7 @@ extends Metric
         for (int i=0; i<qualities.size(); i++){
             totalQuality += qualities.get(i);
             totalPoints++;
-//System.out.format("== TimingQuality: quality[%d] = %d\n", i, qualities.get(i) );
+          //System.out.format("== TimingQuality: quality[%d] = %d\n", i, qualities.get(i) );
         } 
 
         double averageQuality = 0.;

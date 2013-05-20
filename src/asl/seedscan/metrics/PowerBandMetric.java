@@ -77,7 +77,7 @@ extends Metric
     	return formatted;
     }
 
-    protected static Boolean checkPowerBand(double lowPeriod, double highPeriod, double Tmin, double Tmax) {
+    protected static boolean checkPowerBand(double lowPeriod, double highPeriod, double Tmin, double Tmax) {
 
         if (lowPeriod >= highPeriod) {
             StringBuilder message = new StringBuilder();

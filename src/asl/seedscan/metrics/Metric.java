@@ -50,8 +50,8 @@ public abstract class Metric
     private Hashtable<String, String> arguments;
     private Hashtable<CrossPowerKey, CrossPower> crossPowerMap;
 
-    private Boolean forceUpdate = false;
-    private Boolean makePlots   = false;
+    private boolean forceUpdate = false;
+    private boolean makePlots   = false;
 
     protected final double NO_RESULT = -999.999; 
 
@@ -177,13 +177,13 @@ public abstract class Metric
     private void setForceUpdate(){
         this.forceUpdate = true;
     }
-    public Boolean getForceUpdate(){
+    public boolean getForceUpdate(){
         return forceUpdate;
     }
     private void setMakePlots(){
         this.makePlots = true;
     }
-    public Boolean getMakePlots(){
+    public boolean getMakePlots(){
         return makePlots;
     }
 
@@ -314,7 +314,7 @@ public abstract class Metric
 
 
 
-    public Boolean weHaveChannels(String location, String band) {
+    public boolean weHaveChannels(String location, String band) {
         if (!stationMeta.hasChannels(location, band)) {
             return false;
         }
