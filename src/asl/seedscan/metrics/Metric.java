@@ -18,30 +18,24 @@
  */
 package asl.seedscan.metrics;
 
-import asl.metadata.*;
-import asl.metadata.meta_new.*;
-import asl.seedscan.database.MetricValueIdentifier;
-import asl.seedsplitter.DataSet;
-import asl.seedscan.event.*;
-
+import asl.metadata.Channel;
+import asl.metadata.EpochData;
+import asl.metadata.meta_new.ChannelMeta;
+import asl.metadata.meta_new.StationMeta;
 import asl.metadata.meta_new.ChannelMeta.ResponseUnits;
 
+import asl.seedscan.database.MetricValueIdentifier;
+import asl.seedscan.event.EventCMT;
+
 import freq.Cmplx;
-import timeutils.Timeseries;
 import timeutils.PSD;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.ArrayList;
 import java.util.logging.Logger;
 
-import asl.seedsplitter.BlockLocator;
-import asl.seedsplitter.ContiguousBlock;
-import asl.seedsplitter.DataSet;
-import asl.seedsplitter.SeedSplitter;
-import asl.seedsplitter.Sequence;
-import asl.seedsplitter.SequenceRangeException;
 import sac.SacTimeSeries;
+
 
 public abstract class Metric
 {
@@ -60,7 +54,6 @@ public abstract class Metric
     protected MetricResult metricResult = null;
 
     private Hashtable<String, EventCMT> eventTable = null;
-    //private Hashtable<String, SacTimeSeries> eventSynthetics = null;
     private Hashtable<String, Hashtable<String, SacTimeSeries>> eventSynthetics = null;
 
     public Metric()
@@ -72,7 +65,18 @@ public abstract class Metric
         addArgument("makeplots");
         addArgument("forceupdate");
     }
-    
+
+    public void setData(MetricData metricData)
+    {
+        this.metricData = metricData;
+        stationMeta = metricData.getMetaData();
+        metricResult = new MetricResult(stationMeta, getName());
+    }
+
+    public abstract long getVersion();
+    public abstract String getName();
+    public abstract void process();
+
     public MetricValueIdentifier createIdentifier(Channel channel)
     {
     	return new MetricValueIdentifier(	metricResult.getDate(), metricResult.getMetricName(),
@@ -118,7 +122,6 @@ public abstract class Metric
         return crossPower;
     }
 
-    //public Hashtable<String, Hashtable<String, SacTimeSeries>> getEventSynthetics()
     public Hashtable<String, SacTimeSeries> getEventSynthetics(String eventIdString)
     {
             if (eventSynthetics.containsKey( eventIdString ) ){
@@ -135,7 +138,6 @@ public abstract class Metric
             return eventTable;
     }
 
-    //public void setEventSynthetics(Hashtable<String, SacTimeSeries> eventSynthetics)
     public void setEventSynthetics(Hashtable<String, Hashtable<String, SacTimeSeries>> eventSynthetics)
     {
         this.eventSynthetics = eventSynthetics;
@@ -144,13 +146,6 @@ public abstract class Metric
     public void setEventTable(Hashtable<String, EventCMT> events)
     {
         eventTable = events;
-    }
-
-    public void setData(MetricData metricData)
-    {
-        this.metricData = metricData;
-        stationMeta = metricData.getMetaData();
-        metricResult = new MetricResult(stationMeta, getName());
     }
 
     public MetricResult getMetricResult()
@@ -167,13 +162,6 @@ public abstract class Metric
         return stationMeta.getStation();
     }
 
-    public abstract long getVersion();
-    public abstract String getName();
-    public abstract void process();
-
-/**
- * MTH
- */
     private void setForceUpdate(){
         this.forceUpdate = true;
     }
@@ -187,8 +175,18 @@ public abstract class Metric
         return makePlots;
     }
 
+    public boolean weHaveChannels(String location, String band) {
+        if (!stationMeta.hasChannels(location, band)) {
+            return false;
+        }
+        if (!metricData.hasChannels(location, band)) {
+            return false;
+        }
+        return true;
+    }
 
-// Dynamic argumemnt managment
+
+// Dynamic argument managment
     protected final void addArgument(String name)
     {
         arguments.put(name, "");
@@ -311,18 +309,6 @@ public abstract class Metric
         return psd;
 
     } // end computePSD
-
-
-
-    public boolean weHaveChannels(String location, String band) {
-        if (!stationMeta.hasChannels(location, band)) {
-            return false;
-        }
-        if (!metricData.hasChannels(location, band)) {
-            return false;
-        }
-        return true;
-    }
 
 
 } // end class

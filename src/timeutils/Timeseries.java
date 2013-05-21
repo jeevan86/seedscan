@@ -320,6 +320,57 @@ public class Timeseries
         }
     }
 
+    public static void rotate_xy_to_ne(double az1, double az2, double[] x, double[] y, double[] n, double[] e) {
+
+    // INITIALLY: Lets assume the horizontal channels are PERPENDICULAR and use a single azimuth to rotate
+    //  We'll check the azimuths and flip signs to put channel1 to +N half and channel 2 to +E
+
+        int quadrant=0;
+        double  azimuth=-999;
+        int sign1 = 1;
+        int sign2 = 1;
+        if (az1 >= 0 && az1 < 90) {
+            quadrant = 1;
+            azimuth  = az1;
+        }
+        else if (az1 >= 90 && az1 < 180) {
+            quadrant = 2;
+            azimuth  = az1 - 180;
+            sign1    =-1;
+        }
+        else if (az1 >= 180 && az1 < 270) {
+            quadrant = 3;
+            azimuth  = az1 - 180;
+            sign1    =-1;
+        }
+        else if (az1 >= 270 && az1 < 360) {
+            quadrant = 4;
+            azimuth  = az1 - 360;
+        }
+        else { // ?? 
+            System.out.format("== OOPS: MetricData.createRotatedChannels(): Don't know how to rotate az1=%f\n", az1);
+        }
+
+        sign2 = 1;
+        if (az2 >= 0 && az2 < 180) {
+            sign2    = 1;
+        }
+        else if (az2 >= 180 && az2 < 360) {
+            sign2    =-1;
+        }
+        else { // ?? 
+            System.out.format("== OOPS: MetricData.createRotatedChannels(): Don't know how to rotate az2=%f\n", az2);
+        }
+
+        double cosAz   = Math.cos( azimuth * Math.PI/180 );
+        double sinAz   = Math.sin( azimuth * Math.PI/180 );
+
+        for (int i=0; i<x.length; i++){
+            n[i] = sign1 * x[i] * cosAz - sign2 * y[i] * sinAz;
+            e[i] = sign1 * x[i] * sinAz + sign2 * y[i] * cosAz;
+        }
+
+    } // end rotate_xy_to_ne
 
 }
 

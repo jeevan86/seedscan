@@ -19,7 +19,6 @@
 package asl.seedscan.metrics;
 
 import java.util.logging.Logger;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Calendar;
 import java.util.Enumeration;
@@ -117,7 +116,7 @@ extends Metric
             //return NO_RESULT;
         }
 
-        ArrayList<Blockette320> calBlocks = metricData.getChannelCalData(channel);
+        List<Blockette320> calBlocks = metricData.getChannelCalData(channel);
 
         if (calBlocks == null) {
             System.out.format("== %s: No cal blocks found for channel=[%s]\n", getName(), channel);
@@ -136,7 +135,7 @@ extends Metric
         long calEndEpoch        = calStartEpoch + calDuration;
         String channelExtension = blockette320.getCalInputChannel();  // e.g., "BC0" or "BC1"
 
-        ArrayList<DataSet> data = metricData.getChannelData(channel);
+        List<DataSet> data = metricData.getChannelData(channel);
         long dataStartEpoch     = data.get(0).getStartTime() / 1000;  // Convert microsecs --> millisecs
         long dataEndEpoch       = data.get(0).getEndTime()   / 1000;  // ...
         double srate            = data.get(0).getSampleRate();

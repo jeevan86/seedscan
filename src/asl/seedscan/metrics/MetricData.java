@@ -18,11 +18,8 @@
  */
 package asl.seedscan.metrics;
 
-import asl.seedscan.database.*;
-
-import sac.SacTimeSeries;     // Temp testing
-import sac.SacHeader;
-
+import asl.seedscan.database.MetricReader;
+import asl.seedscan.database.MetricValueIdentifier;
 
 import asl.metadata.Channel;
 import asl.metadata.ChannelArray;
@@ -31,6 +28,7 @@ import asl.metadata.Station;
 import asl.metadata.meta_new.StationMeta;
 import asl.metadata.meta_new.ChannelMeta;
 import asl.metadata.meta_new.ChannelMeta.ResponseUnits;
+
 import asl.security.MemberDigest;
 import asl.seedsplitter.BlockLocator;
 import asl.seedsplitter.ContiguousBlock;
@@ -39,12 +37,9 @@ import asl.seedsplitter.SeedSplitter;
 import asl.seedsplitter.IllegalSampleRateException;
 import asl.seedsplitter.Sequence;
 import asl.seedsplitter.SequenceRangeException;
-import asl.util.Hex;
-import asl.util.PlotMaker;
 
 import timeutils.Timeseries;
 import freq.Cmplx;
-
 import seed.Blockette320;
 
 import java.nio.ByteBuffer;
@@ -112,13 +107,17 @@ public class MetricData
         return metadata;
     }
 
+    // -----------------  boolean hasChannel(s) methods ----------------------------------------- //
+
     public boolean hasChannels(String location, String band) {
+/** Not sure why this is here:
         if (!Channel.validLocationCode(location)) {
             return false;
         }
         if (!Channel.validBandCode(band.substring(0,1)) || !Channel.validInstrumentCode(band.substring(1,2)) ) {
             return false;
         }
+**/
     // First try kcmp = "Z", "1", "2"
         ChannelArray chanArray = new ChannelArray(location, band + "Z", band + "1", band + "2");
         if (hasChannelArrayData(chanArray)) {
@@ -132,7 +131,6 @@ public class MetricData
     // If we're here then we didn't find either combo --> return false
         return false;
     }
-
 
     public boolean hasChannelArrayData(ChannelArray channelArray)
     {
@@ -152,16 +150,18 @@ public class MetricData
     {
         if (data == null) { return false; }
 
-        boolean hasChannel = false;
         String locationName = location + "-" + name;
         Set<String> keys = data.keySet();
         for (String key : keys){          // key looks like "IU_ANMO 00-BHZ (20.0 Hz)"
             if (key.contains(locationName) ){
-                hasChannel = true;
+                return true;
             }
         }
-        return hasChannel;           
+        return false;           
     }
+
+
+    // -----------------  get ChannelData methods ----------------------------------------- //
 
 /**
  *
@@ -186,17 +186,14 @@ public class MetricData
         return getChannelData(channel.getLocation(), channel.getChannel() );           
     }
 
- // Random calibration info
+// ----- Random CalibrationData ------------------//
 
     public boolean hasCalibrationData() {
         if (randomCal == null) {
             return false;
         }
-        else {
-            return true;
-        }
+        return true;
     }
-
     public ArrayList<Blockette320> getChannelCalData(Channel channel)
     {
         return getChannelCalData(channel.getLocation(), channel.getChannel() );           
@@ -204,7 +201,6 @@ public class MetricData
     public ArrayList<Blockette320> getChannelCalData(String location, String name)
     {
         if (!hasCalibrationData()) return null; // randomCal was never created --> Probably not a calibration day
-
         String locationName = location + "-" + name;
         Set<String> keys = randomCal.keySet();
         for (String key : keys){          // key looks like "IU_ANMO 00-BHZ (20.0 Hz)"
@@ -215,7 +211,7 @@ public class MetricData
         return null;           
     }
 
- // Timing quality info:
+// ----- Timing Quality ------------------//
 
     public ArrayList<Integer> getChannelQualityData(Channel channel)
     {
@@ -234,16 +230,20 @@ public class MetricData
         return null;           
     }
 
+// ----- return double[] Waveform methods ------------------//
+
 /**
- *  Return the 3 component displacement (ZNE) in MICRONS for this location + band (e.g., "00-LH") for this time+freq window
+ *  Return the 3 component rotated (ZNE) displacement/velocity/acceleration in MICRONS for this location + band 
+ *         (e.g., "00-LH") for this time+freq window
  *         Return null if ANY of the requested channels of data are not found
  */
-    public ArrayList<double[]> getZNE(ResponseUnits responseUnits, String location, String band, long windowStartEpoch, long windowEndEpoch,
-                                      double f1, double f2, double f3, double f4) 
+    public ArrayList<double[]> getZNE(ResponseUnits responseUnits, String location, String band, long windowStartEpoch, 
+                                      long windowEndEpoch, double f1, double f2, double f3, double f4) 
     {
         ArrayList<double[]> dispZNE = new ArrayList<double[]>();
 
         Channel vertChannel = new Channel(location, (band + "Z") ); // e.g., "00-LHZ"
+        // depending on responseUnits, we can be working with DISP, VEL or ACC below
         double[] z = getFilteredDisplacement(responseUnits, vertChannel, windowStartEpoch, windowEndEpoch, f1, f2, f3, f4);
         dispZNE.add(z);
 
@@ -282,8 +282,7 @@ public class MetricData
         double az1 = (metadata.getChanMeta( channel1 )).getAzimuth(); 
         double az2 = (metadata.getChanMeta( channel2 )).getAzimuth(); 
 
-//System.out.format("==== rotate_xy_to_ne: az1=%.2f az2=%.2f\n", az1, az2);
-        rotate_xy_to_ne(az1, az2, x, y, n, e);
+        Timeseries.rotate_xy_to_ne(az1, az2, x, y, n, e);
 
         dispZNE.add(n);
         dispZNE.add(e);
@@ -291,58 +290,6 @@ public class MetricData
         return dispZNE;
 
     }
-
-    private void rotate_xy_to_ne(double az1, double az2, double[] x, double[] y, double[] n, double[] e) {
-
-    // INITIALLY: Lets assume the horizontal channels are PERPENDICULAR and use a single azimuth to rotate
-    //  We'll check the azimuths and flip signs to put channel1 to +N half and channel 2 to +E
-
-        int quadrant=0;
-        double  azimuth=-999;
-        int sign1 = 1;
-        int sign2 = 1;
-        if (az1 >= 0 && az1 < 90) {
-            quadrant = 1;
-            azimuth  = az1;
-        }
-        else if (az1 >= 90 && az1 < 180) {
-            quadrant = 2;
-            azimuth  = az1 - 180;
-            sign1    =-1;
-        }
-        else if (az1 >= 180 && az1 < 270) {
-            quadrant = 3;
-            azimuth  = az1 - 180;
-            sign1    =-1;
-        }
-        else if (az1 >= 270 && az1 < 360) {
-            quadrant = 4;
-            azimuth  = az1 - 360;
-        }
-        else { // ?? 
-            System.out.format("== OOPS: MetricData.createRotatedChannels(): Don't know how to rotate az1=%f\n", az1);
-        }
-
-        sign2 = 1;
-        if (az2 >= 0 && az2 < 180) {
-            sign2    = 1;
-        }
-        else if (az2 >= 180 && az2 < 360) {
-            sign2    =-1;
-        }
-        else { // ?? 
-            System.out.format("== OOPS: MetricData.createRotatedChannels(): Don't know how to rotate az2=%f\n", az2);
-        }
-
-        double cosAz   = Math.cos( azimuth * Math.PI/180 );
-        double sinAz   = Math.sin( azimuth * Math.PI/180 );
-
-        for (int i=0; i<x.length; i++){
-            n[i] = sign1 * x[i] * cosAz - sign2 * y[i] * sinAz;
-            e[i] = sign1 * x[i] * sinAz + sign2 * y[i] * cosAz;
-        }
-
-    } // end rotate_xy_to_ne
 
 /**
  *  The name is a little misleading: getFilteredDisplacement will return whatever output units
@@ -413,8 +360,7 @@ public class MetricData
         for(int k = 0; k < nf; k++){
             freq[k] = (double)k * df;
         }
-     // Get the instrument response for Displacement
-        //Cmplx[]  instrumentResponse = chanMeta.getResponse(freq, 1);
+     // Get the instrument response for requested ResponseUnits
         Cmplx[]  instrumentResponse = chanMeta.getResponse(freq, responseUnits);
 
         // fft2 returns just the (nf = nfft/2 + 1) positive frequencies
@@ -430,9 +376,8 @@ public class MetricData
         int k3=(int)(f3/df); int k4=(int)(f4/df);
 
         for(int k = 0; k < nf; k++){
-
             double taper = bpass(k,k1,k2,k3,k4);
-        // Remove instrument: We use conjg() here since the SEED inst resp FFT convention F(w) ~ e^-iwt
+        // Remove instrument: We use conjg() here since the SEED inst resp FFT convention F(w) ~ e^-iwt    ****
         //  while the Numerical Recipes convention is F(w) ~ e^+iwt
             xfft[k] = Cmplx.div(xfft[k],instrumentResponse[k].conjg()); // Remove instrument
             xfft[k] = Cmplx.mul(xfft[k],taper);                         // Bandpass
@@ -454,53 +399,10 @@ public class MetricData
             dfoo[i] = (double)foo[i];
         }
         return dfoo;
-
-/**
- * N input time samples --> Pad in real array of length 2N --> four1 outputs N (+ve + -ve) Complex spectra
- *     stored in real array of length 2N.
- * fft2 then returns the (nf = N/2 + 1) +ve freqs + DC + Nyq as nf Complex values: 
- * 
- * nf Complex spec = +ve f's + DC + Nyq ... numbered [0],...[nf-1]
- *    Real            Imag         f
- * xfft[0].re      xfft[0].im      DC
- * xfft[1].re      xfft[1].im      df  
- * xfft[2].re      xfft[2].im      2df
- *     :               :            :
- * xfft[nf-1].re   xfft[nf-1].im  fNyq = (nf-1)df = (N/2)df
- */
-
-/**
- * In order to use fftInverse (which uses four1), I need to repack this complex array into a larger
- * one with the -ve freqs reflected about the Nyquist:
- *    Real            Imag         f
- * xfft[0].re      xfft[0].im      DC
- * xfft[1].re      xfft[1].im      df  
- * xfft[2].re      xfft[2].im      2df
- * xfft[3].re      xfft[3].im      3df
- *     :               :            :
- * xfft[nf-3].re   xfft[nf-3].im  (nf-3)df
- * xfft[nf-2].re   xfft[nf-2].im  (nf-2)df
- * xfft[nf-1].re   xfft[nf-1].im  (nf-1)df = (N/2)df = fNyq
- * xfft[nf  ].re   xfft[nf  ].im -(nf-2)df
- * xfft[nf+1].re   xfft[nf+1].im -(nf-3)df
- *     :               :            :
- * xfft[2nf-5].re  xfft[2nf-5].im  -3df
- * xfft[2nf-4].re  xfft[2nf-4].im  -2df
- * xfft[2nf-3].re  xfft[2nf-3].im  -df
-
- * N/2 - 1 +ve f's
- *     +
- * N/2 - 1 -ve f's
- *     +
- *     2   =DC + Nyq
- *==================
- *  = N freqs total --> nf = N/2+1 --> (N = 2nf-2), indexed from [0], [1], ..., [2nf-3]
- */
-
-
     }
 
 
+/** Doesn't appear to be used (?)
     public ArrayList<double[]> window(ArrayList<double[]> dataArrayIn, double delta, double xstart, double xend) {
 
         int nstart = (int)(xstart/delta);
@@ -520,7 +422,7 @@ public class MetricData
 
         return dataArrayOut;
     }
-
+**/
 
 
 /**
@@ -775,61 +677,10 @@ public class MetricData
         double[]   chanNData = new double[ndata];
         double[]   chanEData = new double[ndata];
 
-    // INITIALLY: Lets assume the horizontal channels are PERPENDICULAR and use a single azimuth to rotate
-    //  We'll check the azimuths and flip signs to put channel1 to +N half and channel 2 to +E
         double az1 = (metadata.getChanMeta( channel1 )).getAzimuth(); 
         double az2 = (metadata.getChanMeta( channel2 )).getAzimuth(); 
 
-        int quadrant=0;
-        double  azimuth=-999;
-        int sign1 = 1;
-        int sign2 = 1;
-        if (az1 >= 0 && az1 < 90) {
-            quadrant = 1;
-            azimuth  = az1;
-        }
-        else if (az1 >= 90 && az1 < 180) {
-            quadrant = 2;
-            azimuth  = az1 - 180;
-            sign1    =-1;
-        }
-        else if (az1 >= 180 && az1 < 270) {
-            quadrant = 3;
-            azimuth  = az1 - 180;
-            sign1    =-1;
-        }
-        else if (az1 >= 270 && az1 < 360) {
-            quadrant = 4;
-            azimuth  = az1 - 360;
-        }
-        else { // ?? 
-            System.out.format("== OOPS: MetricData.createRotatedChannels(): Don't know how to rotate az1=%f\n", az1);
-        }
-
-        sign2 = 1;
-        if (az2 >= 0 && az2 < 180) {
-            sign2    = 1;
-        }
-        else if (az2 >= 180 && az2 < 360) {
-            sign2    =-1;
-        }
-        else { // ?? 
-            System.out.format("== OOPS: MetricData.createRotatedChannels(): Don't know how to rotate az2=%f\n", az2);
-        }
-
-/**
-        System.out.format("== MetricData.createRotatedChannels for [%s-%s]: az1=%.2f --> azimuth=%.2f az2=%.2f"
-          + " Quadrant=%d (sign1=%d, sign2=%d)\n", location, channelPrefix, az1, azimuth, az2, quadrant, sign1, sign2);
-**/
-
-        double cosAz   = Math.cos( azimuth * Math.PI/180 );
-        double sinAz   = Math.sin( azimuth * Math.PI/180 );
-
-        for (int i=0; i<ndata; i++){
-            chanNData[i] = sign1 * chan1Data[i] * cosAz - sign2 * chan2Data[i] * sinAz;
-            chanEData[i] = sign1 * chan1Data[i] * sinAz + sign2 * chan2Data[i] * cosAz;
-        }
-
+        Timeseries.rotate_xy_to_ne(az1, az2, chan1Data, chan2Data, chanNData, chanEData);
 /**
     // az1 = azimuth of the H1 channel/vector.  az2 = azimuth of the H2 channel/vector
     // Find the smallest (<= 180) angle between them --> This *should* be 90 (=orthogonal channels)
@@ -1217,6 +1068,5 @@ public class MetricData
             }
         }
     }
-
 
 }
