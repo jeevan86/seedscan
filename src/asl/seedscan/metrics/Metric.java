@@ -30,6 +30,7 @@ import asl.seedscan.event.EventCMT;
 import freq.Cmplx;
 import timeutils.PSD;
 
+import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.logging.Logger;
@@ -154,12 +155,24 @@ public abstract class Metric
     }
 
     public String getDay()
-    {
+    {   // returns yyyy:ddd:hh:mm
         return (EpochData.epochToDateString( stationMeta.getTimestamp() ) );
     }
+    public String getDOY()
+    {
+        String[] dateArray = getDay().split(":");
+        return dateArray[1];
+    }
+    public String getYear()
+    {
+        String[] dateArray = getDay().split(":");
+        return dateArray[0];
+    }
+    //public String getStation()
     public String getStation()
     {
-        return stationMeta.getStation();
+        //return stationMeta.getStation();
+        return metricResult.getStation().toString();
     }
 
     private void setForceUpdate(){

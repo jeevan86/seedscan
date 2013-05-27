@@ -18,11 +18,15 @@
  */
 package asl.seedscan.metrics;
 
+import java.awt.Color;
+
 import java.io.IOException;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.File;
 import java.nio.ByteBuffer;
+
+import java.awt.BasicStroke;
 
 import java.util.logging.Logger;
 import java.util.ArrayList;
@@ -33,6 +37,8 @@ import asl.metadata.Channel;
 import asl.metadata.Station;
 import asl.util.Hex;
 import asl.util.PlotMaker;
+import asl.util.PlotMaker2;
+import asl.util.Trace;
 
 import timeutils.Timeseries;
 
@@ -66,6 +72,8 @@ extends PowerBandMetric
     private double[] NHNMPowers;
     private final String outputDir = "outputs";
     private boolean highNoiseModelExists = false;
+    
+    private PlotMaker2 plotMaker = null;
 
     public void process()
     {
@@ -106,6 +114,19 @@ extends PowerBandMetric
             }
 
         }// end foreach channel
+
+
+        if (getMakePlots()) {
+            BasicStroke stroke = new BasicStroke(4.0f);
+            for (int iPanel=0; iPanel<3; iPanel++){
+                plotMaker.addTraceToPanel( new Trace(NLNMPeriods, NLNMPowers, "NLNM", Color.black, stroke), iPanel);
+                plotMaker.addTraceToPanel( new Trace(NHNMPeriods, NHNMPowers, "NHNM", Color.black, stroke), iPanel);
+            }
+            // outputs/2012160.IU_ANMO.nlnm-dev.png
+            final String pngName   = String.format("%s/%4s%3s.%s.%s.png", outputDir, getYear(), getDOY(), getStation(), "nlnm-dev" );
+
+            plotMaker.writePlot(pngName);
+        }
 
     } // end process()
 
@@ -186,13 +207,42 @@ extends PowerBandMetric
         deviation = deviation/(double)nPeriods;
 
         if (getMakePlots()) {   // Output files like 2012160.IU_ANMO.00-LHZ.png = psd
-            PlotMaker plotMaker = new PlotMaker(metricResult.getStation(), channel, metricResult.getDate());
-            if (highNoiseModelExists){
-                plotMaker.plotPSD(NLNMPeriods, NLNMPowers, NHNMPeriods, NHNMPowers, psdInterp, "NLNM", "psd-nlnm");
+            if (plotMaker == null) {
+                String plotTitle = String.format("%04d%03d [ %s ] NLNM-Deviation",  metricResult.getDate().get(Calendar.YEAR), 
+                                   metricResult.getDate().get(Calendar.DAY_OF_YEAR), metricResult.getStation() ); 
+                plotMaker = new PlotMaker2(plotTitle);
+                plotMaker.initialize3Panels("LHZ", "LH1/LHN", "LH2/LHE");
             }
-            else {
-                plotMaker.plotPSD(NLNMPeriods, NLNMPowers, psdInterp, "NLNM", "psd-nlnm");
+            int iPanel = 0;
+            int iTrace = 0;
+            Color color = Color.black;
+
+            BasicStroke stroke = new BasicStroke(2.0f);
+
+            if  (channel.getChannel().equals("LHZ")) {
+                iPanel = 0;
             }
+            else if (channel.getChannel().equals("LH1") || channel.getChannel().equals("LHN") ) {
+                iPanel = 1;
+            }
+            else if (channel.getChannel().equals("LH2") || channel.getChannel().equals("LHE") ) {
+                iPanel = 2;
+            }
+            else { // ??
+            }
+
+            if (channel.getLocation().equals("00")) {
+                iTrace = 0;
+                color  = Color.green;
+            }
+            else if (channel.getLocation().equals("10")) {
+                iTrace = 1;
+                color  = Color.red;
+            }
+            else { // ??
+            }
+
+            plotMaker.addTraceToPanel( new Trace(NLNMPeriods, psdInterp, channel.toString(), color, stroke), iPanel);
         }
 
         return deviation;

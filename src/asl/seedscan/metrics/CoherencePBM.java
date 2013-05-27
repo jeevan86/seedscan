@@ -30,11 +30,15 @@ import java.util.logging.Logger;
 import java.util.ArrayList;
 import java.util.Calendar;
 
+import java.awt.BasicStroke;
+import java.awt.Color;
+
 import asl.metadata.Channel;
 import asl.metadata.ChannelArray;
 import asl.metadata.Station;
 import asl.util.Hex;
-import asl.util.PlotMaker;
+import asl.util.PlotMaker2;
+import asl.util.Trace;
 
 import timeutils.Timeseries;
 
@@ -54,6 +58,7 @@ extends PowerBandMetric
     }
 
     private final String outputDir = "outputs";
+    private PlotMaker2 plotMaker = null;
 
     public void process()
     {
@@ -103,6 +108,12 @@ extends PowerBandMetric
             }
 
         }// end foreach channel
+
+        if (getMakePlots()) {
+            final String pngName   = String.format("%s/%4s%3s.%s.%s.png", outputDir, getYear(), getDOY(), getStation(), "coher" );
+            plotMaker.writePlot(pngName);
+        }
+
 
     } // end process()
 
@@ -191,10 +202,41 @@ extends PowerBandMetric
         }
         averageValue /= (double)nPeriods;
 
+/**
         if (getMakePlots()) {   // Output files like 2012160.IU_ANMO.00-LHZ.png = psd
             PlotMaker plotMaker = new PlotMaker(metricResult.getStation(), channelX, channelY, metricResult.getDate());
             plotMaker.plotCoherence(per, gammaPer, "coher");
         }
+**/
+
+        if (getMakePlots()) {   // Output files like 2012160.IU_ANMO.00-LHZ.png = psd
+
+            if (plotMaker == null) {
+                String plotTitle = String.format("%04d%03d [ %s ] Coherence",  metricResult.getDate().get(Calendar.YEAR),
+                                   metricResult.getDate().get(Calendar.DAY_OF_YEAR), metricResult.getStation() );
+                plotMaker = new PlotMaker2(plotTitle);
+                plotMaker.initialize3Panels("LHZ", "LHND", "LHED");
+            }
+            int iPanel = 0;
+            Color color = Color.red;
+
+            BasicStroke stroke = new BasicStroke(2.0f);
+
+            if  (channelX.getChannel().equals("LHZ")) {
+                iPanel = 0;
+            }
+            else if (channelX.getChannel().equals("LHND") ) {
+                iPanel = 1;
+            }
+            else if (channelX.getChannel().equals("LHED") ) {
+                iPanel = 2;
+            }
+            else { // ??
+            }
+            String channelLabel = MetricResult.createResultId(channelX, channelY);
+            plotMaker.addTraceToPanel( new Trace(per, gammaPer, channelLabel, color, stroke), iPanel);
+        }
+
 
         return averageValue;
 
