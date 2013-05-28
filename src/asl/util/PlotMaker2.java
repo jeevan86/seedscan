@@ -111,7 +111,7 @@ public class PlotMaker2
 
         if (fileName.contains("nlnm") || fileName.contains("coher") ) { // NLNM or StationDeviation 
             horizontalAxis = new LogarithmicAxis("Period (sec)");
-            horizontalAxis.setRange( new Range(1 , 10900) );
+            horizontalAxis.setRange( new Range(1 , 11000) );
             horizontalAxis.setTickUnit( new NumberTickUnit(5.0) );
         }
         else { // EventCompareSynthetics/StrongMotion
@@ -122,6 +122,8 @@ public class PlotMaker2
 
         CombinedDomainXYPlot combinedPlot = new CombinedDomainXYPlot( horizontalAxis );
         combinedPlot.setGap(15.);
+
+     // Loop over (3) panels for this plot:
 
         for (Panel panel : panels) {
 
@@ -141,10 +143,12 @@ public class PlotMaker2
                 verticalAxis = new NumberAxis("Displacement (m)");
             }
 
-            verticalAxis.setLabelFont( new Font("Verdana", Font.BOLD, 18) );
-            horizontalAxis.setLabelFont( new Font("Verdana", Font.BOLD, 18) );
-            verticalAxis.setTickLabelFont( new Font("Verdana", Font.PLAIN, 14) );
-            horizontalAxis.setTickLabelFont( new Font("Verdana", Font.PLAIN, 14) );
+            Font fontPlain = new Font("Verdana", Font.PLAIN,14);
+            Font fontBold  = new Font("Verdana", Font.BOLD, 18);
+            verticalAxis.setLabelFont( fontBold );
+            verticalAxis.setTickLabelFont( fontPlain );
+            horizontalAxis.setLabelFont( fontBold );
+            horizontalAxis.setTickLabelFont( fontPlain );
 
             XYSeriesCollection seriesCollection = new XYSeriesCollection();
             XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
@@ -154,13 +158,9 @@ public class PlotMaker2
             xyplot.setRangeGridlinePaint(Color.black);
             xyplot.setDomainGridlinePaint(Color.black);
 
-            //System.out.format("== Panel=[%s] nTraces=[%d]\n", panel.getTitle(), panel.getNumberOfTraces() );
-
         // Plot each trace on this panel:
             int iTrace=0;
             for (Trace trace : panel.getTraces()) {
-
-                //System.out.format("    iTrace=[%d] name=[%s] color=[%s]\n", iTrace, trace.getName(), trace.getColor());
 
                 XYSeries series = new XYSeries(trace.getName());
 
@@ -180,8 +180,8 @@ public class PlotMaker2
                 iTrace++;
             }
 
-        // Add Annotations for each trace
-
+        // Add Annotations for each trace - This is done in a separate loop so that
+        //                      the upper/lower limits for this panel will be known
             double xmin  = horizontalAxis.getRange().getLowerBound();
             double xmax  = horizontalAxis.getRange().getUpperBound();
             double ymin  = verticalAxis.getRange().getLowerBound();
@@ -195,16 +195,15 @@ public class PlotMaker2
 
             double yOff  = 0.05; // Vertical distance between different trace legends
 
-            //double xAnn3 = 0.92;
-            //double xAnn2 = 0.96;
-
             iTrace = 0;
             for (Trace trace : panel.getTraces()) {
                 if (!trace.getName().contains("NLNM") && !trace.getName().contains("NHNM") ) {
-                    // x1 > x2 > x3
+                    // x1 > x2 > x3, e.g.:
+                    //  o-------o   00-LHZ
+                    //  x3     x2       x1
 
-                    double scale = .01;
-                    double xL = .04;
+                    double scale = .01; // Controls distance between trace label and line segment
+                    double xL = .04;    // Length of trace line segment in legend
 
                     double xAnn2 = xAnn - scale * trace.getName().length();
                     double xAnn3 = xAnn - scale * trace.getName().length() - xL;
@@ -238,7 +237,7 @@ public class PlotMaker2
 
         final JFreeChart chart = new JFreeChart(combinedPlot);
         chart.setTitle( new TextTitle(plotTitle, new Font("Verdana", Font.BOLD, 18) ) );
-        //chart.removeLegend();
+        chart.removeLegend();
 
         try {
             ChartUtilities.saveChartAsPNG(outputFile, chart, 1400, 1400);

@@ -208,8 +208,14 @@ extends PowerBandMetric
 
         if (getMakePlots()) {   // Output files like 2012160.IU_ANMO.00-LHZ.png = psd
             if (plotMaker == null) {
+/**
                 String plotTitle = String.format("%04d%03d [ %s ] NLNM-Deviation",  metricResult.getDate().get(Calendar.YEAR), 
                                    metricResult.getDate().get(Calendar.DAY_OF_YEAR), metricResult.getStation() ); 
+**/
+                String date = String.format("%04d%03d", metricResult.getDate().get(Calendar.YEAR), 
+                                                        metricResult.getDate().get(Calendar.DAY_OF_YEAR) ); 
+
+                final String plotTitle = String.format("[ Date: %s ] [ Station: %s ] NLNM-Deviation", date, getStation() );
                 plotMaker = new PlotMaker2(plotTitle);
                 plotMaker.initialize3Panels("LHZ", "LH1/LHN", "LH2/LHE");
             }

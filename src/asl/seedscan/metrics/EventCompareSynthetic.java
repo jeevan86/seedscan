@@ -28,9 +28,14 @@ import java.util.Hashtable;
 import java.util.TreeSet;
 import java.util.SortedSet;
 
+import java.awt.BasicStroke;
+import java.awt.Color;
+
 import java.nio.ByteBuffer;
 import asl.util.Hex;
 import asl.util.PlotMaker;
+import asl.util.PlotMaker2;
+import asl.util.Trace;
 
 import asl.metadata.Channel;
 import asl.metadata.EpochData;
@@ -42,7 +47,9 @@ import sac.SacTimeSeries;
 import sac.SacHeader;
 import timeutils.MyFilter;
 
-import com.oregondsp.signalProcessing.filter.iir.*;
+import edu.sc.seis.TauP.SphericalCoords;
+
+//import com.oregondsp.signalProcessing.filter.iir.*;
 
 public class EventCompareSynthetic
 extends Metric
@@ -61,7 +68,11 @@ extends Metric
 
     private static Hashtable<String, EventCMT> eventCMTs = null;
 
+    private Channel[] channels = null;
+    private final String outputDir = "outputs";
+
     private SacHeader hdr = null;
+    private double xDist = 999.;
 
     @Override public long getVersion()
     {
@@ -101,7 +112,8 @@ extends Metric
         int nDigests  = 6;
 
         ByteBuffer[] digestArray = new ByteBuffer[nDigests];
-        Channel[] channels       = new Channel[nChannels];
+        //Channel[] channels       = new Channel[nChannels];
+        channels       = new Channel[nChannels];
 
         double[] results = new double[nDigests];
 
@@ -157,6 +169,7 @@ extends Metric
 //                         how do we get the rotated data for the next day ?
 
         int nEvents = 0;
+        int eventNumber = 0;
 
        // Loop over Events for this day
 
@@ -172,7 +185,7 @@ extends Metric
             SacTimeSeries[] sacSynthetics = new SacTimeSeries[3];
             String[] kcmp = {"Z","N","E"};
             for (int i=0; i<3; i++){
-                String fileKey = getStation() + ".XX.LX" + kcmp[i] + ".modes.sac.proc"; // e.g., "ANMO.XX.LXZ.modes.sac.proc"
+                String fileKey = getStn() + ".XX.LX" + kcmp[i] + ".modes.sac.proc"; // e.g., "ANMO.XX.LXZ.modes.sac.proc"
                 if (synthetics.containsKey(fileKey)) {
                     sacSynthetics[i]   = synthetics.get(fileKey); 
                     MyFilter.bandpass(sacSynthetics[i], f1, f2, f3, f4);
@@ -190,13 +203,14 @@ extends Metric
             }
             hdr = sacSynthetics[0].getHeader();
 
+            eventNumber++;
+
             long eventStartTime = getSacStartTimeInMillis(hdr);
             //long eventStartTime = (eventCMTs.get(key)).getTimeInMillis();
             long duration = 8000000L; // 8000 sec = 8000000 msecs
             long eventEndTime   = eventStartTime + duration;
 
             // 2. Load up Displacement Array
-            //ResponseUnits units = ResponseUnits.ACCELERATION;
             ResponseUnits units = ResponseUnits.DISPLACEMENT;
             ArrayList<double[]> dataDisp  = new ArrayList<double[]>();
 
@@ -234,25 +248,12 @@ extends Metric
                 continue;
             }
 
-
-            //double[] data = MyFilter.filterdata(dataDisp.get(0), 1.0, f2, f4);
-            //writeSacFile(data, hdr, "00.lhz.sac.filt");
-            //writeSacFile(dataDisp.get(0), hdr, "00.lhz.sac");
-
             // Window to use for comparisons
             int nstart=0;
-            //int nend=4000;
-            int nend=hdr.getNpts();
+            int nend=hdr.getNpts()-1;
 
             if (getMakePlots()){
-                if (compute00 && compute10){
-                    double[] xsecs = new double[ dataDisp.get(0).length ];
-                    for (int k=0; k<xsecs.length; k++){
-                        xsecs[k] = (float)k;        // hard-wired for LH? dt=1.0
-                    }
-                    PlotMaker plotMaker = new PlotMaker(metricResult.getStation(), channels, metricResult.getDate());
-                    plotMaker.plotZNE_3x3(dataDisp, xsecs, nstart, nend, key, "SyntheticCompare");
-                }
+                makePlots(dataDisp00, dataDisp10, dataDisp3, nstart, nend, key, eventNumber);
             }
 
         // Displacements are in meters so rmsDiff's will be small
@@ -349,6 +350,73 @@ extends Metric
         rms  =  Math.sqrt(rms);
 
         return rms;
+    }
+
+    public void makePlots(ArrayList<double[]> d00, ArrayList<double[]> d10, ArrayList<double[]> d20, int nstart, int nend, 
+                          String key, int eventNumber){
+
+        PlotMaker2 plotMaker = null;
+        EventCMT eventCMT = eventCMTs.get(key);
+        double evla  = eventCMT.getLatitude();
+        double evlo  = eventCMT.getLongitude();
+        double stla  = stationMeta.getLatitude();
+        double stlo  = stationMeta.getLongitude();
+        double gcarc = SphericalCoords.distance(evla, evlo, stla, stlo);
+
+        final String plotTitle = String.format("[ Event: %s ] [ Station: %s ] [ Dist: %.2f ] StrongMotionCompare", key, getStation(),
+                                               gcarc );
+
+        final String pngName   = String.format("%s/%4s%3s.%s.synthcompare.ev-%d.png", outputDir, getYear(), getDOY(), getStation(), 
+                                 eventNumber);
+
+        if (plotMaker == null) {
+            plotMaker = new PlotMaker2(plotTitle);
+            plotMaker.initialize3Panels("LHZ", "LH1/LHN", "LH2/LHE");
+
+        }
+        int iPanel = 0;
+        Color color = Color.black;
+
+        BasicStroke stroke = new BasicStroke(2.0f);
+
+        int npts = nend - nstart + 1;
+
+        double[] xsecs = new double[ npts ];
+        for (int k=0; k<xsecs.length; k++){
+            xsecs[k] = (float)(k + nstart);        // hard-wired for LH? dt=1.0
+        }
+
+        if (d00 != null) {
+            for (int i=0; i<d00.size(); i++) {
+                double[] dataIn  = d00.get(i);
+                double[] dataOut = new double[npts];
+                System.arraycopy(dataIn,nstart,dataOut,0,npts);
+                plotMaker.addTraceToPanel( new Trace(xsecs, dataOut, channels[i].toString(), Color.green, stroke), i);
+            }
+        }
+        if (d10 != null) {
+            for (int i=0; i<d10.size(); i++) {
+                double[] dataIn  = d10.get(i);
+                double[] dataOut = new double[npts];
+                System.arraycopy(dataIn,nstart,dataOut,0,npts);
+                plotMaker.addTraceToPanel( new Trace(xsecs, dataOut, channels[i+3].toString(), Color.red, stroke), i);
+            }
+        }
+        if (d20 != null) {
+            for (int i=0; i<d20.size(); i++) {
+                double[] dataIn  = d20.get(i);
+                double[] dataOut = new double[npts];
+                System.arraycopy(dataIn,nstart,dataOut,0,npts);
+                // Convert synthetic channel XX-LHN to XX-LHND for plot legend
+                String kChan = channels[i+6].toString();
+                if (channels[i+6].toString().contains("LHN") || channels[i+6].toString().contains("LHE") ) {
+                    kChan += "D";
+                }
+                plotMaker.addTraceToPanel( new Trace(xsecs, dataOut, kChan, Color.black, stroke), i);
+            }
+        }
+
+        plotMaker.writePlot(pngName);
     }
 
 

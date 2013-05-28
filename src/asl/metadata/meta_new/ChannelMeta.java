@@ -70,12 +70,8 @@ public class ChannelMeta extends MemberDigest
 
     private Station station;
 
-// MTH: In order to add these, need to somehow get them into EpochData ... from higher ref
-    private String knet = null;
-    private String kstn = null;
-
     public enum ResponseUnits {
-        DISPLACEMENT, VELOCITY, ACCELERATION;
+        DISPLACEMENT, VELOCITY, ACCELERATION, SEEDUNITS;
     }
 
     // constructor(s)
@@ -92,16 +88,9 @@ public class ChannelMeta extends MemberDigest
 
     public ChannelMeta(ChannelKey channel, Calendar metaTimestamp)
     {
-        this(channel, metaTimestamp, null);
-/**
-   // We need to call the super constructor to start the MessageDigest
-        super();
-        this.name     = channel.getName();
-        this.location = channel.getLocation();
-        this.metaTimestamp = (Calendar)metaTimestamp.clone();
-        stages = new Hashtable<Integer, ResponseStage>();
-**/
+        this (channel, metaTimestamp, null);
     }
+
     public ChannelMeta(String location, String channel, Calendar metaTimestamp)
     {
         this(new ChannelKey(location, channel), metaTimestamp);
@@ -141,28 +130,6 @@ public class ChannelMeta extends MemberDigest
         }
         return copyChan;
     }
-
-/**
- *  Shallow copy - Not currently used ...
- */
-/**
-    public ChannelMeta clone() {
-        ChannelMeta newChanMeta = new ChannelMeta(this.getLocation(), this.getName(), this.getTimestamp() );
-        for (Integer stageID : stages.keySet() ){
-            ResponseStage stage = getStage(stageID);
-            if (stage instanceof PoleZeroStage){
-                PoleZeroStage pz = (PoleZeroStage)stage.clone();
-            //newChanMeta.addStage(stageID, stage);
-            }
-        }
-        return newChanMeta;
-        try {
-            return (ChannelMeta) super.clone();
-        } catch (CloneNotSupportedException e) {
-            return null;
-        }
-    }
-**/
 
 /**
  *  Add parts of this channelMeta to its digest
@@ -261,7 +228,8 @@ public class ChannelMeta extends MemberDigest
         return new Channel( this.getLocation(), this.getName() );
     }
     public Station getStation() {
-        return station;
+        return new Station( station.getNetwork(), station.getStation() );
+        //return station;
     }
 
     public double getDepth() {
@@ -398,42 +366,52 @@ public class ChannelMeta extends MemberDigest
 
 //  Return complex response computed at given freqs[0,...length]
 
-    public Cmplx[] getResponse(double[] freqs, ResponseUnits responseOut){
+    public Cmplx[] getResponse(double[] freqs, ResponseUnits responseOut) {
         int outUnits=0;
         switch (responseOut) {
-            case DISPLACEMENT:
+            case DISPLACEMENT:      // return Displacement Response
                 outUnits = 1;
                 break;
-            case VELOCITY:
+            case VELOCITY:          // return Velocity     Response
                 outUnits = 2;
                 break;
-            case ACCELERATION:
+            case ACCELERATION:      // return Acceleration Response
                 outUnits = 3;
                 break;
+            case SEEDUNITS:         // return Default Dataless SEED units response
+                outUnits = 0;
+                break;
         }
-/**
-    }
- *  @outUnits = 0 Return Response in default units of seed file]
- *  @outUnits = 1 Return [Displacement] Response
- *  @outUnits = 2 Return [Velocity    ] Response
- *  @outUnits = 3 Return [Acceleration] Response
-    public Cmplx[] getResponse(double[] freqs, int outUnits){
-**/
 
-      if (freqs.length == 0) {
-          throw new RuntimeException("getResponse(): freqs.length = 0!");
-      }
-      if (invalidResponse()) {
+        if (freqs.length == 0) {
+            throw new RuntimeException("getResponse(): freqs.length = 0!");
+        }
+        if (invalidResponse()) {
           throw new RuntimeException("getResponse(): Invalid Response!");
-      }
-      Cmplx[] response = null;
+        }
+        Cmplx[] response = null;
 
  // Set response = polezero response (with A0 factored in):
-      ResponseStage stage = stages.get(1);
-      int stageUnitsIn    = stage.getInputUnits();
-      if (stage instanceof PoleZeroStage){
-          PoleZeroStage pz = (PoleZeroStage)stage;
-          response = pz.getResponse(freqs);
+        ResponseStage stage = stages.get(1);
+
+        if (!(stage instanceof PoleZeroStage)) {
+            throw new RuntimeException("getResponse(): Stage1 is NOT a PoleZeroStage!");
+        }
+        else {
+            PoleZeroStage pz = (PoleZeroStage)stage;
+            response = pz.getResponse(freqs);
+
+            if (outUnits == 0) {  
+                // Default response (in SEED Units) requested --> Don't integrate or differentiate
+            }
+            else { // Convert response to desired responseOut Units
+                int inUnits = stage.getInputUnits(); // e.g., 0=Unknown ; 1=Disp(m) ; 2=Vel(m/s^2) ; 3=Acc ; ...
+                if (inUnits == 0) {
+                    String msg = String.format("getResponse(): [%s] Response requested but PoleZero Stage Input Units = Unknown!",
+                                               responseOut);
+                    throw new RuntimeException(msg);
+                }
+                int n = outUnits - inUnits;
 
  // We need to convert the returned response if the desired response units != the stored response units:
  // inUnit
@@ -442,11 +420,7 @@ public class ChannelMeta extends MemberDigest
  //   3 - Acceleration
  //
  // In the Four Trans convention used by SEED:
- //   x(t)  ~ Int[ X(w)e^+iwt ] dw
- // so
- //   x'(t) ~ Int[ iw * X(w)e^+iwt ] dw
- // or
- //   FFT[x'(t)] = iw x FFT[x(t)]
+ //   x(t)  ~ Int[ X(w)e^+iwt ] dw  ==>  x'(t) ~ Int[ iw * X(w)e^+iwt ] dw  ==>  FFT[x'(t)] = iw x FFT[x(t)]
  //
  // x(t) = v(t) * i(t) 
  // X(w) = V(w) x I(w) --> V(w) = X(w)/I(w) = FFT[u'(t)] = iw x U(w) where U(w) = FFT[u(t)]
@@ -457,88 +431,71 @@ public class ChannelMeta extends MemberDigest
  //      differentiation n times: multiply I(w) by (-i/w)^n
  //
  //  Ex: if the response units are Velocity (inUnits=2) and we want our output units = Acceleration (outUnits=3), then
- //  n = 3 - 2 = 1, and we return I'(w)=I(w)/(iw) = -i/w * I(w)
+ //      n = 3 - 2 = 1, and we return I'(w)=I(w)/(iw) = -i/w * I(w)
 
- // *** This only works for polezero stageType = 'A' [Laplace (rad/s)] so that s=i2pi*f --> for 'B' we should use s=if here!
-        int inUnits = stage.getInputUnits();
-        if (inUnits > 0) {
-            int n = outUnits - inUnits;
-            if (n < 0) {                    // INTEGRATION RESPONSE I(w) x (iw)^n
-                for (int i=0; i<freqs.length; i++){
-                  Cmplx iw    = new Cmplx(0.0, 2*Math.PI*freqs[i]);
-                  for (int j=1; j<Math.abs(n); j++) iw = Cmplx.mul(iw, iw);
-                  response[i] = Cmplx.mul(iw, response[i]);
+                double s;
+                if (pz.getStageType() == 'A'){
+                    s = 2.*Math.PI;
                 }
-            }
-            else if (n > 0) {               // DIFFERENTIATION RESPONSE I(w) / (iw)^n
-                for (int i=0; i<freqs.length; i++){
-                  Cmplx iw    = new Cmplx(0.0, -1.0/(2*Math.PI*freqs[i]) );
-                  for (int j=1; j<Math.abs(n); j++) iw = Cmplx.mul(iw, iw);
-                  response[i] = Cmplx.mul(iw, response[i]);
+                else if (pz.getStageType() == 'B'){
+                    s = 1.;
                 }
-            }
-        } 
+                else {
+                    throw new RuntimeException("getResponse(): Unknown PoleZero StageType!");
+                }
+//System.out.format("== Channel=%s inUnits=%d outUnits=%d n=%d s=%f\n", this.getChannel(), inUnits, outUnits, n);
 
-      }
-      else {
-        throw new RuntimeException("getResponse(): Stage1 is NOT a PoleZeroStage!");
-      }
+                if (n < 0) {                    // INTEGRATION RESPONSE I(w) x (iw)^n
+                    for (int i=0; i<freqs.length; i++){
+                        Cmplx iw    = new Cmplx(0.0, s*freqs[i]);
+                        for (int j=1; j<Math.abs(n); j++) iw = Cmplx.mul(iw, iw);
+                        response[i] = Cmplx.mul(iw, response[i]);
+                    }
+                }
+                else if (n > 0) {               // DIFFERENTIATION RESPONSE I(w) / (iw)^n
+                    for (int i=0; i<freqs.length; i++){
+                        Cmplx iw    = new Cmplx(0.0, -1.0/(s*freqs[i]) );
+                        for (int j=1; j<Math.abs(n); j++) iw = Cmplx.mul(iw, iw);
+                        response[i] = Cmplx.mul(iw, response[i]);
+                    }
+                }
+
+            } // Convert
+        } // else
+
 
  // Scale polezero response by stage1Gain * stage2Gain:
  // Unless stage1Gain*stage2Gain is different from stage0Gain (=Sensitivity) by more than 10%,
  //   in which case, use the Sensitivity (Adam says this is a problem with Q680's, e.g., IC_ENH
-      double stage0Gain = stages.get(0).getStageGain();
-      double stage1Gain = stages.get(1).getStageGain();
-      double stage2Gain = stages.get(2).getStageGain();
+        double stage0Gain = stages.get(0).getStageGain();
+        double stage1Gain = stages.get(1).getStageGain();
+        double stage2Gain = stages.get(2).getStageGain();
 
    // Check stage1Gain * stage2Gain against the mid-level sensitivity (=stage0Gain):
-      double diff = 100 * (stage0Gain - (stage1Gain * stage2Gain)) / stage0Gain;
+        double diff = 100 * (stage0Gain - (stage1Gain * stage2Gain)) / stage0Gain;
 
-      double scale;
-      if (diff > 10) { 
-        System.out.println("== ChannelMeta.getResponse(): WARNING: Sensitivity != Stage1Gain * Stage2Gain "
-                           + "--> Use Sensitivity to scale!");
-        scale = stage0Gain;
-      }
-      else {
-        scale = stage1Gain*stage2Gain;
-      }
-
-      if (scale <= 0.) {
-        System.out.println("== ChannelMeta.getResponse(): WARNING: Channel response scale <= 0 !!");
-      }
-
-      for (int i=0; i<freqs.length; i++){
-        response[i] = Cmplx.mul(scale, response[i]);
-      }
-
-      return response;
-}
-
-    public void print() {
-      System.out.println("####### ChannelMeta.print() -- START ################################");
-      System.out.println(this);
-      for (Integer stageID : stages.keySet() ){
-        ResponseStage stage = stages.get(stageID);
-        stage.print();
-        if (stage instanceof PoleZeroStage){
-           //PoleZeroStage pz = (PoleZeroStage)stage;
-           //pz.print();
+        double scale;
+        if (diff > 10) { 
+            System.out.println("== ChannelMeta.getResponse(): WARNING: Sensitivity != Stage1Gain * Stage2Gain "
+                            + "--> Use Sensitivity to scale!");
+            scale = stage0Gain;
         }
-      }
-      System.out.println("####### ChannelMeta.print() -- STOP  ################################");
-      //System.out.println();
+        else {
+            scale = stage1Gain*stage2Gain;
+        }
+
+        if (scale <= 0.) {
+            System.out.println("== ChannelMeta.getResponse(): WARNING: Channel response scale <= 0 !!");
+        }
+
+        for (int i=0; i<freqs.length; i++){
+            response[i] = Cmplx.mul(scale, response[i]);
+        }
+
+        return response;
     }
 
-    @Override public String toString() {
-      StringBuilder result = new StringBuilder();
-      String NEW_LINE = System.getProperty("line.separator");
-      result.append(String.format("%15s%s\t%15s%.2f\t%15s%.2f\n","Channel:",name,"sampleRate:",sampleRate,"Depth:",depth) );
-      result.append(String.format("%15s%s\t%15s%.2f\t%15s%.2f\n","Location:",location,"Azimuth:",azimuth,"Dip:",dip) );
-      result.append(String.format("%15s%s","num of stages:",stages.size()) );
-      //result.append(NEW_LINE);
-      return result.toString();
-    }
+
 
 /**
   * processEpochData 
@@ -718,6 +675,31 @@ public class ChannelMeta extends MemberDigest
         plotMaker.plotSpecAmp(freq, instRespAmp, instRespPhs, "pzResponse");
 
     } // end plotResp
+
+    public void print() {
+      System.out.println("####### ChannelMeta.print() -- START ################################");
+      System.out.println(this);
+      for (Integer stageID : stages.keySet() ){
+        ResponseStage stage = stages.get(stageID);
+        stage.print();
+        if (stage instanceof PoleZeroStage){
+           //PoleZeroStage pz = (PoleZeroStage)stage;
+           //pz.print();
+        }
+      }
+      System.out.println("####### ChannelMeta.print() -- STOP  ################################");
+      //System.out.println();
+    }
+
+    @Override public String toString() {
+      StringBuilder result = new StringBuilder();
+      String NEW_LINE = System.getProperty("line.separator");
+      result.append(String.format("%15s%s\t%15s%.2f\t%15s%.2f\n","Channel:",name,"sampleRate:",sampleRate,"Depth:",depth) );
+      result.append(String.format("%15s%s\t%15s%.2f\t%15s%.2f\n","Location:",location,"Azimuth:",azimuth,"Dip:",dip) );
+      result.append(String.format("%15s%s","num of stages:",stages.size()) );
+      //result.append(NEW_LINE);
+      return result.toString();
+    }
 
 }
 

@@ -68,6 +68,8 @@ extends Metric
 
     private SacHeader hdr = null;
 
+    private double xDist = 0.;
+
     @Override public long getVersion()
     {
         return 1;
@@ -300,6 +302,7 @@ extends Metric
             double stla  = stationMeta.getLatitude();
             double stlo  = stationMeta.getLongitude();
             double gcarc = SphericalCoords.distance(evla, evlo, stla, stlo);
+xDist = gcarc;
             double azim  = SphericalCoords.azimuth(evla, evlo, stla, stlo);
             TauP_Time timeTool = null;
             try {
@@ -356,7 +359,9 @@ extends Metric
                           String key, int eventNumber){
 
         PlotMaker2 plotMaker = null;
-        final String plotTitle = String.format("Event:[%s] [ %s ] EventStrongMotion", key, getStation() );
+        final String plotTitle = String.format("[ Event: %s ] [ Station: %s ] [ Dist: %.2f ] StrongMotionCompare", key, getStation(),
+                                               xDist );
+
         final String pngName   = String.format("%s/%4s%3s.%s.strongmtn.ev-%d.png", outputDir, getYear(), getDOY(), getStation(), 
                                  eventNumber);
 
@@ -401,7 +406,7 @@ System.out.format("== d10 channels[%d]=[%s]\n", i+3, channels[i+3].toString() );
                 double[] dataOut = new double[npts];
                 System.arraycopy(dataIn,nstart,dataOut,0,npts);
 System.out.format("== d20 channels[%d]=[%s]\n", i+6, channels[i+6].toString() );
-                plotMaker.addTraceToPanel( new Trace(xsecs, dataOut, channels[i+6].toString(), Color.blue, stroke), i);
+                plotMaker.addTraceToPanel( new Trace(xsecs, dataOut, channels[i+6].toString(), Color.black, stroke), i);
             }
         }
 

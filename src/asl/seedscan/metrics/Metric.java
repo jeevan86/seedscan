@@ -168,10 +168,12 @@ public abstract class Metric
         String[] dateArray = getDay().split(":");
         return dateArray[0];
     }
-    //public String getStation()
-    public String getStation()
+    public String getStn()      // e.g., will return "ANMO"
     {
-        //return stationMeta.getStation();
+        return stationMeta.getStation();
+    }
+    public String getStation()  // e.g., will return "IU_ANMO"
+    {
         return metricResult.getStation().toString();
     }
 
