@@ -109,7 +109,7 @@ public class PlotMaker2
 
         NumberAxis horizontalAxis = new NumberAxis("x-axis default"); // x = domain
 
-        if (fileName.contains("nlnm") || fileName.contains("coher") ) { // NLNM or StationDeviation 
+        if (fileName.contains("nlnm") || fileName.contains("coher") || fileName.contains("stn") ) { // NLNM or StationDeviation 
             horizontalAxis = new LogarithmicAxis("Period (sec)");
             horizontalAxis.setRange( new Range(1 , 11000) );
             horizontalAxis.setTickUnit( new NumberTickUnit(5.0) );
@@ -129,7 +129,7 @@ public class PlotMaker2
 
             NumberAxis verticalAxis   = new NumberAxis("y-axis default"); // y = range
 
-            if (fileName.contains("nlnm")) { // NLNM or StationDeviation 
+            if (fileName.contains("nlnm") || fileName.contains("stn") ) { // NLNM or StationDeviation 
                 verticalAxis = new NumberAxis("PSD 10log10(m**2/s**4)/Hz dB");
                 verticalAxis.setRange( new Range(-190, -95));
                 verticalAxis.setTickUnit( new NumberTickUnit(5.0) );

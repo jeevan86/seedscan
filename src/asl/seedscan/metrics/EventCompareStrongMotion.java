@@ -387,7 +387,7 @@ xDist = gcarc;
                 double[] dataIn  = d00.get(i);
                 double[] dataOut = new double[npts];
                 System.arraycopy(dataIn,nstart,dataOut,0,npts);
-System.out.format("== d00 channels[%d]=[%s]\n", i, channels[i].toString() );
+                //System.out.format("== d00 channels[%d]=[%s]\n", i, channels[i].toString() );
                 plotMaker.addTraceToPanel( new Trace(xsecs, dataOut, channels[i].toString(), Color.green, stroke), i);
             }
         }
@@ -396,7 +396,7 @@ System.out.format("== d00 channels[%d]=[%s]\n", i, channels[i].toString() );
                 double[] dataIn  = d10.get(i);
                 double[] dataOut = new double[npts];
                 System.arraycopy(dataIn,nstart,dataOut,0,npts);
-System.out.format("== d10 channels[%d]=[%s]\n", i+3, channels[i+3].toString() );
+                //System.out.format("== d10 channels[%d]=[%s]\n", i+3, channels[i+3].toString() );
                 plotMaker.addTraceToPanel( new Trace(xsecs, dataOut, channels[i+3].toString(), Color.red, stroke), i);
             }
         }
@@ -405,11 +405,10 @@ System.out.format("== d10 channels[%d]=[%s]\n", i+3, channels[i+3].toString() );
                 double[] dataIn  = d20.get(i);
                 double[] dataOut = new double[npts];
                 System.arraycopy(dataIn,nstart,dataOut,0,npts);
-System.out.format("== d20 channels[%d]=[%s]\n", i+6, channels[i+6].toString() );
+                //System.out.format("== d20 channels[%d]=[%s]\n", i+6, channels[i+6].toString() );
                 plotMaker.addTraceToPanel( new Trace(xsecs, dataOut, channels[i+6].toString(), Color.black, stroke), i);
             }
         }
-
         plotMaker.writePlot(pngName);
     }
 }

@@ -206,54 +206,55 @@ extends PowerBandMetric
         }
         deviation = deviation/(double)nPeriods;
 
-        if (getMakePlots()) {   // Output files like 2012160.IU_ANMO.00-LHZ.png = psd
-            if (plotMaker == null) {
-/**
-                String plotTitle = String.format("%04d%03d [ %s ] NLNM-Deviation",  metricResult.getDate().get(Calendar.YEAR), 
-                                   metricResult.getDate().get(Calendar.DAY_OF_YEAR), metricResult.getStation() ); 
-**/
-                String date = String.format("%04d%03d", metricResult.getDate().get(Calendar.YEAR), 
-                                                        metricResult.getDate().get(Calendar.DAY_OF_YEAR) ); 
-
-                final String plotTitle = String.format("[ Date: %s ] [ Station: %s ] NLNM-Deviation", date, getStation() );
-                plotMaker = new PlotMaker2(plotTitle);
-                plotMaker.initialize3Panels("LHZ", "LH1/LHN", "LH2/LHE");
-            }
-            int iPanel = 0;
-            int iTrace = 0;
-            Color color = Color.black;
-
-            BasicStroke stroke = new BasicStroke(2.0f);
-
-            if  (channel.getChannel().equals("LHZ")) {
-                iPanel = 0;
-            }
-            else if (channel.getChannel().equals("LH1") || channel.getChannel().equals("LHN") ) {
-                iPanel = 1;
-            }
-            else if (channel.getChannel().equals("LH2") || channel.getChannel().equals("LHE") ) {
-                iPanel = 2;
-            }
-            else { // ??
-            }
-
-            if (channel.getLocation().equals("00")) {
-                iTrace = 0;
-                color  = Color.green;
-            }
-            else if (channel.getLocation().equals("10")) {
-                iTrace = 1;
-                color  = Color.red;
-            }
-            else { // ??
-            }
-
-            plotMaker.addTraceToPanel( new Trace(NLNMPeriods, psdInterp, channel.toString(), color, stroke), iPanel);
+        if (getMakePlots()) { 
+            makePlots(channel, NLNMPeriods, psdInterp);
         }
 
         return deviation;
 
     } // end computeMetric()
+
+    private void makePlots(Channel channel, double xdata[], double ydata[]) {
+        if (xdata.length != ydata.length) {
+            throw new RuntimeException(String.format("%s makePlots() Error: xdata.len=%d != ydata.len=%d",
+                                       getName(), xdata.length, ydata.length) );
+        }
+        if (plotMaker == null) {
+            String date = String.format("%04d%03d", metricResult.getDate().get(Calendar.YEAR),
+                                                    metricResult.getDate().get(Calendar.DAY_OF_YEAR) );
+            final String plotTitle = String.format("[ Date: %s ] [ Station: %s ] NLNM-Deviation", date, getStation() );
+            plotMaker = new PlotMaker2(plotTitle);
+            plotMaker.initialize3Panels("LHZ", "LH1/LHN", "LH2/LHE");
+        }
+        int iPanel;
+        Color color = Color.black;
+        BasicStroke stroke = new BasicStroke(2.0f);
+
+        if  (channel.getChannel().equals("LHZ")) {
+            iPanel = 0;
+        }
+        else if (channel.getChannel().equals("LH1") || channel.getChannel().equals("LHN") ) {
+            iPanel = 1;
+        }
+        else if (channel.getChannel().equals("LH2") || channel.getChannel().equals("LHE") ) {
+            iPanel = 2;
+        }
+        else { // ??
+            throw new RuntimeException(String.format("%s makePlots() Don't know how to plot channel=%s", 
+                                       getName(), channel) );
+        }
+
+        if (channel.getLocation().equals("00")) {
+            color  = Color.green;
+        }
+        else if (channel.getLocation().equals("10")) {
+            color  = Color.red;
+        }
+        else { // ??
+        }
+
+        plotMaker.addTraceToPanel( new Trace(xdata, ydata, channel.toString(), color, stroke), iPanel);
+    }
 
 
 /** readNLNM() - Read in Peterson's NewLowNoiseModel from file specified in config.xml

@@ -29,11 +29,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Calendar;
 
+import java.awt.BasicStroke;
+import java.awt.Color;
+
 import asl.metadata.Channel;
 import asl.metadata.Station;
 import asl.seedscan.ArchivePath;
 import asl.util.Hex;
 import asl.util.PlotMaker;
+import asl.util.PlotMaker2;
+import asl.util.Trace;
 
 import timeutils.Timeseries;
 
@@ -55,6 +60,9 @@ extends PowerBandMetric
     private double[] ModelPeriods;
     private double[] ModelPowers;
     private String   ModelDir;
+    private final String outputDir = "outputs";
+
+    private PlotMaker2 plotMaker = null;
 
     public StationDeviationMetric(){
         super();
@@ -106,6 +114,17 @@ extends PowerBandMetric
             }
 
         }// end foreach channel
+
+        if (getMakePlots()) {
+            BasicStroke stroke = new BasicStroke(4.0f);
+            for (int iPanel=0; iPanel<3; iPanel++){
+                plotMaker.addTraceToPanel( new Trace(ModelPeriods, ModelPowers, "StnModel", Color.black, stroke), iPanel);
+            }
+            final String pngName   = String.format("%s/%4s%3s.%s.%s.png", outputDir, getYear(), getDOY(), getStation(), "stn-dev" );
+
+            plotMaker.writePlot(pngName);
+        }
+
 
     } // end process()
 
@@ -160,7 +179,6 @@ extends PowerBandMetric
         double psdInterp[] = Timeseries.interpolate(per, psdPer, ModelPeriods);
 
         outFile = channel.toString() + ".psd.Fsmooth.T.Interp";
-        //Timeseries.timeoutXY(NLNMPeriods, psdInterp, outFile);
 
         PowerBand band    = getPowerBand();
         double lowPeriod  = band.getLow();
@@ -196,13 +214,54 @@ extends PowerBandMetric
         deviation = deviation/(double)nPeriods;
 
         if (getMakePlots()) {  
-            PlotMaker plotMaker = new PlotMaker(metricResult.getStation(), channel, metricResult.getDate());
-            plotMaker.plotPSD(ModelPeriods, ModelPowers, psdInterp, "StationModel", "psd-stnd");
+            makePlots(channel, ModelPeriods, psdInterp);
         }
 
         return deviation;
 
     } // end computeMetric()
+
+    private void makePlots(Channel channel, double xdata[], double ydata[]) {
+        if (xdata.length != ydata.length) {
+            throw new RuntimeException(String.format("%s makePlots() Error: xdata.len=%d != ydata.len=%d",
+                                       getName(), xdata.length, ydata.length) );
+        }
+        if (plotMaker == null) {
+            String date = String.format("%04d%03d", metricResult.getDate().get(Calendar.YEAR),
+                                                    metricResult.getDate().get(Calendar.DAY_OF_YEAR) );
+            final String plotTitle = String.format("[ Date: %s ] [ Station: %s ] Station-Deviation", date, getStation() );
+            plotMaker = new PlotMaker2(plotTitle);
+            plotMaker.initialize3Panels("LHZ", "LH1/LHN", "LH2/LHE");
+        }
+        int iPanel;
+        Color color = Color.black;
+        BasicStroke stroke = new BasicStroke(2.0f);
+
+        if  (channel.getChannel().equals("LHZ")) {
+            iPanel = 0;
+        }
+        else if (channel.getChannel().equals("LH1") || channel.getChannel().equals("LHN") ) {
+            iPanel = 1;
+        }
+        else if (channel.getChannel().equals("LH2") || channel.getChannel().equals("LHE") ) {
+            iPanel = 2;
+        }
+        else { // ??
+            throw new RuntimeException(String.format("%s makePlots() Don't know how to plot channel=%s", 
+                                       getName(), channel) );
+        }
+
+        if (channel.getLocation().equals("00")) {
+            color  = Color.green;
+        }
+        else if (channel.getLocation().equals("10")) {
+            color  = Color.red;
+        }
+        else { // ??
+        }
+
+        plotMaker.addTraceToPanel( new Trace(xdata, ydata, channel.toString(), color, stroke), iPanel);
+    }
 
 
     private boolean readModel(String fName) {
