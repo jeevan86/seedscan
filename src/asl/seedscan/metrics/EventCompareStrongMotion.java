@@ -193,6 +193,9 @@ extends Metric
             eventNumber ++;
             int nstart = (int)(arrivalTimes[0] - 120.); // P - 120 sec
             int nend   = (int)(arrivalTimes[1] + 60.);  // S + 120 sec
+            if (nstart < 0) nstart = 0;
+//System.out.format("== %s: arrivalTimes[0]==%f arrivalTimes[1]=%f: nstart=%d nend=%d\n", getName(), arrivalTimes[0],
+//arrivalTimes[1], nstart, nend);
 
             ResponseUnits units = ResponseUnits.DISPLACEMENT;
             ArrayList<double[]> dataDisp    = new ArrayList<double[]>();
@@ -386,8 +389,9 @@ xDist = gcarc;
             for (int i=0; i<d00.size(); i++) {
                 double[] dataIn  = d00.get(i);
                 double[] dataOut = new double[npts];
+                //System.out.format("== d00 channels[%d]=[%s] dataIn=%d pnts dataOut=%d pnts npts=%d nstart=%d\n", i, channels[i].toString(),
+                //dataIn.length, dataOut.length, npts , nstart);
                 System.arraycopy(dataIn,nstart,dataOut,0,npts);
-                //System.out.format("== d00 channels[%d]=[%s]\n", i, channels[i].toString() );
                 plotMaker.addTraceToPanel( new Trace(xsecs, dataOut, channels[i].toString(), Color.green, stroke), i);
             }
         }
