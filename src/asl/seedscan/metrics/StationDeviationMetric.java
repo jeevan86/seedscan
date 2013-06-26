@@ -115,7 +115,7 @@ extends PowerBandMetric
 
         }// end foreach channel
 
-        if (getMakePlots()) {
+        if (getMakePlots() && (plotMaker != null) ) {  // If no station model files were found plotMaker still == null
             BasicStroke stroke = new BasicStroke(4.0f);
             for (int iPanel=0; iPanel<3; iPanel++){
                 plotMaker.addTraceToPanel( new Trace(ModelPeriods, ModelPowers, "StnModel", Color.black, stroke), iPanel);

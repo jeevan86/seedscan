@@ -183,6 +183,18 @@ extends Metric
 
         double[] outData = metricData.getWindowedData(channel, calStartEpoch, calStartEpoch + calDuration);
         double[] inData  = metricData.getWindowedData(new Channel("--",channelExtension), calStartEpoch, calStartEpoch + calDuration);
+
+        if (inData == null || inData.length <= 0) {
+            System.out.format("== %s: We have no data for reported cal input channel=[%s] for station=[%s] --> Skip metric\n",
+                getName(), channelExtension, getStation() );
+            return null;
+        }
+        if (outData == null || outData.length <= 0) {
+            System.out.format("== %s: We have no data for reported calibration period for output channel=[%s] for station=[%s] --> Skip metric\n",
+                getName(), channel, getStation() );
+            return null;
+        }
+
         //Timeseries.writeSacFile(outData, srate, "dataOut", getStation(), channel.getChannel());  
         //Timeseries.writeSacFile(inData,  srate, "dataIn",  getStation(), channelExtension);  
 
