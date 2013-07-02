@@ -5,7 +5,6 @@ build
 config.xml
 config.xml~
 doc
-libs/postgresql*.jdbc4.jar
 logs/*.log
 log.txt
 rdseed.err_log*
