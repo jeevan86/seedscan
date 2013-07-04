@@ -120,8 +120,7 @@ extends PowerBandMetric
             for (int iPanel=0; iPanel<3; iPanel++){
                 plotMaker.addTraceToPanel( new Trace(ModelPeriods, ModelPowers, "StnModel", Color.black, stroke), iPanel);
             }
-            final String pngName   = String.format("%s/%4s%3s.%s.%s.png", outputDir, getYear(), getDOY(), getStation(), "stn-dev" );
-
+            final String pngName   = String.format("%s.%s.png", getOutputDir(), "stn-dev" );
             plotMaker.writePlot(pngName);
         }
 

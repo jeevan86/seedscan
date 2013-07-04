@@ -64,6 +64,7 @@ extends PowerBandMetric
     public NLNMDeviationMetric(){
         super();
         addArgument("nlnm-modelfile");
+        addArgument("nhnm-modelfile");
     }
 
     private double[] NLNMPeriods;
@@ -71,8 +72,6 @@ extends PowerBandMetric
     private double[] NHNMPeriods;
     private double[] NHNMPowers;
     private final String outputDir = "outputs";
-    private boolean highNoiseModelExists = false;
-    
     private PlotMaker2 plotMaker = null;
 
     public void process()
@@ -85,7 +84,7 @@ extends PowerBandMetric
             System.out.format("%s: Did not read in NLNM model --> Do Nothing!\n", getName());
             return;  // Can't do anything if we didn't read in a NLNM model so skip to the next metric
         }
-        highNoiseModelExists = readNHNM();
+        Boolean highNoiseModelExists = readNHNM();
 
 // Get all LH channels in metadata
         List<Channel> channels = stationMeta.getChannelArray("LH"); 
@@ -120,11 +119,12 @@ extends PowerBandMetric
             BasicStroke stroke = new BasicStroke(4.0f);
             for (int iPanel=0; iPanel<3; iPanel++){
                 plotMaker.addTraceToPanel( new Trace(NLNMPeriods, NLNMPowers, "NLNM", Color.black, stroke), iPanel);
-                plotMaker.addTraceToPanel( new Trace(NHNMPeriods, NHNMPowers, "NHNM", Color.black, stroke), iPanel);
+                if (highNoiseModelExists) {
+                    plotMaker.addTraceToPanel( new Trace(NHNMPeriods, NHNMPowers, "NHNM", Color.black, stroke), iPanel);
+                }
             }
             // outputs/2012160.IU_ANMO.nlnm-dev.png
-            final String pngName   = String.format("%s/%4s%3s.%s.%s.png", outputDir, getYear(), getDOY(), getStation(), "nlnm-dev" );
-
+            final String pngName   = String.format("%s.%s.png", getOutputDir(), "nlnm-dev" );
             plotMaker.writePlot(pngName);
         }
 
@@ -268,9 +268,14 @@ extends PowerBandMetric
         String fileName = null;
         try {
             fileName = get("nlnm-modelfile");
+            if (fileName == null) { // if nlnm-modelfile was not entered in config.xml then value="" 
+                                    // and get() will return null
+                return false;
+            }
         } catch (NoSuchFieldException ex) {
-          System.out.format("%s Error: Model Name ('model') was not specified in config.xml!\n", getName());
-          return false;
+            // The only way this would happen is if we didn't addArgument("nlnm-modelfile") in the NLNMDeviation constructor!
+            System.out.format("%s Error: Model Name ('model') was not specified in config.xml!\n", getName());
+            return false;
         }
 
    // First see if the file exists
@@ -320,19 +325,20 @@ extends PowerBandMetric
 
     private boolean readNHNM() {
 
-        String fileName = "/Users/mth/mth/Projects/asl/resources/NHNM.ascii";
-/**
+        String fileName = null;
         try {
-            fileName = get("nlnm-modelfile");
+            fileName = get("nhnm-modelfile");
+            if (fileName == null) {
+                System.out.format("=== %s: Warning: NHNM was not set\n", getName());
+                return false;
+            }
         } catch (NoSuchFieldException ex) {
-          System.out.format("%s Error: Model Name ('model') was not specified in config.xml!\n", getName());
-          return false;
+            return false;
         }
-**/
 
    // First see if the file exists
         if (!(new File(fileName).exists())) {
-            System.out.format("=== %s: NLNM file=%s does NOT exist!\n", getName(), fileName);
+            System.out.format("=== %s: NHNM file=%s does NOT exist!\n", getName(), fileName);
             return false;
         }
    // Temp ArrayList(s) to read in unknown number of (x,y) pairs:

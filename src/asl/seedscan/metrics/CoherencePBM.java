@@ -110,7 +110,7 @@ extends PowerBandMetric
         }// end foreach channel
 
         if (getMakePlots()) {
-            final String pngName   = String.format("%s/%4s%3s.%s.%s.png", outputDir, getYear(), getDOY(), getStation(), "coher" );
+            final String pngName   = String.format("%s.%s.png", getOutputDir(), "coher" );
             plotMaker.writePlot(pngName);
         }
 

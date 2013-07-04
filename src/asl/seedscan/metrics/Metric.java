@@ -47,6 +47,7 @@ public abstract class Metric
 
     private boolean forceUpdate = false;
     private boolean makePlots   = false;
+    private String outputDir   = "outputs";
 
     protected final double NO_RESULT = -999.999; 
 
@@ -154,6 +155,15 @@ public abstract class Metric
         return metricResult;
     }
 
+    public String getBaseOutputDir(){
+        return outputDir;
+    }
+    public String getOutputDir(){
+        // e.g., "outputs/2012/2012160/2012160.IU_ANMO"
+        return new String( String.format("%s/%4s/%4s%3s/%4s%3s.%s", getBaseOutputDir(), getYear(), getYear(), getDOY(),
+                           getYear(), getDOY(), getStation())  );
+    }
+
     public String getDay()
     {   // returns yyyy:ddd:hh:mm
         return (EpochData.epochToDateString( stationMeta.getTimestamp() ) );
@@ -227,6 +237,11 @@ public abstract class Metric
         }
     }
 
+/**
+ * get(key) returns value if key is found in Hashtable arguments
+ *          returns null  if key is found but value is not set (value="")
+ *          throws NoSuchFieldException if key is not found
+ */
     public final String get(String name)
     throws NoSuchFieldException
     {

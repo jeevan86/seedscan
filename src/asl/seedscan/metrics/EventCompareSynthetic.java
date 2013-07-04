@@ -366,8 +366,9 @@ extends Metric
         final String plotTitle = String.format("[ Event: %s ] [ Station: %s ] [ Dist: %.2f ] StrongMotionCompare", key, getStation(),
                                                gcarc );
 
-        final String pngName   = String.format("%s/%4s%3s.%s.synthcompare.ev-%d.png", outputDir, getYear(), getDOY(), getStation(), 
-                                 eventNumber);
+        //final String pngName   = String.format("%s/%4s%3s.%s.synthcompare.ev-%d.png", outputDir, getYear(), getDOY(), getStation(), 
+                                 //eventNumber);
+        final String pngName   = String.format("%s.synthcompare.ev-%d.png", getOutputDir(), eventNumber );
 
         if (plotMaker == null) {
             plotMaker = new PlotMaker2(plotTitle);
