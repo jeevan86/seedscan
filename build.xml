@@ -101,8 +101,10 @@
 
     
 <!--JAR-->
-    <target name="jar" depends="compile, data, libraries"
-            description="generate the distribution" >
+<!--
+    <target name="jar" depends="compile, data, libraries" description="generate the distribution" >
+-->
+    <target name="jar" depends="compile, libraries" description="generate the distribution" >
         <jar jarfile="${project.archive}" basedir="${build.root}">
             <manifest>
                 <attribute name="Main-Class" value="${project.main}"/>

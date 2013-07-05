@@ -18,11 +18,8 @@
  */
 package asl.seedscan.metrics;
 
-import java.nio.ByteBuffer;
 import java.util.logging.Logger;
 import java.util.List;
-import java.util.GregorianCalendar;
-import java.util.Calendar;
 
 import asl.metadata.Channel;
 import asl.metadata.meta_new.ChannelMeta;

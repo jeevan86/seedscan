@@ -253,7 +253,6 @@ public class PlotMaker2
         // Check that dir either exists or can be created
 
         File dir = file.getParentFile();
-System.out.format("== PlotMaker.checkFileOut: dir=[%s]\n", dir.toString() );
 
         Boolean allIsOkay = true;
 
