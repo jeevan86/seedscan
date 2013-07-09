@@ -76,13 +76,13 @@ public class MetaGenerator
 
     // II/NE/IW networks have all metadata in a single dataless file for all stations:
       if (station.getNetwork().equals("II")) {
-        datalessFile = datalessPath + "II.dataless"; 
+        datalessFile = datalessPath + "DATALESS.II.seed"; 
       }
       else if (station.getNetwork().equals("NE")) {
-        datalessFile = datalessPath + "NE.dataless"; 
+        datalessFile = datalessPath + "DATALESS.NE.seed"; 
       }
       else if (station.getNetwork().equals("IW")) {
-        datalessFile = datalessPath + "IW.dataless"; 
+        datalessFile = datalessPath + "DATALESS.IW.seed"; 
       }
 
       ProcessBuilder pb = new ProcessBuilder("rdseed", "-s", "-f", datalessFile);

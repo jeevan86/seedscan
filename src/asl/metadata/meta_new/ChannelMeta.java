@@ -521,10 +521,15 @@ public class ChannelMeta extends MemberDigest
                     Gain = Double.parseDouble(blockette.getFieldValue(4, 0));
                     String temp[] = blockette.getFieldValue(5, 0).split(" ");
                     frequencyOfGain = Double.parseDouble(temp[0]);
-                    if (stageNumber == 0) { // Only stage 0 may consist of solely a B058 block
-                                            // In this case Gain=Sensitivity
+                    //if (stageNumber == 0) { // Only stage 0 may consist of solely a B058 block
+                                              // In this case Gain=Sensitivity
+                    if ( (stageNumber != 1) && !(stage.hasBlockette(54)) ) { 
                         DigitalStage digitalStage = new DigitalStage(stageNumber, 'D', Gain, frequencyOfGain);
                         this.addStage(stageNumber, digitalStage);
+                        if (stageNumber != 0) {
+                            System.out.format("== Warning: MetaGenerator: [%s_%s %s-%s] stage:%d has NO Blockette B054\n", 
+                                               station.getNetwork(), station.getStation(), location, name, stageNumber);
+                        }
                     }
                 }
                 //else { // No B058: What we do here depends on the stageNumber and the channel name
