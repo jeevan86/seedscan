@@ -504,7 +504,7 @@ public class MetricData
             if (srate2 != srate1) {
                 System.out.format("== getWindowedData ERROR: Requested window Epoch [%d - %d] extends into "
                 + "nextData window Epoch [%d - %d] for channel=[%s] but srate1[%f] != srate2[%f]\n", 
-                    windowStartEpoch, windowEndEpoch, nextDataStartEpoch, nextDataEndEpoch, srate1, srate2 );
+                    windowStartEpoch, windowEndEpoch, nextDataStartEpoch, nextDataEndEpoch, channel, srate1, srate2 );
                 return null;
             }
 
@@ -513,7 +513,7 @@ public class MetricData
             if (windowEndEpoch > nextDataEndEpoch) {
                 System.out.format("== getWindowedData ERROR: Requested window Epoch [%d - %d] extends BEYOND "
                 + "found nextData window Epoch [%d - %d] for channel=[%s]\n", 
-                    windowStartEpoch, windowEndEpoch, nextDataStartEpoch, nextDataEndEpoch );
+                    windowStartEpoch, windowEndEpoch, nextDataStartEpoch, nextDataEndEpoch, channel );
                 return null;
             }
 
