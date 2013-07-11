@@ -72,18 +72,13 @@ public class MetaGenerator
     {
       Dataless dataless   = null;
       String datalessPath = datalessDir;
-      String datalessFile = datalessPath + "DATALESS." + station.getNetwork() + "_" + station.getStation() + ".seed"; 
+      //String datalessFile = datalessPath + "DATALESS." + station.getNetwork() + "_" + station.getStation() + ".seed"; 
+      String datalessFile = datalessPath + station.getNetwork() + ".dataless"; 
 
     // II/NE/IW networks have all metadata in a single dataless file for all stations:
-      if (station.getNetwork().equals("II")) {
-        datalessFile = datalessPath + "DATALESS.II.seed"; 
-      }
-      else if (station.getNetwork().equals("NE")) {
-        datalessFile = datalessPath + "DATALESS.NE.seed"; 
-      }
-      else if (station.getNetwork().equals("IW")) {
-        datalessFile = datalessPath + "DATALESS.IW.seed"; 
-      }
+      //if (station.getNetwork().equals("II")) {
+        //datalessFile = datalessPath + "DATALESS.II.seed"; 
+      //}
 
       ProcessBuilder pb = new ProcessBuilder("rdseed", "-s", "-f", datalessFile);
       //pb.redirectErrorStream(true);
