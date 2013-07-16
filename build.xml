@@ -83,7 +83,7 @@
     <target name="test" depends="" description="">
         <java classname="${project.main}" classpathref="test.class.path" fork="true">
             <jvmarg value="-Xms64m"/>
-            <jvmarg value="-Xmx2048m"/>
+            <jvmarg value="-Xmx1024m"/>
             <jvmarg value="-Djava.awt.headless=true"/>
         </java>
     </target>

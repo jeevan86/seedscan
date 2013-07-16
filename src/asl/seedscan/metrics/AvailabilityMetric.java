@@ -84,7 +84,9 @@ extends Metric
 
      // The expected (=from metadata) number of samples:
         ChannelMeta chanMeta = stationMeta.getChanMeta(channel);
-        int expectedPoints  = (int) (chanMeta.getSampleRate() * 24. * 60. * 60.); 
+        final int SECONDS_PER_DAY = 86400;
+        int expectedPoints  = (int) (chanMeta.getSampleRate() * SECONDS_PER_DAY + 1); 
+        //int expectedPoints  = (int) (chanMeta.getSampleRate() * 24. * 60. * 60.); 
 
      // The actual (=from data) number of samples:
         List<DataSet>datasets = metricData.getChannelData(channel);
@@ -101,6 +103,10 @@ extends Metric
         else {
             System.out.format("== AvailabilityMetric: WARNING: Expected points for channel=[%s] = 0!!\n", channel);
             return NO_RESULT;
+        }
+        if (availability >= 101.00) {
+            System.out.format("== AvailabilityMetric: WARNING: Availability=%f.2 > 100% for channel=[%s] sRate=[%f]\n", 
+                               availability, channel, chanMeta.getSampleRate());
         }
 
         return availability;
