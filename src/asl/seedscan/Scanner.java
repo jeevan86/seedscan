@@ -88,6 +88,17 @@ public class Scanner
         this.progressQueue = new FallOffQueue<SeedSplitProgress>(8);
     }
 
+    public Scanner(MetricReader reader, MetricInjector injector, Station station, Scan scan, MetaGenerator metaGen)
+    {
+        this.reader = reader;
+        this.injector = injector;
+        this.station  = station;
+        this.metaGen  = metaGen;
+        this.scan = scan;
+        this.progressQueue = new FallOffQueue<SeedSplitProgress>(8);
+    }
+
+
     public void run() {
         scan();
     }
@@ -114,7 +125,11 @@ public class Scanner
 
      // Read in all metadata for this station (all channels + all days):
         String datalessDir    = scan.getDatalessDir();
-        metaGen = new MetaGenerator(station, datalessDir);
+
+        //metaGen = new MetaGenerator(station, datalessDir);
+// **** MTH: This must be fixed!!
+        //metaGen = new MetaGenerator(datalessDir);
+
         if (!metaGen.isLoaded()) {    // No Metadata found for this station --> Skip station == End thread ??
             System.out.format("== Scanner Error: No Metadata found for Station:%s --> Skip this Station\n", station);
             return;

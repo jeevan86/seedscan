@@ -113,6 +113,12 @@ public class Dataless
         this.rawDataless = rawDataless;
         complete = false;
     }
+// This should be the one we use until station/network masks are implemented
+    public void processVolume() 
+    throws CancelledException, DatalessParseException
+    {
+      processVolume("now", "is the time");
+    }
 
     public void processVolume(Station station)
     throws CancelledException, DatalessParseException
@@ -260,6 +266,7 @@ public class Dataless
         }
 
         total = blockettes.size();
+System.out.format("== assemble() blockettes.size() = %f\n", total);
         count = 0.0;
         skipped = 0.0;
         comments = 0.0;
@@ -289,10 +296,17 @@ public class Dataless
 
             switch (blocketteNumber) {
                 case 10:
-                    if (volume != null) {
-                        throw new DuplicateBlocketteException();
+                    //if (volume != null) {
+                        //throw new DuplicateBlocketteException();
+                    //}
+                    //volume = new SeedVolume(blockette);
+
+                    if (volume == null) {
+                        volume = new SeedVolume(blockette);
                     }
-                    volume = new SeedVolume(blockette);
+                    else {
+                        System.out.format("== Dataless.assemble() Found Duplicate Blockette B10!!\n");
+                    }
                     break;
                 case 11:
                     if (volume == null) {

@@ -58,79 +58,87 @@ public class MetaGenerator
     private boolean successfullyLoaded = false;
     private String datalessDir = null;
 
-    public MetaGenerator(Station station)
-    {
-        loadDataless(station);
-    }
-    public MetaGenerator(Station station, String datalessDir)
+    public MetaGenerator(String datalessDir)
     {
         this.datalessDir = datalessDir;
-        loadDataless(station);
+        loadDataless();
     }
 
-    private void loadDataless(Station station)
+    //private void loadDataless(Station station)
+    private void loadDataless()
     {
-      Dataless dataless   = null;
-      String datalessPath = datalessDir;
-      //String datalessFile = datalessPath + "DATALESS." + station.getNetwork() + "_" + station.getStation() + ".seed"; 
-      String datalessFile = datalessPath + station.getNetwork() + ".dataless"; 
+        Dataless dataless   = null;
 
-    // II/NE/IW networks have all metadata in a single dataless file for all stations:
-      //if (station.getNetwork().equals("II")) {
-        //datalessFile = datalessPath + "DATALESS.II.seed"; 
-      //}
-
-      ProcessBuilder pb = new ProcessBuilder("rdseed", "-s", "-f", datalessFile);
-      //pb.redirectErrorStream(true);
-      strings = new ArrayList<String>();
-
-   // First see if the dataless file even exists
-      if (!(new File(datalessFile).exists())) {
-        System.out.format("=== MetaGenerator: Dataless file=%s does NOT exist!\n", datalessFile);
-        return;
-      }
-
-      try {
-        Process process = pb.start();
-        BufferedReader reader = new BufferedReader( new InputStreamReader(process.getInputStream() ) );
-        String line = null;
-        while( ( line = reader.readLine() ) != null ) {
-           strings.add(line);
+        File dir = new File(datalessDir);
+        if (!dir.exists()) {
+            logger.severe("Path '" +dir+ "' does not exist.");
+            System.exit(0);
         }
-        int shellExitStatus = process.waitFor();
-        //System.out.println("Exit status" + shellExitStatus);
-      }
-   // Need to catch both IOException and InterruptedException
-      catch (IOException e) {
-         System.out.println("Error: IOException Description: " + e.getMessage());
-      }
-      catch (InterruptedException e) {
-         System.out.println("Error: InterruptedException Description: " + e.getMessage());
-      }
+        else if (!dir.isDirectory()) {
+            logger.severe("Path '" +dir+ "' is not a directory.");
+            System.exit(0);
+        }
 
-      if (strings.size() == 0) { // We didn't read any metadata in from the rdseed output ...
-      }
-      dataless = new Dataless( strings ) ;
+        FilenameFilter textFilter = new FilenameFilter() {
+          public boolean accept(File dir, String name) {
+              if ( name.endsWith(".dataless") && (name.length() == 11) ) {
+                  return true;
+              } else {
+                  return false;
+              }
+          }
+        };
 
-      try {
-          dataless.processVolume(station); // The network and station masks aren't implemented
-      }
-      catch (Exception e){
-      }
+        String[] files    = dir.list(textFilter);
+        ArrayList strings = new ArrayList<String>();
 
-      volume = dataless.getVolume();
+        for (int i=0; i<files.length; i++){
+            String datalessFile = dir + "/" + files[i];
+            System.out.format("== MetaGenerator: rdseed -f [datalessFile=%s]\n", datalessFile);
+            ProcessBuilder pb = new ProcessBuilder("rdseed", "-s", "-f", datalessFile);
 
-      if (volume == null){
-         String message = "MetaGenerator: Unable to process dataless seed for: " + station.getNetwork() + "-" + station.getStation();
-         throw new RuntimeException(message);
-      }
+            try {
+                Process process = pb.start();
+                BufferedReader reader = new BufferedReader( new InputStreamReader(process.getInputStream() ) );
+                String line = null;
+                while( ( line = reader.readLine() ) != null ) {
+                    strings.add(line);
+                }
+                int shellExitStatus = process.waitFor();
+            }
+        // Need to catch both IOException and InterruptedException
+            catch (IOException e) {
+                System.out.println("Error: IOException Description: " + e.getMessage());
+            }
+            catch (InterruptedException e) {
+                System.out.println("Error: InterruptedException Description: " + e.getMessage());
+            }
 
-      successfullyLoaded = true;
+        } // end for loop over XX.dataless files
+
+        dataless = new Dataless( strings ) ;
+
+        try {
+            //dataless.processVolume(station); // The network and station masks aren't implemented
+            dataless.processVolume(); 
+        }
+        catch (Exception e){
+        }
+
+        volume = dataless.getVolume();
+
+        if (volume == null){
+System.out.format("=== WHAT WENT WRONBG ???!!\n");
+            //String message = "MetaGenerator: Unable to process dataless seed for: " + station.getNetwork() + "-" + station.getStation();
+            //throw new RuntimeException(message);
+        }
+
+        successfullyLoaded = true;
 
     } // end loadDataless()
 
     public boolean isLoaded() {
-      return successfullyLoaded;
+        return successfullyLoaded;
     } 
 
 /**

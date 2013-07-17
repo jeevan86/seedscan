@@ -527,8 +527,8 @@ public class ChannelMeta extends MemberDigest
                         DigitalStage digitalStage = new DigitalStage(stageNumber, 'D', Gain, frequencyOfGain);
                         this.addStage(stageNumber, digitalStage);
                         if (stageNumber != 0) {
-                            System.out.format("== Warning: MetaGenerator: [%s_%s %s-%s] stage:%d has NO Blockette B054\n", 
-                                               station.getNetwork(), station.getStation(), location, name, stageNumber);
+                            //System.out.format("== Warning: MetaGenerator: [%s_%s %s-%s] stage:%d has NO Blockette B054\n", 
+                                               //station.getNetwork(), station.getStation(), location, name, stageNumber);
                         }
                     }
                 }
