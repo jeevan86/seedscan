@@ -4,21 +4,20 @@
     </description>
 
     <!-- set global properties for this build -->
+    <property name="project.main"               value="asl.seedscan.SeedScan" />
+    <property name="project.archive"            value="SeedScan.jar" />
     <property name="src.dir"                    location="src"/>
     <property name="libs.dir"                   location="lib"/>
     <property name="resources.dir"              location="resources"/>
     <property name="build.root"                 location="build"/>
     <property name="build.resources"            location="build/resources"/>
-    <property name="project.main"               value="asl.seedscan.SeedScan" />
-    <property name="project.archive"            value="SeedScan.jar" />
     <property name="manifest.file"              value="${src.dir}/META-INF/MANIFEST.MF" />
-<!-- JAXB paths -->
+    <!-- JAXB paths -->
     <property name="seedscan.config.package"    value="asl.seedscan.config"/>
     <property name="seedscan.config.src"        location="${src.dir}/asl/seedscan/config"/>
 
     <!-- Classpath for compile -->
     <path id="compile.class.path">
-        <pathelement location="${src.dir}"/>
         <fileset dir="${libs.dir}">
             <include name="**/*.jar"/>
         </fileset>
@@ -32,25 +31,14 @@
         </fileset>
     </path>
 
-    <!-- Classpath for jar -->
-    <path id="jar.class.path">
-        <fileset dir="${libs.dir}">
-            <include name="**/*.jar"/>
-        </fileset>
-    </path>
-
 <!--ANT SEEDSCAN-->
-    <target name="seedscan" depends="compile, test" description="" />
-    <target name="seedscan-jar" depends="jar" description="" />
-
+    <target name="seedscan" depends="compile, test" description="Clean build + test [depends = compile, test]" />
 
 <!--INIT-->
-    <target name="init" depends="clean_build">
+    <target name="init" depends="clean_build" description="mkdir /build and /build/resources [depends = clean_build]" >
         <tstamp/>
         <mkdir dir="${build.root}"/>
-<!--
         <mkdir dir="${build.resources}"/>
--->
     </target>
 
 <!--INIT_DOC-->
@@ -61,7 +49,7 @@
 
 
 <!--COMPILE-->
-    <target name="compile" depends="init, jaxb" description="Compile the source">
+    <target name="compile" depends="init, jaxb" description="Compile the source [depends = init,jaxb]">
         <javac srcdir="${src.dir}" destdir="${build.root}" encoding="utf-8" debug="true" includeantruntime="no">
             <classpath refid="compile.class.path"/>
             <compilerarg value="-Xlint" />
@@ -77,10 +65,7 @@
     </target>
 
 <!--TEST-->
-<!--
-    <target name="test" depends="compile, data" description="">
--->
-    <target name="test" depends="" description="">
+    <target name="test" depends="" description="Run main from /build dir">
         <java classname="${project.main}" classpathref="test.class.path" fork="true">
             <jvmarg value="-Xms64m"/>
             <jvmarg value="-Xmx1024m"/>
@@ -112,9 +97,10 @@
         </jar>
     </target>
 
+
 <!--JAXB-->
     <target name="jaxb" depends="clean_jaxb"
-            description="JAXB class generation for config file schema">
+            description="JAXB class generation for config file schema [depends = clean_jaxb]">
         <exec executable="xjc">
             <arg value="-p" />
             <arg value="${seedscan.config.package}" />
@@ -123,8 +109,6 @@
             <arg value="schemas/SeedScanConfig.xsd" />
         </exec>
     </target>
-
-
 
 
 <!--PACKAGE-->
@@ -169,12 +153,12 @@
     </target>
 
 <!--CLEAN-JAXB-->
-    <target name="clean_jaxb" description="clean up JAXB generated sources" >
+    <target name="clean_jaxb" description="clean up JAXB generated sources [del dir=seedscan.config.src]" >
         <delete dir="${seedscan.config.src}"/>
     </target>
 
 <!--CLEAN-BUILD-->
-    <target name="clean_build" depends="clean_jaxb" description="clean up build content" >
+    <target name="clean_build" depends="clean_jaxb" description="clean up build content [del /build]" >
         <delete file="${project.target}"/>
         <delete dir="${build.root}"/>
     </target>
