@@ -22,6 +22,7 @@ import java.util.logging.Logger;
 
 public class StationKey
 extends Key
+implements Comparable<StationKey>
 {
     private static final Logger logger = Logger.getLogger("asl.metadata.StationKey");
 
@@ -62,5 +63,12 @@ extends Key
     {
         return new String(network+ "_" +name);
     }
+
+    @Override public int compareTo( StationKey stnKey ) {
+      String thisCombo = getNetwork() + getName();
+      String thatCombo = stnKey.getNetwork() + stnKey.getName();
+      return thisCombo.compareTo(thatCombo);
+   }
+
 }
 

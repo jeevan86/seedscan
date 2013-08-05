@@ -21,8 +21,10 @@ package asl.metadata;
 import freq.Cmplx;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.TreeSet;
 import java.util.Calendar;
+import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.logging.Logger;
 import java.io.IOException;
@@ -50,14 +52,12 @@ public class MetaGenerator
 {
     private static final Logger logger = Logger.getLogger("asl.metadata.MetaGenerator");
 
-    private SeedVolume volume = null;
     private Hashtable<NetworkKey, SeedVolume> volumes = null;
 
     private static MetaGenerator instance;
 
     private boolean successfullyLoaded = false;
 
-    //public MetaGenerator()
     private MetaGenerator()
     {
         volumes = new Hashtable<NetworkKey, SeedVolume>();
@@ -94,12 +94,14 @@ public class MetaGenerator
 
         String[] files    = dir.list(textFilter);
 
-        ArrayList<String> strings = new ArrayList<String>();
-
         for (String fileName : files) {
             String datalessFile = dir + "/" + fileName;
             System.out.format("== MetaGenerator: rdseed -f [datalessFile=%s]\n", datalessFile);
             ProcessBuilder pb = new ProcessBuilder("rdseed", "-s", "-f", datalessFile);
+
+            ArrayList<String> strings = new ArrayList<String>();
+
+            SeedVolume volume = null;
 
             try {
                 Process process = pb.start();
@@ -135,7 +137,6 @@ public class MetaGenerator
                 System.exit(0);
             }
             else {
-                //volumes.put( volume.getNetworkKey(), volume );
                 addVolume(volume);
             }
 
@@ -160,26 +161,53 @@ public class MetaGenerator
         return successfullyLoaded;
     } 
 
+    public void print() {
+        if (volumes == null) {
+            System.out.format("== MetaGenerator.print() - No SeedVolumes have been loaded!\n");
+        }
+        else {
+            for (NetworkKey key : volumes.keySet()) {
+                System.out.format("== MetaGenerator Found SeedVolume for Network:[%s]\n", key );
+                SeedVolume volume = volumes.get(key);
+                //volume.printStations();
+                List<Station> stations = volume.getStationList();
+                for (Station station : stations) {
+                    System.out.format("     == SeedVolume contains Station:[%s]\n", station );
+                }
+            }
+        }
+    }
+
+    public List<Station> getStationList() {
+        if (volumes == null) {
+            return null;
+        }
+        List<Station> allStations = new ArrayList<Station>();
+        for (NetworkKey key : volumes.keySet()) {
+            SeedVolume volume = volumes.get(key);
+            List<Station> stations = volume.getStationList();
+            allStations.addAll(stations);
+        }
+        return allStations;
+    }
+
+
 /**
  * loadDataless() reads in the entire dataless seed file (all stations)
  * getStationData returns the metadata for a single station for all epochs
  * It is called by getStationMeta below.
  */
     private StationData getStationData(Station station){
-      StationKey stnkey = new StationKey(station);
-
-      //volume = volumes.get(station.getNetworkKey() ); 
-      volume = volumes.get( new NetworkKey(station.getNetwork()) ) ; 
-      if (volume == null) {
-         System.out.format("== MetaGenerator.getStationData() - Volume==null for Station=[%s]\n", station);
-      }
-
-      StationData stationData = volume.getStation(stnkey);
-      if (stationData == null) {
-         System.out.println("stationData is null ==> This COULD be caused by incorrect network code INSIDE seedfile ...");
-         return null;
-      }
-      return stationData;
+        SeedVolume volume = volumes.get( new NetworkKey(station.getNetwork()) ) ; 
+        if (volume == null) {
+            System.out.format("== MetaGenerator.getStationData() - Volume==null for Station=[%s]\n", station);
+            System.exit(0);
+        }
+        StationData stationData = volume.getStation(new StationKey(station));
+        if (stationData == null) {
+            System.out.println("stationData is null ==> This COULD be caused by incorrect network code INSIDE seedfile ...");
+        }
+        return stationData;
     }
 
 /**
@@ -200,8 +228,6 @@ public class MetaGenerator
  */
 
     public StationMeta getStationMeta(Station station, Calendar timestamp){
-      StationKey stnkey = new StationKey(station);  // Kind of redundant ...
-      //System.out.format("===== getStationMeta(): station=%s net=%s epoch date=%s\n",stnkey.getName(),stnkey.getNetwork(),EpochData.epochToDateString(timestamp));
 
       StationData stationData = getStationData(station);
       if (stationData == null) { // This can happen if the file DATALESS.IW_LKWY.seed doesn't match

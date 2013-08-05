@@ -340,6 +340,7 @@ public class SeedScan
         //MetaGenerator metaGen = new MetaGenerator(scan.getDatalessDir());
         MetaGenerator metaGen = MetaGenerator.getInstance();
         metaGen.loadDataless(scan.getDatalessDir());
+        metaGen.print();
 
  // Really the scan for each station will be handled by ScanManager using thread pools
  // For now we're just going to do it here:
@@ -351,8 +352,7 @@ public class SeedScan
         List<Station> stations;
 
         if (getStationList){
-            String datalessDir = scan.getDatalessDir();
-            stations = getStationList(datalessDir);
+            stations = metaGen.getStationList();
         }
         else {
             stations = new ArrayList<Station>();
@@ -426,77 +426,6 @@ public class SeedScan
             lock = null;
         }
     } // main()
-
-
-/** getStationList()
-  * Scan directory (=path) for dataless files of the form: DATALESS.IU_ANMO.seed
-  * If found, add to ArrayList<Station> stations
-  * return null if no matching dataless files found
- */ 
-
-    private static List<Station> getStationList( String path ){
-        File dir = new File(path);
-        if (!dir.exists()) {
-            logger.severe("Path '" +dir+ "' does not exist.");
-            System.exit(0);
-        }
-        else if (!dir.isDirectory()) {
-            logger.severe("Path '" +dir+ "' is not a directory.");
-            System.exit(0);
-        }
-
-        FilenameFilter textFilter = new FilenameFilter() {
-          public boolean accept(File dir, String name) {
-              if ( name.endsWith(".dataless") && (name.length() == 11) ) {
-                  return true;
-              } else {
-                  return false;
-              }
-          }
-        };
-
-        ArrayList<Station> stations = null;
-        String[] tmpStringBuf = null;
-        String[] files = dir.list(textFilter);
-
-        for (int i=0; i<files.length; i++){
-            String knet = null;
-            //  files[i]=IU.dataless
-            tmpStringBuf  = files[i].split("\\.");
-            if (tmpStringBuf.length == 2){
-                knet  = tmpStringBuf[0];
-            }
-            String fileName = dir + "/" + files[i];
-            //System.out.format("== Got Dataless file=[%s]\n", fileName);
-
-            ProcessBuilder pb = new ProcessBuilder("rdseed", "-c", "-f", fileName);
-            try {
-                Process process = pb.start();
-                BufferedReader reader = new BufferedReader( new InputStreamReader(process.getInputStream() ) );
-                String line = null;
-                while( ( line = reader.readLine() ) != null ) {
-                    if ( line.startsWith("B011F04-05") ) {
-                        tmpStringBuf  = line.split("\\s+");
-                        String kstn   = tmpStringBuf[1];
-                        if (stations == null) stations = new ArrayList<Station>();
-                        stations.add( new Station(knet, kstn) );
-                        //System.out.format("     Add Station:[%s_%s]\n", knet, kstn);
-                    }
-                }
-                int shellExitStatus = process.waitFor();
-            }
-        // Need to catch both IOException and InterruptedException
-            catch (IOException e) {
-                System.out.println("Error: IOException Description: " + e.getMessage());
-            }
-            catch (InterruptedException e) {
-                System.out.println("Error: InterruptedException Description: " + e.getMessage());
-            }
-
-        }
-        return stations;
-    }
-
 
 
 } // class SeedScan

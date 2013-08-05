@@ -68,7 +68,10 @@
     <target name="test" depends="" description="Run main from /build dir">
         <java classname="${project.main}" classpathref="test.class.path" fork="true">
             <jvmarg value="-Xms64m"/>
+<!--
             <jvmarg value="-Xmx1024m"/>
+-->
+            <jvmarg value="-Xmx4096m"/>
             <jvmarg value="-Djava.awt.headless=true"/>
         </java>
     </target>

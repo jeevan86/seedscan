@@ -19,6 +19,7 @@
 package asl.metadata;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Hashtable;
 import java.util.TreeSet;
 import java.util.logging.Logger;
@@ -45,7 +46,7 @@ public class SeedVolume
         this.volumeInfo = volumeInfo;
         try {
             this.networkKey = new NetworkKey(volumeInfo);
-System.out.format("== new SeedVolume() networkKey=[%s]\n", networkKey);
+            //System.out.format("== new SeedVolume() networkKey=[%s]\n", networkKey);
         }
         catch(WrongBlocketteException e) {
             System.out.format("== SeedVolume Error: WrongBlocketteException:%s\n", e.getMessage() );
@@ -99,5 +100,25 @@ System.out.format("== new SeedVolume() networkKey=[%s]\n", networkKey);
     {
         return stationLocators;
     }
+
+    public void printStations() {
+        TreeSet<StationKey> keys = new TreeSet<StationKey>();
+        keys.addAll(stations.keySet());
+        for (StationKey key : keys) {
+            System.out.format("     == SeedVolume: Stn = [%s]\n", key);
+        }
+    }
+
+    public List<Station> getStationList() {
+        ArrayList<Station> stns = new ArrayList<Station>();
+        TreeSet<StationKey> keys = new TreeSet<StationKey>();
+        keys.addAll(stations.keySet());
+
+        for (StationKey key : keys) {
+            stns.add( new Station( key.getNetwork(), key.getName() ) );
+        }
+        return stns;
+    }
+
 }
 
