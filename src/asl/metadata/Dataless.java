@@ -266,7 +266,7 @@ public class Dataless
         }
 
         total = blockettes.size();
-System.out.format("== assemble() blockettes.size() = %f\n", total);
+//System.out.format("== assemble() blockettes.size() = %f\n", total);
         count = 0.0;
         skipped = 0.0;
         comments = 0.0;
@@ -274,7 +274,6 @@ System.out.format("== assemble() blockettes.size() = %f\n", total);
         lastPercent = 0.0;
         stage = "Assembling Data";
 
-        //volume = new SeedVolume();
         StationData station = null;
         ChannelData channel = null;
         EpochData epoch = null;
@@ -292,21 +291,18 @@ System.out.format("== assemble() blockettes.size() = %f\n", total);
             }
 
             int blocketteNumber = blockette.getNumber();
-//System.out.format("  Dataless: assemble() blocketteNumber=%d\n",blocketteNumber);
 
             switch (blocketteNumber) {
                 case 10:
-                    //if (volume != null) {
-                        //throw new DuplicateBlocketteException();
-                    //}
-                    //volume = new SeedVolume(blockette);
-
-                    if (volume == null) {
-                        volume = new SeedVolume(blockette);
+                // MTH: As it stands, a Dataless object is only expecting to create
+                //      a *single* Volume corresponding to a single Network dataless
+                //      This could be modified so that we close out a previously created
+                //      SeedVolume and create a new one when we encounter a Blockette B010.
+                //      Then a List<SeedVolume> could be handed back via getVolumes() ...
+                    if (volume != null) {
+                        throw new DuplicateBlocketteException();
                     }
-                    else {
-                        System.out.format("== Dataless.assemble() Found Duplicate Blockette B10!!\n");
-                    }
+                    volume = new SeedVolume(blockette);
                     break;
                 case 11:
                     if (volume == null) {

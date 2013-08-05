@@ -23,7 +23,6 @@ import freq.Cmplx;
 import java.util.ArrayList;
 import java.util.TreeSet;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Hashtable;
 import java.util.logging.Logger;
 import java.io.IOException;
@@ -52,23 +51,27 @@ public class MetaGenerator
     private static final Logger logger = Logger.getLogger("asl.metadata.MetaGenerator");
 
     private SeedVolume volume = null;
-    private Collection<String> rawDataless;
-    private ArrayList<String> strings = null;
-    private StationData stationData = null;
-    private boolean successfullyLoaded = false;
-    private String datalessDir = null;
+    private Hashtable<NetworkKey, SeedVolume> volumes = null;
 
-    public MetaGenerator(String datalessDir)
+    private static MetaGenerator instance;
+
+    private boolean successfullyLoaded = false;
+
+    //public MetaGenerator()
+    private MetaGenerator()
     {
-        this.datalessDir = datalessDir;
-        loadDataless();
+        volumes = new Hashtable<NetworkKey, SeedVolume>();
     }
 
-    //private void loadDataless(Station station)
-    private void loadDataless()
-    {
-        Dataless dataless   = null;
+    static public MetaGenerator getInstance() {
+        if (instance == null) {
+            instance = new MetaGenerator();
+        }
+        return instance;
+    }
 
+    public void loadDataless(String datalessDir)
+    {
         File dir = new File(datalessDir);
         if (!dir.exists()) {
             logger.severe("Path '" +dir+ "' does not exist.");
@@ -90,10 +93,11 @@ public class MetaGenerator
         };
 
         String[] files    = dir.list(textFilter);
-        ArrayList strings = new ArrayList<String>();
 
-        for (int i=0; i<files.length; i++){
-            String datalessFile = dir + "/" + files[i];
+        ArrayList<String> strings = new ArrayList<String>();
+
+        for (String fileName : files) {
+            String datalessFile = dir + "/" + fileName;
             System.out.format("== MetaGenerator: rdseed -f [datalessFile=%s]\n", datalessFile);
             ProcessBuilder pb = new ProcessBuilder("rdseed", "-s", "-f", datalessFile);
 
@@ -114,28 +118,43 @@ public class MetaGenerator
                 System.out.println("Error: InterruptedException Description: " + e.getMessage());
             }
 
+            Dataless dataless = new Dataless( strings ) ;
+
+            try {
+                dataless.processVolume(); 
+                volume = dataless.getVolume();
+            }
+            catch (Exception e){
+                System.out.format("== MetaGenerator: Error processing dataless volume for file=[%s]:%s\n", 
+                    fileName, e.getMessage());
+            }
+
+            if (volume == null){
+                System.out.format("== MetaGenerator: Error processing dataless volume==null! for file=[%s]\n",
+                    fileName);
+                System.exit(0);
+            }
+            else {
+                //volumes.put( volume.getNetworkKey(), volume );
+                addVolume(volume);
+            }
+
         } // end for loop over XX.dataless files
-
-        dataless = new Dataless( strings ) ;
-
-        try {
-            //dataless.processVolume(station); // The network and station masks aren't implemented
-            dataless.processVolume(); 
-        }
-        catch (Exception e){
-        }
-
-        volume = dataless.getVolume();
-
-        if (volume == null){
-System.out.format("=== WHAT WENT WRONBG ???!!\n");
-            //String message = "MetaGenerator: Unable to process dataless seed for: " + station.getNetwork() + "-" + station.getStation();
-            //throw new RuntimeException(message);
-        }
 
         successfullyLoaded = true;
 
     } // end loadDataless()
+
+    private void addVolume( SeedVolume volume ) {
+        NetworkKey networkKey = volume.getNetworkKey();
+        if (volumes.containsKey(networkKey)) {
+            System.out.format("== MetaGenerator Error: Attempting to load volume networkKey=[%s] --> Already loaded!\n",
+                              networkKey);
+        }
+        else {
+            volumes.put( networkKey, volume );
+        }
+    }
 
     public boolean isLoaded() {
         return successfullyLoaded;
@@ -148,6 +167,13 @@ System.out.format("=== WHAT WENT WRONBG ???!!\n");
  */
     private StationData getStationData(Station station){
       StationKey stnkey = new StationKey(station);
+
+      //volume = volumes.get(station.getNetworkKey() ); 
+      volume = volumes.get( new NetworkKey(station.getNetwork()) ) ; 
+      if (volume == null) {
+         System.out.format("== MetaGenerator.getStationData() - Volume==null for Station=[%s]\n", station);
+      }
+
       StationData stationData = volume.getStation(stnkey);
       if (stationData == null) {
          System.out.println("stationData is null ==> This COULD be caused by incorrect network code INSIDE seedfile ...");

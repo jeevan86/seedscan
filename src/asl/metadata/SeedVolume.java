@@ -28,6 +28,8 @@ public class SeedVolume
     private static final Logger logger = Logger.getLogger("asl.metadata.SeedVolume");
 
     private Blockette volumeInfo = null;
+    private NetworkKey networkKey= null;
+
     private ArrayList<Blockette> stationLocators;
     private Hashtable<StationKey, StationData> stations;
 
@@ -41,6 +43,13 @@ public class SeedVolume
     public SeedVolume(Blockette volumeInfo)
     {
         this.volumeInfo = volumeInfo;
+        try {
+            this.networkKey = new NetworkKey(volumeInfo);
+System.out.format("== new SeedVolume() networkKey=[%s]\n", networkKey);
+        }
+        catch(WrongBlocketteException e) {
+            System.out.format("== SeedVolume Error: WrongBlocketteException:%s\n", e.getMessage() );
+        }
         stations = new Hashtable<StationKey, StationData>();
         stationLocators = new ArrayList<Blockette>();
     }
@@ -73,6 +82,11 @@ public class SeedVolume
     public Blockette getVolumeInfo()
     {
         return this.volumeInfo;
+    }
+
+    public NetworkKey getNetworkKey()
+    {
+        return this.networkKey;
     }
 
     // station locators (list of stations in seed volume)

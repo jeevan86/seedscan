@@ -337,7 +337,9 @@ public class SeedScan
         }
 
         scan = scans.get("daily");
-        MetaGenerator metaGen = new MetaGenerator(scan.getDatalessDir());
+        //MetaGenerator metaGen = new MetaGenerator(scan.getDatalessDir());
+        MetaGenerator metaGen = MetaGenerator.getInstance();
+        metaGen.loadDataless(scan.getDatalessDir());
 
  // Really the scan for each station will be handled by ScanManager using thread pools
  // For now we're just going to do it here:
