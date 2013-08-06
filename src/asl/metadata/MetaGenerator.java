@@ -33,31 +33,29 @@ import java.io.*;
 import asl.metadata.meta_new.*;
 
 /**
- * MetaGenerator - Holds metadata for all channels + epochs for a single station
- *                 Currently reads metadata in from a dataless seed file
- *
- * Currently we are searching for a single dataless seed file for each station
- *   (e.g., dataless = DATALESS.IU_ANMO.seed), however,
- * The code is set up to scan a multipe station dataless for the requested station
- * In order to implement multiple station dataless file(s), the I/O must be addressed
- * Note that if the station/network masks ever get implemented in Dataless.processVolume(),
- * then it will no longer be possible to use a single dataless seed file with multiple 
- * station metadata.
+ * MetaGenerator - Holds metadata for all networks x stations x channels x epochs
+ *                 Currently reads metadata in from network dataless seed files
  *
  * @author Mike Hagerty <hagertmb@bc.edu> 
  *
- * @param  datalessDir  path to dataless seed files is passed in via config.xml 
  */
 public class MetaGenerator
 {
     private static final Logger logger = Logger.getLogger("asl.metadata.MetaGenerator");
 
+    /**
+    * Each datalessDir/XX.dataless file is read into a separate SeedVolume 
+    * keyed by network (e.g., XX)
+    */
     private Hashtable<NetworkKey, SeedVolume> volumes = null;
 
     private static MetaGenerator instance;
 
     private boolean successfullyLoaded = false;
 
+    /**
+    * Private constructor to ensure singleton
+    */
     private MetaGenerator()
     {
         volumes = new Hashtable<NetworkKey, SeedVolume>();
@@ -70,6 +68,13 @@ public class MetaGenerator
         return instance;
     }
 
+    /**
+    *
+    * loadDataless - Look in datalessDir for all files of form XX.dataless
+    *                where XX = network {II, IU, NE, etc.}
+    * 
+    * @param  datalessDir  path to dataless seed files, read from config.xml 
+    */
     public void loadDataless(String datalessDir)
     {
         File dir = new File(datalessDir);
@@ -178,6 +183,9 @@ public class MetaGenerator
         }
     }
 
+    /*
+    * Return a list of all stations contained in all volumes
+    */
     public List<Station> getStationList() {
         if (volumes == null) {
             return null;
@@ -229,71 +237,73 @@ public class MetaGenerator
 
     public StationMeta getStationMeta(Station station, Calendar timestamp){
 
-      StationData stationData = getStationData(station);
-      if (stationData == null) { // This can happen if the file DATALESS.IW_LKWY.seed doesn't match
-        return null;             //   the name INSIDE the dataless (= US_LKWY) ... so the keys don't match
-      }
+        StationData stationData = getStationData(station);
+        if (stationData == null) { // This can happen if the file DATALESS.IW_LKWY.seed doesn't match
+            return null;             //   the name INSIDE the dataless (= US_LKWY) ... so the keys don't match
+        }
  // Scan stationData for the correct station blockette (050) for this timestamp - return null if it isn't found
-      Blockette blockette     = stationData.getBlockette(timestamp);
+        Blockette blockette     = stationData.getBlockette(timestamp);
 
-      if (blockette == null){
-        System.out.println("MetaGenerator.getStationMeta(): CAN'T FIND STATION METADATA FOR REQUESTED EPOCH");
-        return null;
-      }
-      else { // Uncomment to print out a Blockette050 each time getStationMeta is called
-        //blockette.print();
-      }
+        if (blockette == null){
+            System.out.println("MetaGenerator.getStationMeta(): CAN'T FIND STATION METADATA FOR REQUESTED EPOCH");
+            return null;
+        }
+        else { // Uncomment to print out a Blockette050 each time getStationMeta is called
+            //blockette.print();
+        }
 
-      StationMeta stationMeta = null;
-      try {
-        stationMeta = new StationMeta(blockette, timestamp);
-      }
-      catch (WrongBlocketteException e ){
-        System.out.println("ERROR: Could not create new StationMeta(blockette) !!");
-        System.exit(0);
-      }
+        StationMeta stationMeta = null;
+        try {
+            stationMeta = new StationMeta(blockette, timestamp);
+        }
+        catch (WrongBlocketteException e ){
+            System.out.println("ERROR: Could not create new StationMeta(blockette) !!");
+            System.exit(0);
+        }
 
 
  // Get this StationData's ChannelKeys and sort:
-      Hashtable<ChannelKey, ChannelData> channels = stationData.getChannels();
-      TreeSet<ChannelKey> keys = new TreeSet<ChannelKey>();
-      keys.addAll(channels.keySet());
-      for (ChannelKey key : keys){
-        //System.out.println("==Channel:"+key );
-        ChannelData channel = channels.get(key);
-        //ChannelMeta channelMeta = new ChannelMeta(key,timestamp);
-//System.out.format("== MetaGen: newChannelMeta(key=%s station=%s)\n", key, station);
-        ChannelMeta channelMeta = new ChannelMeta(key,timestamp,station);
+        Hashtable<ChannelKey, ChannelData> channels = stationData.getChannels();
+        TreeSet<ChannelKey> keys = new TreeSet<ChannelKey>();
+        keys.addAll(channels.keySet());
+        for (ChannelKey key : keys){
+            //System.out.println("==Channel:"+key );
+            ChannelData channel = channels.get(key);
+            //ChannelMeta channelMeta = new ChannelMeta(key,timestamp);
+            ChannelMeta channelMeta = new ChannelMeta(key,timestamp,station);
 
-     // See if this channel contains the requested epoch time and if so return the key (=Epoch Start timestamp)
-      //channel.printEpochs();
-        Calendar epochTimestamp = channel.containsEpoch(timestamp);
-        if (epochTimestamp !=null){
-           EpochData epochData = channel.getEpoch(epochTimestamp);
+     // See if this channel contains the requested epoch time and if so return the key 
+     //                                                       (=Epoch Start timestamp)
+            //channel.printEpochs();
+            Calendar epochTimestamp = channel.containsEpoch(timestamp);
+            if (epochTimestamp !=null){
+                EpochData epochData = channel.getEpoch(epochTimestamp);
 
      // If the epoch is closed, check that the end time is at least 24 hours later than the requested time
-           if (epochData.getEndTime() != null ){  
+                if (epochData.getEndTime() != null ){  
          // Make sure this epoch end time is > requested time + 24 hours
-              long epochStart = epochData.getStartTime().getTimeInMillis();
-              long epochEnd   = epochData.getEndTime().getTimeInMillis();
-              if ( epochEnd <  (timestamp.getTimeInMillis() + 24 * 3600 * 1000) ) {
-                channelMeta.setDayBreak(); // set channelMeta.dayBreak = true
-              }
-           }
-
-           channelMeta.processEpochData(epochData);
-           stationMeta.addChannel(key, channelMeta);
-        // channelMeta.print();
-
+                    long epochStart = epochData.getStartTime().getTimeInMillis();
+                    long epochEnd   = epochData.getEndTime().getTimeInMillis();
+                    if ( epochEnd <  (timestamp.getTimeInMillis() + 24 * 3600 * 1000) ) {
+                        channelMeta.setDayBreak(); // set channelMeta.dayBreak = true
+                    }
+                }
+                channelMeta.processEpochData(epochData);
+                stationMeta.addChannel(key, channelMeta);
+            }
+            else { // The channel does NOT contain the epoch time --> reset ChannelMeta to null
+                channelMeta = null;
+            }
         }
-        else { // The channel does NOT contain the epoch time --> reset ChannelMeta to null
-          //System.out.format("==No Response found for this Channel + Epoch\n");
-            channelMeta = null;
-        }
-      }
 
-      return stationMeta;
-     
+        return stationMeta;
+    }
+
+    public static void main(String[] args) {
+        System.out.println("=== MetaGenerator main() ====");
+        MetaGenerator metaGen = getInstance();
+        metaGen.loadDataless("/Users/mth/mth/ASLData/dcc/metadata/dataless");
+        metaGen.print();
     }
 
 }
