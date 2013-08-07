@@ -21,6 +21,8 @@ package asl.metadata;
 public class MissingBlocketteDataException
 extends Exception
 {
+    private static final long serialVersionUID = 1L;
+
     public MissingBlocketteDataException()
     {
         super();

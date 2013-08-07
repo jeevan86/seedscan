@@ -54,6 +54,8 @@ import java.io.File;
 public class ChannelMeta extends MemberDigest 
                          implements Serializable, Cloneable
 {
+    private static final long serialVersionUID = 1L;
+
     private String name = null;
     private String location = null;
     private String comment = null;

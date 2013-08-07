@@ -44,6 +44,7 @@ import java.util.GregorianCalendar;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
+@SuppressWarnings("cast")
 public class Util extends Object {
   static String process="UNSET";
   static PrintStream stdout=System.out;

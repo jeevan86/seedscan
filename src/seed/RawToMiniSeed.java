@@ -57,6 +57,8 @@ import java.util.Collections;
  * 
  * @author davidketchum
  */
+// MTH: getting a lot of redunduant cast warnings ...
+@SuppressWarnings("cast")
 public class RawToMiniSeed {
   // Static variables
   static private DecimalFormat df6; 

@@ -48,6 +48,7 @@ import asl.concurrent.FallOffQueue;
  * containing a contiguous block of data outside of the time range of any 
  * other DataSet in the same tree.
  */
+@SuppressWarnings("cast")
 public class SeedSplitProcessor
 implements Runnable
 {

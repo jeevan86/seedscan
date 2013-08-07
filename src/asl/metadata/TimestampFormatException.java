@@ -21,6 +21,8 @@ package asl.metadata;
 public class TimestampFormatException
 extends Exception
 {
+    private static final long serialVersionUID = 1L;
+
     public TimestampFormatException()
     {
         super();

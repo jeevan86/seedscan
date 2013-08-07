@@ -21,6 +21,8 @@ package asl.metadata;
 public class DuplicateBlocketteFieldException
 extends Exception
 {
+    private static final long serialVersionUID = 1L;
+
     public DuplicateBlocketteFieldException()
     {
         super();

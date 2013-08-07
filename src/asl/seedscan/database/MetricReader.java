@@ -14,6 +14,7 @@ import asl.seedscan.metrics.MetricResult;
  * @author Joel D. Edwards <jdedwards@usgs.gov>
  *
  */
+@SuppressWarnings("cast")
 public class MetricReader
 extends TaskThread<QueryContext<? extends Object>>
 {
