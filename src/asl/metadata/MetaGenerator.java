@@ -32,6 +32,10 @@ import java.io.*;
 
 import asl.metadata.meta_new.*;
 
+import java.rmi.Naming;
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
+
 /**
  * MetaGenerator - Holds metadata for all networks x stations x channels x epochs
  *                 Currently reads metadata in from network dataless seed files
@@ -40,8 +44,12 @@ import asl.metadata.meta_new.*;
  *
  */
 public class MetaGenerator
+    extends UnicastRemoteObject
+    implements MetaInterface
 {
     private static final Logger logger = Logger.getLogger("asl.metadata.MetaGenerator");
+
+    private static final long serialVersionUID = 1L;
 
     /**
     * Each datalessDir/XX.dataless file is read into a separate SeedVolume 
@@ -56,16 +64,20 @@ public class MetaGenerator
     /**
     * Private constructor to ensure singleton
     */
-    private MetaGenerator()
+    private MetaGenerator() throws RemoteException
     {
         volumes = new Hashtable<NetworkKey, SeedVolume>();
     }
 
-    static public MetaGenerator getInstance() {
+    static public MetaGenerator getInstance() throws RemoteException{
         if (instance == null) {
             instance = new MetaGenerator();
         }
         return instance;
+    }
+
+    public String getString() throws RemoteException {
+        return new String("This-string-is-from-MetaGenerator");
     }
 
     /**
@@ -186,7 +198,7 @@ public class MetaGenerator
     /*
     * Return a list of all stations contained in all volumes
     */
-    public List<Station> getStationList() {
+    public List<Station> getStationList() throws RemoteException {
         if (volumes == null) {
             return null;
         }
@@ -198,7 +210,6 @@ public class MetaGenerator
         }
         return allStations;
     }
-
 
 /**
  * loadDataless() reads in the entire dataless seed file (all stations)
@@ -235,7 +246,7 @@ public class MetaGenerator
  *                                           requested timestamp day.
  */
 
-    public StationMeta getStationMeta(Station station, Calendar timestamp){
+    public StationMeta getStationMeta(Station station, Calendar timestamp) throws RemoteException {
 
         StationData stationData = getStationData(station);
         if (stationData == null) { // This can happen if the file DATALESS.IW_LKWY.seed doesn't match
@@ -300,10 +311,18 @@ public class MetaGenerator
     }
 
     public static void main(String[] args) {
-        System.out.println("=== MetaGenerator main() ====");
-        MetaGenerator metaGen = getInstance();
-        metaGen.loadDataless("/Users/mth/mth/ASLData/dcc/metadata/dataless");
-        metaGen.print();
+        System.out.println("=== Start MetaGenerator Server ====");
+        try {
+            MetaGenerator metaGen = getInstance();
+            metaGen.loadDataless("/Users/mth/mth/ASLData/dcc/metadata/dataless");
+            metaGen.print();
+
+            Naming.rebind("MetaGen", metaGen);
+            System.out.println("== MetaGen Server is ready");
+        }
+        catch (Exception e) {
+            System.out.format("== MetaGen Server failed:%s\n", e.getMessage() );
+        }
     }
 
 }

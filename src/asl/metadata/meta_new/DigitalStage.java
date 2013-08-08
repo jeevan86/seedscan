@@ -24,6 +24,8 @@ import java.util.ArrayList;
 public class DigitalStage extends ResponseStage
                           implements Cloneable
 {
+    private static final long serialVersionUID = 1L;
+
     private int decimationFactor = 1;
     private int numberOfNumerators;
     private int numberOfDenomenators;

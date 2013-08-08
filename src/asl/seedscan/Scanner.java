@@ -67,7 +67,8 @@ public class Scanner
     private MetricInjector injector;
     private MetricReader reader;
     private Scan scan;
-    private MetaGenerator metaGen;
+    //private MetaGenerator metaGen;
+    private MetaServer metaServer;
 
     private MetricData currentMetricData = null;
     private MetricData nextMetricData = null;
@@ -88,12 +89,14 @@ public class Scanner
         this.progressQueue = new FallOffQueue<SeedSplitProgress>(8);
     }
 
-    public Scanner(MetricReader reader, MetricInjector injector, Station station, Scan scan, MetaGenerator metaGen)
+    //public Scanner(MetricReader reader, MetricInjector injector, Station station, Scan scan, MetaGenerator metaGen)
+    public Scanner(MetricReader reader, MetricInjector injector, Station station, Scan scan, MetaServer metaServer)
     {
         this.reader = reader;
         this.injector = injector;
         this.station  = station;
-        this.metaGen  = metaGen;
+        //this.metaGen  = metaGen;
+        this.metaServer  = metaServer;
         this.scan = scan;
         this.progressQueue = new FallOffQueue<SeedSplitProgress>(8);
     }
@@ -123,17 +126,13 @@ public class Scanner
         timestamp.set(Calendar.HOUR_OF_DAY, 0);      timestamp.set(Calendar.MINUTE, 0);
         timestamp.set(Calendar.SECOND, 0);      timestamp.set(Calendar.MILLISECOND, 0);
 
-     // Read in all metadata for this station (all channels + all days):
-        String datalessDir    = scan.getDatalessDir();
-
-        //metaGen = new MetaGenerator(station, datalessDir);
-// **** MTH: This must be fixed!!
-        //metaGen = new MetaGenerator(datalessDir);
-
+/**
+Not sure if this is still needed ??
         if (!metaGen.isLoaded()) {    // No Metadata found for this station --> Skip station == End thread ??
             System.out.format("== Scanner Error: No Metadata found for Station:%s --> Skip this Station\n", station);
             return;
         }
+**/
 
      // CMT Event loader - use to load events for each day
         EventLoader eventLoader = new EventLoader( scan.getEventsDir() );
@@ -156,7 +155,8 @@ public class Scanner
             nextDayTimestamp.setTimeInMillis( timestamp.getTimeInMillis() + dayMilliseconds);
 
 // [1] Get all the channel metadata for this station, for this day
-            StationMeta stnMeta = metaGen.getStationMeta(station, timestamp); 
+            //StationMeta stnMeta = metaGen.getStationMeta(station, timestamp); 
+            StationMeta stnMeta = metaServer.getStationMeta(station, timestamp); 
             if (stnMeta == null) {                       // No Metadata found for this station + this day --> skip day
                System.out.format("== Scanner: No Metadata found for Station:%s_%s + Day:%s --> Skipping\n", 
                                   station.getNetwork(), station.getStation(), EpochData.epochToDateString(timestamp) );
@@ -281,7 +281,8 @@ public class Scanner
 
       //System.out.format("== getMetricData: request data for Station=[%s] Day=[%s]\n", station, EpochData.epochToDateString(timestamp));
 
-        StationMeta stationMeta = metaGen.getStationMeta(station, timestamp); 
+        //StationMeta stationMeta = metaGen.getStationMeta(station, timestamp); 
+        StationMeta stationMeta = metaServer.getStationMeta(station, timestamp); 
         if (stationMeta == null) {
             return null;
         }

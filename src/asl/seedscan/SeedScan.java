@@ -337,9 +337,12 @@ public class SeedScan
         }
 
         scan = scans.get("daily");
-        MetaGenerator metaGen = MetaGenerator.getInstance();
-        metaGen.loadDataless(scan.getDatalessDir());
+        //MetaGenerator metaGen = MetaGenerator.getInstance();
+        //metaGen.loadDataless(scan.getDatalessDir());
         //metaGen.print();
+
+        MetaServer metaServer = new MetaServer("136.167.12.50");
+        //MetaServer metaServer = new MetaServer("local");
 
  // Really the scan for each station will be handled by ScanManager using thread pools
  // For now we're just going to do it here:
@@ -351,7 +354,7 @@ public class SeedScan
         //getStationList = false;
 
         if (getStationList){
-            stations = metaGen.getStationList();
+            stations = metaServer.getStationList();
         }
         else {
             stations = new ArrayList<Station>();
@@ -381,8 +384,8 @@ public class SeedScan
         
         logger.info("Processing stations...");
         for (Station station: stations) {
-            //Scanner scanner = new Scanner(reader, injector, station, scan);
-            Scanner scanner = new Scanner(reader, injector, station, scan, metaGen);
+            //Scanner scanner = new Scanner(reader, injector, station, scan, metaGen);
+            Scanner scanner = new Scanner(reader, injector, station, scan, metaServer);
             scanner.scan();
         }
         

@@ -23,9 +23,10 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
 public class ChannelKey
-extends Key
-implements Comparable<ChannelKey>
+    extends Key
+    implements Comparable<ChannelKey>, java.io.Serializable
 {
+    private static final long serialVersionUID = 1L;
     private static final Logger logger = Logger.getLogger("asl.metadata.ChannelKey");
     private static final int CHANNEL_EPOCH_BLOCKETTE_NUMBER = 52;
 

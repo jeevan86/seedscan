@@ -26,8 +26,10 @@ import java.util.logging.Logger;
  */
 
 public class Station
+    implements java.io.Serializable
 {
     private static final Logger logger = Logger.getLogger("asl.metadata.Station");
+    private static final long serialVersionUID = 1L;
 
     private String network = null;
     private String station = null;

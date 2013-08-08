@@ -37,7 +37,9 @@ import asl.metadata.*;
  * @param timestamp     the date (exact day) for which we want the station's metadata
  */
 public class StationMeta
+    implements java.io.Serializable
 {
+    private static final long serialVersionUID = 1L;
 
     private static final Logger logger = Logger.getLogger("asl.metadata.meta_new.StationMeta");
 

@@ -23,8 +23,10 @@ import java.util.Collection;
 import java.util.logging.Logger;
 
 public class Field
+    implements java.io.Serializable
 {
     private static final Logger logger = Logger.getLogger("asl.metadata.Field");
+    private static final long serialVersionUID = 1L;
 
     private int fieldID;
     private String description;

@@ -37,7 +37,7 @@ import java.io.Serializable;
  *
  * @author Mike Hagerty <hagertmb@bc.edu>
  */
-public abstract class ResponseStage implements Comparable<ResponseStage>
+public abstract class ResponseStage implements Comparable<ResponseStage>, Serializable
 {
     protected int    stageNumber;
     protected char   stageType;

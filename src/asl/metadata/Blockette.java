@@ -23,8 +23,10 @@ import java.util.Hashtable;
 import java.util.logging.Logger;
 
 public class Blockette
+    implements java.io.Serializable
 {
     private static final Logger logger = Logger.getLogger("asl.metadata.Blockette");
+    private static final long serialVersionUID = 1L;
 
     private int number;
     private Hashtable<Integer, Field> fields;

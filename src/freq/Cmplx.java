@@ -16,7 +16,9 @@ package freq;
  * write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA 02111-1307, USA.
  */
-public class Cmplx {
+
+public class Cmplx implements java.io.Serializable {
+    private static final long serialVersionUID = 1L;
 
     public double r; // real part
 
