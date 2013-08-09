@@ -341,8 +341,10 @@ public class SeedScan
         //metaGen.loadDataless(scan.getDatalessDir());
         //metaGen.print();
 
-        MetaServer metaServer = new MetaServer("136.167.12.50");
-        //MetaServer metaServer = new MetaServer("local");
+        // Empty constructor --> Use local MetaGenerator to rdseed 
+        MetaServer metaServer = new MetaServer();
+        //MetaServer metaServer = new MetaServer("mikes-mac-mini1.bc.edu");
+        //MetaServer metaServer = new MetaServer("136.167.12.50");
 
  // Really the scan for each station will be handled by ScanManager using thread pools
  // For now we're just going to do it here:
@@ -360,6 +362,7 @@ public class SeedScan
             stations = new ArrayList<Station>();
             //stations.add( new Station("IC","KMI") );
             stations.add( new Station("IU","ANMO") );
+            stations.add( new Station("NE","WES") );
             //stations.add( new Station("NE","PQI") );
             //stations.add( new Station("IU","LVC") );
             //stations.add( new Station("IC","BJT") );

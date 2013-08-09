@@ -49,9 +49,10 @@ public class MetaServer
     // Use Remote MetaGenerator registered to rmi runnning on ipString with name="MetaGen":
     public MetaServer(String ipString)
     {
+        String urlString = "rmi://" + ipString + "/MetaGen";
         // Should probably try to verify ipString here and exit gracefully if not valid
         try {
-            meta = (MetaInterface)Naming.lookup("//"+ipString+"/MetaGen");
+            meta = (MetaInterface)Naming.lookup(urlString);
         }
         catch (Exception e) {
             System.out.format("== MetaServer: Error=%s\n", e.getMessage() );

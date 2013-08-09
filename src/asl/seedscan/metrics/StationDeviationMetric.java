@@ -91,6 +91,11 @@ extends PowerBandMetric
     // Get all LH channels in metadata
         List<Channel> channels = stationMeta.getChannelArray("LH"); 
 
+        if (channels == null || channels.size() == 0) {
+            System.out.format("== %s: No LH? channels found for station=[%s]\n", getName(), getStation() );
+            return;
+        }
+
    // Loop over channels, get metadata & data for channel and Calculate Metric
 
         for (Channel channel : channels){
