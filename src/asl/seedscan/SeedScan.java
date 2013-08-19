@@ -342,8 +342,8 @@ public class SeedScan
         //metaGen.print();
 
         // Empty constructor --> Use local MetaGenerator to rdseed 
-        MetaServer metaServer = new MetaServer();
-        //MetaServer metaServer = new MetaServer("mikes-mac-mini1.bc.edu");
+        //MetaServer metaServer = new MetaServer();
+        MetaServer metaServer = new MetaServer("mikes-mac-mini1.bc.edu");
         //MetaServer metaServer = new MetaServer("136.167.12.50");
 
  // Really the scan for each station will be handled by ScanManager using thread pools

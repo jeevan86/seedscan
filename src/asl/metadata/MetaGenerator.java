@@ -250,17 +250,22 @@ public class MetaGenerator
 
         StationData stationData = getStationData(station);
         if (stationData == null) { // This can happen if the file DATALESS.IW_LKWY.seed doesn't match
+            System.out.format("== [UTC %s] getStationMeta request:\t\t[%s]\t[%s]\tNOT FOUND!\n",            
+              EpochData.epochToDateString(Calendar.getInstance()), station,EpochData.epochToDateString(timestamp));
             return null;             //   the name INSIDE the dataless (= US_LKWY) ... so the keys don't match
         }
  // Scan stationData for the correct station blockette (050) for this timestamp - return null if it isn't found
         Blockette blockette     = stationData.getBlockette(timestamp);
 
         if (blockette == null){
-            //System.out.println("MetaGenerator.getStationMeta(): CAN'T FIND STATION METADATA FOR REQUESTED EPOCH");
+            System.out.format("== [UTC %s] getStationMeta request:\t\t[%s]\t[%s]\tNOT FOUND!\n",            
+              EpochData.epochToDateString(Calendar.getInstance()), station,EpochData.epochToDateString(timestamp));
             return null;
         }
         else { // Uncomment to print out a Blockette050 each time getStationMeta is called
             //blockette.print();
+            System.out.format("== [UTC %s] MetaServer getStationMeta request:\t\t[%s]\t[%s]\n",            
+              EpochData.epochToDateString(Calendar.getInstance()), station,EpochData.epochToDateString(timestamp));
         }
 
         StationMeta stationMeta = null;
