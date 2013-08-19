@@ -256,7 +256,7 @@ public class MetaGenerator
         Blockette blockette     = stationData.getBlockette(timestamp);
 
         if (blockette == null){
-            System.out.println("MetaGenerator.getStationMeta(): CAN'T FIND STATION METADATA FOR REQUESTED EPOCH");
+            //System.out.println("MetaGenerator.getStationMeta(): CAN'T FIND STATION METADATA FOR REQUESTED EPOCH");
             return null;
         }
         else { // Uncomment to print out a Blockette050 each time getStationMeta is called

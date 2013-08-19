@@ -73,8 +73,6 @@ public class MetaServer
     }
 
     public StationMeta getStationMeta(Station station, Calendar timestamp){
-System.out.format("== MetaServer getStationMeta request: [station:%s] [day:%s]\n", station, 
-EpochData.epochToDateString(timestamp) );
 
         StationMeta stnMeta = null;
         try {
@@ -87,6 +85,14 @@ EpochData.epochToDateString(timestamp) );
         }
         catch (Exception e) {
             System.out.format("== meta.getStationMeta() Error:%s\n", e.getMessage() );
+        }
+        if (stnMeta == null) {
+            System.out.format("== [UTC %s] MetaServer getStationMeta request:\t\t[%s]\t[%s]\tNOT FOUND!\n", 
+              EpochData.epochToDateString(Calendar.getInstance()), station,EpochData.epochToDateString(timestamp));
+        }
+        else {
+            System.out.format("== [UTC %s] MetaServer getStationMeta request:\t\t[%s]\t[%s]\n", 
+              EpochData.epochToDateString(Calendar.getInstance()), station,EpochData.epochToDateString(timestamp));
         }
         return stnMeta;
     }
