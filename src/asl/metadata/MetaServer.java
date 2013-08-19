@@ -73,6 +73,9 @@ public class MetaServer
     }
 
     public StationMeta getStationMeta(Station station, Calendar timestamp){
+System.out.format("== MetaServer getStationMeta request: [station:%s] [day:%s]\n", station, 
+EpochData.epochToDateString(timestamp) );
+
         StationMeta stnMeta = null;
         try {
             if (useRemoteMeta) {
