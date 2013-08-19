@@ -250,7 +250,7 @@ public class MetaGenerator
 
         StationData stationData = getStationData(station);
         if (stationData == null) { // This can happen if the file DATALESS.IW_LKWY.seed doesn't match
-            System.out.format("== [UTC %s] getStationMeta request:\t\t[%s]\t[%s]\tNOT FOUND!\n",            
+            System.out.format("== [UTC %s] MetaGenerator getStationMeta request:\t\t[%s]\t[%s]\tNOT FOUND!\n",            
               EpochData.epochToDateString(Calendar.getInstance()), station,EpochData.epochToDateString(timestamp));
             return null;             //   the name INSIDE the dataless (= US_LKWY) ... so the keys don't match
         }
@@ -258,13 +258,13 @@ public class MetaGenerator
         Blockette blockette     = stationData.getBlockette(timestamp);
 
         if (blockette == null){
-            System.out.format("== [UTC %s] getStationMeta request:\t\t[%s]\t[%s]\tNOT FOUND!\n",            
+            System.out.format("== [UTC %s] MetaGenerator getStationMeta request:\t\t[%s]\t[%s]\tNOT FOUND!\n",            
               EpochData.epochToDateString(Calendar.getInstance()), station,EpochData.epochToDateString(timestamp));
             return null;
         }
         else { // Uncomment to print out a Blockette050 each time getStationMeta is called
             //blockette.print();
-            System.out.format("== [UTC %s] MetaServer getStationMeta request:\t\t[%s]\t[%s]\n",            
+            System.out.format("== [UTC %s] MetaGenerator getStationMeta request:\t\t[%s]\t[%s]\n",            
               EpochData.epochToDateString(Calendar.getInstance()), station,EpochData.epochToDateString(timestamp));
         }
 
