@@ -105,7 +105,7 @@ extends Metric
             return NO_RESULT;
         }
         if (availability >= 101.00) {
-            System.out.format("== AvailabilityMetric: WARNING: Availability=%f.2 > 100% for channel=[%s] sRate=[%f]\n", 
+            System.out.format("== AvailabilityMetric: WARNING: Availability=%f.2 > 100%% for channel=[%s] sRate=[%f]\n", 
                                availability, channel, chanMeta.getSampleRate());
         }
 
