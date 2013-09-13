@@ -86,7 +86,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Hashtable;
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 
 public class Dataless
 {
@@ -137,17 +137,17 @@ public class Dataless
             complete = true;
             failed = false;
         } catch (BlocketteFieldIdentifierFormatException exception) {
-            logger.warning("Malformed blocketted field identifier.");
+            logger.warn("Malformed blocketted field identifier.");
         } catch (BlocketteOutOfOrderException exception) {
-            logger.warning("Out of order blockette.");
+            logger.warn("Out of order blockette.");
         } catch (DuplicateBlocketteException exception) {
-            logger.warning("Unexpected duplicate blockette.");
+            logger.warn("Unexpected duplicate blockette.");
         } catch (MissingBlocketteDataException exception) {
-            logger.warning("Blockette is missing requird data.");
+            logger.warn("Blockette is missing requird data.");
         } catch (TimestampFormatException exception) {
-            logger.warning("Invalid timestamp format.");
+            logger.warn("Invalid timestamp format.");
         } catch (WrongBlocketteException exception) {
-            logger.warning("Wrong blockettte.");
+            logger.warn("Wrong blockettte.");
         } catch (CancelledException exception) {
             failed = false;
         }
@@ -342,7 +342,7 @@ public class Dataless
                         channelKey = new ChannelKey(blockette);
                     }
                     catch (Exception e) {
-                        logger.severe( String.format("Dataless: caught new ChannelKey Exception:%s", e) );
+                        logger.error( String.format("Dataless: caught new ChannelKey Exception:%s", e) );
                     }
                     if (!station.hasChannel(channelKey)) {
                         //channel = new ChannelData(channelKey.getLocation(), channelKey.getName());

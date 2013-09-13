@@ -18,9 +18,10 @@
  */
 package asl.metadata;
 
+import org.apache.log4j.Logger;
+
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.logging.Logger;
 
 public class Field
     implements java.io.Serializable

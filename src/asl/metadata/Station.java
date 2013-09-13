@@ -18,7 +18,7 @@
  */
 package asl.metadata;
 
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 
 /* Station and Channel are the only station/channel classes that should be seen by 
  *   clients of asl.metadata.

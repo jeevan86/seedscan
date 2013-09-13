@@ -18,10 +18,7 @@
  */
 package asl.seedscan;
 
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 
 import asl.metadata.*;
 

@@ -21,7 +21,7 @@ package asl.metadata;
 
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 
 public class Channel
 {

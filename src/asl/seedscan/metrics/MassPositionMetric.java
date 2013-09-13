@@ -18,7 +18,7 @@
  */
 package asl.seedscan.metrics;
 
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 import java.util.List;
 
 import asl.metadata.Channel;

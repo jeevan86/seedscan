@@ -18,6 +18,8 @@
  */
 package asl.seedscan;
 
+import org.apache.log4j.Logger;
+
 import java.util.Set;
 
 import java.io.*;
@@ -40,10 +42,6 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -51,7 +49,6 @@ import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
 
-import asl.logging.*;
 import asl.metadata.*;
 import asl.metadata.meta_new.*;
 import asl.security.*;
@@ -65,39 +62,13 @@ import asl.util.*;
  */
 public class SeedScan
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.SeedScan");
+    private static Logger logger = Logger.getLogger("asl.seedscan.SeedScan");
 
     private static final String allchanURLstr = "http://wwwasl/uptime/honeywell/gsn_allchan.txt";
     private static URL allchanURL;
-    private static Handler consoleHandler;
-    private static Handler logDatabaseHandler;
-    private static Handler logFileHandler;
-
-    public static void findConsoleHandler()
-    {
-     // Locate the global logger's ConsoleHandler if it exists
-        Logger globalLogger = Logger.getLogger("");
-        for (Handler handler: globalLogger.getHandlers()) {
-            if (handler instanceof ConsoleHandler) {
-                consoleHandler = handler;
-                break;
-            }
-        }
-
-     // Ensure the global logger has an attached ConsoleHandler
-     // creating one for it if necessary
-        if (consoleHandler == null) {
-            consoleHandler = new ConsoleHandler();
-            globalLogger.addHandler(consoleHandler);
-        }
-    }
 
     public static void main(String args[])
     {
-        findConsoleHandler();
-        consoleHandler.setLevel(Level.ALL);
-        Logger.getLogger("").setLevel(Level.CONFIG);
-
      // Default locations of config and schema files
         File configFile = new File("config.xml");
         File schemaFile = new File("schemas/SeedScanConfig.xsd");
@@ -127,7 +98,7 @@ public class SeedScan
         try {
             cmdLine = optParser.parse(options, args, true);
         } catch (org.apache.commons.cli.ParseException e) {
-            logger.severe("Error while parsing command-line arguments.");
+            logger.fatal("Error while parsing command-line arguments.");
             System.exit(1);
         }
 
@@ -152,73 +123,15 @@ public class SeedScan
 
      // ===== CONFIG: LOCK FILE =====
         File lockFile = new File(config.getLockfile());
-        logger.config("SeedScan lock file is '" +lockFile+ "'");
+        logger.info("SeedScan lock file is '" +lockFile+ "'");
         LockFile lock = new LockFile(lockFile);
         if (!lock.acquire()) {
-            logger.severe("Could not acquire lock.");
+            logger.fatal("Could not acquire lock.");
             System.exit(1);
         }
         
      // ===== CONFIG: LOGGING =====
-     // Set the log levels from the configuration
-        LogLevels levels = new LogLevels();
-        for (LogLevelT level: config.getLog().getLevels().getLevel()) {
-            levels.setLevel(level.getName(), level.getValue().value());
-        }
-
-     // Set console logging level
-        if (config.getLog().getHandlers().getLogConsole() != null) {
-            consoleHandler.setLevel(Level.parse(config.getLog().getHandlers().getLogConsole().getHandlerLevel().value()));
-        }
-
-     // Create log file handler if specified
-        if (config.getLog().getHandlers().getLogFile() != null) {
-            LogFileConfig fileCfg = new LogFileConfig();
-            LogFileT file = config.getLog().getHandlers().getLogFile();
-
-            try {
-                fileCfg.setDirectory(file.getDirectory());
-            } catch (FileNotFoundException ex) {
-                logger.severe("Error setting log directory: " + ex.toString());
-                System.exit(1);
-            } catch (IOException ex) {
-                logger.severe("Error setting log directory: " + ex.toString());
-                System.exit(1);
-            }
-            fileCfg.setPrefix(file.getPrefix());
-            fileCfg.setSuffix(file.getSuffix());
-
-            logFileHandler = new LogFileHandler(fileCfg);
-            logFileHandler.setLevel(Level.parse(file.getHandlerLevel().value()));
-            Logger.getLogger("").addHandler(logFileHandler);
-        }
-
-     // Create log database handler if specified
-        if (config.getLog().getHandlers().getLogDb() != null) {
-            LogDatabaseConfig dbCfg = new LogDatabaseConfig();
-            DatabaseT db = config.getLog().getHandlers().getLogDb().getDatabase();
-            dbCfg.setURI(db.getUri());
-            dbCfg.setUsername(db.getUsername());
-            Password pwd;
-            if (db.getPassword().getPlain() == null) {
-                pwd = null;
-                /*
-                EncryptedT enc = db.getPassword.getEncrypted();
-                EncryptedPassword epwd = new EncryptedPassword(enc.getIv(), enc.getCipherText(), enc.getHmac()); 
-                // Generate key from enc.getSalt() + supplied password
-                // epwd.setKey(generatedKey);
-                pwd = epwd;
-                */
-            }
-            else {
-                TextPassword ppwd = new TextPassword(db.getPassword().getPlain()); 
-                pwd = ppwd;
-            }
-            dbCfg.setPassword(pwd);
-            logDatabaseHandler = new LogDatabaseHandler(dbCfg);
-            logDatabaseHandler.setLevel(Level.parse(config.getLog().getHandlers().getLogDb().getHandlerLevel().value()));
-            Logger.getLogger("").addHandler(logDatabaseHandler);
-        }
+     // MTH: This is now done in log4j.properties file
 
      // ===== CONFIG: DATABASE =====
         MetricDatabase readDB = new MetricDatabase(config.getDatabase());
@@ -230,21 +143,21 @@ public class SeedScan
      // ===== CONFIG: SCANS =====
         Hashtable<String, Scan> scans = new Hashtable<String, Scan>();
         if (config.getScans().getScan() == null) {
-            logger.severe("No scans in configuration.");
+            logger.fatal("No scans in configuration.");
             System.exit(1);
         }
         else {
             for (ScanT scanCfg: config.getScans().getScan()) {
                 String name = scanCfg.getName();
                 if (scans.containsKey(name)) {
-                    logger.severe("Duplicate scan name '" +name+ "' encountered.");
+                    logger.fatal("Duplicate scan name '" +name+ "' encountered.");
                     System.exit(1);
                 }
 
             // This should really be handled by jaxb by setting it up in schemas/SeedScanConfig.xsd
                 if(scanCfg.getStartDay() == null && scanCfg.getStartDate() == null) {
-                    System.out.format("== SeedScan Error: Must set EITHER cfg:start_day -OR- cfg:start_date in config.xml to start Scan!");
-                    System.exit(0);
+                    logger.fatal("== SeedScan Error: Must set EITHER cfg:start_day -OR- cfg:start_date in config.xml to start Scan!");
+                    System.exit(1);
                 }
 
 
@@ -270,16 +183,16 @@ public class SeedScan
                         }
                         scan.addMetric(wrapper);
                     } catch (ClassNotFoundException ex) {
-                        logger.severe("No such metric class '" +met.getClassName()+ "'");
+                        logger.fatal("No such metric class '" +met.getClassName()+ "'");
                         System.exit(1);
                     } catch (InstantiationException ex) {
-                        logger.severe("Could not dynamically instantiate class '" +met.getClassName()+ "'");
+                        logger.fatal("Could not dynamically instantiate class '" +met.getClassName()+ "'");
                         System.exit(1);
                     } catch (IllegalAccessException ex) {
-                        logger.severe("Illegal access while loading class '" +met.getClassName()+ "'");
+                        logger.fatal("Illegal access while loading class '" +met.getClassName()+ "'");
                         System.exit(1);
                     } catch (NoSuchFieldException ex) {
-                        logger.severe("Invalid dynamic argument to Metric subclass '" +met.getClassName()+ "'");
+                        logger.fatal("Invalid dynamic argument to Metric subclass '" +met.getClassName()+ "'");
                         System.exit(1);
                     }
 
@@ -297,10 +210,6 @@ public class SeedScan
         //   we left off if our process dies.
         // - Mark when each date-station-channel-operation is complete
         //LogDatabaseHandler logDB = new LogDatabaseHandler(configuration.get
-
-        logger.fine("Testing Logger Level FINE");
-        logger.finer("Testing Logger Level FINER");
-        logger.finest("Testing Logger Level FINEST");
 
         // Get a list of stations
 
@@ -326,14 +235,10 @@ public class SeedScan
         */
 
 // ==== Perform Scans ====
-        //System.out.format("\n\n==SeedScan: Load StationList and Begin Scan\n\n");
-
-        //Runtime runtime = Runtime.getRuntime();
-        //System.out.println(" Java total memory=" + runtime.totalMemory() );
 
         for (String key : scans.keySet() ) {
            scan = scans.get(key);
-           System.out.format("== SeedScan Scan=[%s] startDay=%d startDate=%d daysToScan=%d\n", key, scan.getStartDay(), scan.getStartDate(), scan.getDaysToScan() );
+           logger.info(String.format("Scan=[%s] startDay=%d startDate=%d daysToScan=%d\n", key, scan.getStartDay(), scan.getStartDate(), scan.getDaysToScan() ));
         }
 
         scan = scans.get("daily");
@@ -353,7 +258,7 @@ public class SeedScan
 
 // Set getStationList = false if you want to manually control the StationList below ...
         boolean getStationList = true;
-        //getStationList = false;
+        getStationList = false;
 
         if (getStationList){
             stations = metaServer.getStationList();
@@ -369,12 +274,12 @@ public class SeedScan
         }
 
         if (stations == null) {
-            logger.severe("ERROR: Found NO stations to scan --> EXITTING SeedScan");
-            System.exit(0);
+            logger.fatal("ERROR: Found NO stations to scan --> EXITTING SeedScan");
+            System.exit(1);
         }
 
         for (Station station : stations){
-            System.out.format("== SeedScan: Scan station:[%s]\n", station);
+            logger.info(String.format("Scan station:[%s]", station));
         }
 
         Thread readerThread = new Thread(reader);
@@ -385,7 +290,7 @@ public class SeedScan
         injectorThread.start();
         logger.info("Injector thread started.");
         
-        logger.info("Processing stations...");
+        //logger.info("Processing stations...");
         for (Station station: stations) {
             //Scanner scanner = new Scanner(reader, injector, station, scan, metaGen);
             Scanner scanner = new Scanner(reader, injector, station, scan, metaServer);
@@ -394,26 +299,26 @@ public class SeedScan
         
         try {
 	        injector.halt();
-	        logger.info("All stations processed. Waiting for injector thread to finish...");
+	        //logger.info("All stations processed. Waiting for injector thread to finish...");
             synchronized(injectorThread) {
 	            //injectorThread.wait();
 	            injectorThread.interrupt();
             }
-	        logger.info("Injector thread halted.");
+	        //logger.info("Injector thread halted.");
         } catch (InterruptedException ex) {
-        	logger.warning("The injector thread was interrupted while attempting to complete requests.");
+        	//logger.warning("The injector thread was interrupted while attempting to complete requests.");
         }
         
         try {
 	        reader.halt();
-	        logger.info("All stations processed. Waiting for reader thread to finish...");
+	        //logger.info("All stations processed. Waiting for reader thread to finish...");
             synchronized(readerThread) {
 	            //readerThread.wait();
 	            readerThread.interrupt();
             }
-	        logger.info("Reader thread halted.");
+	        //logger.info("Reader thread halted.");
         } catch (InterruptedException ex) {
-        	logger.warning("The reader thread was interrupted while attempting to complete requests.");
+        	//logger.warning("The reader thread was interrupted while attempting to complete requests.");
         }
 
         ////Scanner scanner = new Scanner(database,station,scan);

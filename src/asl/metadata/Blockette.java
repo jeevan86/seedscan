@@ -20,7 +20,7 @@ package asl.metadata;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 
 public class Blockette
     implements java.io.Serializable

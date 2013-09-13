@@ -39,8 +39,8 @@ import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.Calendar;
 import java.util.Hashtable;
-import java.util.logging.Logger;
 import java.util.concurrent.BlockingQueue;
+import org.apache.log4j.Logger;
 
 import asl.concurrent.FallOffQueue;
 import asl.seedsplitter.DataSet;
@@ -108,6 +108,8 @@ public class Scanner
 
     public void scan()
     {
+        logger.info("Enter scan()");
+
         GregorianCalendar timestamp = new GregorianCalendar(TimeZone.getTimeZone("GMT") );
 
         Runtime runtime = Runtime.getRuntime();
@@ -125,14 +127,6 @@ public class Scanner
      //   to the start (hh:mm=00:00) of the first day we want to scan
         timestamp.set(Calendar.HOUR_OF_DAY, 0);      timestamp.set(Calendar.MINUTE, 0);
         timestamp.set(Calendar.SECOND, 0);      timestamp.set(Calendar.MILLISECOND, 0);
-
-/**
-Not sure if this is still needed ??
-        if (!metaGen.isLoaded()) {    // No Metadata found for this station --> Skip station == End thread ??
-            System.out.format("== Scanner Error: No Metadata found for Station:%s --> Skip this Station\n", station);
-            return;
-        }
-**/
 
      // CMT Event loader - use to load events for each day
         EventLoader eventLoader = new EventLoader( scan.getEventsDir() );
@@ -158,15 +152,18 @@ Not sure if this is still needed ??
             //StationMeta stnMeta = metaGen.getStationMeta(station, timestamp); 
             StationMeta stnMeta = metaServer.getStationMeta(station, timestamp); 
             if (stnMeta == null) {                       // No Metadata found for this station + this day --> skip day
-               System.out.format("== Scanner: No Metadata found for Station:%s_%s + Day:%s --> Skipping\n", 
-                                  station.getNetwork(), station.getStation(), EpochData.epochToDateString(timestamp) );
+               //System.out.format("== Scanner: No Metadata found for Station:%s_%s + Day:%s --> Skipping\n", 
+                                  //station.getNetwork(), station.getStation(), EpochData.epochToDateString(timestamp) );
+               logger.warn(String.format("== Scanner: No Metadata found for Station:%s_%s + Day:%s --> Skipping\n", 
+                                  station.getNetwork(), station.getStation(), EpochData.epochToDateString(timestamp) ));
                continue;
             }
 
             if (i == 0) {
                 stnMeta.printStationInfo();
             }
-            System.out.format("\n==Scanner: scan Station=%s Day=%s\n", station, EpochData.epochToDateString(timestamp) );
+
+            logger.info(String.format("Scan Station=%s Day=%s", station, EpochData.epochToDateString(timestamp) ));
 
             Hashtable<String, EventCMT> eventCMTs = eventLoader.getDayEvents( timestamp );
             Hashtable<String, Hashtable<String, SacTimeSeries>> eventSynthetics = null;
@@ -204,8 +201,8 @@ Not sure if this is still needed ??
                 currentMetricData.setNextMetricData(nextMetricData);
             }
 
-            System.out.format("== Scanner: totalMemory=[%d] freeMemory=[%d] usedMemory=[%d]\n", runtime.totalMemory()/MB,
-                                  runtime.freeMemory()/MB, (runtime.totalMemory() - runtime.freeMemory())/MB );
+            //System.out.format("== Scanner: totalMemory=[%d] freeMemory=[%d] usedMemory=[%d]\n", runtime.totalMemory()/MB,
+                                  //runtime.freeMemory()/MB, (runtime.totalMemory() - runtime.freeMemory())/MB );
 
 // [3] Loop over Metrics to compute, for this station, for this day
 
@@ -252,19 +249,30 @@ Not sure if this is still needed ??
                     for (String id: results.getIdSortedSet()) {
                         double value = results.getResult(id);
                         ByteBuffer digest = results.getDigest(id);
-                        //System.out.format("  %s : %.2f [%s]\n", id, value, Hex.byteArrayToHexString(digest.array()) );
-                        System.out.format("%30s [%7s] [%s] %15s:%6.2f [%s]\n", results.getMetricName(), 
-                                results.getStation(), EpochData.epochToDateString(results.getDate()), id, value, Hex.byteArrayToHexString(digest.array()) );
+                        logger.info(String.format("%s [%7s] [%s] %15s:%6.2f [%s]", results.getMetricName(), 
+                            results.getStation(), EpochData.epochToDateString(results.getDate()), id, value, 
+                            Hex.byteArrayToHexString(digest.array()) ));
+
+                        if (Double.isNaN(value)){
+                            logger.warn(String.format("%s [%s] [%s] %s: ERROR: metric value = [ NaN ] !!\n", 
+                              results.getMetricName(), results.getStation(), EpochData.epochToDateString(results.getDate()),
+                              id ));
+                        }
+                        if (Double.isInfinite(value)){
+                            logger.warn(String.format("%s [%s] [%s] %s: ERROR: metric value = [ Infinity ] !!\n", 
+                              results.getMetricName(), results.getStation(), EpochData.epochToDateString(results.getDate()),
+                              id ));
+                        }
                     }
                     if (injector.isConnected()) {
                         try {
                     	    injector.inject(results);
                         } catch (InterruptedException ex) {
-                    	    logger.warning(String.format("Interrupted while trying to inject metric [%s]", metric.toString()));
+                    	    logger.warn(String.format("Interrupted while trying to inject metric [%s]", metric.toString()));
                         }
                     }
                     else {
-                        System.out.println("== Scanner: injector *IS NOT* connected --> Don't inject");
+                        logger.warn("Injector *IS NOT* connected --> Don't inject");
                     }
                 }
             } // end loop over metrics

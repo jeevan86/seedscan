@@ -18,12 +18,13 @@
  */
 package asl.security;
 
+import org.apache.log4j.Logger;
+
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.logging.Logger;
 
 import asl.util.Hex;
 

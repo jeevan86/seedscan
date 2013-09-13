@@ -18,8 +18,6 @@
  */
 package asl.metadata;
 
-import java.util.logging.Logger;
-
 public abstract class Key
 {
     public abstract String toString();

@@ -18,7 +18,8 @@
  */
 package asl.metadata;
 
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
+
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
@@ -73,7 +74,7 @@ public class ChannelKey
         if (location.equals("HR")) {  // Add to this any unruly location code you want to flag ...
             location = "XX";
             //logger.severe( String.format("ChannelKey.setLocation: Got location code=HR --> I'll set it to XX and continue parsing dataless") );
-            logger.severe( String.format("ChannelKey.setLocation: Got location code=HR chan=%s--> I'll set it to XX and continue parsing dataless", name) );
+            logger.warn( String.format("ChannelKey.setLocation: Got location code=HR chan=%s--> I'll set it to XX and continue parsing dataless", name) );
         }
 
         if (location == null || location.equals("") ){

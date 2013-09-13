@@ -19,7 +19,7 @@
 package asl.seedscan.metrics;
 import asl.seedscan.event.*;
 
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -191,7 +191,7 @@ extends Metric
                     MyFilter.bandpass(sacSynthetics[i], f1, f2, f3, f4);
                 }
                 else {
-                    logger.severe(String.format("Error: Did not find sac synthetic=[%s] in Hashtable", fileKey) );
+                    logger.warn(String.format("Error: Did not find sac synthetic=[%s] in Hashtable", fileKey) );
                     return;
                 }
             }

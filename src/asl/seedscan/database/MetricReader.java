@@ -4,7 +4,7 @@
 package asl.seedscan.database;
 
 import java.nio.ByteBuffer;
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 
 import asl.concurrent.Task;
 import asl.concurrent.TaskThread;
@@ -83,7 +83,7 @@ extends TaskThread<QueryContext<? extends Object>>
 				context.getReplyQueue().put(result);
 			}
 		} catch (InterruptedException ex) {
-			logger.warning("Interrupted while attempting to send reply. This may have caused a station thread to hang!");
+			logger.warn("Interrupted while attempting to send reply. This may have caused a station thread to hang!");
 		}
 	}
 
@@ -103,7 +103,7 @@ extends TaskThread<QueryContext<? extends Object>>
 			addTask("GET-METRIC-VALUE", context);
 			value = context.getReplyQueue().take().getResult();
 		} catch (InterruptedException ex) {
-			logger.warning("Interrupted while awaiting reply from database reader thread.");
+			logger.warn("Interrupted while awaiting reply from database reader thread.");
 		}
 		return value;
 	}
@@ -116,7 +116,7 @@ extends TaskThread<QueryContext<? extends Object>>
 			addTask("GET-METRIC-DIGEST", context);
 			digest = context.getReplyQueue().take().getResult();
 		} catch (InterruptedException ex) {
-			logger.warning("Interrupted while awaiting reply from database reader thread.");
+			logger.warn("Interrupted while awaiting reply from database reader thread.");
 		}
 		return digest;
 	}
@@ -129,7 +129,7 @@ extends TaskThread<QueryContext<? extends Object>>
 			addTask("GET-METRIC-VALUE-DIGEST", context);
 			digest = context.getReplyQueue().take().getResult();
 		} catch (InterruptedException ex) {
-			logger.warning("Interrupted while awaiting reply from database reader thread.");
+			logger.warn("Interrupted while awaiting reply from database reader thread.");
 		}
 		return digest;
 	}

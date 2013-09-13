@@ -18,6 +18,8 @@
  */
 package asl.metadata;
 
+import org.apache.log4j.Logger;
+
 import freq.Cmplx;
 
 import java.util.ArrayList;
@@ -26,7 +28,6 @@ import java.util.TreeSet;
 import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.logging.Logger;
 import java.io.IOException;
 import java.io.*;
 
@@ -91,11 +92,11 @@ public class MetaGenerator
     {
         File dir = new File(datalessDir);
         if (!dir.exists()) {
-            logger.severe("Path '" +dir+ "' does not exist.");
+            logger.fatal("Path '" +dir+ "' does not exist.");
             System.exit(0);
         }
         else if (!dir.isDirectory()) {
-            logger.severe("Path '" +dir+ "' is not a directory.");
+            logger.fatal("Path '" +dir+ "' is not a directory.");
             System.exit(0);
         }
 

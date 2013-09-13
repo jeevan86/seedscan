@@ -20,7 +20,7 @@ package asl.concurrent;
 
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 
 public abstract class TaskThread<T>
 implements Runnable
@@ -84,16 +84,16 @@ implements Runnable
 
                 // If we received a halt command, wrap-up the thread
                 if ((task != null) && (task.getCommand() == "HALT")) {
-                    logger.fine("Halt requested.");
+                    logger.debug("Halt requested.");
                     running = false;
                 }
                 // Otherwise hand off the task
                 else {
-                    logger.fine(String.format("Performing task %s : %s", task.getCommand(), (task.getData() == null) ? "null" : task.getData()));
+                    logger.debug(String.format("Performing task %s : %s", task.getCommand(), (task.getData() == null) ? "null" : task.getData()));
                     performTask(task);
                 }
             } catch (InterruptedException exception) {
-                logger.warning("Caught InterruptedException");
+                logger.warn("Caught InterruptedException");
             }
         }
         cleanup();

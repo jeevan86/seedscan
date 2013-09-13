@@ -18,14 +18,10 @@
  */
 package asl.metadata;
 
-import java.util.logging.Logger;
-
 public class StationKey
 extends Key
 implements Comparable<StationKey>
 {
-    private static final Logger logger = Logger.getLogger("asl.metadata.StationKey");
-
     public static final int STATION_EPOCH_BLOCKETTE_NUMBER = 50;
 
     private String network = null;

@@ -19,6 +19,8 @@
 
 package asl.seedsplitter;
 
+import org.apache.log4j.Logger;
+
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -34,7 +36,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Formatter;
 import java.util.Hashtable;
-import java.util.logging.Logger;
 import java.util.TreeSet;
 
 import javax.swing.border.TitledBorder;
@@ -441,7 +442,7 @@ implements ActionListener,
 
                     Object[] channels = allDataSets.keySet().toArray();
                     Arrays.sort(channels);
-                    logger.fine("CHANNEL COUNT: " + allDataSets.keySet().size());
+                    logger.debug("CHANNEL COUNT: " + allDataSets.keySet().size());
                     for (Object channel: channels) {
                         for (int i=0; i < channelCount; i++) {
                             channelModels[i].addElement((String)channel);
@@ -467,9 +468,9 @@ implements ActionListener,
                     // add DataSets to return list
                     blocks = locator.getBlocks();
                     // So we can visually inspect the ContiguousBlock time ranges
-                    logger.fine("ContiguousBlocks:");
+                    logger.debug("ContiguousBlocks:");
                     for (ContiguousBlock block: blocks) {
-                        logger.fine(formatter.format("  ContiguousBlock : %s ---> %s\n",
+                        logger.debug(formatter.format("  ContiguousBlock : %s ---> %s\n",
                                 Sequence.timestampToString(block.getStartTime()),
                                 Sequence.timestampToString(block.getEndTime())).toString());
                     }
@@ -566,17 +567,17 @@ implements ActionListener,
             }
 
             // So we can visually inspect gaps in channel data
-            logger.fine("DataSets:");
+            logger.debug("DataSets:");
             for (ArrayList<DataSet> list: dataSets) {
                 for (DataSet set: list) {
-                    logger.fine(formatter.format("  DataSet %s_%s %s-%s: %s ---> %s\n", set.getNetwork(), 
+                    logger.debug(formatter.format("  DataSet %s_%s %s-%s: %s ---> %s\n", set.getNetwork(), 
                                 set.getStation(),
                                 set.getLocation(),
                                 set.getChannel(),
                                 Sequence.timestampToString(set.getStartTime()),
                                 Sequence.timestampToString(set.getEndTime())).toString());
                 }
-                logger.fine("========================================");
+                logger.debug("========================================");
             }
 
             locator = new BlockLocator(dataSets);
@@ -645,7 +646,7 @@ implements ActionListener,
                 }
             }
             if (!found) {
-                logger.warning("Unmanaged setup actionPerformed " + command);
+                logger.warn("Unmanaged setup actionPerformed " + command);
             }
         }
     } // actionPerformed()

@@ -18,10 +18,11 @@
  */
 package asl.metadata;
 
+import org.apache.log4j.Logger;
+
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Hashtable;
-import java.util.logging.Logger;
 import java.util.ArrayList;
 import java.util.TreeSet;
 import java.util.Collections;

@@ -3,7 +3,7 @@
  */
 package asl.seedscan.database;
 
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 
 import asl.concurrent.Task;
 import asl.concurrent.TaskThread;

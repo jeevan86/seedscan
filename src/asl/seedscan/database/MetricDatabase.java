@@ -26,7 +26,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Calendar;
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 
 import asl.metadata.Channel;
 import asl.metadata.Station;
@@ -52,13 +52,13 @@ public class MetricDatabase
     	this.username = username;
     	this.password = password;
 
-        System.out.println("MetricDatabase Constructor(): Attempt to connect to the dbase");
+        logger.info("MetricDatabase Constructor(): Attempt to connect to the dbase");
         try {
             logger.info(String.format("Connection String = \"%s\", User = \"%s\", Pass = \"%s\"", this.URI, this.username, this.password));
             connection = DriverManager.getConnection(URI, username, password);
         } catch (SQLException e) {
             System.err.print(e);
-            logger.severe("Could not open station database.");
+            logger.error("Could not open station database.");
 // MTH: For now let's continue
             //throw new RuntimeException("Could not open station database.");
         }
@@ -98,7 +98,8 @@ public class MetricDatabase
 	        }
         }
         catch (SQLException e) {
-            System.out.print(e);
+            //System.out.print(e);
+            logger.error(e);
         }
     	return digest;
     }
@@ -127,7 +128,8 @@ public class MetricDatabase
 	        }
         }
         catch (SQLException e) {
-            System.out.print(e);
+            //System.out.print(e);
+            logger.error(e);
         }
     	return digest;
     }
@@ -153,7 +155,8 @@ public class MetricDatabase
 	        }
         }
         catch (SQLException e) {
-            System.out.print(e);
+            //System.out.print(e);
+            logger.error(e);
         }
     	return value;
     }
@@ -179,7 +182,8 @@ public class MetricDatabase
             result = 0;
         }
         catch (SQLException e) {
-            System.out.print(e);
+            //System.out.print(e);
+            logger.error(e);
         }
         return result;
     }
@@ -196,7 +200,8 @@ public class MetricDatabase
             result = callStatement.getString(3);
         }
         catch (SQLException e) {
-            System.out.print(e);
+            //System.out.print(e);
+            logger.error(e);
         }
         return result;
     }

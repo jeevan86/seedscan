@@ -18,13 +18,14 @@
  */
 package asl.seedsplitter;
 
+import org.apache.log4j.Logger;
+import org.apache.log4j.Level;
+
 import java.lang.InterruptedException;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.GregorianCalendar;
 import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.TimeZone;
@@ -183,6 +184,10 @@ implements Runnable
      */
     @Override
     public void run() {
+
+    //MTH: Turn off logging for this class since it is so verbose:
+        logger.setLevel(Level.OFF);
+
         ByteBlock block = null;
         MiniSeed  record = null;
         DataSet   tempData = null;
@@ -238,7 +243,7 @@ implements Runnable
                     } else if (block.isEnd()) {
                         progress.setFileDone(true);
                     } else if (MiniSeed.crackIsHeartBeat(recordBytes)) {
-                        logger.finer("Found HEARTBEAT record!");
+                        logger.debug("Found HEARTBEAT record!");
                     } else { //MTH
                         seedstring = MiniSeed.crackSeedname(recordBytes);
                         network = seedstring.substring(0,2).trim();
@@ -282,12 +287,12 @@ implements Runnable
                             interval = DataSet.sampleRateToInterval(sampleRate);
                         } catch (IllegalSampleRateException e) {
                             MiniSeed ms = new MiniSeed(recordBytes);
-                            logger.finer(String.format("Illegal Sample Rate: sequence #%d, rate = %f", ms.getSequence(), sampleRate));
+                            logger.debug(String.format("Illegal Sample Rate: sequence #%d, rate = %f", ms.getSequence(), sampleRate));
                             discarded++;
                             break progress;
                         }
                         kept++;
-                        logger.finer(String.format("%s_%s %s-%s", network, station, location, channel));
+                        logger.debug(String.format("%s_%s %s-%s", network, station, location, channel));
                         key = String.format("%s_%s %s-%s (%.1f Hz)", network, station, location, channel, sampleRate);
 
                         if (!recordCounts.containsKey(key)) {
@@ -350,12 +355,12 @@ implements Runnable
                             //if ((startTime - tempData.getEndTime()) < interval) {
                             // (VIM-HACK) }
                                 replaceDataSet = true;
-                                logger.finer(String.format("Found data overlap <%s] - [%s> sequence #%d.!\n",
+                                logger.debug(String.format("Found data overlap <%s] - [%s> sequence #%d.!\n",
                                                  DataSet.timestampToString(tempData.getEndTime()),
                                                  DataSet.timestampToString(startTime),
                                                  ms.getSequence()));
                                 if (ms.getSequence() <= lastSequenceNumber) {
-                                    logger.finer(String.format("Out of sequence last=%d current=%d", lastSequenceNumber, ms.getSequence()));
+                                    logger.debug(String.format("Out of sequence last=%d current=%d", lastSequenceNumber, ms.getSequence()));
                                 }
                                 //throw new SeedRecordOverlapException();
                             }
@@ -363,8 +368,8 @@ implements Runnable
                         if (replaceDataSet) {
                             if (tempData != null) {
                                 tree.add(tempData);
-                                logger.finer("Adding DataSet to TreeSet.");
-                                logger.finer(String.format("  Range: %s - %s (%d data points {CHECK: %d})",
+                                logger.debug("Adding DataSet to TreeSet.");
+                                logger.debug(String.format("  Range: %s - %s (%d data points {CHECK: %d})",
                                                            DataSet.timestampToString(tempData.getStartTime()),
                                                            DataSet.timestampToString(tempData.getEndTime()),
                                                            ((tempData.getEndTime() - tempData.getStartTime()) / tempData.getInterval() + 1),
@@ -372,7 +377,7 @@ implements Runnable
                                 tempData = null;
                                 temps.remove(key);
                             }
-                            logger.finer("Creating new DataSet");
+                            logger.debug("Creating new DataSet");
                             tempData = new DataSet();
                             tempData.setNetwork(network);
                             tempData.setStation(station);
@@ -383,12 +388,12 @@ implements Runnable
                                 tempData.setSampleRate(sampleRate);
                             } catch (RuntimeException e) {
                                 MiniSeed ms = new MiniSeed(recordBytes);
-                                logger.finer(String.format("Invalid Start Time: sequence #%d", ms.getSequence()));
+                                logger.debug(String.format("Invalid Start Time: sequence #%d", ms.getSequence()));
                                 tempData = null;
                                 break progress;
                             } catch (IllegalSampleRateException e) {
                                 MiniSeed ms = new MiniSeed(recordBytes);
-                                logger.finer(String.format("Invalid Sample Rate: sequence #%d, rate = %f", ms.getSequence(), ms.getRate()));
+                                logger.debug(String.format("Invalid Sample Rate: sequence #%d, rate = %f", ms.getSequence(), ms.getRate()));
                                 tempData = null;
                                 break progress;
                             }
@@ -400,7 +405,7 @@ implements Runnable
 
                     // MTH: decomp() will return null in the event of Steim2 Exception, etc.
                         if (samples == null) {
-                            logger.severe("SeedSplitProcessor: Caught SteimException --> Skip this block");
+                            logger.warn("SeedSplitProcessor: Caught SteimException --> Skip this block");
                         }
                         else {  // samples != null
 
@@ -459,11 +464,11 @@ implements Runnable
                     } // end else MTH
 
                 } catch (SteimException e) {
-                    logger.warning("Caught SteimException");
+                    logger.warn("Caught SteimException");
                 } catch (InterruptedException e) {
-                    logger.warning("Caught InterruptedException");
+                    logger.warn("Caught InterruptedException");
                 } catch (IllegalSeednameException e) {
-                    logger.warning("Caught IllegalSeednameException");
+                    logger.warn("Caught IllegalSeednameException");
                 } // end try
             }
             m_progressQueue.put(progress);
@@ -479,8 +484,8 @@ implements Runnable
             }
             if ((tempData != null) && (tree != null)) {
                 tree.add(tempData);
-                logger.finer("Adding DataSet to TreeSet.");
-                logger.finer(String.format("  Range: %s - %s (%d data points {CHECK: %d})",
+                logger.debug("Adding DataSet to TreeSet.");
+                logger.debug(String.format("  Range: %s - %s (%d data points {CHECK: %d})",
                                            DataSet.timestampToString(tempData.getStartTime()),
                                            DataSet.timestampToString(tempData.getEndTime()),
                                            ((tempData.getEndTime() - tempData.getStartTime()) / tempData.getInterval() + 1),
@@ -492,6 +497,7 @@ implements Runnable
         // The following block loops through the contents of the tree in order
         // to allow the user to visually inspect gaps. The block is only to
         // ensure the variables go out of scope.
+// MTH: need to convert this block from java.util.logging --> to log4j
         /*
 
         if (logger.getLevel() <= Level.FINE) 
@@ -522,7 +528,7 @@ implements Runnable
             tree = m_trees.get(chanKey);
             ArrayList<DataSet> list = new ArrayList<DataSet>(tree.size());
             if (!tree.isEmpty()) {
-                logger.fine("Processing " +tree.size()+ " tree elements for '" +chanKey+ "'");
+                logger.debug("Processing " +tree.size()+ " tree elements for '" +chanKey+ "'");
                 iter = tree.iterator();
                 currDataSet = null;
                 lastDataSet = (DataSet)iter.next();
@@ -539,18 +545,18 @@ implements Runnable
 //    currDataSet.getBlockCount(), currDataSet.getLength() );
 
                     try {
-                        logger.finer("Merging DataSets...");
+                        logger.debug("Merging DataSets...");
                         currDataSet.mergeInto(lastDataSet);
-                        logger.finer("Done.");
+                        logger.debug("Done.");
                     } catch (SequenceIntervalMismatchException e) {
                         throw new RuntimeException("Interval Mismatch. This should never happen!");
                     } catch (SequenceMergeRangeException e) {
-                        logger.finer("Failed.");
+                        logger.debug("Failed.");
                         list.add(lastDataSet);
                         lastDataSet = currDataSet;
                         currDataSet = null;
                     } catch (SequenceTimingException e) {
-                        logger.finer("Timing Error. Sequences could not be correctly paired!");
+                        logger.debug("Timing Error. Sequences could not be correctly paired!");
                         list.add(lastDataSet);
                         currDataSet.trimStart(lastDataSet.getStartTime());
                         lastDataSet = currDataSet;
@@ -561,14 +567,14 @@ implements Runnable
                 list.add(lastDataSet);
                 m_table.put(chanKey, list);
             } else {
-                logger.fine("Empty tree for '" +chanKey+ "'");
+                logger.debug("Empty tree for '" +chanKey+ "'");
             }
         }
-        logger.fine("SeedSplitProcessor Thread> Yeah, we're done.");
-        logger.fine("Kept " +kept+ " records");
-        logger.fine("Discarded " +discarded+ " records");
+        logger.debug("SeedSplitProcessor Thread> Yeah, we're done.");
+        logger.debug("Kept " +kept+ " records");
+        logger.debug("Discarded " +discarded+ " records");
         for (String countKey: recordCounts.keySet()) {
-            logger.finer("  " +countKey+ ": " +recordCounts.get(key)+ " records");
+            logger.debug("  " +countKey+ ": " +recordCounts.get(key)+ " records");
         }
         if ((progress != null) && !progress.errorOccurred()) {
             progress = new SeedSplitProgress(byteTotal, true);

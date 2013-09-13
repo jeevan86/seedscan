@@ -18,12 +18,13 @@
  */
 package asl.security;
 
+import org.apache.log4j.Logger;
+
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.util.Arrays;
-import java.util.logging.Logger;
 
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;

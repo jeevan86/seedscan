@@ -20,7 +20,7 @@ package asl.seedscan.metrics;
 
 import asl.metadata.Channel;
 
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 
 public class CrossPowerKey
 {

@@ -19,7 +19,7 @@
 
 package asl.security;
 
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 
 import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
 

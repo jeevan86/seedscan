@@ -18,9 +18,9 @@
  */
 package asl.seedsplitter;
 
-import asl.worker.Progress;
+import org.apache.log4j.Logger;
 
-import java.util.logging.Logger;
+import asl.worker.Progress;
 
 /**
  * @author Joel D. Edwards <jdedwards@usgs.gov>

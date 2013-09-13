@@ -18,11 +18,12 @@
  */
 package asl.seedsplitter;
 
+import org.apache.log4j.Logger;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.GregorianCalendar;
-import java.util.logging.Logger;
 import java.util.TimeZone;
 
 import asl.security.MemberDigest;
@@ -310,13 +311,13 @@ extends MemberDigest
         //
         long intervalAdjustment = m_interval / 100;
 
-        logger.fine("");
-        logger.fine("    Source DataSet: " + DataSet.timestampToString(this.getStartTime()) + " to " + DataSet.timestampToString(this.getEndTime()) + " (" + this.getLength() + " data points)");
-        logger.fine("    Target DataSet: " + DataSet.timestampToString(seq.getStartTime()) + " to " + DataSet.timestampToString(seq.getEndTime()) + " (" + seq.getLength() + " data points)");
+        logger.debug("");
+        logger.debug("    Source DataSet: " + DataSet.timestampToString(this.getStartTime()) + " to " + DataSet.timestampToString(this.getEndTime()) + " (" + this.getLength() + " data points)");
+        logger.debug("    Target DataSet: " + DataSet.timestampToString(seq.getStartTime()) + " to " + DataSet.timestampToString(seq.getEndTime()) + " (" + seq.getLength() + " data points)");
         if (m_startTime > seq.getEndTime()) {
             if (((m_startTime - seq.getEndTime()) < (m_interval - intervalAdjustment)) ||
                 ((m_startTime - seq.getEndTime()) > (m_interval + intervalAdjustment))) {
-                logger.fine("Source is more than 1 data point after target. (difference = " +(m_startTime - seq.getEndTime())+ " ms OR " +((m_startTime - seq.getEndTime())/m_interval)+ " data points)");
+                logger.debug("Source is more than 1 data point after target. (difference = " +(m_startTime - seq.getEndTime())+ " ms OR " +((m_startTime - seq.getEndTime())/m_interval)+ " data points)");
                 throw new SequenceMergeRangeException("Source is more than 1 data point after target.");
             }
         }
@@ -324,10 +325,10 @@ extends MemberDigest
         if (this.getEndTime() < seq.m_startTime) {
             if (((seq.m_startTime - this.getEndTime()) < (m_interval - intervalAdjustment)) ||
                 ((seq.m_startTime - this.getEndTime()) > (m_interval + intervalAdjustment))) {
-                logger.fine("Target is more than 1 data point after source. (difference = " +(seq.m_startTime - this.getEndTime())+ ")");
+                logger.debug("Target is more than 1 data point after source. (difference = " +(seq.m_startTime - this.getEndTime())+ ")");
                 throw new SequenceMergeRangeException("Target is more than 1 data point after source.");
             } else {
-                logger.fine("Swapping source and target prior to merge.");
+                logger.debug("Swapping source and target prior to merge.");
                 seq.mergeInto(this);
                 seq.swapData(this);
                 return;
@@ -335,7 +336,7 @@ extends MemberDigest
         }
         
         if (this.subSequenceOf(seq)) {
-            logger.fine("Subsequence. Just _reset().");
+            logger.debug("Subsequence. Just _reset().");
             //MTH: 2013-04-27 This seems wrong:
             //seq._reset();
             DataSet dataSet = (DataSet)this;
@@ -349,7 +350,7 @@ extends MemberDigest
         }
 
         if (m_startTime < seq.m_startTime) {
-            logger.fine("Swapping source and target prior to merge.");
+            logger.debug("Swapping source and target prior to merge.");
             seq.mergeInto(this);
             seq.swapData(this);
             return ;

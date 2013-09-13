@@ -20,7 +20,7 @@ package asl.seedscan.metrics;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 
 public class MetricWrapper
 {
@@ -66,15 +66,15 @@ public class MetricWrapper
             return metric;
         } catch (InstantiationException ex) {
             String message = ex.getClass().getName() + " in MetricWrapper.getNewInstance(), should never happen!";
-            logger.severe(message);
+            logger.error(message);
             throw new RuntimeException(message);
         } catch (IllegalAccessException ex) {
             String message = ex.getClass().getName() + " in MetricWrapper.getNewInstance(), should never happen!";
-            logger.severe(message);
+            logger.error(message);
             throw new RuntimeException(message);
         } catch (NoSuchFieldException ex) {
             String message = ex.getClass().getName() + " in MetricWrapper.getNewInstance(), should never happen!";
-            logger.severe(message);
+            logger.error(message);
             throw new RuntimeException(message);
         }
     }

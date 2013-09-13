@@ -19,7 +19,7 @@
 
 package asl.seedscan.event;
 
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -68,15 +68,15 @@ public class EventLoader
         eventsDirectoryLoaded = true;
 
         if ( directoryPath == null ) {
-            logger.warning("eventsDir was NOT set in config.xml: <cfg:events_dir> --> Don't Compute Event Metrics");
+            logger.warn("eventsDir was NOT set in config.xml: <cfg:events_dir> --> Don't Compute Event Metrics");
             return;
         }
         else if ( !(new File(directoryPath)).exists() ) {
-            logger.severe(String.format( "eventsDir=%s does NOT exist --> Skip Event Metrics", directoryPath) );
+            logger.warn(String.format( "eventsDir=%s does NOT exist --> Skip Event Metrics", directoryPath) );
             return;
         }
         else if ( !(new File(directoryPath)).isDirectory() ) {
-            logger.severe(String.format( "eventsDir=%s is NOT a directory --> Skip Event Metrics", directoryPath) );
+            logger.error(String.format( "eventsDir=%s is NOT a directory --> Skip Event Metrics", directoryPath) );
             return;
         }
         else {
@@ -132,14 +132,14 @@ public class EventLoader
             File eventDir = new File(yearDir + "/" + idString);
 
             if (!eventDir.exists()) {
-System.out.format("== WARNING: EventLoader.getDaySynthetics: eventDir=[%s] does NOT EXIST!\n", eventDir);
+                logger.warn(String.format("EventLoader.getDaySynthetics: eventDir=[%s] does NOT EXIST!", eventDir) );
             }
 
             File[] sacFiles = eventDir.listFiles(sacFilter);
             Hashtable<String, SacTimeSeries> eventSynthetics = null;
 
             for (File sacFile : sacFiles) {
-                System.out.format("== Found sacFile=%s [%s]\n", sacFile, sacFile.getName());
+                logger.info(String.format("Found sacFile=%s [%s]", sacFile, sacFile.getName()) );
                 SacTimeSeries sac = new SacTimeSeries();
                 try {
                     sac.read(sacFile);
@@ -224,19 +224,19 @@ System.out.format("== WARNING: EventLoader.getDaySynthetics: eventDir=[%s] does 
     // Check that yearDir exists and is a Directory:
 
         if (!yearDir.exists()) {
-            logger.severe(String.format( "loadDayCMTs: eventsDir=%s does NOT exist --> Skip Event Metrics", yearDir) );
+            logger.warn(String.format( "loadDayCMTs: eventsDir=%s does NOT exist --> Skip Event Metrics", yearDir) );
             return null;
         }
         else if (!yearDir.isDirectory()) {
-            logger.severe(String.format( "loadDayCMTs: eventsDir=%s is NOT a Directory --> Skip Event Metrics", yearDir) );
+            logger.error(String.format( "loadDayCMTs: eventsDir=%s is NOT a Directory --> Skip Event Metrics", yearDir) );
             return null;
         }
         else {  // yearDir was found --> Scan for matching events
             logger.info(String.format( "loadDayCMTs: getEventData: FOUND eventsDir=%s", yearDir) );
             events = yearDir.listFiles(eventFilter);
             if (events == null) {
-                logger.warning(String.format( "No Matching events found for [yyyymodd=%s] "
-                                           + "in eventsDir=%s\n", yyyymodd, yearDir) );
+                logger.warn(String.format( "No Matching events found for [yyyymodd=%s] "
+                                           + "in eventsDir=%s", yyyymodd, yearDir) );
                 return null;
             }
         // Loop over event dirs for this day and scan in CMT info, etc
@@ -245,7 +245,7 @@ System.out.format("== WARNING: EventLoader.getDaySynthetics: eventDir=[%s] does 
                 logger.info(String.format( "Found matching event dir=[%s]", event) );
                 File cmtFile = new File(event + "/" + "currCMTmineos" ); 
                 if (!cmtFile.exists()) {
-                    logger.severe(String.format( "Did NOT find cmtFile=currCMTmineos in dir=[%s]", event) );
+                    logger.error(String.format( "Did NOT find cmtFile=currCMTmineos in dir=[%s]", event) );
                     continue;
                 }
                 else {
@@ -256,13 +256,13 @@ System.out.format("== WARNING: EventLoader.getDaySynthetics: eventDir=[%s] does 
                         String line = br.readLine();
 
                         if (line == null) {
-                            logger.severe(String.format( "cmtFile=currCMTmineos in dir=[%s] is EMPTY", event) );
+                            logger.error(String.format( "cmtFile=currCMTmineos in dir=[%s] is EMPTY", event) );
                             continue;
                         }
                         else {
                             String[] args = line.trim().split("\\s+") ;
                             if (args.length < 9) {
-                                logger.severe(String.format( "cmtFile=currCMTmineos in dir=[%s] is INVALID", event) );
+                                logger.error(String.format( "cmtFile=currCMTmineos in dir=[%s] is INVALID", event) );
                                 continue;
                             }
 
@@ -300,14 +300,14 @@ System.out.format("== WARNING: EventLoader.getDaySynthetics: eventDir=[%s] does 
                                 dayCMTs.put(idString, eventCMT);
                             }
                             catch (NumberFormatException e) {
-                                logger.severe(String.format( "caught NumberFormatException=[%s] "
+                                logger.error(String.format( "caught NumberFormatException=[%s] "
                                            + "while trying to read cmtFile=[%s]\n", e, cmtFile) );
                             }
                         } // else line != null
 
                     } // end try to read cmtFile 
                     catch (IOException e) { 
-                        logger.severe(String.format( "caught IOException=[%s] "
+                        logger.error(String.format( "caught IOException=[%s] "
                                           + "while trying to read cmtFile=[%s]\n", e, cmtFile) );
                     }
                     finally {

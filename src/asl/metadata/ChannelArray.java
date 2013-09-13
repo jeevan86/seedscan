@@ -19,7 +19,7 @@
 
 package asl.metadata;
 
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 import java.util.ArrayList;
 
 public class ChannelArray

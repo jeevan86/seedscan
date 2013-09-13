@@ -18,6 +18,9 @@
  */
 package asl.seedsplitter;
 
+import org.apache.log4j.Logger;
+import org.apache.log4j.Level;
+
 import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.BufferedInputStream;
@@ -25,9 +28,8 @@ import java.io.FileNotFoundException;
 import java.io.File;
 import java.lang.Thread;
 import java.util.ArrayList;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.Hashtable;
-import java.util.logging.Logger;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -211,6 +213,9 @@ extends SwingWorker<Hashtable<String,ArrayList<DataSet>>, SeedSplitProgress>
     @Override
     public Hashtable<String,ArrayList<DataSet>> doInBackground()
     {
+        // Only turn this on for extremely verbose debugging:
+        logger.setLevel(Level.OFF);
+
         SeedSplitProgress progress = null;
         int progressPercent = 0; // 0 - 100
         int lastPercent = 0;
@@ -246,14 +251,14 @@ extends SwingWorker<Hashtable<String,ArrayList<DataSet>>, SeedSplitProgress>
                 inputStream = new DataInputStream(new BufferedInputStream(new FileInputStream(file)));
                 SeedInputStream stream = new SeedInputStream(inputStream, m_recordQueue, finalFile); 
                 inputThread = new Thread(stream);
-                logger.fine("Processing file " + file.getName() + "...");
+                logger.debug("Processing file " + file.getName() + "...");
                 inputThread.start();
 
                 while ((progressBytes >= 0) && !this.isCancelled()) {
                     try {
                         progress = m_progressQueue.take();
                         if (progress.errorOccurred()) {
-                            logger.finer(progress.getErrorMessage());
+                            logger.debug(progress.getErrorMessage());
                             break;
                         } 
                         else if (progress.isFileDone()) {
@@ -271,16 +276,16 @@ extends SwingWorker<Hashtable<String,ArrayList<DataSet>>, SeedSplitProgress>
                             // Only update our percentage if it has changed
                             if (progressPercent > lastPercent) {
                                 this.setProgress(progressPercent);
-                                logger.finer("Total Bytes:      " + totalBytes);
-                                logger.finer("Progress Bytes:   " + progressBytes);
-                                logger.finer("Progress Percent: " + progressPercent + "%");
+                                logger.debug("Total Bytes:      " + totalBytes);
+                                logger.debug("Progress Bytes:   " + progressBytes);
+                                logger.debug("Progress Percent: " + progressPercent + "%");
                             }
                         }
                     } catch (InterruptedException e) {;}
                 }
                 m_digests[i] = stream.getDigestString();
             } catch (FileNotFoundException e) {
-                logger.fine("File '" +file.getName()+ "' not found\n");
+                logger.debug("File '" +file.getName()+ "' not found\n");
                 // Should we do something more? Throw an exception?
             }
             m_table = processor.getTable();
@@ -306,10 +311,10 @@ extends SwingWorker<Hashtable<String,ArrayList<DataSet>>, SeedSplitProgress>
                     processorThread.join();
                 } catch (InterruptedException e) {;}
             }
-            logger.fine("Finished processing file " + file.getName() + "  " + progressPercent + "% complete");
+            logger.debug("Finished processing file " + file.getName() + "  " + progressPercent + "% complete");
             stageBytes += file.length();
         }
-        logger.finer("All done. Setting progress to 100%");
+        logger.debug("All done. Setting progress to 100%");
         this.setProgress(100);
         return m_table;
     }

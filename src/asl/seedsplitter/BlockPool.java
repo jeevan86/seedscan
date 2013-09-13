@@ -19,8 +19,9 @@
 
 package asl.seedsplitter;
 
+import org.apache.log4j.Logger;
+
 import java.util.ArrayList;
-import java.util.logging.Logger;
 
 /**
  * @author  Joel D. Edwards <jdedwards@usgs.gov>

@@ -23,7 +23,7 @@ import java.util.Collection;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.Iterator;
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 
 /**
  * @author  Joel D. Edwards <jdedwards@usgs.gov>

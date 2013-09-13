@@ -18,7 +18,7 @@
  */
 package asl.seedscan.event;
 
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 import java.util.Calendar;
 
 public class EventCMT

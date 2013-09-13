@@ -18,6 +18,8 @@
  */
 package asl.seedsplitter;
 
+import org.apache.log4j.Logger;
+
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.lang.InterruptedException;
@@ -26,7 +28,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.Formatter;
-import java.util.logging.Logger;
 
 import asl.util.Hex;
 import seed.IllegalSeednameException;
@@ -157,7 +158,7 @@ implements Runnable
                 if (m_bufferBytes < BLOCK_SIZE) {
                     bytesRead = m_inputStream.read(m_buffer, m_bufferBytes, BLOCK_SIZE - m_bufferBytes);
                     if (bytesRead < 0) {
-                        logger.fine("SeedInputStream Thread> I think we're done here...");
+                        logger.debug("SeedInputStream Thread> I think we're done here...");
                         if (m_indicateLast) {
                             m_queue.put(last);
                         } else {
@@ -182,24 +183,24 @@ implements Runnable
                         if ((indicator != 0x44) && (indicator != 0x4D) && (indicator != 0x51)) { 
                             m_skippedBytes += m_bufferBytes;
                             m_bufferBytes = 0;
-                            logger.finer(formatter.format("Skipping bad indicator: 0x%x\n", indicator).toString());
+                            logger.debug(formatter.format("Skipping bad indicator: 0x%x\n", indicator).toString());
                         }
                         else {
                             try {
                                 recordLength = MiniSeed.crackBlockSize(m_buffer);
                             } catch (IllegalSeednameException e) {
-                                logger.finer("Invalid Format, Skipping Chunk.");
+                                logger.debug("Invalid Format, Skipping Chunk.");
                                 m_skippedBytes += m_bufferBytes;
                                 m_bufferBytes = 0;
                             }
                             /*
                             firstBlockette = ((m_buffer[46] & 0xFF) << 8) | (m_buffer[47] & 0xFF);
                             if (m_bufferBytes <= (firstBlockette + 6)) {
-                                logger.finer("First blockette should be within the first 256 bytes");
+                                logger.debug("First blockette should be within the first 256 bytes");
                                 m_bufferBytes = 0;
                             }
                             else if ((((m_buffer[firstBlockette] & 0xFF) << 8) | (m_buffer[firstBlockette+1] & 0xFF)) != 1000) {
-                                logger.finer("First record should be of type 1000, not type " + (m_buffer[firstBlockette] & 0xFF));
+                                logger.debug("First record should be of type 1000, not type " + (m_buffer[firstBlockette] & 0xFF));
                                 m_bufferBytes = 0;
                             } 
                             else {
@@ -217,9 +218,9 @@ implements Runnable
                     }
                 }
             } catch (IOException e) {
-                logger.warning("Caught IOException");
+                logger.warn("Caught IOException");
             } catch (InterruptedException e) {
-                logger.warning("Caught InterruptedException");
+                logger.warn("Caught InterruptedException");
             }
         }
     }

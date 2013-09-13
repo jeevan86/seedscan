@@ -18,9 +18,10 @@
  */
 package asl.metadata;
 
+import org.apache.log4j.Logger;
+
 import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.logging.Logger;
 import java.util.Calendar;
 import java.util.Collections;
 import java.text.SimpleDateFormat;
@@ -52,7 +53,8 @@ public class EpochData
 
     public static String epochToDateString(Calendar time)
     {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy:DDD:HH:mm");
+        //SimpleDateFormat sdf = new SimpleDateFormat("yyyy:DDD:HH:mm");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy:DDD");
       // This appears to be necessary because seedsplitter/SeedSplitProcessor.java sets the TimeZone to GMT
       //   so without the next line, the timestamp will be converted into the local timezone (e.g., 4 hours
      //    earlier than GMT

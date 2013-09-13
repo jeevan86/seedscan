@@ -18,10 +18,11 @@
  */
 package asl.seedsplitter;
 
+import org.apache.log4j.Logger;
+
 import asl.concurrent.FallOffQueue;
 
 import java.util.ArrayList;
-import java.util.logging.Logger;
 
 import javax.swing.SwingWorker;
 
@@ -122,7 +123,7 @@ extends SwingWorker<ArrayList<ContiguousBlock>, ContiguousBlock>
         for (int i=0; i < m_dataLists.size(); i++) {
             dataList = m_dataLists.get(i);
             m_totalDataSets += (long)dataList.size();
-            logger.fine("Data Set Count: " + dataList.size() + "(" + m_totalDataSets + ")");
+            logger.debug("Data Set Count: " + dataList.size() + "(" + m_totalDataSets + ")");
         }
 
         m_blockList =_buildFirstList(m_dataLists.get(0));
@@ -136,7 +137,7 @@ extends SwingWorker<ArrayList<ContiguousBlock>, ContiguousBlock>
             } catch (BlockIntervalMismatchException e) {
                 double lastPercent = m_lastProgress.getProgressPercent();
                 m_lastProgress = new BlockLocateProgress(lastPercent, BlockLocateError.INTERVAL_MISMATCH, "Interval (sample rate) does not match across channels.");
-                logger.fine("Interval (sample rate) does not match across channels.");
+                logger.debug("Interval (sample rate) does not match across channels.");
                 break;
             }
         }
@@ -258,8 +259,8 @@ extends SwingWorker<ArrayList<ContiguousBlock>, ContiguousBlock>
         if (lastPercent < m_percentComplete) {
             this.setProgress(m_percentComplete);
             m_lastProgress = new BlockLocateProgress(m_percentComplete);
-            logger.fine("Total DataSets: " + m_totalDataSets);
-            logger.fine("Progress:       " + m_percentComplete + "%");
+            logger.debug("Total DataSets: " + m_totalDataSets);
+            logger.debug("Progress:       " + m_percentComplete + "%");
         }
     }
 }

@@ -18,12 +18,13 @@
  */
 package asl.metadata.meta_new;
 
+import org.apache.log4j.Logger;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Hashtable;
-import java.util.logging.Logger;
 import java.util.TreeSet;
 import asl.metadata.*;
 
@@ -184,7 +185,7 @@ public class StationMeta
                     channelArrayList.add( new Channel(location[i], chan[j+3]) );
                 }
                 else {
-                    logger.severe( String.format("Error: CAN'T find Channel=[%s-%s] OR Channel=[%s-%s] in metadata",
+                    logger.error( String.format("Error: CAN'T find Channel=[%s-%s] OR Channel=[%s-%s] in metadata",
                                                   location[i], chan[j], location[i], chan[j+3]) );
                 }
             }

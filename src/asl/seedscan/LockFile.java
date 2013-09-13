@@ -28,7 +28,7 @@ import java.lang.management.RuntimeMXBean;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 
 public class LockFile
 {

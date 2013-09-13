@@ -28,7 +28,7 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Collection;
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -72,7 +72,7 @@ public class ConfigParser
             schema = factory.newSchema(sources);
         } catch (SAXException ex) {
             String message = "Could not generate schema from supplied files: " + ex.toString();
-            logger.severe(message);
+            logger.fatal(message);
             throw new RuntimeException(message);
         }
 
@@ -94,11 +94,11 @@ public class ConfigParser
             cfg = cfgRoot.getValue();
         } catch (FileNotFoundException ex) {
             String message = "Could not locate config file: " + ex.toString();
-            logger.severe(message);
+            logger.fatal(message);
             throw new RuntimeException(message);
         } catch (JAXBException ex) {
             String message = "Could not unmarshal config file: " + ex.toString();
-            logger.severe(message);
+            logger.fatal(message);
             throw new RuntimeException(message);
         }
 

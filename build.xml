@@ -29,6 +29,7 @@
         <fileset dir="${libs.dir}">
             <include name="**/*.jar" />
         </fileset>
+        <pathelement location="." />
     </path>
 
 <!--ANT SEEDSCAN-->

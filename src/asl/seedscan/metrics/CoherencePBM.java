@@ -26,7 +26,7 @@ import java.io.FileReader;
 import java.io.File;
 import java.nio.ByteBuffer;
 
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 import java.util.ArrayList;
 import java.util.Calendar;
 

@@ -18,9 +18,10 @@
  */
 package asl.metadata;
 
+import org.apache.log4j.Logger;
+
 import java.util.Calendar;
 import java.util.List;
-import java.util.logging.Logger;
 
 import asl.metadata.MetaGenerator;
 import asl.metadata.Station;
@@ -51,6 +52,7 @@ public class MetaServer
     {
         String urlString = "rmi://" + ipString + "/MetaGen";
         // Should probably try to verify ipString here and exit gracefully if not valid
+        logger.debug("ipString="+ipString);
         try {
             meta = (MetaInterface)Naming.lookup(urlString);
         }
@@ -63,6 +65,7 @@ public class MetaServer
     // Empty constructor --> Use local MetaGenerator class to load metadata
     public MetaServer() 
     {
+        logger.debug("use *Local* MetaGenerator");
         try {
             metaGen = MetaGenerator.getInstance();
             metaGen.loadDataless("/Users/mth/mth/ASLData/dcc/metadata/dataless");
@@ -73,7 +76,7 @@ public class MetaServer
     }
 
     public StationMeta getStationMeta(Station station, Calendar timestamp){
-
+        logger.debug("getStationMeta Station=" + station);
         StationMeta stnMeta = null;
         try {
             if (useRemoteMeta) {
@@ -86,6 +89,7 @@ public class MetaServer
         catch (Exception e) {
             System.out.format("== meta.getStationMeta() Error:%s\n", e.getMessage() );
         }
+        logger.debug("getStationMeta Done");
         return stnMeta;
     }
 

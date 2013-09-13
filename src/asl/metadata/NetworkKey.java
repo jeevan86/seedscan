@@ -18,7 +18,7 @@
  */
 package asl.metadata;
 
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 
 public class NetworkKey extends Key
 {

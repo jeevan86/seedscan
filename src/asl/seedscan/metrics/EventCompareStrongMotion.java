@@ -22,7 +22,7 @@ import asl.seedscan.event.*;
 import java.awt.Color;
 import java.awt.BasicStroke;
 
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Hashtable;
@@ -326,7 +326,7 @@ xDist = gcarc;
 // We could screen by max distance (e.g., 90 deg for P direct)
 // or by counting arrivals (since you won't get a P arrival beyond about 97 deg or so)
             if (arrivals.size() != 2) { // Either we don't have both P & S or we don't have just P & S
-                logger.severe(String.format("Error: Expected P and/or S arrival times not found [gcarc=%8.4f]",gcarc));
+                logger.warn(String.format("Error: Expected P and/or S arrival times not found [gcarc=%8.4f]",gcarc));
                 return null;
             }
 
@@ -335,20 +335,18 @@ xDist = gcarc;
                 arrivalTimeP = arrivals.get(0).getTime();
             }
             else {
-                logger.severe(String.format("Error: Expected P arrival time not found"));
+                logger.warn(String.format("Error: Expected P arrival time not found"));
             }
             double arrivalTimeS = 0.;
             if (arrivals.get(1).getName().equals("S")){
                 arrivalTimeS = arrivals.get(1).getTime();
             }
             else {
-                logger.severe(String.format("Error: Expected S arrival time not found"));
+                logger.warn(String.format("Error: Expected S arrival time not found"));
             }
 
-            System.out.format("== Event:%s <evla,evlo> = <%.2f, %.2f> Station:%s <%.2f, %.2f> gcarc=%.2f azim=%.2f tP=%.3f tS=%.3f\n",
-                eventCMT.getEventID(), evla, evlo, getStation(), stla, stlo, gcarc, azim, arrivalTimeP, arrivalTimeS );
-            //System.out.format("== Event:%s <evla,evlo> = <%.2f, %.2f> Station:%s <%.2f, %.2f> gcarc=%.2f azim=%.2f eventEpoch=[%d] tP=%.3f tS=%.3f\n",
-                //eventCMT.getEventID(), evla, evlo, getStation(), stla, stlo, gcarc, azim, eventStartTime, arrivalTimeP, arrivalTimeS );
+            logger.info(String.format("Event:%s <evla,evlo> = <%.2f, %.2f> Station:%s <%.2f, %.2f> gcarc=%.2f azim=%.2f tP=%.3f tS=%.3f\n",
+                eventCMT.getEventID(), evla, evlo, getStation(), stla, stlo, gcarc, azim, arrivalTimeP, arrivalTimeS ) );
 
             double[] arrivalTimes = new double[2];
             arrivalTimes[0] = arrivalTimeP;

@@ -29,7 +29,7 @@ import java.util.Hashtable;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 
 public class MetricResult
 {

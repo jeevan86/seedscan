@@ -19,6 +19,8 @@
 
 package asl.metadata.meta_new;
 
+import org.apache.log4j.Logger;
+
 import asl.metadata.*;
 import asl.security.MemberDigest;
 import asl.util.PlotMaker;

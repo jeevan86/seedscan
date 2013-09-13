@@ -33,7 +33,7 @@ import timeutils.PSD;
 import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 
 import sac.SacTimeSeries;
 

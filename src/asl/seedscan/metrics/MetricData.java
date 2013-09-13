@@ -47,8 +47,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Hashtable;
 import java.util.Set;
-import java.util.logging.Logger;
 import java.util.Calendar;
+import org.apache.log4j.Logger;
 
 public class MetricData
 {
@@ -299,12 +299,12 @@ public class MetricData
                                             double f1, double f2, double f3, double f4) 
     {
         if (!metadata.hasChannel(channel)) {
-            logger.severe( String.format("Error: Metadata NOT found for channel=[%s] --> Can't return Displacement",channel) );
+            logger.error( String.format("Error: Metadata NOT found for channel=[%s] --> Can't return Displacement",channel) );
             return null;
         }
         double[] timeseries = getWindowedData(channel, windowStartEpoch, windowEndEpoch);
         if (timeseries == null) {
-            logger.severe( String.format("Error: Did not get requested window for channel=[%s] --> Can't return Displacement",channel) );
+            logger.error( String.format("Error: Did not get requested window for channel=[%s] --> Can't return Displacement",channel) );
             return null;
         }
         double filtered[] = removeInstrumentAndFilter(responseUnits, channel, timeseries, f1, f2, f3, f4);
@@ -327,7 +327,7 @@ public class MetricData
                                               double f1, double f2, double f3, double f4){
 
         if (!(f1 < f2 && f2 < f3 && f3 < f4)) {
-            logger.severe( String.format("removeInstrumentAndFilter: Error: invalid freq: range: [%f-%f ----- %f-%f]", f1, f2, f3, f4) );
+            logger.error( String.format("removeInstrumentAndFilter: Error: invalid freq: range: [%f-%f ----- %f-%f]", f1, f2, f3, f4) );
             return null;
         }
 
@@ -484,7 +484,7 @@ public class MetricData
 
         if (windowEndEpoch > dataEndEpoch) { // Window appears to span into next day
             if (nextMetricData == null) {
-                logger.severe( String.format("== getWindowedData: Requested Epoch window[%d-%d] spans into next day, but we have NO data "
+                logger.warn( String.format("== getWindowedData: Requested Epoch window[%d-%d] spans into next day, but we have NO data "
                                  +"for channel=[%s] for next day\n", windowStartEpoch, windowEndEpoch, channel) );
                 return null;
             }
@@ -737,7 +737,7 @@ public class MetricData
         try {
             northDataSet.setSampleRate(srate1);
         } catch (IllegalSampleRateException e) {
-            logger.finer(String.format("MetricData.createRotatedChannels(): Invalid Sample Rate = %f", srate1) );
+            logger.error(String.format("MetricData.createRotatedChannels(): Invalid Sample Rate = %f", srate1) );
         }
 
         int[] intArray = new int[ndata];
@@ -759,7 +759,7 @@ public class MetricData
         try {
             eastDataSet.setSampleRate(srate1);
         } catch (IllegalSampleRateException e) {
-            logger.finer(String.format("MetricData.createRotatedChannels(): Invalid Sample Rate = %f", srate1) );
+            logger.error(String.format("MetricData.createRotatedChannels(): Invalid Sample Rate = %f", srate1) );
         }
 
         for (int i=0; i<ndata; i++){
@@ -911,15 +911,6 @@ public class MetricData
         Calendar date     = id.getDate();
         String channelId  = MetricResult.createResultId(id.getChannel());
 
-/**
-        logger.fine(String.format(
-                    "MetricValueIdentifier --> date=%04d-%02d-%02d (%03d) %02d:%02d:%02d | metricName=%s station=%s channel=%s",
-                    date.get(Calendar.YEAR), (date.get(Calendar.MONTH)+1), date.get(Calendar.DAY_OF_MONTH), date.get(Calendar.DAY_OF_YEAR), 
-                    date.get(Calendar.HOUR), date.get(Calendar.MINUTE), date.get(Calendar.SECOND),
-                    id.getMetricName(), id.getStation(), id.getChannel()
-        ));
-**/
-
     // We need at least metadata to compute a digest. If it doesn't exist, then maybe this is a rotated
     // channel (e.g., "00-LHND") and we need to first try to make the metadata + data for it.
         if (!metadata.hasChannels(channelArray)) { 
@@ -950,7 +941,7 @@ public class MetricData
 
         ByteBuffer newDigest = getHash(channelArray);
         if (newDigest == null) {
-            logger.warning("New digest is null!");
+            logger.warn("New digest is null!");
         }
 
         if (metricReader == null) { // This could be the case if we are computing AvailabilityMetric and there is no data
@@ -961,21 +952,21 @@ public class MetricData
             //System.out.println("=== MetricData.metricReader *IS* connected");
             ByteBuffer oldDigest = metricReader.getMetricValueDigest(id);
             if (oldDigest == null) {
-                logger.fine("Old digest is null.");
+                logger.warn("Old digest is null.");
             }
             else if (newDigest.compareTo(oldDigest) == 0) {
-                logger.fine("Digests are Equal !!");
+                logger.warn("Digests are Equal !!");
                 if (forceUpdate) {  // Don't do anything --> return the digest to force the metric computation
                     String msg = String.format("== valueDigestChanged: metricName=%s Digests are Equal BUT forceUpdate=[%s]"
                     + " so compute the metric anyway!\n", metricName, forceUpdate);
                     System.out.println(msg);
-                    logger.warning(msg);
+                    logger.warn(msg);
                 }
                 else {
                     newDigest = null;
                 }
             }
-            logger.fine(String.format( "valueDigestChanged() --> oldDigest = getMetricValueDigest(%s, %s, %s, %s)",
+            logger.warn(String.format( "valueDigestChanged() --> oldDigest = getMetricValueDigest(%s, %s, %s, %s)",
                                        EpochData.epochToDateString(date), metricName, station, channelId));
         }
         else {
