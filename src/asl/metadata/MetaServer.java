@@ -52,12 +52,13 @@ public class MetaServer
     {
         String urlString = "rmi://" + ipString + "/MetaGen";
         // Should probably try to verify ipString here and exit gracefully if not valid
-        logger.debug("ipString="+ipString);
+        logger.info("ipString="+ipString);
         try {
             meta = (MetaInterface)Naming.lookup(urlString);
         }
         catch (Exception e) {
-            System.out.format("== MetaServer: Error=%s\n", e.getMessage() );
+            //System.out.format("== MetaServer: Error=%s\n", e.getMessage() );
+            logger.error(e.getMessage());
         }
         useRemoteMeta = true;
     }
@@ -65,13 +66,13 @@ public class MetaServer
     // Empty constructor --> Use local MetaGenerator class to load metadata
     public MetaServer() 
     {
-        logger.debug("use *Local* MetaGenerator");
+        logger.info("use *Local* MetaGenerator");
         try {
             metaGen = MetaGenerator.getInstance();
             metaGen.loadDataless("/Users/mth/mth/ASLData/dcc/metadata/dataless");
         }
         catch (Exception e) {
-            System.out.format("== MetaServer: Error=%s\n", e.getMessage() );
+            logger.error(e.getMessage());
         }
     }
 
@@ -87,7 +88,7 @@ public class MetaServer
             }
         }
         catch (Exception e) {
-            System.out.format("== meta.getStationMeta() Error:%s\n", e.getMessage() );
+            logger.error(e.getMessage());
         }
         logger.debug("getStationMeta Done");
         return stnMeta;
@@ -104,7 +105,7 @@ public class MetaServer
             }
         }
         catch (Exception e) {
-            System.out.format("== meta.getStationList() Error:%s\n", e.getMessage() );
+            logger.error(e.getMessage());
         }
         return stations;
     }
@@ -113,6 +114,7 @@ public class MetaServer
         List<Station> stations = getStationList();
         for (Station station : stations) {
             System.out.format("     == MetaGen contains Station:[%s]\n", station );
+            logger.info("MetaGen contains Station" + station );
         }
 
     }

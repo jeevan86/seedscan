@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema 
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:cfg="config.seedscan.asl"
+        targetNamespace="config.seedscan.asl"
+        cfg:schemaLocation="https://aslweb.cr.usgs.gov SeedScanConfig.xsd"
+        elementFormDefault="qualified"
+        attributeFormDefault="qualified">
+
+    <!-- root -->
+    <xsd:element name="config"      type="cfg:config_T"/>
+    <!-- primary elements -->
+    <xsd:element name="lockfile"    type="xsd:string" />
+    <xsd:element name="log"         type="cfg:log_T" />
+    <xsd:element name="database"    type="cfg:database_T" />
+    <xsd:element name="scans"       type="cfg:scans_T" />
+    <!-- sub elements -->
+    <xsd:element name="scan"        type="cfg:scan_T" />
+    <xsd:element name="levels"      type="cfg:log_levels_T" />
+    <xsd:element name="level"       type="cfg:log_level_T" />
+    <xsd:element name="handlers"    type="cfg:handlers_T" />
+    <xsd:element name="handler_level" type="cfg:log_level_enum_T" />
+    <xsd:element name="log_console" type="cfg:log_console_T" />
+    <xsd:element name="log_file"    type="cfg:log_file_T" />
+    <xsd:element name="directory"   type="xsd:string" />
+    <xsd:element name="prefix"      type="xsd:string" />
+    <xsd:element name="suffix"      type="xsd:string" />
+    <xsd:element name="log_db"      type="cfg:log_db_T" />
+    <!--xsd:element name="log_database" type="cfg:database_T" /-->
+    <xsd:element name="uri"         type="xsd:anyURI" />
+    <xsd:element name="username"    type="xsd:string" />
+    <xsd:element name="password"    type="cfg:password_T" />
+    <xsd:element name="encrypted"   type="cfg:encrypted_T" />
+    <xsd:element name="plain"       type="xsd:string" />
+    <xsd:element name="salt"        type="cfg:salt_T" />
+    <xsd:element name="iv"          type="cfg:iv_T" />
+    <xsd:element name="ciphertext"  type="xsd:hexBinary" />
+    <xsd:element name="hmac"        type="cfg:hmac_T" />
+    <xsd:element name="path"        type="xsd:string" />
+    <xsd:element name="dataless_dir"  type="xsd:string" />
+    <xsd:element name="events_dir"    type="xsd:string" />
+    <xsd:element name="require_connection"    type="xsd:string" />
+    <xsd:element name="start_day"   type="xsd:nonNegativeInteger" />
+    <xsd:element name="start_date"  type="xsd:nonNegativeInteger" />
+    <xsd:element name="days_to_scan"    type="xsd:integer" />
+    <xsd:element name="network_subset"  type="xsd:string" />
+    <xsd:element name="station_subset"  type="xsd:string" />
+    <xsd:element name="location_subset" type="xsd:string" />
+    <xsd:element name="channel_subset"  type="xsd:string" />
+    <xsd:element name="metrics"     type="cfg:metrics_T" />
+
+    <xsd:element name="metric" type="cfg:metric_T" />
+        <xsd:element name="class_name" type="xsd:string" />
+        <xsd:element name="argument" type="cfg:argument_T" />
+
+    <xsd:complexType name="config_T">
+        <xsd:all>
+            <xsd:element ref="cfg:lockfile"     minOccurs="1" maxOccurs="1"/>
+            <xsd:element ref="cfg:log"          minOccurs="1" maxOccurs="1"/>
+            <xsd:element ref="cfg:database"     minOccurs="1" maxOccurs="1"/>
+            <xsd:element ref="cfg:scans"        minOccurs="1" maxOccurs="1"/>
+        </xsd:all>
+    </xsd:complexType>
+
+    <xsd:complexType name="log_T">
+        <xsd:all>
+            <xsd:element ref="cfg:levels"   minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="cfg:handlers" minOccurs="0" maxOccurs="1"/>
+        </xsd:all>
+    </xsd:complexType>
+
+    <xsd:complexType name="handlers_T">
+        <xsd:all>
+            <xsd:element ref="cfg:log_console"  minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="cfg:log_file"     minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="cfg:log_db"       minOccurs="0" maxOccurs="1"/>
+        </xsd:all>
+    </xsd:complexType>
+
+    <xsd:complexType name="log_console_T">
+        <xsd:all>
+            <xsd:element ref="cfg:handler_level" minOccurs="1" maxOccurs="1"/>
+        </xsd:all>
+    </xsd:complexType>
+
+    <xsd:complexType name="log_file_T">
+        <xsd:all>
+            <xsd:element ref="cfg:handler_level" minOccurs="1" maxOccurs="1"/>
+            <xsd:element ref="cfg:directory"   minOccurs="1" maxOccurs="1"/>
+            <xsd:element ref="cfg:prefix"      minOccurs="1" maxOccurs="1"/>
+            <xsd:element ref="cfg:suffix"      minOccurs="1" maxOccurs="1"/>
+        </xsd:all>
+    </xsd:complexType>
+
+    <xsd:complexType name="log_db_T">
+        <xsd:all>
+            <xsd:element ref="cfg:handler_level" minOccurs="1" maxOccurs="1"/>
+            <xsd:element ref="cfg:database"  minOccurs="1" maxOccurs="1"/>
+        </xsd:all>
+    </xsd:complexType>
+
+    <xsd:complexType name="database_T">
+        <xsd:all>
+            <xsd:element ref="cfg:uri" />
+            <xsd:element ref="cfg:username" />
+            <xsd:element ref="cfg:password" />
+            <xsd:element ref="cfg:require_connection" minOccurs="0" maxOccurs="1"/>
+        </xsd:all>
+    </xsd:complexType>
+
+    <xsd:complexType name="password_T">
+        <xsd:choice minOccurs="1" maxOccurs="1">
+            <xsd:element ref="cfg:encrypted" />
+            <xsd:element ref="cfg:plain" />
+        </xsd:choice>
+    </xsd:complexType>
+
+    <xsd:complexType name="encrypted_T">
+        <xsd:all>
+            <xsd:element ref="cfg:salt" />
+            <xsd:element ref="cfg:iv" />
+            <xsd:element ref="cfg:ciphertext" />
+            <xsd:element ref="cfg:hmac" />
+        </xsd:all>
+    </xsd:complexType>
+
+    <xsd:simpleType name="salt_T">
+        <xsd:restriction base="xsd:hexBinary">
+            <xsd:length value="8"/> <!-- length in bytes, not ASCII characters -->
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="iv_T">
+        <xsd:restriction base="xsd:hexBinary">
+            <xsd:length value="16"/> <!-- length in bytes, not ASCII characters -->
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="hmac_T">
+        <xsd:restriction base="xsd:hexBinary">
+            <xsd:length value="16"/> <!-- length in bytes, not ASCII characters -->
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="metrics_T">
+        <xsd:choice minOccurs="1" maxOccurs="unbounded">
+            <xsd:element ref="cfg:metric" />
+        </xsd:choice>
+    </xsd:complexType>
+
+    <xsd:complexType name="scans_T">
+        <xsd:choice minOccurs="1" maxOccurs="unbounded">
+            <xsd:element ref="cfg:scan"/>
+        </xsd:choice>
+    </xsd:complexType>
+
+    <xsd:complexType name="scan_T">
+        <xsd:all>
+            <xsd:element ref="cfg:path"             minOccurs="1" maxOccurs="1"/>
+            <xsd:element ref="cfg:dataless_dir"     minOccurs="1" maxOccurs="1"/>
+            <xsd:element ref="cfg:events_dir"       minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="cfg:start_day"        minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="cfg:start_date"       minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="cfg:days_to_scan"     minOccurs="1" maxOccurs="1"/>
+            <xsd:element ref="cfg:station_subset"   minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="cfg:network_subset"   minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="cfg:location_subset"  minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="cfg:channel_subset"   minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="cfg:metrics"          minOccurs="1" maxOccurs="1"/>
+        </xsd:all>
+        <xsd:attribute name="name" use="required" type="xsd:string" />
+    </xsd:complexType>
+
+    <xsd:complexType name="log_levels_T">
+        <xsd:choice minOccurs="0" maxOccurs="unbounded">
+            <xsd:element ref="cfg:level" />
+        </xsd:choice>
+    </xsd:complexType>
+
+    <xsd:complexType name="log_level_T">
+        <xsd:simpleContent>
+            <xsd:extension base="cfg:log_level_enum_T">
+                <xsd:attribute name="name" use="required" type="xsd:string" />
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:simpleType name="log_level_enum_T">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="OFF" />
+            <xsd:enumeration value="SEVERE" />
+            <xsd:enumeration value="WARNING" />
+            <xsd:enumeration value="INFO" />
+            <xsd:enumeration value="CONFIG" />
+            <xsd:enumeration value="FINE" />
+            <xsd:enumeration value="FINER" />
+            <xsd:enumeration value="FINEST" />
+            <xsd:enumeration value="ALL" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="metric_T">
+        <xsd:sequence>
+            <xsd:element ref="cfg:class_name" minOccurs="1" maxOccurs="1" />
+            <xsd:element ref="cfg:argument" minOccurs="0" maxOccurs="unbounded" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="argument_T">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+                <xsd:attribute name="name" use="required" type="xsd:string" />
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+</xsd:schema>
