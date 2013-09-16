@@ -67,7 +67,7 @@ extends Metric
 
 
         if (metricData.hasCalibrationData() == false) {
-            System.out.format("== No Calibrations loaded for this station for this day --> return\n");
+            logger.info("No Calibration loaded for station=[" + getStation() + "] day=[" + getDay() + "] --> Skip Metric");
             return;
         }
 
@@ -81,8 +81,7 @@ extends Metric
         // At this point we KNOW we have metadata so we WILL compute a digest.  If the digest is null
         //  then nothing has changed and we don't need to recompute the metric
             if (digest == null) { 
-                System.out.format("%s INFO: Data and metadata have NOT changed for this channel:%s --> Skipping\n"
-                                ,getName(), channel);
+                logger.info("Data and metadata have NOT changed for channel=[" + channel + "] --> Skip Metric");
                 continue;
             }
 
@@ -119,13 +118,15 @@ extends Metric
         List<Blockette320> calBlocks = metricData.getChannelCalData(channel);
 
         if (calBlocks == null) {
-            System.out.format("== %s: No cal blocks found for channel=[%s]\n", getName(), channel);
+            //System.out.format("== %s: No cal blocks found for channel=[%s]\n", getName(), channel);
+            logger.info("No cal blocks found for channel=[" + channel + "] day=[" + getDay() + "] --> Skip Metric");
             return null;
             //return NO_RESULT;
         }
 
         if (calBlocks.size() > 1) {
             System.out.format("== %s: Found n=%d Random Calibration Blockettes! --> What to do ?\n", getName(), calBlocks.size() );
+            logger.error("Found more than 1 calibration blockette! --> What to do ?");
         }
 
         Blockette320 blockette320 = calBlocks.get(0);
@@ -142,10 +143,13 @@ extends Metric
 
         System.out.format("== %s: channel=[%s] calStartTime=[%s] calDuration=[%d]\n", getName(), channel, 
                            EpochData.epochToDateString(blockette320.getCalibrationCalendar()), calDuration/1000);
+        logger.info(String.format("channel=[%s] calStartDate=[%s] calDuration=[%d]", channel, 
+                           EpochData.epochToDateString(blockette320.getCalibrationCalendar()), calDuration/1000) );
 
         if ( blockette320.getCalibrationCalendar().get(Calendar.HOUR) == 0 ){
             // This appears to be the 2nd half of a cal that began on the previous day --> Skip
             System.out.format("== %s: cal appears to be the 2nd half of a cal from previous day --> Skip\n", getName());
+            logger.warn("** cal appears to be the 2nd half of a cal from previous day --> Skip");
             //return NO_RESULT;
             return null;
         }
@@ -154,6 +158,7 @@ extends Metric
             // Look for cal to span into next day
 
             System.out.format("== %s: channel=[%s] calEndEpoch > dataEndEpoch --> Cal appears to span day\n", getName(), channel);
+            logger.info(String.format("channel=[%s] calEndEpoch > dataEndEpoch --> Cal appears to span day", channel) ); 
 
             //calBlocks = nextMetricData.getChannelCalData(channel);
             calBlocks = metricData.getNextMetricData().getChannelCalData(channel);

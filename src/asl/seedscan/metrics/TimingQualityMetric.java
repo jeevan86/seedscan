@@ -60,8 +60,7 @@ extends Metric
         // At this point we KNOW we have metadata so we WILL compute a digest.  If the digest is null
         //  then nothing has changed and we don't need to recompute the metric
             if (digest == null) { 
-                System.out.format("%s INFO: Data and metadata have NOT changed for this channel:%s --> Skipping\n"
-                                ,getName(), channel);
+                logger.info("Data and metadata have NOT changed for channel=[" + channel + "] --> Skip Metric");
                 continue;
             }
 

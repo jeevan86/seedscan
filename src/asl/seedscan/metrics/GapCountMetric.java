@@ -60,8 +60,7 @@ extends Metric
         // At this point we KNOW we have metadata so we WILL compute a digest.  If the digest is null 
         //  then nothing has changed (OR we DON'T have data for this channel) and we don't need to recompute the metric
             if (digest == null) { 
-                System.out.format("%s INFO: Data and metadata have NOT changed for this channel:%s --> Skipping\n"
-                                ,getName(), channel);
+                logger.info("Data and metadata have NOT changed for channel=[" + channel + "] --> Skip Metric");
                 continue;
             }
 
@@ -82,8 +81,7 @@ extends Metric
 
         List<DataSet>datasets = metricData.getChannelData(channel);
         if (datasets == null) {  // No data --> Skip this channel
-            System.out.format("== Error: Metric=%s --> No datasets found for channel=[%s]\n",
-                               getName(), channel);
+            logger.error("No datasets found for channel=[" + channel + "] --> Skip Metric");
             return NO_RESULT;
         }
 

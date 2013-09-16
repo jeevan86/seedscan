@@ -934,8 +934,12 @@ public class MetricData
         }
 
         if (!hasChannelArrayData(channelArray) && !availabilityMetric) {  // Return null digest so Metric will be skipped
-            System.out.format("== valueDigestChanged: <Metric=%s> We do NOT have data for this channel(s) "
-                               + "--> return null digest\n", id.getMetricName());
+            //System.out.format("== valueDigestChanged: <Metric=%s> We do NOT have data for this channel(s) "
+                               //+ "--> return null digest\n", id.getMetricName());
+
+            logger.error(String.format("valueDigestChanged: <Metric=%s> We do NOT have data for station=[%s] " + 
+                                       "channel(s)=[%s] date=[%s]--> return null digest",
+                         id.getMetricName(), station, channelId, EpochData.epochToDateString(date) ) ); 
             return null;
         }
 

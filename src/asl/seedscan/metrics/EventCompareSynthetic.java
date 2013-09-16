@@ -76,7 +76,8 @@ extends Metric
 
     @Override public long getVersion()
     {
-        return 1;
+        //return 1;
+        return 2;    // 2013-09-16: Changed from result=rmsDiff to result=calcDiff (power ratio)
     }
 
     @Override public String getName()
@@ -258,15 +259,18 @@ extends Metric
 
         // Displacements are in meters so rmsDiff's will be small
         //   scale rmsDiffs to micrometers:
+        // 2013-09-16: Switch to calcDiff = scaled power ratio
 
             if (compute00) {
                 for (int i=0; i<3; i++) {
-                    results[i] += 1.e6 * rmsDiff( dataDisp00.get(i), dataDisp3.get(i), nstart, nend);
+                    //results[i] += 1.e6 * rmsDiff( dataDisp00.get(i), dataDisp3.get(i), nstart, nend);
+                    results[i] += calcDiff( dataDisp00.get(i), dataDisp3.get(i), nstart, nend);
                 }
             }
             if (compute10) {
                 for (int i=0; i<3; i++) {
-                    results[i+3] += 1.e6 * rmsDiff( dataDisp10.get(i), dataDisp3.get(i), nstart, nend);
+                    //results[i+3] += 1.e6 * rmsDiff( dataDisp10.get(i), dataDisp3.get(i), nstart, nend);
+                    results[i+3] += calcDiff( dataDisp10.get(i), dataDisp3.get(i), nstart, nend);
                 }
             }
 
@@ -338,18 +342,47 @@ extends Metric
 
 /**
  * compare 2 double[] arrays between array indices n1 and n2
+ * currently doing:
+ *                          SUM[ x(n) * y(n) ]   , where x(n)=data and y(n)=synth
+ *      difference =        ------------------
+ *                          SUM[ y(n) * y(n) ]
+ *        
+ *  difference = 0. --> data are all zero
+ *  difference = 1. --> data exactly matches synthetic
+ *  difference = 1. --> data exactly matches -synthetic (is 180 deg out of phase) 
+ * 
+ *  data1 = x, data2 = y
  */
-    private double rmsDiff(double[] data1, double[] data2, int n1, int n2) {
-// if n1 < n2 or nend < data.length ...
-        double rms=0.;
-        int npts = n2 - n1 + 1;
-        for (int i=n1; i<n2; i++){
-            rms += Math.pow( (data1[i] - data2[i]), 2 );
+    //private double rmsDiff(double[] data1, double[] data2, int n1, int n2) {
+    private double calcDiff(double[] data1, double[] data2, int n1, int n2) {
+        if (n2 < n1) {
+            logger.error("calcDiff: n2 < n1 --> Bad window");
+            return NO_RESULT;
         }
-        rms /= (double)npts;
-        rms  =  Math.sqrt(rms);
+        if (n2 >= data1.length || n2 >= data2.length) {
+            logger.error(String.format("calcDiff: n2=[%d] > data1.length=[%d] and/or data2.length=[%d] --> Bad window", 
+                         n2, data1.length, data2.length) );
+            return NO_RESULT;
+        }
+        double rms=0.;
+        double numerator=0.;
+        double denomenator=0.;
+        int npts = n2 - n1 + 1;
 
-        return rms;
+        for (int i=n1; i<n2; i++){
+            //rms += Math.pow( (data1[i] - data2[i]), 2 );
+            numerator   += data1[i] * data2[i];
+            denomenator += data2[i] * data2[i];
+        }
+        //rms /= (double)npts;
+        //rms  =  Math.sqrt(rms);
+
+        if (denomenator == 0.) {
+            logger.error("calcDiff: denomenator==0 --> Divide by 0 --> Expect result = Infinity!");
+        }
+        double result = numerator / denomenator;
+
+        return result;
     }
 
     public void makePlots(ArrayList<double[]> d00, ArrayList<double[]> d10, ArrayList<double[]> d20, int nstart, int nend, 
