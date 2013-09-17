@@ -33,6 +33,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -242,40 +243,57 @@ public class SeedScan
         }
 
         scan = scans.get("daily");
-        //MetaGenerator metaGen = MetaGenerator.getInstance();
-        //metaGen.loadDataless(scan.getDatalessDir());
-        //metaGen.print();
 
-        // Empty constructor --> Use local MetaGenerator to rdseed 
-        MetaServer metaServer = new MetaServer(scan.getDatalessDir());
-        //MetaServer metaServer = new MetaServer("mikes-mac-mini1.bc.edu");
-        //MetaServer metaServer = new MetaServer("136.167.12.50");
+//MTH: This part could/should be moved up higher except that we need to know datalessDir, which,
+//     at this point, is configured on a per scan basis ... so we need to know what scan we're doing
+        MetaServer metaServer = null;
+        if (config.getMetaserver() != null) {
+            if (config.getMetaserver().getUseRemote().equals("yes") || config.getMetaserver().getUseRemote().equals("true")) {
+                String remoteServer = config.getMetaserver().getRemoteUri();
+                try {
+                    metaServer = new MetaServer( new URI(remoteServer) );
+                }
+                catch (Exception e) {
+                    logger.fatal("caught URI exception:" + e.getMessage() );
+                }
+            }
+        }
+        else { // Use local MetaServer
+            metaServer = new MetaServer(scan.getDatalessDir());
+        }
 
  // Really the scan for each station will be handled by ScanManager using thread pools
  // For now we're just going to do it here:
 
-        List<Station> stations;
+        List<Station> stations = null;
 
-// Set getStationList = false if you want to manually control the StationList below ...
-        boolean getStationList = true;
-        //getStationList = false;
-
-        if (getStationList){
+        if (config.getStationList() == null){       // get StationList from MetaServer
+            logger.info("Get StationList from MetaServer");
             stations = metaServer.getStationList();
         }
-        else {
-            stations = new ArrayList<Station>();
-            //stations.add( new Station("IC","KMI") );
-            stations.add( new Station("IU","ANMO") );
-            stations.add( new Station("IU","CCM") );
-            //stations.add( new Station("NE","WES") );
-            //stations.add( new Station("NE","PQI") );
-            //stations.add( new Station("IU","LVC") );
-            //stations.add( new Station("IC","BJT") );
+        else {                                      // read StationList from config.xml
+            logger.info("Read StationList from config.xml");
+            List<String> stationList = config.getStationList().getStation();
+            if (stationList.size() > 0) {
+                stations = new ArrayList<Station>();
+                for (String station : stationList) {
+                    String[] words = station.split("_");
+                    if (words.length != 2) {
+                        logger.warn(String.format("stationList: station=[%s] is NOT a valid station --> Skip", station) );
+                    }
+                    else {
+                        stations.add( new Station(words[0],words[1]) );
+                        logger.info("config.xml: Read station:" + station);
+                    }
+                }
+            }
+            else {
+                logger.fatal("Error: No valid stations read from config.xml");
+            }
         }
 
         if (stations == null) {
-            logger.fatal("ERROR: Found NO stations to scan --> EXITTING SeedScan");
+            logger.fatal("Found NO stations to scan --> EXITTING SeedScan");
             System.exit(1);
         }
 

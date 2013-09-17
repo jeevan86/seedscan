@@ -12,10 +12,12 @@
     <!-- primary elements -->
     <xsd:element name="lockfile"    type="xsd:string" />
     <xsd:element name="database"    type="cfg:database_T" />
+    <xsd:element name="metaserver"  type="cfg:metaserver_T" />
     <xsd:element name="scans"       type="cfg:scans_T" />
     <!-- sub elements -->
     <xsd:element name="scan"        type="cfg:scan_T" />
     <xsd:element name="uri"         type="xsd:anyURI" />
+    <xsd:element name="remote_uri"  type="xsd:anyURI" />
     <xsd:element name="username"    type="xsd:string" />
     <xsd:element name="password"    type="cfg:password_T" />
     <xsd:element name="encrypted"   type="cfg:encrypted_T" />
@@ -28,6 +30,7 @@
     <xsd:element name="dataless_dir"  type="xsd:string" />
     <xsd:element name="events_dir"    type="xsd:string" />
     <xsd:element name="require_connection"    type="xsd:string" />
+    <xsd:element name="use_remote"    type="xsd:string" />
     <xsd:element name="start_day"   type="xsd:nonNegativeInteger" />
     <xsd:element name="start_date"  type="xsd:nonNegativeInteger" />
     <xsd:element name="days_to_scan"    type="xsd:integer" />
@@ -36,6 +39,8 @@
     <xsd:element name="location_subset" type="xsd:string" />
     <xsd:element name="channel_subset"  type="xsd:string" />
     <xsd:element name="metrics"     type="cfg:metrics_T" />
+    <xsd:element name="station_list"     type="cfg:station_list_T" />
+    <xsd:element name="station"      type="xsd:string" />
 
     <xsd:element name="metric" type="cfg:metric_T" />
         <xsd:element name="class_name" type="xsd:string" />
@@ -46,8 +51,26 @@
             <xsd:element ref="cfg:lockfile"     minOccurs="1" maxOccurs="1"/>
             <xsd:element ref="cfg:database"     minOccurs="1" maxOccurs="1"/>
             <xsd:element ref="cfg:scans"        minOccurs="1" maxOccurs="1"/>
+            <xsd:element ref="cfg:metaserver"   minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="cfg:station_list"  minOccurs="0" maxOccurs="1"/>
         </xsd:all>
     </xsd:complexType>
+
+    <xsd:complexType name="metaserver_T">
+        <xsd:all>
+            <xsd:element ref="cfg:use_remote" minOccurs="1" maxOccurs="1"/>
+            <xsd:element ref="cfg:remote_uri"/>
+        </xsd:all>
+    </xsd:complexType>
+
+<!-- MTH: This is just for testing -->
+    <xsd:complexType name="station_list_T">
+        <xsd:sequence>
+            <xsd:element ref="cfg:station" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+
 
     <xsd:complexType name="database_T">
         <xsd:all>

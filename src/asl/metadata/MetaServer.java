@@ -22,6 +22,7 @@ import org.apache.log4j.Logger;
 
 import java.util.Calendar;
 import java.util.List;
+import java.net.URI;
 
 import asl.metadata.MetaGenerator;
 import asl.metadata.Station;
@@ -48,11 +49,12 @@ public class MetaServer
     */
 
     // Use Remote MetaGenerator registered to rmi runnning on ipString with name="MetaGen":
-    public MetaServer(String ipString, String foo)
+    public MetaServer(URI remoteURI)
     {
-        String urlString = "rmi://" + ipString + "/MetaGen";
+        String urlString = remoteURI.toString();
+        //String urlString = "rmi://" + ipString + "/MetaGen";
         // Should probably try to verify ipString here and exit gracefully if not valid
-        logger.info("ipString="+ipString);
+        logger.info("urlString="+urlString);
         try {
             meta = (MetaInterface)Naming.lookup(urlString);
         }

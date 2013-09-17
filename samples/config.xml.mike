@@ -5,9 +5,28 @@
 
     <!--cfg:lockfile>/qcwork/seedscan/seedscan.lock</cfg:lockfile-->
     <cfg:lockfile>seedscan.lock</cfg:lockfile>
+
+<!-- METADATA SERVER CONFIG: Set use_remote=no/false or comment out <metaserver> to use Local MetaServer -->
+    <cfg:metaserver>
+        <cfg:use_remote>yes</cfg:use_remote>
+        <cfg:remote_uri>rmi://mikes-mac-mini1.bc.edu/MetaGen</cfg:remote_uri>
+    </cfg:metaserver>
+
+<!-- TESTING: Set specific Stations to run: Comment out to get Station list from MetaServer  -->
+<!--
+    <cfg:station_list>
+            <cfg:station>IU_ANMO</cfg:station>
+            <cfg:station>IU_ANTO</cfg:station>
+    </cfg:station_list>
+-->
+
  
 <!-- DATABASE CONFIG -->
     <cfg:database>
+    <!-- Not sure that this will make the cut:
+        <cfg:require_connection>NO</cfg:require_connection>
+    -->
+        <!--cfg:uri>jdbc:mysql://catbox2.cr.usgs.gov/stations</cfg:uri-->
         <cfg:uri>jdbc:postgresql://127.0.0.1:5432/dataq_dev</cfg:uri>
         <cfg:username>postgres</cfg:username>
         <cfg:password>
@@ -26,13 +45,28 @@
 <!-- SCAN CONFIG -->
     <cfg:scans>
         <cfg:scan cfg:name="daily">
+
+<!--
+            <cfg:path>/Users/mth/mth/Projects/xs0/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}</cfg:path>
+-->
             <cfg:path>/Users/mth/mth/ASLData/xs0/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}</cfg:path>
             <cfg:dataless_dir>/Users/mth/mth/ASLData/dcc/metadata/dataless/</cfg:dataless_dir>
             <cfg:events_dir>/Users/mth/mth/ASLData/xs0/events/</cfg:events_dir>
+<!--
+            <cfg:start_date>2012073</cfg:start_date>
             <cfg:start_date>2013037</cfg:start_date>
+            <cfg:start_date>2012073</cfg:start_date>
+            <cfg:start_date>2013164</cfg:start_date>
+-->
+            <cfg:start_date>2012160</cfg:start_date>
             <cfg:days_to_scan>1</cfg:days_to_scan>
             <cfg:metrics>
 <!-- Basic Metrics: Availability, Gap Count, etc.:  -->
+<!--
+                <cfg:metric>
+                    <cfg:class_name>asl.seedscan.metrics.TestMetric</cfg:class_name>
+                </cfg:metric>
+-->
                 <cfg:metric>
                     <cfg:class_name>asl.seedscan.metrics.AvailabilityMetric</cfg:class_name>
                 </cfg:metric>
@@ -60,6 +94,7 @@
                     <cfg:argument cfg:name="makeplots">true</cfg:argument>
                 </cfg:metric>
 <!-- PowerBand Metrics:  -->
+<!--
                 <cfg:metric>
                     <cfg:class_name>asl.seedscan.metrics.NLNMDeviationMetric</cfg:class_name>
                     <cfg:argument cfg:name="lower-limit">4</cfg:argument>
@@ -94,6 +129,7 @@
                     <cfg:argument cfg:name="lower-limit">30</cfg:argument>
                     <cfg:argument cfg:name="upper-limit">50</cfg:argument>
                 </cfg:metric>
+-->
             </cfg:metrics>
         </cfg:scan>
 <!--
