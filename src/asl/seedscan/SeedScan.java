@@ -247,7 +247,7 @@ public class SeedScan
         //metaGen.print();
 
         // Empty constructor --> Use local MetaGenerator to rdseed 
-        MetaServer metaServer = new MetaServer();
+        MetaServer metaServer = new MetaServer(scan.getDatalessDir());
         //MetaServer metaServer = new MetaServer("mikes-mac-mini1.bc.edu");
         //MetaServer metaServer = new MetaServer("136.167.12.50");
 

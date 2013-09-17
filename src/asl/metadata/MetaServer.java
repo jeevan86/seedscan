@@ -48,7 +48,7 @@ public class MetaServer
     */
 
     // Use Remote MetaGenerator registered to rmi runnning on ipString with name="MetaGen":
-    public MetaServer(String ipString)
+    public MetaServer(String ipString, String foo)
     {
         String urlString = "rmi://" + ipString + "/MetaGen";
         // Should probably try to verify ipString here and exit gracefully if not valid
@@ -64,12 +64,13 @@ public class MetaServer
     }
 
     // Empty constructor --> Use local MetaGenerator class to load metadata
-    public MetaServer() 
+    public MetaServer(String datalessDir) 
     {
-        logger.info("use *Local* MetaGenerator");
+        logger.info("use *Local* MetaGenerator: datalessDir=" + datalessDir);
         try {
             metaGen = MetaGenerator.getInstance();
-            metaGen.loadDataless("/Users/mth/mth/ASLData/dcc/metadata/dataless");
+            //metaGen.loadDataless("/Users/mth/mth/ASLData/dcc/metadata/dataless");
+            metaGen.loadDataless(datalessDir);
         }
         catch (Exception e) {
             logger.error(e.getMessage());
