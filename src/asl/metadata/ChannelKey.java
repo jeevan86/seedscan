@@ -18,7 +18,8 @@
  */
 package asl.metadata;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
@@ -28,7 +29,7 @@ public class ChannelKey
     implements Comparable<ChannelKey>, java.io.Serializable
 {
     private static final long serialVersionUID = 1L;
-    private static final Logger logger = Logger.getLogger("asl.metadata.ChannelKey");
+    private static final Logger logger = LoggerFactory.getLogger(asl.metadata.ChannelKey.class);
     private static final int CHANNEL_EPOCH_BLOCKETTE_NUMBER = 52;
 
     private String location = null;

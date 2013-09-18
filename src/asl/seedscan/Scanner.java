@@ -40,7 +40,8 @@ import java.util.GregorianCalendar;
 import java.util.Calendar;
 import java.util.Hashtable;
 import java.util.concurrent.BlockingQueue;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import asl.concurrent.FallOffQueue;
 import asl.seedsplitter.DataSet;
@@ -60,7 +61,7 @@ import sac.*;
 public class Scanner
     implements Runnable
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.Scanner");
+    private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.Scanner.class);
     public long dayMilliseconds = 1000 * 60 * 60 * 24;
 
     private Station station;

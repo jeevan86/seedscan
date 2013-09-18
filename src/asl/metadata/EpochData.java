@@ -18,7 +18,8 @@
  */
 package asl.metadata;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -30,7 +31,7 @@ import java.util.TimeZone;
 
 public class EpochData
 {
-    private static final Logger logger = Logger.getLogger("asl.metadata.EpochData");
+    private static final Logger logger = LoggerFactory.getLogger(asl.metadata.EpochData.class);
 
     private Blockette format = null;
     private Blockette info = null;

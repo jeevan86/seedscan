@@ -19,7 +19,8 @@
 
 package asl.seedsplitter;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
@@ -79,7 +80,7 @@ implements ActionListener,
      * 1  Initial distribution
      */
     private static final long   serialVersionUID = 1L;
-    private static final Logger logger = Logger.getLogger("asl.seedsplitter.ChannelSelector");
+    private static final Logger logger = LoggerFactory.getLogger(asl.seedsplitter.ChannelSelector.class);
     private static final Formatter formatter = new Formatter();
 
     private JButton           addFilesButton;

@@ -23,7 +23,8 @@ import java.util.Collection;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.Iterator;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author  Joel D. Edwards <jdedwards@usgs.gov>
@@ -38,7 +39,7 @@ public class FallOffQueue<E>
 extends LinkedBlockingQueue<E>
 {
     public static final long serialVersionUID = 1L;
-    private static final Logger logger = Logger.getLogger("asl.concurrent.FallOffQueue");
+    private static final Logger logger = LoggerFactory.getLogger(asl.concurrent.FallOffQueue.class);
 
     private int m_capacity;
 

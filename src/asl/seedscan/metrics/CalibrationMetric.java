@@ -18,7 +18,8 @@
  */
 package asl.seedscan.metrics;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Calendar;
 import java.util.Enumeration;
@@ -47,7 +48,7 @@ import timeutils.Timeseries;
 public class CalibrationMetric
 extends Metric
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.CalibrationMetric");
+    private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.metrics.CalibrationMetric.class);
 
     @Override public long getVersion()
     {

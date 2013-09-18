@@ -19,7 +19,8 @@
 
 package asl.seedscan.event;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -42,7 +43,7 @@ import sac.*;
 
 public class EventLoader
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.event.EventLoader");
+    private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.event.EventLoader.class);
 
     private static String  eventsDirectory = null;
     private static boolean eventsDirectoryLoaded = false;

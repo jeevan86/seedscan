@@ -19,7 +19,8 @@
 
 package asl.security;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
 
@@ -27,7 +28,7 @@ public class EncryptedPassword
 extends Encrypted
 implements Password
 {
-    private static final Logger logger = Logger.getLogger("asl.security.EncryptedPassword");
+    private static final Logger logger = LoggerFactory.getLogger(asl.security.EncryptedPassword.class);
 
  // constructor(s)
     public EncryptedPassword(byte[] key)

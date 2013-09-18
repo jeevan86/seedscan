@@ -18,7 +18,8 @@
  */
 package asl.seedscan;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 
@@ -63,7 +64,7 @@ import asl.util.*;
  */
 public class SeedScan
 {
-    private static Logger logger = Logger.getLogger("asl.seedscan.SeedScan");
+    private static Logger logger = LoggerFactory.getLogger(asl.seedscan.SeedScan.class);
 
     private static final String allchanURLstr = "http://wwwasl/uptime/honeywell/gsn_allchan.txt";
     private static URL allchanURL;
@@ -99,7 +100,7 @@ public class SeedScan
         try {
             cmdLine = optParser.parse(options, args, true);
         } catch (org.apache.commons.cli.ParseException e) {
-            logger.fatal("Error while parsing command-line arguments.");
+            logger.error("Error while parsing command-line arguments.");
             System.exit(1);
         }
 
@@ -127,7 +128,7 @@ public class SeedScan
         logger.info("SeedScan lock file is '" +lockFile+ "'");
         LockFile lock = new LockFile(lockFile);
         if (!lock.acquire()) {
-            logger.fatal("Could not acquire lock.");
+            logger.error("Could not acquire lock.");
             System.exit(1);
         }
         
@@ -144,20 +145,20 @@ public class SeedScan
      // ===== CONFIG: SCANS =====
         Hashtable<String, Scan> scans = new Hashtable<String, Scan>();
         if (config.getScans().getScan() == null) {
-            logger.fatal("No scans in configuration.");
+            logger.error("No scans in configuration.");
             System.exit(1);
         }
         else {
             for (ScanT scanCfg: config.getScans().getScan()) {
                 String name = scanCfg.getName();
                 if (scans.containsKey(name)) {
-                    logger.fatal("Duplicate scan name '" +name+ "' encountered.");
+                    logger.error("Duplicate scan name '" +name+ "' encountered.");
                     System.exit(1);
                 }
 
             // This should really be handled by jaxb by setting it up in schemas/SeedScanConfig.xsd
                 if(scanCfg.getStartDay() == null && scanCfg.getStartDate() == null) {
-                    logger.fatal("== SeedScan Error: Must set EITHER cfg:start_day -OR- cfg:start_date in config.xml to start Scan!");
+                    logger.error("== SeedScan Error: Must set EITHER cfg:start_day -OR- cfg:start_date in config.xml to start Scan!");
                     System.exit(1);
                 }
 
@@ -184,16 +185,16 @@ public class SeedScan
                         }
                         scan.addMetric(wrapper);
                     } catch (ClassNotFoundException ex) {
-                        logger.fatal("No such metric class '" +met.getClassName()+ "'");
+                        logger.error("No such metric class '" +met.getClassName()+ "'");
                         System.exit(1);
                     } catch (InstantiationException ex) {
-                        logger.fatal("Could not dynamically instantiate class '" +met.getClassName()+ "'");
+                        logger.error("Could not dynamically instantiate class '" +met.getClassName()+ "'");
                         System.exit(1);
                     } catch (IllegalAccessException ex) {
-                        logger.fatal("Illegal access while loading class '" +met.getClassName()+ "'");
+                        logger.error("Illegal access while loading class '" +met.getClassName()+ "'");
                         System.exit(1);
                     } catch (NoSuchFieldException ex) {
-                        logger.fatal("Invalid dynamic argument to Metric subclass '" +met.getClassName()+ "'");
+                        logger.error("Invalid dynamic argument to Metric subclass '" +met.getClassName()+ "'");
                         System.exit(1);
                     }
 
@@ -254,7 +255,7 @@ public class SeedScan
                     metaServer = new MetaServer( new URI(remoteServer) );
                 }
                 catch (Exception e) {
-                    logger.fatal("caught URI exception:" + e.getMessage() );
+                    logger.error("caught URI exception:" + e.getMessage() );
                 }
             }
         }
@@ -288,12 +289,12 @@ public class SeedScan
                 }
             }
             else {
-                logger.fatal("Error: No valid stations read from config.xml");
+                logger.error("Error: No valid stations read from config.xml");
             }
         }
 
         if (stations == null) {
-            logger.fatal("Found NO stations to scan --> EXITTING SeedScan");
+            logger.error("Found NO stations to scan --> EXITTING SeedScan");
             System.exit(1);
         }
 

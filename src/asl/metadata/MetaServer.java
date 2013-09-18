@@ -18,7 +18,8 @@
  */
 package asl.metadata;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Calendar;
 import java.util.List;
@@ -38,7 +39,7 @@ import java.rmi.Naming;
  */
 public class MetaServer
 {
-    private static final Logger logger = Logger.getLogger("asl.metadata.MetaServer");
+    private static final Logger logger = LoggerFactory.getLogger(asl.metadata.MetaServer.class);
 
     private MetaGenerator metaGen = null;
     private MetaInterface meta;

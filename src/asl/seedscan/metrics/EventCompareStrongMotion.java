@@ -22,7 +22,8 @@ import asl.seedscan.event.*;
 import java.awt.Color;
 import java.awt.BasicStroke;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Hashtable;
@@ -49,7 +50,7 @@ import edu.sc.seis.TauP.TauP_Time;
 public class EventCompareStrongMotion
 extends Metric
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.EventCompareStrongMotion");
+    private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.metrics.EventCompareStrongMotion.class);
 
     private static Hashtable<String, EventCMT> eventCMTs = null;
 

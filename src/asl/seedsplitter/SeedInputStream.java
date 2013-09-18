@@ -18,7 +18,8 @@
  */
 package asl.seedsplitter;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -42,7 +43,7 @@ import seed.MiniSeed;
 public class SeedInputStream
 implements Runnable
 {
-    private static final Logger logger = Logger.getLogger("asl.seedsplitter.SeedInputStream");
+    private static final Logger logger = LoggerFactory.getLogger(asl.seedsplitter.SeedInputStream.class);
     private static final Formatter formatter = new Formatter();
 
     public static int MAX_RECORD_SIZE = 16384;

@@ -20,11 +20,12 @@ package asl.metadata;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BlocketteTimestamp
 {
-    private static final Logger logger = Logger.getLogger("asl.metadata.BlocketteTimestamp");
+    private static final Logger logger = LoggerFactory.getLogger(asl.metadata.BlocketteTimestamp.class);
 
     public static Calendar parseTimestamp(String timestampString)
     throws TimestampFormatException

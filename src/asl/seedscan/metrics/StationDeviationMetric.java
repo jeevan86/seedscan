@@ -24,7 +24,8 @@ import java.io.FileReader;
 import java.io.File;
 import java.nio.ByteBuffer;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Calendar;
@@ -45,7 +46,7 @@ import timeutils.Timeseries;
 public class StationDeviationMetric
 extends PowerBandMetric
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.StationDeviationMetric");
+    private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.metrics.StationDeviationMetric.class);
 
     @Override public long getVersion()
     {

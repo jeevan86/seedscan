@@ -18,7 +18,8 @@
  */
 package asl.security;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -33,7 +34,7 @@ import javax.crypto.spec.PBEKeySpec;
 
 public class PassKey
 {
-    private static final Logger logger = Logger.getLogger("asl.security.Encrypted");
+    private static final Logger logger = LoggerFactory.getLogger(asl.security.Encrypted.class);
 
 	private static final String HASH_ALGORITHM = "PBKDF2WithHmacSHA1";
 

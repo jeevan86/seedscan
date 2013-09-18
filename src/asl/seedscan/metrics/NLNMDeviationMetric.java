@@ -28,7 +28,8 @@ import java.nio.ByteBuffer;
 
 import java.awt.BasicStroke;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Calendar;
@@ -49,7 +50,7 @@ import timeutils.Timeseries;
 public class NLNMDeviationMetric
 extends PowerBandMetric
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.NLNMDeviationMetric");
+    private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.metrics.NLNMDeviationMetric.class);
 
     @Override public long getVersion()
     {

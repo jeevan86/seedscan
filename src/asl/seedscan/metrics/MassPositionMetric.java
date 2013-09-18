@@ -18,7 +18,8 @@
  */
 package asl.seedscan.metrics;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.List;
 
 import asl.metadata.Channel;
@@ -33,7 +34,7 @@ import asl.util.Hex;
 public class MassPositionMetric
 extends Metric
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.MassPositionMetric");
+    private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.metrics.MassPositionMetric.class);
 
     @Override public long getVersion()
     {

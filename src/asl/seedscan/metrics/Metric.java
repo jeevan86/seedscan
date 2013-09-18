@@ -33,14 +33,15 @@ import timeutils.PSD;
 import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.Hashtable;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import sac.SacTimeSeries;
 
 
 public abstract class Metric
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.Metric");
+    private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.metrics.Metric.class);
 
     private Hashtable<String, String> arguments;
     private Hashtable<CrossPowerKey, CrossPower> crossPowerMap;

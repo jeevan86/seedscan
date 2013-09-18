@@ -18,8 +18,8 @@
  */
 package asl.seedsplitter;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.Level;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.InterruptedException;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -53,7 +53,7 @@ import asl.concurrent.FallOffQueue;
 public class SeedSplitProcessor
 implements Runnable
 {
-    private static final Logger logger = Logger.getLogger("asl.seedsplitter.SeedSplitProcessor");
+    private static final Logger logger = LoggerFactory.getLogger(asl.seedsplitter.SeedSplitProcessor.class);
 
     private LinkedBlockingQueue<ByteBlock> m_queue;
     private FallOffQueue<SeedSplitProgress> m_progressQueue;
@@ -184,9 +184,6 @@ implements Runnable
      */
     @Override
     public void run() {
-
-    //MTH: Turn off logging for this class since it is so verbose:
-        logger.setLevel(Level.OFF);
 
         ByteBlock block = null;
         MiniSeed  record = null;

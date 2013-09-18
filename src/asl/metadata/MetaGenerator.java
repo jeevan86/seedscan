@@ -18,7 +18,8 @@
  */
 package asl.metadata;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import freq.Cmplx;
 
@@ -48,7 +49,7 @@ public class MetaGenerator
     extends UnicastRemoteObject
     implements MetaInterface
 {
-    private static final Logger logger = Logger.getLogger("asl.metadata.MetaGenerator");
+    private static final Logger logger = LoggerFactory.getLogger(asl.metadata.MetaGenerator.class);
 
     private static final long serialVersionUID = 1L;
 
@@ -92,11 +93,11 @@ public class MetaGenerator
     {
         File dir = new File(datalessDir);
         if (!dir.exists()) {
-            logger.fatal("Path '" +dir+ "' does not exist.");
+            logger.error("Path '" +dir+ "' does not exist.");
             System.exit(0);
         }
         else if (!dir.isDirectory()) {
-            logger.fatal("Path '" +dir+ "' is not a directory.");
+            logger.error("Path '" +dir+ "' is not a directory.");
             System.exit(0);
         }
 

@@ -19,7 +19,8 @@
 package asl.seedscan.metrics;
 import asl.seedscan.event.*;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -54,7 +55,7 @@ import edu.sc.seis.TauP.SphericalCoords;
 public class EventCompareSynthetic
 extends Metric
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.EventCompareSynthetic");
+    private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.metrics.EventCompareSynthetic.class);
 
     private static final double PERIOD1 = 500;
     private static final double PERIOD2 = 400;

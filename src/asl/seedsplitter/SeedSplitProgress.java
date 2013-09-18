@@ -18,7 +18,8 @@
  */
 package asl.seedsplitter;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import asl.worker.Progress;
 
@@ -30,7 +31,7 @@ import asl.worker.Progress;
 public class SeedSplitProgress 
 implements Progress
 {
-    private static final Logger logger = Logger.getLogger("asl.seedsplitter.SeedSplitProgress");
+    private static final Logger logger = LoggerFactory.getLogger(asl.seedsplitter.SeedSplitProgress.class);
 
     private long m_byteCount;
     

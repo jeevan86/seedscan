@@ -19,7 +19,8 @@
 
 package asl.seedsplitter;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 
@@ -31,7 +32,7 @@ import java.util.ArrayList;
  */
 public class BlockPool
 {
-    private static final Logger logger = Logger.getLogger("asl.seedsplitter.BlockPool");
+    private static final Logger logger = LoggerFactory.getLogger(asl.seedsplitter.BlockPool.class);
 
     private ArrayList<int[]> m_pool;
     private int m_blockSize = 0;

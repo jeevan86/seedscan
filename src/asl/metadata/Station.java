@@ -18,7 +18,8 @@
  */
 package asl.metadata;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /* Station and Channel are the only station/channel classes that should be seen by 
  *   clients of asl.metadata.
@@ -28,7 +29,7 @@ import org.apache.log4j.Logger;
 public class Station
     implements java.io.Serializable
 {
-    private static final Logger logger = Logger.getLogger("asl.metadata.Station");
+    private static final Logger logger = LoggerFactory.getLogger(asl.metadata.Station.class);
     private static final long serialVersionUID = 1L;
 
     private String network = null;

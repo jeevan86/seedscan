@@ -18,12 +18,13 @@
  */
 package asl.seedscan.metrics;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 
 public class CrossPower
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.CrossPower");
+    private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.metrics.CrossPower.class);
 
     private double[] powerSpectrum  = null;
     private double   spectrumDeltaF = 0.;

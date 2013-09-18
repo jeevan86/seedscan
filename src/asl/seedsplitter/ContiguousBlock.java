@@ -18,7 +18,8 @@
  */
 package asl.seedsplitter;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author  Joel D. Edwards <jdedwards@usgs.gov>
@@ -26,7 +27,7 @@ import org.apache.log4j.Logger;
  * A simple class containing start and end times for contiguous data blocks.
  */
 public class ContiguousBlock {
-    private static final Logger logger = Logger.getLogger("asl.seedsplitter.ContiguousBlock");
+    private static final Logger logger = LoggerFactory.getLogger(asl.seedsplitter.ContiguousBlock.class);
 
     private long m_startTime;
     private long m_endTime;

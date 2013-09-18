@@ -22,7 +22,8 @@ package asl.seedscan;
 import java.io.File;
 import java.util.Formatter;
 import java.util.GregorianCalendar;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import asl.metadata.*;
 
@@ -31,7 +32,7 @@ import asl.metadata.*;
  */
 public class ArchivePath
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.ArchivePath");
+    private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.ArchivePath.class);
 
     private GregorianCalendar timestamp;
     private Station station = null;

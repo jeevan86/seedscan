@@ -18,7 +18,8 @@
  */
 package asl.metadata;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Calendar;
 import java.util.Hashtable;
@@ -29,7 +30,7 @@ import java.util.Collections;
 
 public class ChannelData
 {
-    private static final Logger logger = Logger.getLogger("asl.metadata.ChannelData");
+    private static final Logger logger = LoggerFactory.getLogger(asl.metadata.ChannelData.class);
 
     public static final int CHANNEL_EPOCH_INFO_BLOCKETTE_NUMBER = 52;
     public static final int CHANNEL_COMMENT_BLOCKETTE_NUMBER    = 59;

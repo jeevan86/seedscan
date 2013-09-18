@@ -20,12 +20,13 @@ package asl.metadata;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Blockette
     implements java.io.Serializable
 {
-    private static final Logger logger = Logger.getLogger("asl.metadata.Blockette");
+    private static final Logger logger = LoggerFactory.getLogger(asl.metadata.Blockette.class);
     private static final long serialVersionUID = 1L;
 
     private int number;

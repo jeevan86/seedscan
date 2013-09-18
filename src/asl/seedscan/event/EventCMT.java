@@ -18,12 +18,13 @@
  */
 package asl.seedscan.event;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.Calendar;
 
 public class EventCMT
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.EventCMT");
+    private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.event.EventCMT.class);
 
     private final String eventID;
     private final double eventLat;

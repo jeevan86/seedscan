@@ -18,7 +18,8 @@
  */
 package asl.metadata;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -30,7 +31,7 @@ import java.text.SimpleDateFormat;
 
 public class StationData
 {
-    private static final Logger logger = Logger.getLogger("asl.metadata.StationData");
+    private static final Logger logger = LoggerFactory.getLogger(asl.metadata.StationData.class);
 
     public static final int STATION_EPOCH_BLOCKETTE_NUMBER   = 50;
     public static final int STATION_COMMENT_BLOCKETTE_NUMBER = 51;

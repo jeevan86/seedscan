@@ -18,7 +18,8 @@
  */
 package asl.seedsplitter;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -35,7 +36,7 @@ import asl.security.MemberDigest;
 public class Sequence 
 extends MemberDigest
 {
-    private static final Logger logger = Logger.getLogger("asl.seedsplitter.Sequence");
+    private static final Logger logger = LoggerFactory.getLogger(asl.seedsplitter.Sequence.class);
 
     public static final int BLOCK_SIZE = 4096;
     private static TimeZone m_tz = TimeZone.getTimeZone("GMT");;

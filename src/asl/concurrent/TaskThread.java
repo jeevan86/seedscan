@@ -20,12 +20,13 @@ package asl.concurrent;
 
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class TaskThread<T>
 implements Runnable
 {
-    private static final Logger logger = Logger.getLogger("asl.concurrent.TaskThread");
+    private static final Logger logger = LoggerFactory.getLogger(asl.concurrent.TaskThread.class);
 
     private boolean running = false;
     private LinkedBlockingQueue<Task<T>> queue;

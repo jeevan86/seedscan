@@ -29,11 +29,12 @@ import java.util.Hashtable;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MetricResult
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.MetricResult");
+    private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.metrics.MetricResult.class);
 
     private String metricName;
     private Calendar date;

@@ -18,14 +18,15 @@
  */
 package asl.seedscan;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import asl.metadata.*;
 
 public class ScanManager
 implements Runnable
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.ScanManager");
+    private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.ScanManager.class);
 
     private Scan scan = null;
 

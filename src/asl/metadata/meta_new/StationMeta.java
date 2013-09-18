@@ -18,7 +18,8 @@
  */
 package asl.metadata.meta_new;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +43,7 @@ public class StationMeta
 {
     private static final long serialVersionUID = 1L;
 
-    private static final Logger logger = Logger.getLogger("asl.metadata.meta_new.StationMeta");
+    private static final Logger logger = LoggerFactory.getLogger(asl.metadata.meta_new.StationMeta.class);
 
     private String network = null;
     private String name = null;

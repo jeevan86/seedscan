@@ -20,11 +20,12 @@ package asl.seedscan.metrics;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MetricWrapper
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.MetricWrapper");
+    private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.metrics.MetricWrapper.class);
 
     private Metric arguments;
     private Class metricClass;

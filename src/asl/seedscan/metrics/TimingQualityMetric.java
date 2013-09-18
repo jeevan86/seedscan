@@ -18,7 +18,8 @@
  */
 package asl.seedscan.metrics;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,7 +33,7 @@ import asl.seedsplitter.DataSet;
 public class TimingQualityMetric
 extends Metric
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.TimingQualityMetric");
+    private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.metrics.TimingQualityMetric.class);
 
     @Override public long getVersion()
     {

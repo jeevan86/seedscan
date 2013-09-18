@@ -28,7 +28,8 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Collection;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -46,7 +47,7 @@ import asl.seedscan.config.ConfigT;
 
 public class ConfigParser
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.ConfigParser");
+    private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.ConfigParser.class);
 
     private ConfigT config = null;
     private Schema  schema = null;
@@ -72,7 +73,7 @@ public class ConfigParser
             schema = factory.newSchema(sources);
         } catch (SAXException ex) {
             String message = "Could not generate schema from supplied files: " + ex.toString();
-            logger.fatal(message);
+            logger.error(message);
             throw new RuntimeException(message);
         }
 
@@ -94,11 +95,11 @@ public class ConfigParser
             cfg = cfgRoot.getValue();
         } catch (FileNotFoundException ex) {
             String message = "Could not locate config file: " + ex.toString();
-            logger.fatal(message);
+            logger.error(message);
             throw new RuntimeException(message);
         } catch (JAXBException ex) {
             String message = "Could not unmarshal config file: " + ex.toString();
-            logger.fatal(message);
+            logger.error(message);
             throw new RuntimeException(message);
         }
 

@@ -4,7 +4,8 @@
 package asl.seedscan.database;
 
 import java.nio.ByteBuffer;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import asl.concurrent.Task;
 import asl.concurrent.TaskThread;
@@ -18,7 +19,7 @@ import asl.seedscan.metrics.MetricResult;
 public class MetricReader
 extends TaskThread<QueryContext<? extends Object>>
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.database.MetricInjector");
+    private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.database.MetricInjector.class);
     
 	MetricDatabase metricDB;
 

@@ -18,7 +18,8 @@
  */
 package asl.security;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
@@ -34,7 +35,7 @@ import asl.util.Hex;
  */
 public abstract class MemberDigest
 {
-    private static final Logger logger = Logger.getLogger("asl.seedsplitter.MemberDigest");
+    private static final Logger logger = LoggerFactory.getLogger(asl.security.MemberDigest.class);
 
     private MessageDigest digest = null;
     private ByteBuffer raw = null;

@@ -19,7 +19,8 @@
 
 package asl.security;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.security.AlgorithmParameters;
@@ -39,7 +40,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class Encrypted
 {
-    private static final Logger logger = Logger.getLogger("asl.security.Encrypted");
+    private static final Logger logger = LoggerFactory.getLogger(asl.security.Encrypted.class);
 
 	private static final String CHAR_ENCODING = "UTF-8";
 	private static final String DIGEST_ALGORITHM = "SHA-256";

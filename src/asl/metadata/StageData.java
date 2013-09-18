@@ -18,14 +18,15 @@
  */
 package asl.metadata;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
 
 public class StageData
 {
-    private static final Logger logger = Logger.getLogger("asl.metadata.StageData");
+    private static final Logger logger = LoggerFactory.getLogger(asl.metadata.StageData.class);
 
     private int stageID;
     private Hashtable<Integer, Blockette> blockettes;

@@ -21,11 +21,12 @@ package asl.metadata;
 
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Channel
 {
-    private static final Logger logger = Logger.getLogger("asl.metadata.Channel");
+    private static final Logger logger = LoggerFactory.getLogger(asl.metadata.Channel.class);
 
     private Station station  = null; // We're not currently using this ... Do we need it ?
     private String  location = null;

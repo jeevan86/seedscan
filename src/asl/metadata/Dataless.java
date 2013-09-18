@@ -86,11 +86,12 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Hashtable;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Dataless
 {
-    private static final Logger logger = Logger.getLogger("asl.metadata.Dataless");
+    private static final Logger logger = LoggerFactory.getLogger(asl.metadata.Dataless.class);
 
     private SeedVolume volume;
     private Collection<String> rawDataless;

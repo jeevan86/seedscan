@@ -18,11 +18,12 @@
  */
 package asl.metadata;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class NetworkKey extends Key
 {
-    private static final Logger logger = Logger.getLogger("asl.metadata.NetworkKey");
+    private static final Logger logger = LoggerFactory.getLogger(asl.metadata.NetworkKey.class);
 
     public static final int DATALESS_VOLUME_BLOCKETTE_NUMBER = 10;
 

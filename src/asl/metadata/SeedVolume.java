@@ -18,7 +18,8 @@
  */
 package asl.metadata;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +28,7 @@ import java.util.TreeSet;
 
 public class SeedVolume
 {
-    private static final Logger logger = Logger.getLogger("asl.metadata.SeedVolume");
+    private static final Logger logger = LoggerFactory.getLogger(asl.metadata.SeedVolume.class);
 
     private Blockette volumeInfo = null;
     private NetworkKey networkKey= null;

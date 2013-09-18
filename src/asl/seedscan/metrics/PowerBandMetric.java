@@ -18,12 +18,13 @@
  */
 package asl.seedscan.metrics;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class PowerBandMetric
 extends Metric
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.PowerBandMetric");
+    private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.metrics.PowerBandMetric.class);
 
     public PowerBandMetric()
     {

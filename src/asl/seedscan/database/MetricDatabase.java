@@ -26,7 +26,8 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Calendar;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import asl.metadata.Channel;
 import asl.metadata.Station;
@@ -35,7 +36,7 @@ import asl.seedscan.metrics.*;
 
 public class MetricDatabase
 {
-    public static final Logger logger = Logger.getLogger("asl.seedscan.database.MetricDatabase");
+    public static final Logger logger = LoggerFactory.getLogger(asl.seedscan.database.MetricDatabase.class);
 
     private Connection connection;
     private String URI;
@@ -98,8 +99,7 @@ public class MetricDatabase
 	        }
         }
         catch (SQLException e) {
-            //System.out.print(e);
-            logger.error(e);
+            logger.error(e.getMessage());
         }
     	return digest;
     }
@@ -129,7 +129,7 @@ public class MetricDatabase
         }
         catch (SQLException e) {
             //System.out.print(e);
-            logger.error(e);
+            logger.error(e.getMessage());
         }
     	return digest;
     }
@@ -155,8 +155,7 @@ public class MetricDatabase
 	        }
         }
         catch (SQLException e) {
-            //System.out.print(e);
-            logger.error(e);
+            logger.error(e.getMessage());
         }
     	return value;
     }
@@ -182,8 +181,7 @@ public class MetricDatabase
             result = 0;
         }
         catch (SQLException e) {
-            //System.out.print(e);
-            logger.error(e);
+            logger.error(e.getMessage());
         }
         return result;
     }
@@ -200,8 +198,7 @@ public class MetricDatabase
             result = callStatement.getString(3);
         }
         catch (SQLException e) {
-            //System.out.print(e);
-            logger.error(e);
+            logger.error(e.getMessage());
         }
         return result;
     }

@@ -18,7 +18,8 @@
  */
 package asl.seedsplitter;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import asl.concurrent.FallOffQueue;
 
@@ -36,7 +37,7 @@ import javax.swing.SwingWorker;
 public class BlockLocator 
 extends SwingWorker<ArrayList<ContiguousBlock>, ContiguousBlock> 
 {
-    private static final Logger logger = Logger.getLogger("asl.seedsplitter.BlockLocator");
+    private static final Logger logger = LoggerFactory.getLogger(asl.seedsplitter.BlockLocator.class);
 
     private ArrayList<ArrayList<DataSet>> m_dataLists = null;
     private ArrayList<ContiguousBlock>  m_blockList = null;

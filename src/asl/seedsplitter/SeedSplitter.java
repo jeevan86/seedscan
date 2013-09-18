@@ -18,8 +18,8 @@
  */
 package asl.seedsplitter;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.Level;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.DataInputStream;
 import java.io.FileInputStream;
@@ -51,7 +51,7 @@ import asl.concurrent.FallOffQueue;
 public class SeedSplitter 
 extends SwingWorker<Hashtable<String,ArrayList<DataSet>>, SeedSplitProgress> 
 {
-    private static final Logger logger = Logger.getLogger("asl.seedsplitter.SeedSplitter");
+    private static final Logger logger = LoggerFactory.getLogger(asl.seedsplitter.SeedSplitter.class);
 
     public static final int NETWORK  = 1;
     public static final int STATION  = 2;
@@ -213,9 +213,6 @@ extends SwingWorker<Hashtable<String,ArrayList<DataSet>>, SeedSplitProgress>
     @Override
     public Hashtable<String,ArrayList<DataSet>> doInBackground()
     {
-        // Only turn this on for extremely verbose debugging:
-        logger.setLevel(Level.OFF);
-
         SeedSplitProgress progress = null;
         int progressPercent = 0; // 0 - 100
         int lastPercent = 0;

@@ -19,12 +19,13 @@
 
 package asl.security;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TextPassword
 implements Password
 {
-    private static final Logger logger = Logger.getLogger("asl.security.TextPassword");
+    private static final Logger logger = LoggerFactory.getLogger(asl.security.TextPassword.class);
 
     private String password = null;
 

@@ -19,12 +19,13 @@
 
 package asl.metadata;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 
 public class ChannelArray
 {
-    private static final Logger logger = Logger.getLogger("asl.metadata.ChannelArray");
+    private static final Logger logger = LoggerFactory.getLogger(asl.metadata.ChannelArray.class);
 
     private ArrayList<Channel> channels = null;
 

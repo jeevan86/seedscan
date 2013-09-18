@@ -48,11 +48,12 @@ import java.util.List;
 import java.util.Hashtable;
 import java.util.Set;
 import java.util.Calendar;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MetricData
 {
-    private static final Logger logger = Logger.getLogger("asl.seedscan.metrics.MetricData");
+    private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.metrics.MetricData.class);
 
     private Hashtable<String, ArrayList<DataSet>> data;
     private Hashtable<String, ArrayList<Integer>> qualityData;
