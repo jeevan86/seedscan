@@ -64,6 +64,7 @@ public abstract class Metric
     private Hashtable<String, EventCMT> eventTable = null;
     private Hashtable<String, Hashtable<String, SacTimeSeries>> eventSynthetics = null;
 
+/**
     private Hashtable<String, SensorInfo> sensorTable = null;
 
     public void loadSensorTable() {
@@ -123,6 +124,7 @@ public abstract class Metric
             }
         }
     }
+**/
 
 
     public Metric()
