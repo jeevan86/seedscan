@@ -432,14 +432,12 @@ public class MetricData
     public double[] getWindowedData(Channel channel, long windowStartEpoch, long windowEndEpoch) 
     {
         if (windowStartEpoch > windowEndEpoch) {
-            System.out.format("== getWindowedData ERROR: Requested window Epoch [%d - %d] is NOT VALID "
-              + "(windowStartEpoch > windowEndEpoch\n", 
-                 windowStartEpoch, windowEndEpoch );
+            logger.error("Requested window Epoch [{} - {}] is NOT VALID (start > end)",windowStartEpoch, windowEndEpoch);
             return null;
         }
 
         if (!hasChannelData(channel)){
-            System.out.format("== getWindowedData ERROR: We have NO data for channel=[%s]\n", channel);
+            logger.error("We have NO data for channel=[{}]",channel);
             return null;
         }
         ArrayList<DataSet>datasets = getChannelData(channel);
@@ -458,8 +456,8 @@ public class MetricData
         }
 
         if (!windowFound) {
-            System.out.format("== getWindowedData ERROR: Requested window Epoch [%d - %d] was NOT FOUND "
-              + "within DataSet for channel=[%s]\n", windowStartEpoch, windowEndEpoch, channel);
+            logger.error("Requested window Epoch [{} - {}] was NOT FOUND "
+              + "within DataSet for channel=[{}]", windowStartEpoch, windowEndEpoch, channel);
             return null;
         }
         else {
@@ -474,9 +472,9 @@ public class MetricData
 
     // Requested Window must start in Day 1 (taken from current dataset(0))
         if (windowStartEpoch < dataStartEpoch || windowStartEpoch > dataEndEpoch) {
-            System.out.format("== getWindowedData ERROR: Requested window Epoch [%d - %d] does NOT START "
-              + "in current day data window Epoch [%d - %d] for channel=[%s]\n", 
-                 windowStartEpoch, windowEndEpoch, dataStartEpoch, dataEndEpoch, channel );
+            logger.error("Requested window Epoch [{} - {}] does NOT START "
+              + "in current day data window Epoch [{} - {}] for channel=[{}]", 
+                 windowStartEpoch, windowEndEpoch, dataStartEpoch, dataEndEpoch, channel);
             return null;
         }
 
@@ -490,8 +488,8 @@ public class MetricData
                 return null;
             }
             if (!nextMetricData.hasChannelData(channel)){
-                System.out.format("== getWindowedData ERROR: Requested Epoch window spans into next day, but we have NO data "
-                                 +"for channel=[%s] for next day\n", channel);
+                logger.error("Requested Epoch window spans into next day, but we have NO data "
+                                 +"for channel=[{}] for next day", channel);
                 return null;
             }
 
@@ -524,13 +522,6 @@ public class MetricData
 
         long windowMilliSecs = windowEndEpoch - windowStartEpoch;
         int  nWindowPoints   = (int)(windowMilliSecs / interval);
-
-/**
-        System.out.format("== getWindowedData: Requested window Epoch [%d - %d] = [%d millisecs] = [%d points]\n",
-            windowStartEpoch, windowEndEpoch, windowMilliSecs, nWindowPoints);
-        System.out.format("== getWindowedData: DataEpoch [%d - %d] data srate1=%f interval=[%d] msecs\n",
-            dataStartEpoch, dataEndEpoch, srate1, interval);
-**/
 
         double[] dataArray  = new double[nWindowPoints];
 

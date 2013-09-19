@@ -28,6 +28,11 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.TreeSet;
 
+import java.io.IOException;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.File;
+
 import java.nio.ByteBuffer;
 import asl.util.Hex;
 
@@ -60,15 +65,18 @@ extends Metric
         return "CalibrationMetric";
     }
 
+    public CalibrationMetric() {
+        super();
+        //addArgument("calibration-table");
+    }
 
     public void process()
     {
         System.out.format("\n              [ == Metric %s == ]    [== Station %s ==]    [== Day %s ==]\n", 
                           getName(), getStation(), getDay() );
 
-
         if (metricData.hasCalibrationData() == false) {
-            logger.info("No Calibration loaded for station=[" + getStation() + "] day=[" + getDay() + "] --> Skip Metric");
+            logger.info("No Calibration loaded for station=[{}] day=[{}] --> Skip Metric", getStation(), getDay());
             return;
         }
 
@@ -76,6 +84,12 @@ extends Metric
         List<Channel> channels = stationMeta.getChannelArray("BH");
 
         for (Channel channel : channels){
+
+            if ( !(channel.getChannel().equals("BHZ")) && stationMeta.getChanMeta(channel).getInstrumentType().contains("STS-2")) {
+            // Skip STS-2/STS-2.5 Horizontal Channels
+                logger.info("InstrumentType = STS-2/2.5 --> Skip horizontal channel={}", channel);
+                continue;
+            }
 
             ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel));
 
@@ -86,7 +100,6 @@ extends Metric
                 continue;
             }
 
-            //double result = computeMetric(channel);
         // We're computing 2 results (amp + phase diff) but we don't actually have a way yet to load
         // 2 responses for a single metric (= single channel + powerband, etc.) into the database
             double[] results = computeMetric(channel);
@@ -96,7 +109,6 @@ extends Metric
                 // Do nothing --> skip to next channel
             }
             else {
-                //metricResult.addResult(channel, result, digest);
                 metricResult.addResult(channel, results[0], digest);
                 //for (int i=0; i<results.length; i++) {
                     //metricResult.addResult(channel, results[i], digest);
@@ -106,7 +118,6 @@ extends Metric
         }// end foreach channel
     } // end process()
 
-    //private double computeMetric(Channel channel) {
     private double[] computeMetric(Channel channel) {
 
         double[] result = new double[2];
@@ -119,19 +130,17 @@ extends Metric
         List<Blockette320> calBlocks = metricData.getChannelCalData(channel);
 
         if (calBlocks == null) {
-            //System.out.format("== %s: No cal blocks found for channel=[%s]\n", getName(), channel);
-            logger.info("No cal blocks found for channel=[" + channel + "] day=[" + getDay() + "] --> Skip Metric");
+            logger.info("No cal blocks found for [{}/{}/{}] --> Skip Metric",getStation(),channel,getDay());
             return null;
             //return NO_RESULT;
         }
 
         if (calBlocks.size() > 1) {
-            System.out.format("== %s: Found n=%d Random Calibration Blockettes! --> What to do ?\n", getName(), calBlocks.size() );
             logger.error("Found more than 1 calibration blockette! --> What to do ?");
         }
 
         Blockette320 blockette320 = calBlocks.get(0);
-        blockette320.print();
+        //blockette320.print();
         long calStartEpoch      = blockette320.getCalibrationEpoch();   // Epoch millisecs
         long calDuration        = blockette320.getCalibrationDuration();// Duration in millisecs
         long calEndEpoch        = calStartEpoch + calDuration;
@@ -142,35 +151,29 @@ extends Metric
         long dataEndEpoch       = data.get(0).getEndTime()   / 1000;  // ...
         double srate            = data.get(0).getSampleRate();
 
-        System.out.format("== %s: channel=[%s] calStartTime=[%s] calDuration=[%d]\n", getName(), channel, 
-                           EpochData.epochToDateString(blockette320.getCalibrationCalendar()), calDuration/1000);
-        logger.info(String.format("channel=[%s] calStartDate=[%s] calDuration=[%d]", channel, 
-                           EpochData.epochToDateString(blockette320.getCalibrationCalendar()), calDuration/1000) );
+        logger.info("channel=[{}] calChannel=[{}] calStartDate=[{}] calDuration=[{}] sec", channel, channelExtension, 
+                           EpochData.epochToTimeString(blockette320.getCalibrationCalendar()), calDuration/1000);
+        logger.info(blockette320.toString());
 
         if ( blockette320.getCalibrationCalendar().get(Calendar.HOUR) == 0 ){
             // This appears to be the 2nd half of a cal that began on the previous day --> Skip
-            System.out.format("== %s: cal appears to be the 2nd half of a cal from previous day --> Skip\n", getName());
             logger.warn("** cal appears to be the 2nd half of a cal from previous day --> Skip");
-            //return NO_RESULT;
             return null;
         }
 
         if ( calEndEpoch > dataEndEpoch ) {
             // Look for cal to span into next day
 
-            System.out.format("== %s: channel=[%s] calEndEpoch > dataEndEpoch --> Cal appears to span day\n", getName(), channel);
-            logger.info(String.format("channel=[%s] calEndEpoch > dataEndEpoch --> Cal appears to span day", channel) ); 
+            logger.info("channel=[{}] calEndEpoch > dataEndEpoch --> Cal appears to span day", channel); 
 
-            //calBlocks = nextMetricData.getChannelCalData(channel);
             calBlocks = metricData.getNextMetricData().getChannelCalData(channel);
 
             if (calBlocks == null) {
-                System.out.format("== %s: No DAY 2 cal blocks found for channel=[%s]\n", getName(), channel);
+                logger.warn("No DAY 2 cal blocks found for channel=[{}]", channel); 
             }
             else {
-                System.out.format("== %s: channel=[%s] Found matching blockette320 on 2nd day:\n", getName(), channel);
+                logger.info("Found matching blockette320 on 2nd day for channel=[{}]", channel); 
                 blockette320 = calBlocks.get(0);
-                blockette320.print();
                 long nextCalStartEpoch      = blockette320.getCalibrationEpoch();
                 long nextCalDuration        = blockette320.getCalibrationDuration();
                 String nextChannelExtension = blockette320.getCalInputChannel();  // e.g., "BC0"
@@ -179,6 +182,10 @@ extends Metric
                     boolean calSpansNextDay = true;
                     calDuration += nextCalDuration; 
                 }
+                logger.info("channel=[{}] calChannel=[{}] calStartDate=[{}] calDuration=[{}] sec", channel, nextChannelExtension, 
+                                EpochData.epochToTimeString(blockette320.getCalibrationCalendar()), nextCalDuration/1000);
+                //logger.info(blockette320.toString());
+                logger.info("channel=[{}] total calDuration=[{}] sec", channel, calDuration);
             }
     
         }
@@ -191,18 +198,21 @@ extends Metric
         double[] inData  = metricData.getWindowedData(new Channel("--",channelExtension), calStartEpoch, calStartEpoch + calDuration);
 
         if (inData == null || inData.length <= 0) {
-            System.out.format("== %s: We have no data for reported cal input channel=[%s] for station=[%s] --> Skip metric\n",
-                getName(), channelExtension, getStation() );
+            logger.error("We have no data for reported cal input channel=[{}] for station=[{}] --> Skip metric", channelExtension, getStation());
             return null;
         }
         if (outData == null || outData.length <= 0) {
-            System.out.format("== %s: We have no data for reported calibration period for output channel=[%s] for station=[%s] --> Skip metric\n",
-                getName(), channel, getStation() );
+            logger.error("We have no data for reported cal output channel=[{}] for station=[{}] --> Skip metric", channel, getStation());
             return null;
         }
 
-        //Timeseries.writeSacFile(outData, srate, "dataOut", getStation(), channel.getChannel());  
-        //Timeseries.writeSacFile(inData,  srate, "dataIn",  getStation(), channelExtension);  
+//MTH
+/**
+        String fileName1 = getStation() + "." + channel + ".sac";
+        String fileName2 = getStation() + "." + channelExtension + ".sac";
+        Timeseries.writeSacFile(outData, srate, fileName1, getStation(), channel.getChannel());  
+        Timeseries.writeSacFile(inData,  srate, fileName2, getStation(), channelExtension);  
+**/
 
      // Compute/Get the 1-sided psd[f] using Peterson's algorithm (24 hrs, 13 segments, etc.)
 
@@ -253,21 +263,65 @@ extends Metric
             phsResponse[k] = instResponse[k].phs() * 180./Math.PI;
         }
 
-        final double MIDBAND_PERIOD = 20.0; // Period at which to normalize the H(f) magnitudes
+        String sensorType = chanMeta.getInstrumentType();
+        double Tmin = 60;
+        double Tmax = 400;
+        double Tnorm= 80;
 
-        double midFreq = 1.0/MIDBAND_PERIOD;
-        int index = (int)(midFreq/df);
-        double midAmp   = ampResponse[index];
-        double magDiff  = calAmp[index] - midAmp;
+        if (sensorType.contains("STS-1")) {
+            logger.info("This is an STS-1 Seismometer");
+            Tmin = 10;
+            Tmax = 800;
+            Tnorm = 11;
+        }
+        else if (sensorType.contains("KS-54000")) {
+            logger.info("This is a KS-54000 Seismometer");
+            Tmin = 20;
+            Tmax = 800;
+            Tnorm = 251;
+        }
+
+        logger.info("InstrumentType=[{}] Tmin={} Tmax={} Tnorm={}", sensorType, Tmin, Tmax, Tnorm);
+
+        double Fmin = 1.0/Tmin;
+        double Fmax = 1.0/Tmin;
+        double Fnorm= 1.0/Tnorm;
+
+        int iMin  = (int)(Fmin/df);
+        int iMax  = (int)(Fmax/df);
+        int iNorm = (int)(Fnorm/df);
+
+        double midAmp   = ampResponse[iNorm];
+        double magDiff  = calAmp[iNorm] - midAmp;
+        double phsDiff  = phsResponse[iNorm] - calPhs[iNorm];
 
         // Scale calAmp to = ampResponse at the mid-band frequency
         for (int k=0; k<nf; k++) {
             calAmp[k] -= magDiff;  // subtract offset from the decibel spectrum
+            phsDiff  = phsResponse[k] - calPhs[k];
+            if (phsDiff > 130) {   // This is just a guess ...
+                calPhs[k] += 180.;
+            } 
+            else if (phsDiff < -130) {
+                calPhs[k] -= 180.;
+            } 
         }
+
+    // Compute average mag/phase difference within the band Tmin to Tmax:
+        double avgMagDiff=0;
+        double avgPhsDiff=0;
+        int nFreq = 0;
+        for (int k=iMin; k<=iMax; k++){
+            avgMagDiff += (ampResponse[k] - calAmp[k]);
+            avgPhsDiff += (phsResponse[k] - calPhs[k]);
+            nFreq++;
+        }
+        avgMagDiff /= (double)nFreq;
+        avgPhsDiff /= (double)nFreq;
 
         // Get cornerFreq = Freq where ampResponse falls by -3dB below midAmp
         double cornerFreq = 0.;
-        for (int k=index; k>=0; k--) {
+        for (int k=iNorm; k>=0; k--) {
             if (Math.abs(midAmp - ampResponse[k]) >= 3) {
                 cornerFreq = freq[k];
                 break;
@@ -277,41 +331,8 @@ extends Metric
         if (cornerFreq <= 0.) {
             throw new RuntimeException("CalibrationMetric: Error - cornerFreq == 0!");
         }
-        // Get an octave window of periods with cornerPer in the Geometric Mean: Tc = sqrt(Ts*Tl)
-        double cornerPer = 1./cornerFreq;
-        double Ts = cornerPer / Math.sqrt(2);
-        double Tl = 2.*Ts;
 
-        double diff = 0.;
-        int nPer = 0;
-        for (int k=0; k<freq.length; k++) {
-            double per = 1./freq[k];
-            if ( (per >= Ts) && (per <= Tl) ){
-                diff += Math.abs( ampResponse[k] - calAmp[k] );
-                nPer++;
-               //System.out.format("== Count Per[%d]=%.2f ampResp[k]-calAmp[k]=%.6f\n", nPer, per, Math.abs(ampResponse[k]-calAmp[k]) );
-            }
-        }
-
-        if (nPer <= 0) {}
-        diff /= (double)nPer;
-        System.out.format("== diff=%.6f\n", diff);
-
-        // Compute phase difference between Tl and Tmin (= 1/1.0 Hz)
-        double Tmin = 1.;
-        double phaseDiff = 0.;
-        nPer = 0;
-        for (int k=0; k<freq.length; k++) {
-            double per = 1./freq[k];
-            if ( (per >= Tmin) && (per <= Tl) ){
-                phaseDiff += Math.abs( phsResponse[k] - calPhs[k] );
-                nPer++;
-               //System.out.format("== Count Per[%d]=%.2f phsResp[k]-calPhs[k]=%.6f\n", nPer, per, Math.abs(phsResponse[k]-calPhs[k]) );
-            }
-        }
-        if (nPer <= 0) {}
-        phaseDiff /= (double)nPer;
-        System.out.format("== phaseDiff=%.6f\n", phaseDiff);
+        logger.info("station={} channel={} avgMagDiff={} avgPhsDiff={} cornerFreq={}", getStation(), channel, avgMagDiff, avgPhsDiff, cornerFreq);
 
         if (getMakePlots()){
             PlotMaker plotMaker = new PlotMaker(metricResult.getStation(), channel, metricResult.getDate());
@@ -320,8 +341,8 @@ extends Metric
 
     // diff = average absolute diff (in dB) between calAmp and ampResponse in (per) octave containing Tc: Ts < Tc < Tl
     // phaseDiff = average absolute diff (in deg) between calPhs and phsResponse over all periods from Nyq to Tl
-        result[0]=diff;
-        result[1]=phaseDiff;
+        result[0]=avgMagDiff;
+        result[1]=avgPhsDiff;
 
         return result;
 

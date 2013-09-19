@@ -295,7 +295,7 @@ public class Timeseries
 
         SacHeader hdr = null;
         try {
-            hdr = new SacHeader("/Users/mth/mth/Projects/asl/resources/sac.file");
+            hdr = new SacHeader("/Users/mth/mth/Projects/asl/seedscan/resources/sac.file");
         }
         catch (Exception e) {
             System.out.format("== Timeseries.writeSacFile: Error when attempting to read in default sac hdr [%s]\n", e);

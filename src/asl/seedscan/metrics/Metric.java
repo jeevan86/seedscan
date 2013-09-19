@@ -38,6 +38,11 @@ import org.slf4j.LoggerFactory;
 
 import sac.SacTimeSeries;
 
+import java.io.IOException;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.File;
+
 
 public abstract class Metric
 {
@@ -58,6 +63,67 @@ public abstract class Metric
 
     private Hashtable<String, EventCMT> eventTable = null;
     private Hashtable<String, Hashtable<String, SacTimeSeries>> eventSynthetics = null;
+
+    private Hashtable<String, SensorInfo> sensorTable = null;
+
+    public void loadSensorTable() {
+        if (sensorTable == null) {
+            sensorTable = new Hashtable<String, SensorInfo>();
+            String fileName = null;
+            try {
+                fileName = get("calibration-table");
+                if (fileName == null) {
+                    logger.error("loadSensorTable(): No calibration-table found in config.xml");
+                }
+            } catch (NoSuchFieldException ex) {
+                logger.error("Exception reading calibration-table from config.xml:" + ex.getMessage());
+            }
+
+            if (!(new File(fileName).exists())) {
+                logger.error("calibration-table fileName=[{}] does NOT exist!", fileName);
+            }
+
+            BufferedReader br = null;
+            try {
+                String line;
+                br = new BufferedReader(new FileReader(fileName));
+                int i=0;
+                while ((line = br.readLine()) != null) {
+                    if (i > 1) { // 2-line header
+                        String[] args = line.trim().split("\\s+") ;
+                        if (args.length != 4) {
+                            logger.error("calibration-table=[{}] --> Bad format", fileName);
+                        }
+                        String sensorName = args[0]; 
+                        double Tmin=0;
+                        double Tmax=0;
+                        double Tnorm=0;
+                        try {
+                            Tmin = Double.parseDouble(args[1]);
+                            Tmax = Double.parseDouble(args[2]);
+                            Tnorm= Double.parseDouble(args[3]);
+                        }
+                        catch (Exception e) {
+                            logger.error("Caught exception:" + e.getMessage());
+                        }
+                        SensorInfo sensorInfo = new SensorInfo(sensorName, Tmin, Tmax, Tnorm);
+                        sensorTable.put(sensorName, sensorInfo);
+                        logger.info("add sensorName=[{}] Tmin=[{}]", sensorName, Tmin);
+                    }
+                    i++;
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (br != null)br.close();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+    }
+
 
     public Metric()
     {
@@ -340,6 +406,5 @@ public abstract class Metric
         return psd;
 
     } // end computePSD
-
 
 } // end class

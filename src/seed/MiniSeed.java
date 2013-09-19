@@ -737,7 +737,6 @@ public class MiniSeed  implements MiniSeedOutputHandler {
                 buf320=new byte[64];
                 bb320=ByteBuffer.wrap(buf320);
               }
-System.out.format("== MiniSeed: process blockette 320\n");
               ms.get(buf320);
               blockettes[blk]=bb320;
               if(swap) blockettes[blk].order(ByteOrder.LITTLE_ENDIAN);

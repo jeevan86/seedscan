@@ -68,6 +68,18 @@ public class EpochData
         }
     }
 
+    public static String epochToTimeString(Calendar time)
+    {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy:DDD:HH:mm:ss");
+        sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
+        if (time != null){
+          return sdf.format(time.getTime());
+        }
+        else {
+          return "(null)";
+        }
+    }
+
 
     // Constructors
     public EpochData(Blockette info)

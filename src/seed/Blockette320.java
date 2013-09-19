@@ -198,6 +198,25 @@ if (calFlags & 0x04) --> bit 2 set = calFlags = 04 [Automatic Cal]
         System.out.println( "====================================");
     }
 
+    public String toString() {
+        StringBuilder ret = new StringBuilder();
+        ret.append(String.format("\n== Random Calibration Blockette\n"));
+        ret.append(String.format("==   Start Time:%4d, %03d %02d:%02d:%02d.%03d\n", gcal.get(Calendar.YEAR), 
+                           gcal.get(Calendar.DAY_OF_YEAR), gcal.get(Calendar.HOUR_OF_DAY), 
+                           gcal.get(Calendar.MINUTE), gcal.get(Calendar.SECOND),gcal.get(Calendar.MILLISECOND) ) );
+        ret.append(String.format("==   Calibration Duration: %d\n", calDuration/1000) ); // Convert millisecs --> secs for printing
+        ret.append(String.format("==   Noise Type [%s]  Calibration Amplitude:%f\n",calNoiseType, calPeakAmp)); 
+        ret.append(String.format("==   Calibration Input Channel:%s\n", calInputChannel));
+        ret.append(String.format("==   Reference Amplitude:%f\n", calRefAmp));
+        ret.append(String.format("==   Coupling Method:%s\n", calCoupling));
+        ret.append(String.format("==   Filtering Type:%s          Calibration Flags:[%02x]\n", calFilter, calFlags));
+        ret.append("====================================");
+
+        return ret.toString();
+    }
+
+
+
     public long getCalibrationEpoch() {
         //System.out.println("==getCalibrationEpoch");
         //System.out.println("==Calendar date is: " + gcal.getTime());
