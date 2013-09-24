@@ -67,7 +67,7 @@ extends Metric
 
     public CalibrationMetric() {
         super();
-        //addArgument("calibration-table");
+        addArgument("instrument-calibration-file");
     }
 
     public void process()
@@ -185,7 +185,7 @@ extends Metric
                 logger.info("channel=[{}] calChannel=[{}] calStartDate=[{}] calDuration=[{}] sec", channel, nextChannelExtension, 
                                 EpochData.epochToTimeString(blockette320.getCalibrationCalendar()), nextCalDuration/1000);
                 //logger.info(blockette320.toString());
-                logger.info("channel=[{}] total calDuration=[{}] sec", channel, calDuration);
+                logger.info("channel=[{}] total calDuration=[{}] sec", channel, calDuration/1000);
             }
     
         }
@@ -258,7 +258,6 @@ extends Metric
         double[] ampResponse = new double[nf];
         double[] phsResponse = new double[nf];
         for (int k=0; k<nf; k++) {
-            //ampResponse[k] = instResponse[k].mag();
             ampResponse[k] = 20. * Math.log10( instResponse[k].mag() );
             phsResponse[k] = instResponse[k].phs() * 180./Math.PI;
         }
@@ -320,6 +319,7 @@ extends Metric
         avgPhsDiff /= (double)nFreq;
 
         // Get cornerFreq = Freq where ampResponse falls by -3dB below midAmp
+
         double cornerFreq = 0.;
         for (int k=iNorm; k>=0; k--) {
             if (Math.abs(midAmp - ampResponse[k]) >= 3) {
@@ -328,11 +328,12 @@ extends Metric
             }
         }
 
-        if (cornerFreq <= 0.) {
-            throw new RuntimeException("CalibrationMetric: Error - cornerFreq == 0!");
-        }
-
         logger.info("station={} channel={} avgMagDiff={} avgPhsDiff={} cornerFreq={}", getStation(), channel, avgMagDiff, avgPhsDiff, cornerFreq);
+
+        if (cornerFreq <= 0.) {
+            logger.warn("Corner freq == 0 --> There is likely a problem with this Cal!");
+            //throw new RuntimeException("CalibrationMetric: Error - cornerFreq == 0!");
+        }
 
         if (getMakePlots()){
             PlotMaker plotMaker = new PlotMaker(metricResult.getStation(), channel, metricResult.getDate());

@@ -59,41 +59,19 @@ extends Metric
 
     // Get a sorted list of continuous channels for this stationMeta and loop over:
 
-        List<Channel> channels = stationMeta.getChannelArray("LH");
+        //List<Channel> channels = stationMeta.getChannelArray("LH");
+        List<Channel> channels = stationMeta.getChannelArray("BH");
 
         for (Channel channel : channels){
             System.out.format("== Channel:[%s]\n", channel);
 
-        ChannelMeta chanMeta = stationMeta.getChanMeta(channel);
-        chanMeta.print();
-        //PoleZeroStage pz = (PoleZeroStage)chanMeta.getStage(1);
-        //pz.print();
-
             //ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel));
 
             //System.out.format("== %s: stationMeta.hasChannel(%s)=%s\n", getName(), channel, stationMeta.hasChannel(channel) );
-/**
-
-            ArrayList<DataSet> datasets = metricData.getChannelData(channel);
-            int i=0;
-            for (DataSet set: datasets) {
-                long npts =  (set.getEndTime() - set.getStartTime()) / set.getInterval()  + 1;
-                System.out.format("  Channel=[%s] DataSet[%d]: %s - %s (%d data points)\n", channel, i,
-                                     Sequence.timestampToString(set.getStartTime()), Sequence.timestampToString(set.getEndTime()),
-                                     npts );
-
-                                    + " (" + ((set.getEndTime() - set.getStartTime()) / set.getInterval() + 1) + " data points)");
-                System.out.println("  Channel=[%s] DataSet[" +i+ "]: " + Sequence.timestampToString(set.getStartTime()) + " - " 
-                                    + Sequence.timestampToString(set.getEndTime()) 
-                                    + " (" + ((set.getEndTime() - set.getStartTime()) / set.getInterval() + 1) + " data points)");
-                i++;
-            }
-**/
-
-
-            //computeMetric(channel);
+            computeMetric(channel);
 
         }// end foreach channel
+System.exit(0);
 
     } // end process()
 

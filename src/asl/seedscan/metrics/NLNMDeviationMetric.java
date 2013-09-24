@@ -68,10 +68,14 @@ extends PowerBandMetric
         addArgument("nhnm-modelfile");
     }
 
-    private double[] NLNMPeriods;
-    private double[] NLNMPowers;
-    private double[] NHNMPeriods;
-    private double[] NHNMPowers;
+    private static double[] NLNMPeriods;
+    private static double[] NLNMPowers;
+    private static double[] NHNMPeriods;
+    private static double[] NHNMPowers;
+    private static boolean noiseModelsRead = false;
+    private static boolean lowNoiseModelExists  = false;
+    private static boolean highNoiseModelExists = false;
+
     private final String outputDir = "outputs";
     private PlotMaker2 plotMaker = null;
 
@@ -80,12 +84,23 @@ extends PowerBandMetric
         System.out.format("\n              [ == Metric %s == ]    [== Station %s ==]    [== Day %s ==]\n", 
                           getName(), getStation(), getDay() );
 
-   // Read in the NLNM or return
-        if (!readNLNM() ){
-            System.out.format("%s: Did not read in NLNM model --> Do Nothing!\n", getName());
-            return;  // Can't do anything if we didn't read in a NLNM model so skip to the next metric
+        if (!noiseModelsRead) {
+            try {
+                lowNoiseModelExists  = readNLNM(get("nlnm-modelfile"));
+                highNoiseModelExists = readNHNM(get("nhnm-modelfile"));
+            }
+            catch(Exception e) {
+                logger.error("Failed attempt to read noise models:" + e.getMessage());
+            }
+            noiseModelsRead = true;
         }
-        Boolean highNoiseModelExists = readNHNM();
+
+
+    // Low noise model (NLNM) MUST exist or we can't compute the metric (NHNM is optional)
+        if (!lowNoiseModelExists) {
+            logger.warn("Low Noise Model (NLNM) does NOT exist --> Skip Metric");
+            return;
+        }
 
 // Get all LH channels in metadata
         List<Channel> channels = stationMeta.getChannelArray("LH"); 
@@ -121,7 +136,8 @@ extends PowerBandMetric
         }// end foreach channel
 
 
-        if (getMakePlots()) {
+        // If we didn't add any channel-panels below, then plotMaker should still be null
+        if (getMakePlots() && (plotMaker != null) ) {
             BasicStroke stroke = new BasicStroke(4.0f);
             for (int iPanel=0; iPanel<3; iPanel++){
                 plotMaker.addTraceToPanel( new Trace(NLNMPeriods, NLNMPowers, "NLNM", Color.black, stroke), iPanel);
@@ -268,25 +284,13 @@ extends PowerBandMetric
  **             NLNM Periods will be read into NLNMPeriods[]
  **             NLNM Powers  will be read into NLNMPowers[]
  **/
+    synchronized private static boolean readNLNM(String fileName) {
 
-    private boolean readNLNM() {
-
-        String fileName = null;
-        try {
-            fileName = get("nlnm-modelfile");
-            if (fileName == null) { // if nlnm-modelfile was not entered in config.xml then value="" 
-                                    // and get() will return null
-                return false;
-            }
-        } catch (NoSuchFieldException ex) {
-            // The only way this would happen is if we didn't addArgument("nlnm-modelfile") in the NLNMDeviation constructor!
-            System.out.format("%s Error: Model Name ('model') was not specified in config.xml!\n", getName());
-            return false;
-        }
+    logger.info("readNLNM Read in NLNM model from file=[{}]", fileName);
 
    // First see if the file exists
         if (!(new File(fileName).exists())) {
-            System.out.format("=== %s: NLNM file=%s does NOT exist!\n", getName(), fileName);
+            logger.error("NLNM file={} does NOT exist!", fileName);
             return false;
         }
    // Temp ArrayList(s) to read in unknown number of (x,y) pairs:
@@ -324,27 +328,15 @@ extends PowerBandMetric
             NLNMPeriods[i] = modelPeriods[i];
             NLNMPowers[i]  = modelPowers[i];
         }
-
         return true;
 
     } // end readNLNM
 
-    private boolean readNHNM() {
-
-        String fileName = null;
-        try {
-            fileName = get("nhnm-modelfile");
-            if (fileName == null) {
-                System.out.format("=== %s: Warning: NHNM was not set\n", getName());
-                return false;
-            }
-        } catch (NoSuchFieldException ex) {
-            return false;
-        }
+    synchronized private static boolean readNHNM(String fileName) {
 
    // First see if the file exists
         if (!(new File(fileName).exists())) {
-            System.out.format("=== %s: NHNM file=%s does NOT exist!\n", getName(), fileName);
+            logger.error("NHNM file={} does NOT exist!", fileName);
             return false;
         }
    // Temp ArrayList(s) to read in unknown number of (x,y) pairs:
