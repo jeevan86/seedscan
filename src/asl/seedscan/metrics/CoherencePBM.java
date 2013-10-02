@@ -58,7 +58,6 @@ extends PowerBandMetric
         return "CoherencePBM";
     }
 
-    private final String outputDir = "outputs";
     private PlotMaker2 plotMaker = null;
 
     public void process()

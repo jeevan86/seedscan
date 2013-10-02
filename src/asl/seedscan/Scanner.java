@@ -76,7 +76,6 @@ public class Scanner
 
     private FallOffQueue<SeedSplitProgress> progressQueue;
 
-    private static String eventsDir = null;
     private static Hashtable<String, EventCMT> oneDayEventCMTs = null;
 
     private static long MB = 1048576L; // 1024*1024 - for java Runtime outputs
@@ -211,6 +210,8 @@ public class Scanner
 
             for (MetricWrapper wrapper: scan.getMetrics()) {
                 Metric metric = wrapper.getNewInstance();
+
+                metric.setBaseOutputDir(scan.getPlotsDir());
 
                 if (currentMetricData != null) {
                     metric.setData(currentMetricData);

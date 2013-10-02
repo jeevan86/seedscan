@@ -30,6 +30,7 @@ public class PolynomialStage extends ResponseStage
     private double upperApproximationBound;
     private String polynomialApproximationType;
     private ArrayList<Cmplx> coefficients;
+    //private static final long serialVersionUID = 1L;
 
     public PolynomialStage copy() {
         return this;

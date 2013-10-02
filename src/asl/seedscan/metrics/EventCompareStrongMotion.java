@@ -65,7 +65,6 @@ extends Metric
     private static final double f4 = 1./PERIOD4;
 
     Channel[] channels       = new Channel[9];
-    private final String outputDir = "outputs";
 
     private SacHeader hdr = null;
 
@@ -364,8 +363,6 @@ xDist = gcarc;
         final String plotTitle = String.format("[ Event: %s ] [ Station: %s ] [ Dist: %.2f ] StrongMotionCompare", key, getStation(),
                                                xDist );
 
-        //final String pngName   = String.format("%s/%4s%3s.%s.strongmtn.ev-%d.png", outputDir, getYear(), getDOY(), getStation(), 
-                                 //eventNumber);
         final String pngName   = String.format("%s.strongmtn.ev-%d.png", getOutputDir(), eventNumber );
 
         if (plotMaker == null) {

@@ -35,6 +35,7 @@ public class PoleZeroStage extends ResponseStage
     private boolean poleAdded = false;
     private boolean zeroAdded = false;
     private boolean normalizationSet = false;
+    //private static final long serialVersionUID = 1L;
 
 /**
  *  Return a deep copy of this PoleZeroStage

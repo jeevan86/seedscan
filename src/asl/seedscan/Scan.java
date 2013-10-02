@@ -28,6 +28,7 @@ public class Scan
     private String pathPattern;
     private String datalessDir;
     private String eventsDir;
+    private String plotsDir;
     private int startDay;
     private int daysToScan;
     private int startDate;
@@ -65,7 +66,16 @@ public class Scan
         return datalessDir;
     }
 
-    // events dir
+    public void setPlotsDir(String plotsDir)
+    {
+        this.plotsDir = plotsDir;
+    }
+
+    public String getPlotsDir()
+    {
+        return plotsDir;
+    }
+
     public void setEventsDir(String eventsDir)
     {
         this.eventsDir = eventsDir;

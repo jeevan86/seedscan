@@ -53,7 +53,7 @@ public abstract class Metric
 
     private boolean forceUpdate = false;
     private boolean makePlots   = false;
-    private String outputDir   = "outputs";
+    private String outputDir    = null;
 
     protected final double NO_RESULT = -999.999; 
 
@@ -159,6 +159,10 @@ public abstract class Metric
     public MetricResult getMetricResult()
     {
         return metricResult;
+    }
+
+    public void setBaseOutputDir(String outputDir){
+        this.outputDir = outputDir;
     }
 
     public String getBaseOutputDir(){

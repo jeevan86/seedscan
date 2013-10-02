@@ -55,6 +55,11 @@ extends Metric
 {
     private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.metrics.CalibrationMetric.class);
 
+    private static boolean calTableRead   = false;
+    private static boolean calTableExists = false;
+
+    private static Hashtable<String, SensorInfo> sensorTable = null;
+
     @Override public long getVersion()
     {
         return 1;
@@ -75,10 +80,27 @@ extends Metric
         System.out.format("\n              [ == Metric %s == ]    [== Station %s ==]    [== Day %s ==]\n", 
                           getName(), getStation(), getDay() );
 
+        if (!calTableRead) {
+            try {
+                logger.info("Attempt to read from instrument-calibration-file:", get("instrument-calibration-file"));
+                calTableExists  = readCalTable(get("instrument-calibration-file"));
+            }
+            catch(Exception e) {
+                logger.error("Failed attempt to read instrument-calibration-file:" + e.getMessage());
+            }
+            calTableRead = true;
+        }
+
+        if (!calTableExists) {
+            logger.error("Unable to read instrument calibration table from file --> Skip Metric");
+            return;
+        }
+
         if (metricData.hasCalibrationData() == false) {
             logger.info("No Calibration loaded for station=[{}] day=[{}] --> Skip Metric", getStation(), getDay());
             return;
         }
+
 
     // Get all BH? channels for this stationMeta:
         List<Channel> channels = stationMeta.getChannelArray("BH");
@@ -262,24 +284,23 @@ extends Metric
             phsResponse[k] = instResponse[k].phs() * 180./Math.PI;
         }
 
-        String sensorType = chanMeta.getInstrumentType();
-        double Tmin = 60;
-        double Tmax = 400;
-        double Tnorm= 80;
-
-        if (sensorType.contains("STS-1")) {
-            logger.info("This is an STS-1 Seismometer");
-            Tmin = 10;
-            Tmax = 800;
-            Tnorm = 11;
+        String sensorType = chanMeta.getInstrumentType().toUpperCase();
+        double Tmin = 0;
+        double Tmax = 0;
+        double Tnorm= 0;
+        SensorInfo sensorInfo = getSensorInfo(sensorType);
+        if (sensorInfo == null) {
+            logger.error("Couldn't find instrument calibration info for sensorType=[{}]", sensorType);
+            logger.warn("Use default Tmin, Tmax, Tnorm");
+            Tmin  = 60; 
+            Tmax  = 400;
+            Tnorm = 80;
         }
-        else if (sensorType.contains("KS-54000")) {
-            logger.info("This is a KS-54000 Seismometer");
-            Tmin = 20;
-            Tmax = 800;
-            Tnorm = 251;
+        else {
+            Tmin  = sensorInfo.getMinPeriod();
+            Tmax  = sensorInfo.getMaxPeriod();
+            Tnorm = sensorInfo.getNormPeriod();
         }
-
         logger.info("InstrumentType=[{}] Tmin={} Tmax={} Tnorm={}", sensorType, Tmin, Tmax, Tnorm);
 
         double Fmin = 1.0/Tmin;
@@ -336,8 +357,15 @@ extends Metric
         }
 
         if (getMakePlots()){
+            String date = String.format("%04d%03d", metricResult.getDate().get(Calendar.YEAR),
+                                                    metricResult.getDate().get(Calendar.DAY_OF_YEAR) );
+            final String plotTitle = String.format("[ Date: %s ] [ Station: %s ] [ Channel: %s ] Calibration", 
+                                     date, getStation(), channel );
+            final String pngName   = String.format("%s.%s.%s.png", getOutputDir(), channel, "calib" );
+
             PlotMaker plotMaker = new PlotMaker(metricResult.getStation(), channel, metricResult.getDate());
-            plotMaker.plotSpecAmp2(freq, ampResponse, phsResponse, calAmp, calPhs, "calib");
+            plotMaker.plotSpecAmp2(freq, ampResponse, phsResponse, calAmp, calPhs, plotTitle, pngName);
+
         }
 
     // diff = average absolute diff (in dB) between calAmp and ampResponse in (per) octave containing Tc: Ts < Tc < Tl
@@ -348,5 +376,74 @@ extends Metric
         return result;
 
     } // end computeMetric()
+
+
+    synchronized private static boolean readCalTable(String fileName) {
+        logger.info("readCalTable Read in Instrument Cal Table from file=[{}]", fileName);
+
+   // First see if the file exists
+        if (!(new File(fileName).exists())) {
+            logger.error("file={} does NOT exist!", fileName);
+            return false;
+        }
+
+        if (sensorTable == null) {
+            sensorTable = new Hashtable<String, SensorInfo>();
+            BufferedReader br = null;
+            try {
+                String line;
+                br = new BufferedReader(new FileReader(fileName));
+                int i=0;
+                while ((line = br.readLine()) != null) {
+                    if (i > 1) { // 2-line header
+                        String[] args = line.trim().split("\\s+") ;
+                        if (args.length != 4) {
+                            logger.error("calibration-table=[{}] --> Bad format", fileName);
+                        }
+                        String sensorName = args[0].toUpperCase(); 
+                        double Tmin=0;
+                        double Tmax=0;
+                        double Tnorm=0;
+                        try {
+                            Tmin = Double.parseDouble(args[1]);
+                            Tmax = Double.parseDouble(args[2]);
+                            Tnorm= Double.parseDouble(args[3]);
+                        }
+                        catch (Exception e) {
+                            logger.error("Caught exception:" + e.getMessage());
+                        }
+                        SensorInfo sensorInfo = new SensorInfo(sensorName, Tmin, Tmax, Tnorm);
+                        sensorTable.put(sensorName, sensorInfo);
+                        logger.info("add sensorName=[{}] Tmin=[{}]", sensorName, Tmin);
+                    }
+                    i++;
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (br != null)br.close();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+        else {
+            logger.warn("Hmmm sensorTable has ALREADY been INITIALIZED!!");
+        }
+
+        return true;
+    }
+
+    private SensorInfo getSensorInfo(String sensorType){
+        for (String sensorName : sensorTable.keySet() ){
+            if (sensorType.contains(sensorName)) {
+                //logger.info("sensorName=[{}] matches sensorType=[{}]", sensorName, sensorType);
+                return sensorTable.get(sensorName);
+            }
+        }
+        return null;
+    }
+
 
 }

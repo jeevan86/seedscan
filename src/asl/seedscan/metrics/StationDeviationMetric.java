@@ -61,7 +61,6 @@ extends PowerBandMetric
     private double[] ModelPeriods;
     private double[] ModelPowers;
     private String   ModelDir;
-    private final String outputDir = "outputs";
 
     private PlotMaker2 plotMaker = null;
 

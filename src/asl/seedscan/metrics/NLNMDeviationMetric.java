@@ -76,7 +76,6 @@ extends PowerBandMetric
     private static boolean lowNoiseModelExists  = false;
     private static boolean highNoiseModelExists = false;
 
-    private final String outputDir = "outputs";
     private PlotMaker2 plotMaker = null;
 
     public void process()

@@ -27,8 +27,9 @@
     <xsd:element name="ciphertext"  type="xsd:hexBinary" />
     <xsd:element name="hmac"        type="cfg:hmac_T" />
     <xsd:element name="path"        type="xsd:string" />
-    <xsd:element name="dataless_dir"  type="xsd:string" />
-    <xsd:element name="events_dir"    type="xsd:string" />
+    <xsd:element name="dataless_dir" type="xsd:string" />
+    <xsd:element name="events_dir"   type="xsd:string" />
+    <xsd:element name="plots_dir"    type="xsd:string" />
     <xsd:element name="require_connection"    type="xsd:string" />
     <xsd:element name="use_remote"    type="xsd:string" />
     <xsd:element name="start_day"   type="xsd:nonNegativeInteger" />
@@ -132,6 +133,7 @@
             <xsd:element ref="cfg:path"             minOccurs="1" maxOccurs="1"/>
             <xsd:element ref="cfg:dataless_dir"     minOccurs="1" maxOccurs="1"/>
             <xsd:element ref="cfg:events_dir"       minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="cfg:plots_dir"        minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="cfg:start_day"        minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="cfg:start_date"       minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="cfg:days_to_scan"     minOccurs="1" maxOccurs="1"/>

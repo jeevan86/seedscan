@@ -167,6 +167,8 @@ public class SeedScan
                 scan.setPathPattern(scanCfg.getPath());
                 scan.setDatalessDir(scanCfg.getDatalessDir());
                 scan.setEventsDir(scanCfg.getEventsDir());
+logger.info("scan.setPlotsDir({})", scanCfg.getPlotsDir() );
+                scan.setPlotsDir(scanCfg.getPlotsDir());
                 scan.setDaysToScan(scanCfg.getDaysToScan().intValue());
                 if (scanCfg.getStartDay() != null) {
                     scan.setStartDay(scanCfg.getStartDay().intValue());

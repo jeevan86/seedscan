@@ -380,12 +380,14 @@ public class PlotMaker
     } // end plotCoherence
 
 
-    public void plotSpecAmp2(double freq[], double[] amp1, double[] phase1, double[] amp2, double[] phase2, String plotString) {
+    public void plotSpecAmp2(double freq[], double[] amp1, double[] phase1, double[] amp2, double[] phase2, String plotTitle, String pngName) {
 
+/**
         final String plotTitle = String.format("%04d%03d.%s.%s %s", date.get(Calendar.YEAR), date.get(Calendar.DAY_OF_YEAR)
                                                 ,station, channel, plotString);
         final String pngName   = String.format("%s/%04d%03d.%s.%s.%s.png", outputDir, date.get(Calendar.YEAR), date.get(Calendar.DAY_OF_YEAR)
                                                 ,station, channel, plotString);
+**/
         File outputFile = new File(pngName);
 
         // Check that we will be able to output the file without problems and if not --> return
@@ -632,7 +634,7 @@ System.out.format("== plotSpecAmp2: nfreq=%d npts=%d pngName=%s\n", freq.length,
             }
         }
         else {                          // Dir doesn't exist --> try to make it
-            allIsOkay = dir.mkdir();
+            allIsOkay = dir.mkdirs();
         }
 
         if (!allIsOkay) {               // We were unable to make output dir --> return false
