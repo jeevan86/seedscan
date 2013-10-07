@@ -13,11 +13,15 @@
     </cfg:metaserver>
 
 <!-- TESTING: Set specific Stations to run: Comment out to get Station list from MetaServer  -->
-<!--
     <cfg:station_list>
             <cfg:station>IU_ANMO</cfg:station>
-            <cfg:station>IU_ANTO</cfg:station>
     </cfg:station_list>
+<!--
+            <cfg:station>IU_ADK</cfg:station>
+            <cfg:station>IU_KIP</cfg:station>
+            <cfg:station>IC_ENH</cfg:station>
+            <cfg:station>IU_ANTO</cfg:station>
+            <cfg:station>IU_CCM</cfg:station>
 -->
 
  
@@ -52,14 +56,19 @@
             <cfg:path>/Users/mth/mth/ASLData/xs0/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}</cfg:path>
             <cfg:dataless_dir>/Users/mth/mth/ASLData/dcc/metadata/dataless/</cfg:dataless_dir>
             <cfg:events_dir>/Users/mth/mth/ASLData/xs0/events/</cfg:events_dir>
+            <cfg:plots_dir>./output2</cfg:plots_dir>
 <!--
+            <cfg:start_date>2012072</cfg:start_date>
             <cfg:start_date>2012073</cfg:start_date>
-            <cfg:start_date>2013037</cfg:start_date>
-            <cfg:start_date>2012073</cfg:start_date>
-            <cfg:start_date>2013164</cfg:start_date>
--->
             <cfg:start_date>2012160</cfg:start_date>
-            <cfg:days_to_scan>1</cfg:days_to_scan>
+            <cfg:start_date>2013037</cfg:start_date>
+            <cfg:start_date>2013164</cfg:start_date>
+            <cfg:start_date>2013125</cfg:start_date>
+            <cfg:start_date>2012335</cfg:start_date>
+            <cfg:start_date>2012221</cfg:start_date>
+-->
+            <cfg:start_date>2012073</cfg:start_date>
+            <cfg:days_to_scan>2</cfg:days_to_scan>
             <cfg:metrics>
 <!-- Basic Metrics: Availability, Gap Count, etc.:  -->
 <!--
@@ -82,7 +91,10 @@
                 <cfg:metric>
                     <cfg:class_name>asl.seedscan.metrics.CalibrationMetric</cfg:class_name>
                     <cfg:argument cfg:name="makeplots">true</cfg:argument>
+                    <cfg:argument cfg:name="instrument-calibration-file">./resources/calibration.table</cfg:argument>
                 </cfg:metric>
+<!--
+-->
 
 <!-- Event Metrics:  -->
                 <cfg:metric>
@@ -94,21 +106,20 @@
                     <cfg:argument cfg:name="makeplots">true</cfg:argument>
                 </cfg:metric>
 <!-- PowerBand Metrics:  -->
-<!--
                 <cfg:metric>
                     <cfg:class_name>asl.seedscan.metrics.NLNMDeviationMetric</cfg:class_name>
                     <cfg:argument cfg:name="lower-limit">4</cfg:argument>
                     <cfg:argument cfg:name="upper-limit">8</cfg:argument>
-                    <cfg:argument cfg:name="nlnm-modelfile">/Users/mth/mth/Projects/asl/seedscan/resources/NLNM.ascii</cfg:argument>
-                    <cfg:argument cfg:name="nhnm-modelfile">/Users/mth/mth/Projects/asl/seedscan/resources/NHNM.ascii</cfg:argument>
+                    <cfg:argument cfg:name="nlnm-modelfile">./resources/NLNM.ascii</cfg:argument>
+                    <cfg:argument cfg:name="nhnm-modelfile">./resources/NHNM.ascii</cfg:argument>
                     <cfg:argument cfg:name="makeplots">true</cfg:argument>
                 </cfg:metric>
                 <cfg:metric>
                     <cfg:class_name>asl.seedscan.metrics.NLNMDeviationMetric</cfg:class_name>
                     <cfg:argument cfg:name="lower-limit">16</cfg:argument>
                     <cfg:argument cfg:name="upper-limit">22</cfg:argument>
-                    <cfg:argument cfg:name="nlnm-modelfile">/Users/mth/mth/Projects/asl/seedscan/resources/NLNM.ascii</cfg:argument>
-                    <cfg:argument cfg:name="nhnm-modelfile">/Users/mth/mth/Projects/asl/seedscan/resources/NHNM.ascii</cfg:argument>
+                    <cfg:argument cfg:name="nlnm-modelfile">./resources/NLNM.ascii</cfg:argument>
+                    <cfg:argument cfg:name="nhnm-modelfile">./resources/NHNM.ascii</cfg:argument>
                 </cfg:metric>
                 <cfg:metric>
                     <cfg:class_name>asl.seedscan.metrics.StationDeviationMetric</cfg:class_name>
@@ -129,6 +140,7 @@
                     <cfg:argument cfg:name="lower-limit">30</cfg:argument>
                     <cfg:argument cfg:name="upper-limit">50</cfg:argument>
                 </cfg:metric>
+<!--
 -->
             </cfg:metrics>
         </cfg:scan>
