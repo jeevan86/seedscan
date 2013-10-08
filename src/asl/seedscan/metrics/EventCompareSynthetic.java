@@ -396,8 +396,8 @@ extends Metric
         double stlo  = stationMeta.getLongitude();
         double gcarc = SphericalCoords.distance(evla, evlo, stla, stlo);
 
-        final String plotTitle = String.format("[ Event: %s ] [ Station: %s ] [ Dist: %.2f ] StrongMotionCompare", key, getStation(),
-                                               gcarc );
+        final String plotTitle = String.format("[ Event: %s ] [ Station: %s ] [ Dist: %.2f ] %s", key, getStation(), gcarc,
+                                               getName() );
 
         final String pngName   = String.format("%s.synthcompare.ev-%d.png", getOutputDir(), eventNumber );
 
