@@ -13,17 +13,13 @@
     </cfg:metaserver>
 
 <!-- TESTING: Set specific Stations to run: Comment out to get Station list from MetaServer  -->
+<!-- Note that <network_subset> & <station_subset> can be used within each scan to filter stations to scan -->
+<!--
     <cfg:station_list>
             <cfg:station>IU_ANMO</cfg:station>
-    </cfg:station_list>
-<!--
-            <cfg:station>IU_ADK</cfg:station>
-            <cfg:station>IU_KIP</cfg:station>
-            <cfg:station>IC_ENH</cfg:station>
             <cfg:station>IU_ANTO</cfg:station>
-            <cfg:station>IU_CCM</cfg:station>
+    </cfg:station_list>
 -->
-
  
 <!-- DATABASE CONFIG -->
     <cfg:database>
@@ -49,15 +45,15 @@
 <!-- SCAN CONFIG -->
     <cfg:scans>
         <cfg:scan cfg:name="daily">
-
-<!--
-            <cfg:path>/Users/mth/mth/Projects/xs0/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}</cfg:path>
--->
             <cfg:path>/Users/mth/mth/ASLData/xs0/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}</cfg:path>
             <cfg:dataless_dir>/Users/mth/mth/ASLData/dcc/metadata/dataless/</cfg:dataless_dir>
             <cfg:events_dir>/Users/mth/mth/ASLData/xs0/events/</cfg:events_dir>
-            <cfg:plots_dir>./output2</cfg:plots_dir>
+            <cfg:plots_dir>./outputs</cfg:plots_dir>
+            <cfg:station_subset>ANTO</cfg:station_subset>
 <!--
+            <cfg:channel_subset>LHZ,LH1</cfg:channel_subset>
+            <cfg:station_subset>PKME,HRV,ANMO,PQI,WES</cfg:station_subset>
+            <cfg:network_subset>IU</cfg:network_subset>
             <cfg:start_date>2012072</cfg:start_date>
             <cfg:start_date>2012073</cfg:start_date>
             <cfg:start_date>2012160</cfg:start_date>
@@ -66,9 +62,11 @@
             <cfg:start_date>2013125</cfg:start_date>
             <cfg:start_date>2012335</cfg:start_date>
             <cfg:start_date>2012221</cfg:start_date>
--->
             <cfg:start_date>2012073</cfg:start_date>
-            <cfg:days_to_scan>2</cfg:days_to_scan>
+            <cfg:start_date>2013140</cfg:start_date>
+-->
+            <cfg:start_date>2012160</cfg:start_date>
+            <cfg:days_to_scan>1</cfg:days_to_scan>
             <cfg:metrics>
 <!-- Basic Metrics: Availability, Gap Count, etc.:  -->
 <!--
@@ -93,8 +91,6 @@
                     <cfg:argument cfg:name="makeplots">true</cfg:argument>
                     <cfg:argument cfg:name="instrument-calibration-file">./resources/calibration.table</cfg:argument>
                 </cfg:metric>
-<!--
--->
 
 <!-- Event Metrics:  -->
                 <cfg:metric>
@@ -106,6 +102,7 @@
                     <cfg:argument cfg:name="makeplots">true</cfg:argument>
                 </cfg:metric>
 <!-- PowerBand Metrics:  -->
+<!--
                 <cfg:metric>
                     <cfg:class_name>asl.seedscan.metrics.NLNMDeviationMetric</cfg:class_name>
                     <cfg:argument cfg:name="lower-limit">4</cfg:argument>
@@ -140,12 +137,31 @@
                     <cfg:argument cfg:name="lower-limit">30</cfg:argument>
                     <cfg:argument cfg:name="upper-limit">50</cfg:argument>
                 </cfg:metric>
+-->
+            </cfg:metrics>
+        </cfg:scan>
+        <cfg:scan cfg:name="yearly">
+            <cfg:path>/Users/mth/mth/ASLData/xs0/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}</cfg:path>
+            <cfg:dataless_dir>/Users/mth/mth/ASLData/dcc/metadata/dataless/</cfg:dataless_dir>
+            <cfg:events_dir>/Users/mth/mth/ASLData/xs0/events/</cfg:events_dir>
+            <cfg:plots_dir>./outputs</cfg:plots_dir>
+            <cfg:station_subset>ANMO</cfg:station_subset>
+            <cfg:start_date>2012072</cfg:start_date>
+            <cfg:days_to_scan>1</cfg:days_to_scan>
+            <cfg:metrics>
+                <cfg:metric>
+                    <cfg:class_name>asl.seedscan.metrics.AvailabilityMetric</cfg:class_name>
+                </cfg:metric>
 <!--
+                <cfg:metric>
+                    <cfg:class_name>asl.seedscan.metrics.CalibrationMetric</cfg:class_name>
+                    <cfg:argument cfg:name="makeplots">true</cfg:argument>
+                    <cfg:argument cfg:name="instrument-calibration-file">./resources/calibration.table</cfg:argument>
+                </cfg:metric>
 -->
             </cfg:metrics>
         </cfg:scan>
 <!--
-
         <cfg:scan cfg:name="yearly">
             <cfg:path>/xs0/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}</cfg:path>
             <cfg:start_day>1</cfg:start_day>

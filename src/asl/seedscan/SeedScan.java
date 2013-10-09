@@ -138,11 +138,6 @@ public class SeedScan
     	MetricReader   reader 	= new MetricReader(readDB); 
     	MetricInjector injector = new MetricInjector(writeDB);
 
-        boolean filterNetworks = false;
-        boolean filterStations = false;
-        boolean filterChannels = false;
-        boolean filterLocations = false;
-
      // ===== CONFIG: SCANS =====
         Hashtable<String, Scan> scans = new Hashtable<String, Scan>();
         if (config.getScans().getScan() == null) {
@@ -164,7 +159,7 @@ public class SeedScan
                 }
 
         // Configure this Scan
-                Scan scan = new Scan();
+                Scan scan = new Scan(scanCfg.getName());
                 scan.setPathPattern(scanCfg.getPath());
                 scan.setDatalessDir(scanCfg.getDatalessDir());
                 scan.setEventsDir(scanCfg.getEventsDir());
@@ -178,8 +173,7 @@ public class SeedScan
                 }
 
                 if (scanCfg.getNetworkSubset() != null) {
-                    filterNetworks = true;
-                    logger.info("Filter on Network Subset=[{}]", scanCfg.getNetworkSubset());
+                    logger.debug("Filter on Network Subset=[{}]", scanCfg.getNetworkSubset());
                     Filter filter = new Filter(false);
                     for (String network : scanCfg.getNetworkSubset().split(",") ) {
                         logger.debug("Network =[{}]", network);
@@ -188,8 +182,7 @@ public class SeedScan
                     scan.setNetworks(filter);
                 }
                 if (scanCfg.getStationSubset() != null) {
-                    filterStations = true;
-                    logger.info("Filter on Station Subset=[{}]", scanCfg.getStationSubset());
+                    logger.debug("Filter on Station Subset=[{}]", scanCfg.getStationSubset());
                     Filter filter = new Filter(false);
                     for (String station : scanCfg.getStationSubset().split(",") ) {
                         logger.debug("Station =[{}]", station);
@@ -198,8 +191,7 @@ public class SeedScan
                     scan.setStations(filter);
                 }
                 if (scanCfg.getLocationSubset() != null) {
-                    filterLocations = true;
-                    logger.info("Filter on Location Subset=[{}]", scanCfg.getLocationSubset());
+                    logger.debug("Filter on Location Subset=[{}]", scanCfg.getLocationSubset());
                     Filter filter = new Filter(false);
                     for (String location : scanCfg.getLocationSubset().split(",") ) {
                         logger.debug("Location =[{}]", location);
@@ -208,8 +200,7 @@ public class SeedScan
                     scan.setLocations(filter);
                 }
                 if (scanCfg.getChannelSubset() != null) {
-                    filterChannels = true;
-                    logger.info("Filter on Channel Subset=[{}]", scanCfg.getChannelSubset());
+                    logger.debug("Filter on Channel Subset=[{}]", scanCfg.getChannelSubset());
                     Filter filter = new Filter(false);
                     for (String channel : scanCfg.getChannelSubset().split(",") ) {
                         logger.debug("Channel =[{}]", channel);
@@ -268,12 +259,6 @@ public class SeedScan
 
 // ==== Perform Scans ====
 
-// MTH: Not sure what we're doing here ...
-        for (String key : scans.keySet() ) {
-           scan = scans.get(key);
-           logger.info(String.format("Scan=[%s] startDay=%d startDate=%d daysToScan=%d\n", key, scan.getStartDay(), scan.getStartDate(), scan.getDaysToScan() ));
-        }
-
         scan = scans.get("daily");
 
 //MTH: This part could/should be moved up higher except that we need to know datalessDir, which,
@@ -293,9 +278,6 @@ public class SeedScan
         else { // Use local MetaServer
             metaServer = new MetaServer(scan.getDatalessDir());
         }
-
- // Really the scan for each station will be handled by ScanManager using thread pools
- // For now we're just going to do it here:
 
         List<Station> stations = null;
 
@@ -336,53 +318,38 @@ public class SeedScan
         Thread injectorThread = new Thread(injector);
         injectorThread.start();
         logger.info("Injector thread started.");
-        
-        for (Station station: stations) {
-            if (filterNetworks){
-                if (!scan.getNetworks().filter(station.getNetwork())) {
-                    continue;
-                }
-            }
-            if (filterStations){
-                if (!scan.getStations().filter(station.getStation())) {
-                    continue;
-                }
-            }
-            logger.info("Scan Station:[{}]", station);
-            Scanner scanner = new Scanner(reader, injector, station, scan, metaServer);
-            scanner.scan();
+
+    // Loop over scans and hand each one to a ScanManager
+        for (String key : scans.keySet() ) {
+            scan = scans.get(key);
+            logger.info(String.format("Scan=[%s] startDay=%d startDate=%d daysToScan=%d\n", key, scan.getStartDay(), 
+                                       scan.getStartDate(), scan.getDaysToScan() ));
+            ScanManager scanManager = new ScanManager(reader, injector, stations, scan, metaServer);
         }
-        
+
         try {
 	        injector.halt();
-	        //logger.info("All stations processed. Waiting for injector thread to finish...");
+	        logger.info("All stations processed. Waiting for injector thread to finish...");
             synchronized(injectorThread) {
 	            //injectorThread.wait();
 	            injectorThread.interrupt();
             }
-	        //logger.info("Injector thread halted.");
+	        logger.info("Injector thread halted.");
         } catch (InterruptedException ex) {
-        	//logger.warning("The injector thread was interrupted while attempting to complete requests.");
+        	logger.warn("The injector thread was interrupted while attempting to complete requests.");
         }
         
         try {
 	        reader.halt();
-	        //logger.info("All stations processed. Waiting for reader thread to finish...");
+	        logger.info("All stations processed. Waiting for reader thread to finish...");
             synchronized(readerThread) {
 	            //readerThread.wait();
 	            readerThread.interrupt();
             }
-	        //logger.info("Reader thread halted.");
+	        logger.info("Reader thread halted.");
         } catch (InterruptedException ex) {
-        	//logger.warning("The reader thread was interrupted while attempting to complete requests.");
+        	logger.warn("The reader thread was interrupted while attempting to complete requests.");
         }
-
-        ////Scanner scanner = new Scanner(database,station,scan);
-        //scanner.scan();
-/**
-        ScanManager manager = new ScanManager(scan);
-        manager.run();
-**/
 
         try {
             lock.release();

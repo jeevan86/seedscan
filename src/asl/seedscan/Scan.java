@@ -25,6 +25,7 @@ import asl.seedscan.metrics.MetricWrapper;
 
 public class Scan
 {
+    private String scanName = null;
     private String pathPattern;
     private String datalessDir;
     private String eventsDir;
@@ -39,9 +40,14 @@ public class Scan
     private Filter locations = null;
     private Filter channels = null;
 
-    public Scan()
+    public Scan(String scanName)
     {
+        this.scanName = scanName;
         metrics = new ArrayList<MetricWrapper>();
+    }
+
+    public String getName() {
+        return scanName;
     }
 
     // (seed file) path pattern
