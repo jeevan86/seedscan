@@ -66,9 +66,6 @@ public class SeedScan
 {
     private static Logger logger = LoggerFactory.getLogger(asl.seedscan.SeedScan.class);
 
-    private static final String allchanURLstr = "http://wwwasl/uptime/honeywell/gsn_allchan.txt";
-    private static URL allchanURL;
-
     public static void main(String args[])
     {
      // Default locations of config and schema files
@@ -84,7 +81,7 @@ public class SeedScan
         Option opConfigFile = new Option("c", "config-file", true, 
                             "The config file to use for seedscan. XML format according to SeedScanConfig.xsd.");
         Option opSchemaFile = new Option("s", "schema-file", true, 
-                            "The schame file which should be used to verify the config file format. ");  
+                            "The xsd schema file which should be used to verify the config file format. ");  
 
         OptionGroup ogConfig = new OptionGroup();
         ogConfig.addOption(opConfigFile);
@@ -136,11 +133,15 @@ public class SeedScan
      // MTH: This is now done in log4j.properties file
 
      // ===== CONFIG: DATABASE =====
-        MetricDatabase readDB = new MetricDatabase(config.getDatabase());
-        MetricDatabase writeDB = new MetricDatabase(config.getDatabase());
-    	MetricReader reader 	= new MetricReader(readDB); // Should this be a separate connection?
+        MetricDatabase readDB   = new MetricDatabase(config.getDatabase());
+        MetricDatabase writeDB  = new MetricDatabase(config.getDatabase());
+    	MetricReader   reader 	= new MetricReader(readDB); 
     	MetricInjector injector = new MetricInjector(writeDB);
 
+        boolean filterNetworks = false;
+        boolean filterStations = false;
+        boolean filterChannels = false;
+        boolean filterLocations = false;
 
      // ===== CONFIG: SCANS =====
         Hashtable<String, Scan> scans = new Hashtable<String, Scan>();
@@ -162,12 +163,11 @@ public class SeedScan
                     System.exit(1);
                 }
 
-
+        // Configure this Scan
                 Scan scan = new Scan();
                 scan.setPathPattern(scanCfg.getPath());
                 scan.setDatalessDir(scanCfg.getDatalessDir());
                 scan.setEventsDir(scanCfg.getEventsDir());
-logger.info("scan.setPlotsDir({})", scanCfg.getPlotsDir() );
                 scan.setPlotsDir(scanCfg.getPlotsDir());
                 scan.setDaysToScan(scanCfg.getDaysToScan().intValue());
                 if (scanCfg.getStartDay() != null) {
@@ -177,12 +177,52 @@ logger.info("scan.setPlotsDir({})", scanCfg.getPlotsDir() );
                     scan.setStartDate(scanCfg.getStartDate().intValue());
                 }
 
+                if (scanCfg.getNetworkSubset() != null) {
+                    filterNetworks = true;
+                    logger.info("Filter on Network Subset=[{}]", scanCfg.getNetworkSubset());
+                    Filter filter = new Filter(false);
+                    for (String network : scanCfg.getNetworkSubset().split(",") ) {
+                        logger.debug("Network =[{}]", network);
+                        filter.addFilter(network);
+                    }
+                    scan.setNetworks(filter);
+                }
+                if (scanCfg.getStationSubset() != null) {
+                    filterStations = true;
+                    logger.info("Filter on Station Subset=[{}]", scanCfg.getStationSubset());
+                    Filter filter = new Filter(false);
+                    for (String station : scanCfg.getStationSubset().split(",") ) {
+                        logger.debug("Station =[{}]", station);
+                        filter.addFilter(station);
+                    }
+                    scan.setStations(filter);
+                }
+                if (scanCfg.getLocationSubset() != null) {
+                    filterLocations = true;
+                    logger.info("Filter on Location Subset=[{}]", scanCfg.getLocationSubset());
+                    Filter filter = new Filter(false);
+                    for (String location : scanCfg.getLocationSubset().split(",") ) {
+                        logger.debug("Location =[{}]", location);
+                        filter.addFilter(location);
+                    }
+                    scan.setLocations(filter);
+                }
+                if (scanCfg.getChannelSubset() != null) {
+                    filterChannels = true;
+                    logger.info("Filter on Channel Subset=[{}]", scanCfg.getChannelSubset());
+                    Filter filter = new Filter(false);
+                    for (String channel : scanCfg.getChannelSubset().split(",") ) {
+                        logger.debug("Channel =[{}]", channel);
+                        filter.addFilter(channel);
+                    }
+                    scan.setChannels(filter);
+                }
+
                 for (MetricT met: scanCfg.getMetrics().getMetric()) {
                     try {
                         Class metricClass = Class.forName(met.getClassName());
                         MetricWrapper wrapper = new MetricWrapper(metricClass);
                         for (ArgumentT arg: met.getArgument()) {
-//System.out.format("== SeedScan: wrapper.add(name=%s, value=%s)\n", arg.getName(), arg.getValue() );
                             wrapper.add(arg.getName(), arg.getValue());
                         }
                         scan.addMetric(wrapper);
@@ -201,7 +241,6 @@ logger.info("scan.setPlotsDir({})", scanCfg.getPlotsDir() );
                     }
 
                 }
-
                 scans.put(name, scan);
             }
         }
@@ -215,10 +254,6 @@ logger.info("scan.setPlotsDir({})", scanCfg.getPlotsDir() );
         // - Mark when each date-station-channel-operation is complete
         //LogDatabaseHandler logDB = new LogDatabaseHandler(configuration.get
 
-        // Get a list of stations
-
-        // Get a list of files  (do we want channels too?)
-
         // For each day ((yesterday - scanDepth) to yesterday)
         // scan for these channel files, only process them if
         // they have not yet been scanned, or if changes have
@@ -230,16 +265,10 @@ logger.info("scan.setPlotsDir({})", scanCfg.getPlotsDir() );
         // in order to preserve overall system memory resources.
 
         Scan scan = null;
-        /*
-        if (scans.containsKey()) {
-            scan = 
-        }
-        else {
-        }
-        */
 
 // ==== Perform Scans ====
 
+// MTH: Not sure what we're doing here ...
         for (String key : scans.keySet() ) {
            scan = scans.get(key);
            logger.info(String.format("Scan=[%s] startDay=%d startDate=%d daysToScan=%d\n", key, scan.getStartDay(), scan.getStartDate(), scan.getDaysToScan() ));
@@ -300,10 +329,6 @@ logger.info("scan.setPlotsDir({})", scanCfg.getPlotsDir() );
             System.exit(1);
         }
 
-        for (Station station : stations){
-            logger.info(String.format("Scan station:[%s]", station));
-        }
-
         Thread readerThread = new Thread(reader);
         readerThread.start();
         logger.info("Reader thread started.");
@@ -312,9 +337,18 @@ logger.info("scan.setPlotsDir({})", scanCfg.getPlotsDir() );
         injectorThread.start();
         logger.info("Injector thread started.");
         
-        //logger.info("Processing stations...");
         for (Station station: stations) {
-            //Scanner scanner = new Scanner(reader, injector, station, scan, metaGen);
+            if (filterNetworks){
+                if (!scan.getNetworks().filter(station.getNetwork())) {
+                    continue;
+                }
+            }
+            if (filterStations){
+                if (!scan.getStations().filter(station.getStation())) {
+                    continue;
+                }
+            }
+            logger.info("Scan Station:[{}]", station);
             Scanner scanner = new Scanner(reader, injector, station, scan, metaServer);
             scanner.scan();
         }
