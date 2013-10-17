@@ -52,7 +52,9 @@ public class ScanManager
             }
         }
 
-        int threadCount = 2;
+        int threadCount = Runtime.getRuntime().availableProcessors();
+        logger.info("Number of Threads to Use = [{}]", threadCount);
+
         WorkerThread[] workers = new WorkerThread[threadCount];
         running = true;
         //threadsCompleted = 0;
