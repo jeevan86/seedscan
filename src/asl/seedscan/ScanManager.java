@@ -45,6 +45,7 @@ public class ScanManager
         for (Station station : stationList) {
             if (passesFilter(station)) {
                 logger.debug("Add station={} to the task queue", station);
+                logger.info("Add station={} to the task queue", station);
                 taskQueue.add( new Scanner(reader, injector, station, scan, metaServer) );
             }
             else {
@@ -53,6 +54,7 @@ public class ScanManager
         }
 
         int threadCount = Runtime.getRuntime().availableProcessors();
+        //int threadCount = 1;
         logger.info("Number of Threads to Use = [{}]", threadCount);
 
         WorkerThread[] workers = new WorkerThread[threadCount];

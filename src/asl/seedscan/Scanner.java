@@ -108,7 +108,7 @@ public class Scanner
 
     public void scan()
     {
-        logger.info("Enter scan()");
+        logger.info("Enter scan(): Thread id=[{}]", Thread.currentThread().getId());
 
         GregorianCalendar timestamp = new GregorianCalendar(TimeZone.getTimeZone("GMT") );
 
@@ -147,6 +147,12 @@ public class Scanner
             }
             GregorianCalendar nextDayTimestamp = (GregorianCalendar)timestamp.clone();
             nextDayTimestamp.setTimeInMillis( timestamp.getTimeInMillis() + dayMilliseconds);
+
+            logger.info(String.format("Scan Station=%s Day=%s Thread id=[%d]", station, EpochData.epochToDateString(timestamp),
+                Thread.currentThread().getId() ));
+            logger.info("EXIT scan(): Thread id=[{}]", Thread.currentThread().getId());
+if (true) return;
+
 
 // [1] Get all the channel metadata for this station, for this day
             //StationMeta stnMeta = metaGen.getStationMeta(station, timestamp); 
