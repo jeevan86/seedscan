@@ -151,7 +151,7 @@ public class Scanner
             logger.info(String.format("Scan Station=%s Day=%s Thread id=[%d]", station, EpochData.epochToDateString(timestamp),
                 Thread.currentThread().getId() ));
             logger.info("EXIT scan(): Thread id=[{}]", Thread.currentThread().getId());
-if (true) return;
+//if (true) return;
 
 
 // [1] Get all the channel metadata for this station, for this day

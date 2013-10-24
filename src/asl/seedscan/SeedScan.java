@@ -274,6 +274,9 @@ public class SeedScan
                     logger.error("caught URI exception:" + e.getMessage() );
                 }
             }
+            else {
+                metaServer = new MetaServer(scan.getDatalessDir());
+            }
         }
         else { // Use local MetaServer
             metaServer = new MetaServer(scan.getDatalessDir());
@@ -284,6 +287,7 @@ public class SeedScan
         if (config.getStationList() == null){       // get StationList from MetaServer
             logger.info("Get StationList from MetaServer");
             stations = metaServer.getStationList();
+            logger.info("DONE");
         }
         else {                                      // read StationList from config.xml
             logger.info("Read StationList from config.xml");
@@ -357,6 +361,7 @@ public class SeedScan
             ;
         } finally {
             lock = null;
+metaServer.quit();
         }
     } // main()
 

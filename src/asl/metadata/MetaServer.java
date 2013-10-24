@@ -30,6 +30,8 @@ import asl.metadata.Station;
 import asl.metadata.meta_new.StationMeta;
 
 import java.rmi.Naming;
+import java.rmi.server.UnicastRemoteObject;
+import java.rmi.RemoteException;
 
 /**
  * MetaServer - Return requested metadata
@@ -77,6 +79,15 @@ public class MetaServer
         }
         catch (Exception e) {
             logger.error(e.getMessage());
+        }
+    }
+
+    public void quit(){
+        try { // Failure to do this may result in a hung application that doesn't quit
+            UnicastRemoteObject.unexportObject(metaGen, true);
+        }
+        catch(RemoteException e) {
+            logger.error("Caught exception:", e.getMessage());
         }
     }
 
