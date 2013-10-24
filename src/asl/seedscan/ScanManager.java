@@ -53,8 +53,24 @@ public class ScanManager
             }
         }
 
-        //int threadCount = Runtime.getRuntime().availableProcessors();
-        int threadCount = 1;
+        boolean noThreads = true;
+        //boolean noThreads = false;
+        if (noThreads) {
+logger.info("We are NOT using threads");
+            while (running) {
+                Runnable task = taskQueue.poll(); // Get a task from the queue
+                if (task == null) {
+                    break;  // queue is empty
+                }
+                task.run(); // execute the task
+            }
+        }
+        else { // useThreads
+logger.info("We ARE using threads");
+
+        int threadCount = Runtime.getRuntime().availableProcessors();
+
+        //int threadCount = 1;
         logger.info("Number of Threads to Use = [{}]", threadCount);
 
         WorkerThread[] workers = new WorkerThread[threadCount];
@@ -71,6 +87,9 @@ public class ScanManager
             logger.info("Start thread:[{}]", i);
             workers[i].start();
         }
+
+        } // useThreads
+
     }
 
     private boolean passesFilter(Station station) {

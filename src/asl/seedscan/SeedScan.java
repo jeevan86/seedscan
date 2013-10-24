@@ -287,7 +287,6 @@ public class SeedScan
         if (config.getStationList() == null){       // get StationList from MetaServer
             logger.info("Get StationList from MetaServer");
             stations = metaServer.getStationList();
-            logger.info("DONE");
         }
         else {                                      // read StationList from config.xml
             logger.info("Read StationList from config.xml");
@@ -324,12 +323,15 @@ public class SeedScan
         logger.info("Injector thread started.");
 
     // Loop over scans and hand each one to a ScanManager
+        logger.info("Hand scan to ScanManager");
         for (String key : scans.keySet() ) {
             scan = scans.get(key);
             logger.info(String.format("Scan=[%s] startDay=%d startDate=%d daysToScan=%d\n", key, scan.getStartDay(), 
                                        scan.getStartDate(), scan.getDaysToScan() ));
             ScanManager scanManager = new ScanManager(reader, injector, stations, scan, metaServer);
         }
+
+        logger.info("ScanManager is [ FINISHED ] --> stop the injector and reader threads");
 
         try {
 	        injector.halt();
@@ -360,8 +362,9 @@ public class SeedScan
         } catch (IOException e) {
             ;
         } finally {
+logger.info("Release seedscan lock and quit metaServer");
             lock = null;
-metaServer.quit();
+            metaServer.quit();
         }
     } // main()
 

@@ -150,7 +150,6 @@ public class Scanner
 
             logger.info(String.format("Scan Station=%s Day=%s Thread id=[%d]", station, EpochData.epochToDateString(timestamp),
                 Thread.currentThread().getId() ));
-            logger.info("EXIT scan(): Thread id=[{}]", Thread.currentThread().getId());
 //if (true) return;
 
 
@@ -286,6 +285,7 @@ public class Scanner
             } // end loop over metrics
 
         } // end loop over day to scan
+        logger.info("EXIT scan(): Thread id=[{}]", Thread.currentThread().getId());
     } // end scan()
 
 /**
