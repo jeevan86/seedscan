@@ -28,8 +28,10 @@ import asl.seedscan.database.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.List;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 public class ScanManager
-//implements Runnable
 {
     private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.ScanManager.class);
 
@@ -41,55 +43,30 @@ public class ScanManager
 
     {
         this.scan = scan;
-        taskQueue = new ConcurrentLinkedQueue<Runnable>(); // Create the task queue
+
+        int threadCount = Runtime.getRuntime().availableProcessors();
+
+        logger.info("Number of Threads to Use = [{}]", threadCount);
+
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
         for (Station station : stationList) {
             if (passesFilter(station)) {
                 logger.debug("Add station={} to the task queue", station);
                 logger.info("Add station={} to the task queue", station);
-                taskQueue.add( new Scanner(reader, injector, station, scan, metaServer) );
+                executor.execute( new Scanner(reader, injector, station, scan, metaServer) );
             }
             else {
                 logger.debug("station={} Did NOT pass filter for scan={}", station, scan.getName());
             }
         }
-
-        boolean noThreads = true;
-        //boolean noThreads = false;
-        if (noThreads) {
-logger.info("We are NOT using threads");
-            while (running) {
-                Runnable task = taskQueue.poll(); // Get a task from the queue
-                if (task == null) {
-                    break;  // queue is empty
-                }
-                task.run(); // execute the task
-            }
+        executor.shutdown();
+/**
+    awaitTermination(long timeout, TimeUnit unit) - Blocks until all tasks have completed execution 
+      after a shutdown request, or the timeout occurs, or the current thread is interrupted, whichever happens first.
+**/
+        while (executor.isTerminated() == false) { // Hang out here until all worker threads have finished
         }
-        else { // useThreads
-logger.info("We ARE using threads");
-
-        int threadCount = Runtime.getRuntime().availableProcessors();
-
-        //int threadCount = 1;
-        logger.info("Number of Threads to Use = [{}]", threadCount);
-
-        WorkerThread[] workers = new WorkerThread[threadCount];
-        running = true;
-        //threadsCompleted = 0;
-        for (int i=0; i<threadCount; i++) {
-            workers[i] = new WorkerThread();
-            try {
-                workers[i].setPriority( Thread.currentThread().getPriority() - 1);
-            }
-            catch (Exception e) {
-                logger.error("Caught exception:", e);
-            }
-            logger.info("Start thread:[{}]", i);
-            workers[i].start();
-        }
-
-        } // useThreads
-
+        logger.info("ALL THREADS HAVE FINISHED");
     }
 
     private boolean passesFilter(Station station) {
@@ -105,22 +82,5 @@ logger.info("We ARE using threads");
         }
         return true;
     }
-
-    private class WorkerThread extends Thread {
-        public void run() {
-            try {
-                while (running) {
-                    Runnable task = taskQueue.poll(); // Get a task from the queue
-                    if (task == null) {
-                        break;  // queue is empty
-                    }
-                    task.run(); // execute the task
-                }
-            }
-            finally {
-            }
-        }
-    }
-
 
 }

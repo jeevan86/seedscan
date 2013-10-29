@@ -108,7 +108,7 @@ public class Scanner
 
     public void scan()
     {
-        logger.info("Enter scan(): Thread id=[{}]", Thread.currentThread().getId());
+        logger.debug("Enter scan(): Thread id=[{}]", Thread.currentThread().getId());
 
         GregorianCalendar timestamp = new GregorianCalendar(TimeZone.getTimeZone("GMT") );
 
@@ -148,7 +148,7 @@ public class Scanner
             GregorianCalendar nextDayTimestamp = (GregorianCalendar)timestamp.clone();
             nextDayTimestamp.setTimeInMillis( timestamp.getTimeInMillis() + dayMilliseconds);
 
-            logger.info(String.format("Scan Station=%s Day=%s Thread id=[%d]", station, EpochData.epochToDateString(timestamp),
+            logger.debug(String.format("Scan Station=%s Day=%s Thread id=[%d]", station, EpochData.epochToDateString(timestamp),
                 Thread.currentThread().getId() ));
 //if (true) return;
 
@@ -285,7 +285,6 @@ public class Scanner
             } // end loop over metrics
 
         } // end loop over day to scan
-        logger.info("EXIT scan(): Thread id=[{}]", Thread.currentThread().getId());
     } // end scan()
 
 /**
