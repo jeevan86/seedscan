@@ -43,7 +43,7 @@ public class MetricDatabase
     private String username;
     private String password;
     
-    private CallableStatement callStatement;
+    //private CallableStatement callStatement;
 
     public MetricDatabase(DatabaseT config) {
         this(config.getUri(), config.getUsername(), config.getPassword().getPlain());
@@ -79,7 +79,6 @@ public class MetricDatabase
     	return connection;
     }
 
-    
     public ByteBuffer getMetricDigest(	Calendar date,
     									String metricName,
     									Station station)
@@ -87,7 +86,8 @@ public class MetricDatabase
     	ByteBuffer digest = null;
     	
         try {
-	        callStatement = connection.prepareCall("SELECT spGetMetricDigest(?, ?, ?, ?)");
+	        CallableStatement callStatement = connection.prepareCall("SELECT spGetMetricDigest(?, ?, ?, ?)");
+	        //callStatement = connection.prepareCall("SELECT spGetMetricDigest(?, ?, ?, ?)");
 	        java.sql.Date sqlDate = new java.sql.Date(date.getTime().getTime());
 	        callStatement.setDate(1, sqlDate, date);
 	        callStatement.setString(2, metricName);
@@ -112,7 +112,7 @@ public class MetricDatabase
     	ByteBuffer digest = null;
     	
         try {
-	        callStatement = connection.prepareCall("SELECT spGetMetricValueDigest(?, ?, ?, ?, ?, ?)");
+	        CallableStatement callStatement = connection.prepareCall("SELECT spGetMetricValueDigest(?, ?, ?, ?, ?, ?)");
 	        java.sql.Date sqlDate = new java.sql.Date(date.getTime().getTime());
 	        callStatement.setDate(1, sqlDate, date);
 	        callStatement.setString(2, metricName);
@@ -141,7 +141,7 @@ public class MetricDatabase
     {
     	Double value = null;
         try {
-	        callStatement = connection.prepareCall("SELECT spGetMetricValue(?, ?, ?, ?, ?, ?)");
+	        CallableStatement callStatement = connection.prepareCall("SELECT spGetMetricValue(?, ?, ?, ?, ?, ?)");
 	        java.sql.Date sqlDate = new java.sql.Date(date.getTime().getTime());
 	        callStatement.setDate(1, sqlDate, date);
 	        callStatement.setString(2, metricName);
@@ -166,7 +166,7 @@ public class MetricDatabase
         try {
             for (String id: results.getIdSet()) {
             	Channel channel = MetricResult.createChannel(id);
-	            callStatement = connection.prepareCall("SELECT spInsertMetricData(?, ?, ?, ?, ?, ?, ?, ?)");
+	            CallableStatement callStatement = connection.prepareCall("SELECT spInsertMetricData(?, ?, ?, ?, ?, ?, ?, ?)");
 	            java.sql.Date date = new java.sql.Date(results.getDate().getTime().getTime());
 	            callStatement.setDate(1, date, results.getDate());
 	            callStatement.setString(2, results.getMetricName());
@@ -190,7 +190,7 @@ public class MetricDatabase
     	String result = "";
         try {
             ResultSet resultSet = null;
-            callStatement = connection.prepareCall("CALL spGetAll(?, ?, ?)");
+            CallableStatement callStatement = connection.prepareCall("CALL spGetAll(?, ?, ?)");
             callStatement.setString(1, startDate);
             callStatement.setString(2, endDate);
             callStatement.registerOutParameter(3, java.sql.Types.VARCHAR);

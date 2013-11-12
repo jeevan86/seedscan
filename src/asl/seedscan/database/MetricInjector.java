@@ -62,7 +62,10 @@ extends TaskThread<MetricResult>
 		logger.info("performTask: command=" + command + " results=" + results);
 		
 		if (command.equals("INJECT")) {
-			metricDB.insertMetricData(results);
+			int i = metricDB.insertMetricData(results);
+            if (i != 0) {
+                logger.error("metricDB.insertMetricData FAILED!");
+            }
 		}
 	}
 

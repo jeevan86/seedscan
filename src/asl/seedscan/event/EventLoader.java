@@ -97,7 +97,6 @@ public class EventLoader
         return yyyymodd;
     }
 
-    //public Hashtable<String, SacTimeSeries> getDaySynthetics(Calendar timestamp, final Station station) {
     public Hashtable<String, Hashtable<String, SacTimeSeries>> getDaySynthetics(Calendar timestamp, final Station station) {
 
         final String key = makeKey(timestamp);
@@ -122,7 +121,6 @@ public class EventLoader
         };
 
         Hashtable<String, Hashtable<String, SacTimeSeries>> allEventSynthetics = null;
-        //Hashtable<String, SacTimeSeries> eventSynthetics = null;
 
         String year    = key.substring(0,4);
         String yearDir = eventsDirectory + "/" + year;
@@ -172,10 +170,10 @@ public class EventLoader
 
         final String key = makeKey(timestamp);
 
-        //System.out.format("== EventLoader.getDayEvents: Request events for key=[%s]\n", key);
+        logger.debug("EventLoader.getDayEvents(): Request events for key=[{}]", key);
 
         if (!eventsDirectoryValid) {
-            //System.out.format("== EventLoader.getDayEvents: eventsDirectory is NOT valid --> return null\n");
+            logger.error("EventLoader.getDayEvents(): eventsDirectory is NOT valid --> return null");
             return null;
         }
 

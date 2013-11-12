@@ -52,7 +52,8 @@ extends Metric
 {
     private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.metrics.EventCompareStrongMotion.class);
 
-    private static Hashtable<String, EventCMT> eventCMTs = null;
+    //private static Hashtable<String, EventCMT> eventCMTs = null;
+    private Hashtable<String, EventCMT> eventCMTs = null;
 
     private static final double PERIOD1 = 25;
     private static final double PERIOD2 = 20;

@@ -122,6 +122,9 @@ extends TaskThread<QueryContext<? extends Object>>
 		return digest;
 	}
 	
+    /**
+     * Currently getMetricValueDigest() is the only method called (from the MetricData class)
+    */
 	public ByteBuffer getMetricValueDigest(MetricValueIdentifier id)
 	{
 		ByteBuffer digest = null;

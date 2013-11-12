@@ -68,15 +68,12 @@ public class Scanner
     private MetricInjector injector;
     private MetricReader reader;
     private Scan scan;
-    //private MetaGenerator metaGen;
     private MetaServer metaServer;
 
     private MetricData currentMetricData = null;
     private MetricData nextMetricData = null;
 
     private FallOffQueue<SeedSplitProgress> progressQueue;
-
-    private static Hashtable<String, EventCMT> oneDayEventCMTs = null;
 
     private static long MB = 1048576L; // 1024*1024 - for java Runtime outputs
 
@@ -89,7 +86,6 @@ public class Scanner
         this.progressQueue = new FallOffQueue<SeedSplitProgress>(8);
     }
 
-    //public Scanner(MetricReader reader, MetricInjector injector, Station station, Scan scan, MetaGenerator metaGen)
     public Scanner(MetricReader reader, MetricInjector injector, Station station, Scan scan, MetaServer metaServer)
     {
         this.reader = reader;
@@ -172,12 +168,12 @@ public class Scanner
 
             Hashtable<String, EventCMT> eventCMTs = eventLoader.getDayEvents( timestamp );
             Hashtable<String, Hashtable<String, SacTimeSeries>> eventSynthetics = null;
-            //Hashtable<String, SacTimeSeries> eventSynthetics = null;
+
             if (eventCMTs != null) {
-                SortedSet<String> keys = new TreeSet<String>(eventCMTs.keySet());
-                for (String key : keys){
+                //SortedSet<String> keys = new TreeSet<String>(eventCMTs.keySet());
+                //for (String key : keys){
                     //System.out.format("== Scanner: Got EventCMT key=[%s] --> [%s]\n",key, eventCMTs.get(key) ); 
-                }
+                //}
                 eventSynthetics = eventLoader.getDaySynthetics( timestamp, station );
             }
             else {

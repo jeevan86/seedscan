@@ -71,7 +71,7 @@ public class MetaGenerator
         volumes = new Hashtable<NetworkKey, SeedVolume>();
     }
 
-    static public MetaGenerator getInstance() throws RemoteException{
+    public static MetaGenerator getInstance() throws RemoteException{
         if (instance == null) {
             instance = new MetaGenerator();
         }

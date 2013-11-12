@@ -67,7 +67,8 @@ extends Metric
     private static final double f3 = 1./PERIOD3;
     private static final double f4 = 1./PERIOD4;
 
-    private static Hashtable<String, EventCMT> eventCMTs = null;
+    //private static Hashtable<String, EventCMT> eventCMTs = null;
+    private Hashtable<String, EventCMT> eventCMTs = null;
 
     private Channel[] channels = null;
 
