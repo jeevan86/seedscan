@@ -19,17 +19,12 @@
 
 package asl.security;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
+import javax.xml.bind.DatatypeConverter;
 
 public class EncryptedPassword
 extends Encrypted
 implements Password
 {
-    private static final Logger logger = LoggerFactory.getLogger(asl.security.EncryptedPassword.class);
-
  // constructor(s)
     public EncryptedPassword(byte[] key)
     {
@@ -68,14 +63,8 @@ implements Password
 
     public String toString()
     {
-        String hmacHex;
         byte[] hmac = getHMAC();
-        if (hmac == null) {
-            hmacHex = "NULL";
-        }
-        else {
-            hmacHex = (new HexBinaryAdapter()).marshal(hmac);
-        }
+        String hmacHex = (hmac == null) ? "NULL" : DatatypeConverter.printHexBinary(hmac);
         return new String("EncryptedPassword: hmac["+hmacHex+"]");
     }
 }
