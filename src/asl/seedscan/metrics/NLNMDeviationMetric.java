@@ -67,14 +67,12 @@ extends PowerBandMetric
         addArgument("nlnm-modelfile");
         addArgument("nhnm-modelfile");
     }
-
-    private static double[] NLNMPeriods;
-    private static double[] NLNMPowers;
-    private static double[] NHNMPeriods;
-    private static double[] NHNMPowers;
-    private static boolean noiseModelsRead = false;
-    private static boolean lowNoiseModelExists  = false;
-    private static boolean highNoiseModelExists = false;
+    
+    private static String NLNMFile;
+    private static String NHNMFile;
+    
+    private static NoiseModel NLNM;
+    private static NoiseModel NHNM;
 
     private PlotMaker2 plotMaker = null;
 
@@ -82,21 +80,19 @@ extends PowerBandMetric
     {
         System.out.format("\n              [ == Metric %s == ]    [== Station %s ==]    [== Day %s ==]\n", 
                           getName(), getStation(), getDay() );
-
-        if (!noiseModelsRead) {
-            try {
-                lowNoiseModelExists  = readNLNM(get("nlnm-modelfile"));
-                highNoiseModelExists = readNHNM(get("nhnm-modelfile"));
-            }
-            catch(Exception e) {
-                logger.error("Failed attempt to read noise models:" + e.getMessage());
-            }
-            noiseModelsRead = true;
+        
+        try {
+	        NLNMFile = get("nlnm-modelfile");
+	        NHNMFile = get("nhnm-modelfile");
+        	getNLNM();
+        	getNHNM();
+        }
+        catch(Exception e) {
+            logger.error("Failed attempt to read noise models:" + e.getMessage());
         }
 
-
     // Low noise model (NLNM) MUST exist or we can't compute the metric (NHNM is optional)
-        if (!lowNoiseModelExists) {
+        if (!getNLNM().isValid()) {
             logger.warn("Low Noise Model (NLNM) does NOT exist --> Skip Metric");
             return;
         }
@@ -139,9 +135,11 @@ extends PowerBandMetric
         if (getMakePlots() && (plotMaker != null) ) {
             BasicStroke stroke = new BasicStroke(4.0f);
             for (int iPanel=0; iPanel<3; iPanel++){
-                plotMaker.addTraceToPanel( new Trace(NLNMPeriods, NLNMPowers, "NLNM", Color.black, stroke), iPanel);
-                if (highNoiseModelExists) {
-                    plotMaker.addTraceToPanel( new Trace(NHNMPeriods, NHNMPowers, "NHNM", Color.black, stroke), iPanel);
+                plotMaker.addTraceToPanel( new Trace(getNLNM().getPeriods(), getNLNM().getPowers(),
+                		"NLNM", Color.black, stroke), iPanel);
+                if (getNHNM().isValid()) {
+                    plotMaker.addTraceToPanel( new Trace(getNHNM().getPeriods(), getNHNM().getPowers(),
+                    		"NHNM", Color.black, stroke), iPanel);
                 }
             }
             // outputs/2012160.IU_ANMO.nlnm-dev.png
@@ -190,7 +188,7 @@ extends PowerBandMetric
         //Timeseries.timeoutXY(per, psdPer, outFile);
 
      // Interpolate the smoothed psd to the periods of the NLNM Model:
-        double psdInterp[] = Timeseries.interpolate(per, psdPer, NLNMPeriods);
+        double psdInterp[] = Timeseries.interpolate(per, psdPer, getNLNM().getPeriods());
 
         //outFile = channel.toString() + ".psd.Fsmooth.T.Interp";
         //Timeseries.timeoutXY(NLNMPeriods, psdInterp, outFile);
@@ -207,12 +205,12 @@ extends PowerBandMetric
     // Compute deviation from NLNM within the requested period band:
         double deviation = 0;
         int nPeriods = 0;
-        for (int k = 0; k < NLNMPeriods.length; k++){
-            if (NLNMPeriods[k] >  highPeriod){
+        for (int k = 0; k < getNLNM().getPeriods().length; k++){
+            if (getNLNM().getPeriods()[k] >  highPeriod){
                 break;
             }
-            else if (NLNMPeriods[k] >= lowPeriod){
-                double difference = psdInterp[k] - NLNMPowers[k];
+            else if (getNLNM().getPeriods()[k] >= lowPeriod){
+                double difference = psdInterp[k] - getNLNM().getPowers()[k];
                 //deviation += Math.sqrt( Math.pow(difference, 2) );
                 deviation += difference;
                 nPeriods++;
@@ -228,7 +226,7 @@ extends PowerBandMetric
         deviation = deviation/(double)nPeriods;
 
         if (getMakePlots()) { 
-            makePlots(channel, NLNMPeriods, psdInterp);
+            makePlots(channel, getNLNM().getPeriods(), psdInterp);
         }
 
         return deviation;
@@ -276,6 +274,40 @@ extends PowerBandMetric
 
         plotMaker.addTraceToPanel( new Trace(xdata, ydata, channel.toString(), color, stroke), iPanel);
     }
+    
+    private static NoiseModel getNHNM()
+    {
+    	if (NHNM == null)
+    		initNHNM();
+    	
+    	return NHNM;
+    }
+    
+    private synchronized static void initNHNM()
+    {
+    	if (NHNM == null)
+    	{
+    		NHNM = new NoiseModel();
+    		readNHNM(NHNMFile, NHNM);
+    	}
+    }
+    
+    public static NoiseModel getNLNM()
+    {
+    	if (NLNM == null)
+    		initHLNM();
+    	
+    	return NLNM;
+    }
+    
+    public synchronized static void initHLNM()
+    {
+    	if (NLNM == null)
+    	{
+    		NLNM = new NoiseModel();
+    		readNLNM(NLNMFile, NLNM);
+    	}
+    }
 
 
 /** readNLNM() - Read in Peterson's NewLowNoiseModel from file specified in config.xml
@@ -283,14 +315,14 @@ extends PowerBandMetric
  **             NLNM Periods will be read into NLNMPeriods[]
  **             NLNM Powers  will be read into NLNMPowers[]
  **/
-    synchronized private static boolean readNLNM(String fileName) {
+    private synchronized static void readNLNM(String fileName, NoiseModel noiseModel) {
 
     logger.info("readNLNM Read in NLNM model from file=[{}]", fileName);
 
    // First see if the file exists
         if (!(new File(fileName).exists())) {
             logger.error("NLNM file={} does NOT exist!", fileName);
-            return false;
+            return;
         }
    // Temp ArrayList(s) to read in unknown number of (x,y) pairs:
         ArrayList<Double> tmpPers = new ArrayList<Double>();
@@ -320,23 +352,24 @@ extends PowerBandMetric
         Double[] modelPeriods  = tmpPers.toArray(new Double[]{});
         Double[] modelPowers   = tmpPows.toArray(new Double[]{});
 
-        NLNMPeriods = new double[modelPeriods.length];
-        NLNMPowers  = new double[modelPowers.length];
+        noiseModel.periods = new double[modelPeriods.length];
+        noiseModel.powers  = new double[modelPowers.length];
 
         for (int i=0; i<modelPeriods.length; i++){
-            NLNMPeriods[i] = modelPeriods[i];
-            NLNMPowers[i]  = modelPowers[i];
+            noiseModel.periods[i] = modelPeriods[i];
+            noiseModel.powers[i]  = modelPowers[i];
         }
-        return true;
+        
+        noiseModel.valid = true;
 
     } // end readNLNM
 
-    synchronized private static boolean readNHNM(String fileName) {
+    private synchronized static void readNHNM(String fileName, NoiseModel noiseModel) {
 
    // First see if the file exists
         if (!(new File(fileName).exists())) {
             logger.error("NHNM file={} does NOT exist!", fileName);
-            return false;
+            return;
         }
    // Temp ArrayList(s) to read in unknown number of (x,y) pairs:
         ArrayList<Double> tmpPers = new ArrayList<Double>();
@@ -366,18 +399,39 @@ extends PowerBandMetric
         Double[] modelPeriods  = tmpPers.toArray(new Double[]{});
         Double[] modelPowers   = tmpPows.toArray(new Double[]{});
 
-        NHNMPeriods = new double[modelPeriods.length];
-        NHNMPowers  = new double[modelPowers.length];
+        noiseModel.periods = new double[modelPeriods.length];
+        noiseModel.powers  = new double[modelPowers.length];
 
         for (int i=0; i<modelPeriods.length; i++){
-            NHNMPeriods[i] = modelPeriods[i];
-            NHNMPowers[i]  = modelPowers[i];
+            noiseModel.periods[i] = modelPeriods[i];
+            noiseModel.powers[i]  = modelPowers[i];
         }
 
-        return true;
+        noiseModel.valid = true;
 
     } // end readHLNM
-
+    
+    public static class NoiseModel
+    {
+    	double[] periods = null;
+    	double[] powers = null;
+    	boolean valid = false;
+    	
+    	public double[] getPeriods()
+    	{
+    		return periods;
+    	}
+    	
+    	public double[] getPowers()
+    	{
+    		return powers;
+    	}
+    	
+    	public boolean isValid()
+    	{
+    		return valid;
+    	}
+    }
 
 } // end class
 
