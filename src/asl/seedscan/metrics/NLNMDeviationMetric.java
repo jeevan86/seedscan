@@ -84,11 +84,12 @@ extends PowerBandMetric
         try {
 	        NLNMFile = get("nlnm-modelfile");
 	        NHNMFile = get("nhnm-modelfile");
-        	getNLNM();
-        	getNHNM();
+        	//getNLNM();
+        	//getNHNM();
         }
         catch(Exception e) {
-            logger.error("Failed attempt to read noise models:" + e.getMessage());
+            //logger.error("Failed attempt to read noise models:" + e.getMessage());
+            logger.error("Failed to get nlnm-modelfile from config.xml:" + e.getMessage());
         }
 
     // Low noise model (NLNM) MUST exist or we can't compute the metric (NHNM is optional)
@@ -279,7 +280,6 @@ extends PowerBandMetric
     {
     	if (NHNM == null)
     		initNHNM();
-    	
     	return NHNM;
     }
     
@@ -288,40 +288,38 @@ extends PowerBandMetric
     	if (NHNM == null)
     	{
     		NHNM = new NoiseModel();
-    		readNHNM(NHNMFile, NHNM);
+    		readNoiseModel(NHNMFile, NHNM);
     	}
     }
-    
+
     public static NoiseModel getNLNM()
     {
     	if (NLNM == null)
-    		initHLNM();
-    	
+    		initNLNM();
     	return NLNM;
     }
     
-    public synchronized static void initHLNM()
+    public synchronized static void initNLNM()
     {
     	if (NLNM == null)
     	{
     		NLNM = new NoiseModel();
-    		readNLNM(NLNMFile, NLNM);
+    		readNoiseModel(NLNMFile, NLNM);
     	}
     }
 
 
-/** readNLNM() - Read in Peterson's NewLowNoiseModel from file specified in config.xml
- **       e.g., <cfg:argument cfg:name="nlnm-modelfile">/Users/mth/mth/Projects/xs0/NLNM.ascii/</cfg:argument>
- **             NLNM Periods will be read into NLNMPeriods[]
- **             NLNM Powers  will be read into NLNMPowers[]
+ /** readNoiseModel() - Read in Peterson's NewLow(or High)NoiseModel from file specified in config.xml
+  **       e.g., <cfg:argument cfg:name="nlnm-modelfile">/Users/mth/mth/Projects/xs0/NLNM.ascii/</cfg:argument>
  **/
-    private synchronized static void readNLNM(String fileName, NoiseModel noiseModel) {
 
-    logger.info("readNLNM Read in NLNM model from file=[{}]", fileName);
+    private synchronized static void readNoiseModel(String fileName, NoiseModel noiseModel) {
+
+    logger.info("Read in Noise Model from file=[{}]", fileName);
 
    // First see if the file exists
         if (!(new File(fileName).exists())) {
-            logger.error("NLNM file={} does NOT exist!", fileName);
+            logger.error("Noise Model file={} does NOT exist!", fileName);
             return;
         }
    // Temp ArrayList(s) to read in unknown number of (x,y) pairs:
@@ -362,55 +360,9 @@ extends PowerBandMetric
         
         noiseModel.valid = true;
 
-    } // end readNLNM
+    } // end readNoiseModel
 
-    private synchronized static void readNHNM(String fileName, NoiseModel noiseModel) {
 
-   // First see if the file exists
-        if (!(new File(fileName).exists())) {
-            logger.error("NHNM file={} does NOT exist!", fileName);
-            return;
-        }
-   // Temp ArrayList(s) to read in unknown number of (x,y) pairs:
-        ArrayList<Double> tmpPers = new ArrayList<Double>();
-        ArrayList<Double> tmpPows = new ArrayList<Double>();
-        BufferedReader br = null;
-        try {
-            String line;
-            br = new BufferedReader(new FileReader(fileName));
-            while ((line = br.readLine()) != null) {
-                String[] args = line.trim().split("\\s+") ;
-                if (args.length != 2) {
-                    String message = "==Error reading NLNM: got " + args.length + " args on one line!";
-                    throw new RuntimeException(message);
-                }
-                tmpPers.add( Double.valueOf(args[0].trim()).doubleValue() );
-                tmpPows.add( Double.valueOf(args[1].trim()).doubleValue() );
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (br != null)br.close();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-        }
-        Double[] modelPeriods  = tmpPers.toArray(new Double[]{});
-        Double[] modelPowers   = tmpPows.toArray(new Double[]{});
-
-        noiseModel.periods = new double[modelPeriods.length];
-        noiseModel.powers  = new double[modelPowers.length];
-
-        for (int i=0; i<modelPeriods.length; i++){
-            noiseModel.periods[i] = modelPeriods[i];
-            noiseModel.powers[i]  = modelPowers[i];
-        }
-
-        noiseModel.valid = true;
-
-    } // end readHLNM
-    
     public static class NoiseModel
     {
     	double[] periods = null;
