@@ -62,8 +62,7 @@ extends PowerBandMetric
 
     public void process()
     {
-        System.out.format("\n              [ == Metric %s == ]    [== Station %s ==]    [== Day %s ==]\n", 
-                          getName(), getStation(), getDay() );
+        logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
 
         if (!weHaveChannels("00", "LH") || !weHaveChannels("10", "LH") ){
             logger.info(String.format("== %s: Day=[%s] Stn=[%s] - metadata + data NOT found for EITHER loc=00 -OR- loc=10 + band=LH --> Skip Metric",
@@ -92,11 +91,12 @@ extends PowerBandMetric
 
             ByteBuffer digest = metricData.valueDigestChanged(channelArray, createIdentifier(channelX, channelY), getForceUpdate());
 
-            if (digest == null) { 
-                System.out.format("%s INFO: Data and metadata have NOT changed for channelX=%s + channelY=%s --> Skipping\n"
-                        ,getName(), channelX, channelY);
+            if (digest == null) { // means oldDigest == newDigest and we don't need to recompute the metric 
+                logger.warn("Digest unchanged station:[{}] channelX=[{}] channelY=[{}]--> Skip metric", 
+                           getStation(), channelX, channelY);
                 continue;
             }
+
 
             double result = computeMetric(channelX, channelY);
             if (result == NO_RESULT) {

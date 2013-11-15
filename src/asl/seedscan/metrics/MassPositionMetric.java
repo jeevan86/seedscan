@@ -48,9 +48,7 @@ extends Metric
 
     public void process()
     {
-        System.out.format("\n              [ == Metric %s == ]    [== Station %s ==]    [== Day %s ==]\n", 
-                          getName(), getStation(), getDay() );
-
+        logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
 
    // Get all VM? channels in metadata to use for loop
         List<Channel> channels = stationMeta.getChannelArray("VM"); 
@@ -62,9 +60,8 @@ extends Metric
          // Check to see that we have data + metadata & see if the digest has changed wrt the database:
             ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel), getForceUpdate());
 
-            if (digest == null) { 
-                System.out.format("%s INFO: Data and metadata have NOT changed for this channel:%s --> Skipping\n"
-                                  ,getName(), channel);
+            if (digest == null) { // means oldDigest == newDigest and we don't need to recompute the metric 
+                logger.warn("Digest unchanged station:[{}] channel:[{}] --> Skip metric", getStation(), channel);
                 continue;
             }
 

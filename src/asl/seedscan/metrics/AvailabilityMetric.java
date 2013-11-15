@@ -47,8 +47,7 @@ extends Metric
 
     public void process()
     {
-        System.out.format("\n              [ == Metric %s == ]    [== Station %s ==]    [== Day %s ==]\n", 
-                          getName(), getStation(), getDay() ); 
+        logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
 
     // Get a sorted list of continuous channels for this stationMeta and loop over:
 
@@ -58,10 +57,8 @@ extends Metric
 
             ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel), getForceUpdate());
 
-        // At this point we KNOW we have metadata so we WILL compute a digest.  If the digest is null
-        //  then nothing has changed and we don't need to recompute the metric
-            if (digest == null) { 
-                logger.info("Data and metadata have NOT changed for channel=[" + channel + "] --> Skip Metric");
+            if (digest == null) { // means oldDigest == newDigest and we don't need to recompute the metric 
+                logger.warn("Digest unchanged station:[{}] channel:[{}] --> Skip metric", getStation(), channel);
                 continue;
             }
 
@@ -101,12 +98,12 @@ extends Metric
             availability = 100. * (double)ndata/(double)expectedPoints;
         }
         else {
-            System.out.format("== AvailabilityMetric: WARNING: Expected points for channel=[%s] = 0!!\n", channel);
+            logger.warn("Expected points for channel={} = 0!", channel);
             return NO_RESULT;
         }
         if (availability >= 101.00) {
-            System.out.format("== AvailabilityMetric: WARNING: Availability=%f.2 > 100%% for channel=[%s] sRate=[%f]\n", 
-                               availability, channel, chanMeta.getSampleRate());
+            logger.warn("Availability={} > 100%% for channel={} sRate={}", 
+                         availability, channel, chanMeta.getSampleRate());
         }
 
         return availability;

@@ -78,22 +78,26 @@ extends PowerBandMetric
 
     private PlotMaker2 plotMaker = null;
 
+    private static final Object lock = new Object();
+
     public void process()
     {
-        System.out.format("\n              [ == Metric %s == ]    [== Station %s ==]    [== Day %s ==]\n", 
-                          getName(), getStation(), getDay() );
+        logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
 
-        if (!noiseModelsRead) {
-            try {
-                lowNoiseModelExists  = readNLNM(get("nlnm-modelfile"));
-                highNoiseModelExists = readNHNM(get("nhnm-modelfile"));
+        synchronized (lock) {
+            if (!noiseModelsRead) {
+                try {
+                    lowNoiseModelExists  = readNLNM(get("nlnm-modelfile"));
+                    highNoiseModelExists = readNHNM(get("nhnm-modelfile"));
+                }
+                catch(Exception e) {
+                    logger.error("Failed attempt to read noise models:" + e.getMessage());
+                }
+                finally {  // noiseModelsRead == true means we have attempted to read them, successful or not
+                    noiseModelsRead = true;
+                }
             }
-            catch(Exception e) {
-                logger.error("Failed attempt to read noise models:" + e.getMessage());
-            }
-            noiseModelsRead = true;
         }
-
 
     // Low noise model (NLNM) MUST exist or we can't compute the metric (NHNM is optional)
         if (!lowNoiseModelExists) {
@@ -105,7 +109,7 @@ extends PowerBandMetric
         List<Channel> channels = stationMeta.getChannelArray("LH"); 
 
         if (channels == null || channels.size() == 0) {
-            System.out.format("== %s: No LH? channels found for station=[%s]\n", getName(), getStation() );
+            logger.warn("No LH? channels found for station={}", getStation() );
             return;
         }
 
@@ -118,9 +122,8 @@ extends PowerBandMetric
 
             ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel), getForceUpdate() );
 
-            if (digest == null) {
-                System.out.format("%s INFO: Data and metadata have NOT changed for this channel:%s --> Skipping\n"
-                                  ,getName(), channel);
+            if (digest == null) { // means oldDigest == newDigest and we don't need to recompute the metric 
+                logger.warn("Digest unchanged station:[{}] channel:[{}] --> Skip metric", getStation(), channel);
                 continue;
             }
 
@@ -200,7 +203,7 @@ extends PowerBandMetric
         double highPeriod = band.getHigh();
 
         if (!checkPowerBand(lowPeriod, highPeriod, Tmin, Tmax)){
-            System.out.format("%s powerBand Error: Skipping channel:%s\n", getName(), channel);
+            logger.error("powerBand Error: Skipping channel:{}",channel);
             return NO_RESULT;
         }
 
@@ -220,6 +223,7 @@ extends PowerBandMetric
         }
 
         if (nPeriods == 0) {
+            logger.error("Requested band [{} - {} sec] contains NO periods within NLNM!", lowPeriod, highPeriod);
             StringBuilder message = new StringBuilder();
             message.append(String.format("NLNMDeviation Error: Requested band [%f - %f] contains NO periods within NLNM\n"
                 ,lowPeriod, highPeriod) );
@@ -283,7 +287,7 @@ extends PowerBandMetric
  **             NLNM Periods will be read into NLNMPeriods[]
  **             NLNM Powers  will be read into NLNMPowers[]
  **/
-    synchronized private static boolean readNLNM(String fileName) {
+    private static boolean readNLNM(String fileName) {
 
     logger.info("readNLNM Read in NLNM model from file=[{}]", fileName);
 
@@ -331,7 +335,7 @@ extends PowerBandMetric
 
     } // end readNLNM
 
-    synchronized private static boolean readNHNM(String fileName) {
+    private static boolean readNHNM(String fileName) {
 
    // First see if the file exists
         if (!(new File(fileName).exists())) {

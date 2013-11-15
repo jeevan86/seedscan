@@ -122,7 +122,7 @@ public abstract class Metric
                 psd = computePSD(channelA, channelB, df);
             }
             catch (NullPointerException e) {
-                System.out.println("== Metric.getCrossPower NullPointerException = " + e);
+                logger.error("Metric.getCrossPower NullPointerException:" + e);
             }
             crossPower = new CrossPower(psd, df[0]);
             crossPowerMap.put(key, crossPower);

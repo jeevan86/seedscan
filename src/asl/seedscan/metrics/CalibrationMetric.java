@@ -77,8 +77,7 @@ extends Metric
 
     public void process()
     {
-        System.out.format("\n              [ == Metric %s == ]    [== Station %s ==]    [== Day %s ==]\n", 
-                          getName(), getStation(), getDay() );
+        logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
 
         if (!calTableRead) {
             try {
@@ -115,10 +114,8 @@ extends Metric
 
             ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel));
 
-        // At this point we KNOW we have metadata so we WILL compute a digest.  If the digest is null
-        //  then nothing has changed and we don't need to recompute the metric
-            if (digest == null) { 
-                logger.info("Data and metadata have NOT changed for channel=[" + channel + "] --> Skip Metric");
+            if (digest == null) { // means oldDigest == newDigest and we don't need to recompute the metric 
+                logger.warn("Digest unchanged station:[{}] channel:[{}] --> Skip metric", getStation(), channel);
                 continue;
             }
 

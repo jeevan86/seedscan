@@ -47,9 +47,7 @@ extends Metric
 
     public void process()
     {
-        System.out.format("\n              [ == Metric %s == ]    [== Station %s ==]    [== Day %s ==]\n", 
-                          getName(), getStation(), getDay() );
-
+        logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
 
     // Get a sorted list of continuous channels for this stationMeta and loop over:
         List<Channel> channels = stationMeta.getContinuousChannels();
@@ -58,10 +56,8 @@ extends Metric
 
             ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel), getForceUpdate());
 
-        // At this point we KNOW we have metadata so we WILL compute a digest.  If the digest is null 
-        //  then nothing has changed (OR we DON'T have data for this channel) and we don't need to recompute the metric
-            if (digest == null) { 
-                logger.info("Data and metadata have NOT changed for channel=[" + channel + "] --> Skip Metric");
+            if (digest == null) { // means oldDigest == newDigest and we don't need to recompute the metric
+                logger.warn("Digest unchanged station:[{}] channel:[{}] --> Skip metric", getStation(), channel);
                 continue;
             }
 
@@ -69,6 +65,7 @@ extends Metric
 
             if (result == NO_RESULT) {
                 // Do nothing --> skip to next channel
+                logger.warn("NO_RESULT for station={} channel={}", getStation(), channel);
             }
             else {
                 metricResult.addResult(channel, result, digest);
@@ -100,9 +97,6 @@ extends Metric
      // Check for possible gap at the beginning of the day
         if ((firstSetStartTime - expectedStartTime) > gapThreshold) {
             gapCount++;
-            //System.out.format("== GapCountMetric: channel=[%s] : (firstSetStartTime - expectedStartTime) = %d microsecs"
-            //+ " >= gapThreshold = %f --> gapCount++ \n", channel, (firstSetStartTime - expectedStartTime),
-            //gapThreshold, gapCount );
         }
 
         long expectedEndTime = expectedStartTime + 86400000000L;  // end of day in microsecs
@@ -112,9 +106,6 @@ extends Metric
      // We expect a full day to be 24:00:00 - one sample = (86400 - dt) secs 
         if ((expectedEndTime - lastSetEndTime) > interval) {
             gapCount++;
-            //System.out.format("== GapCountMetric: channel=[%s] : (expectedEndTime - lastSetEndTime) = %d microsecs"
-            //+ " >= gapThreshold = %f --> gapCount++ \n", channel, (expectedEndTime - lastSetEndTime),
-            //gapThreshold, gapCount );
         }
 
         return (double)gapCount;

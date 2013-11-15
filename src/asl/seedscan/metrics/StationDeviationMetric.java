@@ -71,10 +71,7 @@ extends PowerBandMetric
 
     public void process()
     {
-        System.out.format("\n              [ == Metric %s == ]    [== Station %s ==]    [== Day %s ==]\n", 
-                          getName(), getStation(), getDay() );
-
-   //System.out.format("== %s: getForceUpdate=[%s]\n", getName(), getForceUpdate() );
+        logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
 
    // Get the path to the station models that was read in from config.xml
    //  <cfg:argument cfg:name="modelpath">/Users/mth/mth/Projects/xs0/stationmodel/${NETWORK}_${STATION}/</cfg:argument>
@@ -104,9 +101,8 @@ extends PowerBandMetric
 
             ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel), getForceUpdate());
 
-            if (digest == null) {
-                System.out.format("%s INFO: Data and metadata have NOT changed for this channel:%s --> Skipping\n"
-                                  ,getName(), channel);
+            if (digest == null) { // means oldDigest == newDigest and we don't need to recompute the metric 
+                logger.warn("Digest unchanged station:[{}] channel:[{}] --> Skip metric", getStation(), channel);
                 continue;
             }
 

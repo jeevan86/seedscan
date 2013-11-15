@@ -85,8 +85,7 @@ extends Metric
     public void process()
     {
 
-        System.out.format("\n              [ == Metric %s == ]    [== Station %s ==]    [== Day %s ==]\n", 
-                          getName(), getStation(), getDay() );
+        logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
 
         eventCMTs = getEventTable();
         if (eventCMTs == null) {
