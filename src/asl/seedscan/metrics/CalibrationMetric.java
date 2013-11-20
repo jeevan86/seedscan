@@ -585,6 +585,8 @@ extends Metric
             out.append(String.format("   \"phDiff\":%.4f\n", bandDiff.phsDiff) );
             out.append(String.format("   }\n") );
 
+            out.append(String.format("}") );
+
             return out.toString();
         }
 
