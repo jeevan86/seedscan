@@ -262,6 +262,10 @@ extends Metric
             phsResponse[k] = instResponse[k].phs() * 180./Math.PI;
         }
 
+    // Change of plans: Not clear that Tmin and Tmax are even going to be used (which
+    // begs the question if we even needed to use a calibration-file in the first place,
+    // but anyway ... I'll leave them in here in case Adam changes his mind :)
+
         String sensorType = chanMeta.getInstrumentType().toUpperCase();
         double Tmin = 0;
         double Tmax = 0;
@@ -308,27 +312,6 @@ extends Metric
         calibration.setPeriods(Tmin, Tmax, Tnorm);
         calibration.setSensorName(sensorType);
 
-        // Get cornerFreq  from polezero response = Freq where ampResponse falls by -3dB below midAmp
-        double cornerFreq = 0.;
-        for (int k=iNorm; k>=0; k--) {
-            if (Math.abs(midAmp - ampResponse[k]) >= 3) {
-                cornerFreq = freq[k];
-                break;
-            }
-        }
-        calibration.setCornerFreq(cornerFreq);
-
-        // Same for the measured response
-        midAmp   = calAmp[iNorm];
-        cornerFreq = 0.;
-        for (int k=iNorm; k>=0; k--) {
-            if (Math.abs(midAmp - calAmp[k]) >= 3) {
-                cornerFreq = freq[k];
-                break;
-            }
-        }
-        calibration.setCornerFreqCal(cornerFreq);
-
     // Compute average mag/phase difference within the band Tmin to Tmax:
         double avgMagDiff=0;
         double avgPhsDiff=0;
@@ -342,12 +325,24 @@ extends Metric
         avgPhsDiff /= (double)nFreq;
 
         BandAverageDiff bandDiff = new BandAverageDiff();
-        bandDiff.T1 = Tmin;
-        bandDiff.T2 = Tmax;
+        //bandDiff.T1 = Tmin;
+        //bandDiff.T2 = Tmax;
+        bandDiff.T1 = 40;
+        bandDiff.T2 = 80;
         bandDiff.ampDiff = avgMagDiff;
         bandDiff.phsDiff = avgPhsDiff;
 
         calibration.addBand("midBandDiff", bandDiff);
+
+        // Get cornerFreq  from polezero response = Freq where ampResponse falls by -3dB below midAmp
+        double cornerFreq = 0.;
+        for (int k=iNorm; k>=0; k--) {
+            if (Math.abs(midAmp - ampResponse[k]) >= 3) {
+                cornerFreq = freq[k];
+                break;
+            }
+        }
+        calibration.setCornerFreq(cornerFreq);
 
         if (cornerFreq <= 0.) {
             logger.warn("Corner freq == 0 --> There is likely a problem with this Cal!");
