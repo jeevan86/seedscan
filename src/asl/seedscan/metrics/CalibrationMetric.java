@@ -26,6 +26,7 @@ import java.util.Enumeration;
 import java.util.GregorianCalendar;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.TreeSet;
 
 import java.io.IOException;
@@ -55,9 +56,6 @@ extends Metric
 {
     private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.metrics.CalibrationMetric.class);
 
-    private static boolean calTableRead   = false;
-    private static boolean calTableExists = false;
-
     private static Hashtable<String, SensorInfo> sensorTable = null;
 
     @Override public long getVersion()
@@ -79,27 +77,10 @@ extends Metric
     {
         logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
 
-        if (!calTableRead) {
-            try {
-                logger.info("Attempt to read from instrument-calibration-file:", get("instrument-calibration-file"));
-                calTableExists  = readCalTable(get("instrument-calibration-file"));
-            }
-            catch(Exception e) {
-                logger.error("Failed attempt to read instrument-calibration-file:" + e.getMessage());
-            }
-            calTableRead = true;
-        }
-
-        if (!calTableExists) {
-            logger.error("Unable to read instrument calibration table from file --> Skip Metric");
-            return;
-        }
-
         if (metricData.hasCalibrationData() == false) {
             logger.info("No Calibration loaded for station=[{}] day=[{}] --> Skip Metric", getStation(), getDay());
             return;
         }
-
 
     // Get all BH? channels for this stationMeta:
         List<Channel> channels = stationMeta.getChannelArray("BH");
@@ -119,16 +100,17 @@ extends Metric
                 continue;
             }
 
-        // We're computing 2 results (amp + phase diff) but we don't actually have a way yet to load
-        // 2 responses for a single metric (= single channel + powerband, etc.) into the database
-            double[] results = computeMetric(channel);
+            CalibrationResult calResult = computeMetric(channel);
 
-            //if (result == NO_RESULT) {
-            if (results == null) {
+            if (calResult == null) {
+                logger.info("CalResult == NULL for Channel=[{}] + Day=[{}]", channel, getDay());
                 // Do nothing --> skip to next channel
             }
             else {
-                metricResult.addResult(channel, results[0], digest);
+                logger.info("channel=[{}] day=[{}] CalResult Follows", channel, getDay() );
+                logger.info(calResult.toString());
+
+                //metricResult.addResult(channel, results[0], digest);
                 //for (int i=0; i<results.length; i++) {
                     //metricResult.addResult(channel, results[i], digest);
                 //}
@@ -137,13 +119,10 @@ extends Metric
         }// end foreach channel
     } // end process()
 
-    private double[] computeMetric(Channel channel) {
-
-        double[] result = new double[2];
+    private CalibrationResult computeMetric(Channel channel) {
 
         if (!metricData.hasChannelData(channel)) {
             return null;
-            //return NO_RESULT;
         }
 
         List<Blockette320> calBlocks = metricData.getChannelCalData(channel);
@@ -151,7 +130,6 @@ extends Metric
         if (calBlocks == null) {
             logger.info("No cal blocks found for [{}/{}/{}] --> Skip Metric",getStation(),channel,getDay());
             return null;
-            //return NO_RESULT;
         }
 
         if (calBlocks.size() > 1) {
@@ -170,8 +148,8 @@ extends Metric
         long dataEndEpoch       = data.get(0).getEndTime()   / 1000;  // ...
         double srate            = data.get(0).getSampleRate();
 
-        logger.info("channel=[{}] calChannel=[{}] calStartDate=[{}] calDuration=[{}] sec", channel, channelExtension, 
-                           EpochData.epochToTimeString(blockette320.getCalibrationCalendar()), calDuration/1000);
+        //logger.info("channel=[{}] calChannel=[{}] calStartDate=[{}] calDuration=[{}] sec", channel, channelExtension, 
+                           //EpochData.epochToTimeString(blockette320.getCalibrationCalendar()), calDuration/1000);
         logger.info(blockette320.toString());
 
         if ( blockette320.getCalibrationCalendar().get(Calendar.HOUR) == 0 ){
@@ -179,6 +157,9 @@ extends Metric
             logger.warn("** cal appears to be the 2nd half of a cal from previous day --> Skip");
             return null;
         }
+
+        CalibrationResult calibration = new CalibrationResult(channel, new Channel("--",channelExtension), 
+                EpochData.epochToTimeString(blockette320.getCalibrationCalendar()), calDuration/1000);
 
         if ( calEndEpoch > dataEndEpoch ) {
             // Look for cal to span into next day
@@ -201,10 +182,10 @@ extends Metric
                     boolean calSpansNextDay = true;
                     calDuration += nextCalDuration; 
                 }
-                logger.info("channel=[{}] calChannel=[{}] calStartDate=[{}] calDuration=[{}] sec", channel, nextChannelExtension, 
-                                EpochData.epochToTimeString(blockette320.getCalibrationCalendar()), nextCalDuration/1000);
+                //logger.info("channel=[{}] calChannel=[{}] calStartDate=[{}] calDuration=[{}] sec", channel, nextChannelExtension, 
+                                //EpochData.epochToTimeString(blockette320.getCalibrationCalendar()), nextCalDuration/1000);
                 //logger.info(blockette320.toString());
-                logger.info("channel=[{}] total calDuration=[{}] sec", channel, calDuration/1000);
+                //logger.info("channel=[{}] total calDuration=[{}] sec", channel, calDuration/1000);
             }
     
         }
@@ -298,7 +279,7 @@ extends Metric
             Tmax  = sensorInfo.getMaxPeriod();
             Tnorm = sensorInfo.getNormPeriod();
         }
-        logger.info("InstrumentType=[{}] Tmin={} Tmax={} Tnorm={}", sensorType, Tmin, Tmax, Tnorm);
+        //logger.info("InstrumentType=[{}] Tmin={} Tmax={} Tnorm={}", sensorType, Tmin, Tmax, Tnorm);
 
         double Fmin = 1.0/Tmin;
         double Fmax = 1.0/Tmin;
@@ -324,6 +305,30 @@ extends Metric
             } 
         }
 
+        calibration.setPeriods(Tmin, Tmax, Tnorm);
+        calibration.setSensorName(sensorType);
+
+        // Get cornerFreq  from polezero response = Freq where ampResponse falls by -3dB below midAmp
+        double cornerFreq = 0.;
+        for (int k=iNorm; k>=0; k--) {
+            if (Math.abs(midAmp - ampResponse[k]) >= 3) {
+                cornerFreq = freq[k];
+                break;
+            }
+        }
+        calibration.setCornerFreq(cornerFreq);
+
+        // Same for the measured response
+        midAmp   = calAmp[iNorm];
+        cornerFreq = 0.;
+        for (int k=iNorm; k>=0; k--) {
+            if (Math.abs(midAmp - calAmp[k]) >= 3) {
+                cornerFreq = freq[k];
+                break;
+            }
+        }
+        calibration.setCornerFreqCal(cornerFreq);
+
     // Compute average mag/phase difference within the band Tmin to Tmax:
         double avgMagDiff=0;
         double avgPhsDiff=0;
@@ -336,21 +341,45 @@ extends Metric
         avgMagDiff /= (double)nFreq;
         avgPhsDiff /= (double)nFreq;
 
-        // Get cornerFreq = Freq where ampResponse falls by -3dB below midAmp
+        BandAverageDiff bandDiff = new BandAverageDiff();
+        bandDiff.T1 = Tmin;
+        bandDiff.T2 = Tmax;
+        bandDiff.ampDiff = avgMagDiff;
+        bandDiff.phsDiff = avgPhsDiff;
 
-        double cornerFreq = 0.;
-        for (int k=iNorm; k>=0; k--) {
-            if (Math.abs(midAmp - ampResponse[k]) >= 3) {
-                cornerFreq = freq[k];
-                break;
-            }
-        }
-
-        logger.info("station={} channel={} avgMagDiff={} avgPhsDiff={} cornerFreq={}", getStation(), channel, avgMagDiff, avgPhsDiff, cornerFreq);
+        calibration.addBand("midBandDiff", bandDiff);
 
         if (cornerFreq <= 0.) {
             logger.warn("Corner freq == 0 --> There is likely a problem with this Cal!");
             //throw new RuntimeException("CalibrationMetric: Error - cornerFreq == 0!");
+        }
+        else {
+         // Compute diffs within an octave bandwidth centered on the corner Period, Tc
+            double Tc = 1.0/cornerFreq;
+            Tmin = 2./3. * Tc;
+            Tmax = 2 * Tmin;
+            Fmax  = 1/Tmin;
+            Fmin  = 1/Tmax;
+            iMax  = (int)(Fmax/df);
+            iMin  = (int)(Fmin/df);
+            avgMagDiff=0;
+            avgPhsDiff=0;
+            nFreq = 0;
+            for (int k=iMin; k<=iMax; k++){
+                avgMagDiff += (ampResponse[k] - calAmp[k]);
+                avgPhsDiff += (phsResponse[k] - calPhs[k]);
+                nFreq++;
+            }
+            avgMagDiff /= (double)nFreq;
+            avgPhsDiff /= (double)nFreq;
+
+            bandDiff = new BandAverageDiff();
+            bandDiff.T1 = Tmin;
+            bandDiff.T2 = Tmax;
+            bandDiff.ampDiff = avgMagDiff;
+            bandDiff.phsDiff = avgPhsDiff;
+
+            calibration.addBand("longTDiff", bandDiff);
         }
 
         if (getMakePlots()){
@@ -365,74 +394,89 @@ extends Metric
 
         }
 
-    // diff = average absolute diff (in dB) between calAmp and ampResponse in (per) octave containing Tc: Ts < Tc < Tl
-    // phaseDiff = average absolute diff (in deg) between calPhs and phsResponse over all periods from Nyq to Tl
-        result[0]=avgMagDiff;
-        result[1]=avgPhsDiff;
-
-        return result;
+        return calibration;
 
     } // end computeMetric()
 
 
-    synchronized private static boolean readCalTable(String fileName) {
-        logger.info("readCalTable Read in Instrument Cal Table from file=[{}]", fileName);
-
-   // First see if the file exists
-        if (!(new File(fileName).exists())) {
-            logger.error("file={} does NOT exist!", fileName);
+    /** 
+     * I think the danger with double check synchronization is *not* that
+     * the 2nd thread will try to re-create sensorTable, but rather, 
+     * that for some earlier Java versions (e.g., ver < 1.5), it's possible
+     * that the 2nd thread will see sensorTable != null before this (in getSensor()),
+     * so it won't need the lock, and may try to use sensorTable before it is 
+     * completely initialized by the 1st thread.
+     */
+    synchronized private static boolean readSensorTable(String fileName) {
+        if (sensorTable != null) {
             return false;
         }
 
-        if (sensorTable == null) {
-            sensorTable = new Hashtable<String, SensorInfo>();
-            BufferedReader br = null;
-            try {
-                String line;
-                br = new BufferedReader(new FileReader(fileName));
-                int i=0;
-                while ((line = br.readLine()) != null) {
-                    if (i > 1) { // 2-line header
-                        String[] args = line.trim().split("\\s+") ;
-                        if (args.length != 4) {
-                            logger.error("calibration-table=[{}] --> Bad format", fileName);
-                        }
-                        String sensorName = args[0].toUpperCase(); 
-                        double Tmin=0;
-                        double Tmax=0;
-                        double Tnorm=0;
-                        try {
-                            Tmin = Double.parseDouble(args[1]);
-                            Tmax = Double.parseDouble(args[2]);
-                            Tnorm= Double.parseDouble(args[3]);
-                        }
-                        catch (Exception e) {
-                            logger.error("Caught exception:" + e.getMessage());
-                        }
-                        SensorInfo sensorInfo = new SensorInfo(sensorName, Tmin, Tmax, Tnorm);
-                        sensorTable.put(sensorName, sensorInfo);
-                        logger.info("add sensorName=[{}] Tmin=[{}]", sensorName, Tmin);
-                    }
-                    i++;
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                try {
-                    if (br != null)br.close();
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-            }
+        sensorTable = new Hashtable<String, SensorInfo>();
+
+   // First see if the file exists
+        if (!(new File(fileName).exists())) {
+            logger.error("readSensorTable: file={} does NOT exist!", fileName);
+            return false;
         }
-        else {
-            logger.warn("Hmmm sensorTable has ALREADY been INITIALIZED!!");
+
+        BufferedReader br = null;
+        try {
+            String line;
+            br = new BufferedReader(new FileReader(fileName));
+            int i=0;
+            while ((line = br.readLine()) != null) {
+                if (i > 1) { // 2-line header
+                    String[] args = line.trim().split("\\s+") ;
+                    if (args.length != 4) {
+                        logger.error("calibration-table=[{}] --> Bad format", fileName);
+                    }
+                    String sensorName = args[0].toUpperCase(); 
+                    double Tmin=0;
+                    double Tmax=0;
+                    double Tnorm=0;
+                    try {
+                        Tmin = Double.parseDouble(args[1]);
+                        Tmax = Double.parseDouble(args[2]);
+                        Tnorm= Double.parseDouble(args[3]);
+                    }
+                    catch (Exception e) {
+                        logger.error("Caught exception:" + e.getMessage());
+                    }
+                    SensorInfo sensorInfo = new SensorInfo(sensorName, Tmin, Tmax, Tnorm);
+                    sensorTable.put(sensorName, sensorInfo);
+                    //logger.info("add sensorName=[{}] Tmin=[{}]", sensorName, Tmin);
+                }
+                i++;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (br != null)br.close();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
         }
 
         return true;
     }
 
     private SensorInfo getSensorInfo(String sensorType){
+        if (sensorTable == null) {
+            String fileName = null;
+            try {
+                fileName = get("instrument-calibration-file");
+            }
+            catch (Exception e) {
+                logger.error("Failed attempt to read instrument-calibration-file from config.xml: " + e.getMessage() );
+            }
+            readSensorTable(fileName);
+        }
+        //for (String sensorName : sensorTable.keySet() ){
+            //logger.info("SensorTable: Found Sensor:" + sensorTable.get(sensorName).toString() );
+        //}
+
         for (String sensorName : sensorTable.keySet() ){
             if (sensorType.contains(sensorName)) {
                 //logger.info("sensorName=[{}] matches sensorType=[{}]", sensorName, sensorType);
@@ -442,5 +486,104 @@ extends Metric
         return null;
     }
 
+    public static class SensorInfo
+    {
+        private String sensorName=null;
+        private double Tmin;
+        private double Tmax;
+        private double Tnorm;
+
+    // constructor
+        public SensorInfo(String sensorName, double Tmin, double Tmax, double Tnorm)
+        {
+            this.sensorName  = sensorName;
+            this.Tmin  = Tmin;
+            this.Tmax  = Tmax;
+            this.Tnorm = Tnorm;
+        }
+        public String getSensorName(){
+            return sensorName;
+        }
+        public double getMinPeriod(){
+            return Tmin;
+        }
+        public double getMaxPeriod(){
+            return Tmax;
+        }
+        public double getNormPeriod(){
+            return Tnorm;
+        }
+        public String toString() {
+            return String.format("sensorName=[%s] Tmin=[%.2f] Tmax=[%.2f] Tnorm=[%.2f]",
+                                  sensorName, Tmin, Tmax, Tnorm );
+        }
+    }
+
+    public class BandAverageDiff
+    {
+        double T1;
+        double T2;
+        double ampDiff;
+        double phsDiff;
+    }
+
+    public class CalibrationResult
+    {
+        private Channel channel;
+        private Channel calInputChannel;
+        private String  calStartDate;
+        private long    calDuration;
+
+        String sensorName;
+        double Tmin;
+        double Tmax;
+        double Tnorm;
+        double cornerFreq;
+        double cornerFreqCal;
+        Hashtable<String, BandAverageDiff> bandTable;
+
+        public CalibrationResult(Channel channel, Channel calInputChannel,
+                                 String calStartDate, long calDuration) {
+            this.channel = channel;
+            this.calInputChannel = calInputChannel;
+            this.calStartDate = calStartDate;
+            this.calDuration = calDuration;
+            bandTable = new Hashtable<String, BandAverageDiff>();
+        }
+        void setSensorName(String sensorName) {
+            this.sensorName = sensorName;
+        }
+        void setPeriods(double Tmin, double Tmax, double Tnorm) {
+            this.Tmin  = Tmin;
+            this.Tmax  = Tmax;
+            this.Tnorm = Tnorm;
+        }
+        void setCornerFreq(double cornerFreq) {
+            this.cornerFreq = cornerFreq;
+        }
+        void setCornerFreqCal(double cornerFreq) {
+            this.cornerFreqCal = cornerFreq;
+        }
+        void addBand(String name, BandAverageDiff bandDiff) {
+            bandTable.put(name, bandDiff);
+        }
+
+        public String toString() {
+            StringBuilder out = new StringBuilder();
+            out.append(String.format("\n==CalibrationResult: channel=[%s] calInputChannel=[%s] calStart=[%s] calDuration=[%d]\n"
+                                 + "                     SensorName=[%s]\n"
+                                 + "                     Tmin=[%.2f] Tmax=[%.2f] Tnorm=[%.2f] corner Freq=[%f] Per=[%f]\n"
+                                 + "                                                                Cal corner Per=[%f]\n"
+                                    ,channel, calInputChannel, calStartDate, calDuration
+                                    ,sensorName
+                                    ,Tmin, Tmax, Tnorm, cornerFreq, 1./cornerFreq, 1./cornerFreqCal) );
+            for (String band : bandTable.keySet()) {
+                BandAverageDiff bandDiff = bandTable.get(band);
+                out.append(String.format("                     Band [%s]: T1=%.2f T2=%.2f AmpDiff=[%f] PhsDiff=[%f]\n",
+                                          band, bandDiff.T1, bandDiff.T2, bandDiff.ampDiff, bandDiff.phsDiff ) ); 
+            }
+            return out.toString();
+        }
+    }
 
 }

@@ -83,8 +83,6 @@ extends PowerBandMetric
         try {
 	        NLNMFile = get("nlnm-modelfile");
 	        NHNMFile = get("nhnm-modelfile");
-        	//getNLNM();
-        	//getNHNM();
         }
         catch(Exception e) {
             logger.error("Failed to get nlnm-modelfile from config.xml:" + e.getMessage());
