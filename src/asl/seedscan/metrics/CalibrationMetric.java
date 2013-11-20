@@ -109,11 +109,14 @@ extends Metric
             else {
                 logger.info("channel=[{}] day=[{}] CalResult Follows", channel, getDay() );
                 logger.info(calResult.toString());
+                logger.info(calResult.toJSONString());
 
-                //metricResult.addResult(channel, results[0], digest);
-                //for (int i=0; i<results.length; i++) {
-                    //metricResult.addResult(channel, results[i], digest);
-                //}
+                // In this special case, we don't care about the (single double) result value 
+                // since everything is packed into a JSON String so we'll just directly call 
+                // MetricResult.addResult(String id, double value, digest):
+                double dummyValue = -999.;
+                metricResult.addResult(calResult.toJSONString(), dummyValue, digest);
+                //MetricResult.createChannel(calResult.toJSONString());
             }
 
         }// end foreach channel
@@ -561,6 +564,28 @@ extends Metric
         }
         void addBand(String name, BandAverageDiff bandDiff) {
             bandTable.put(name, bandDiff);
+        }
+
+        public String toJSONString() {
+            BandAverageDiff bandDiff = bandTable.get("midBandDiff");
+            StringBuilder out = new StringBuilder();
+            out.append(String.format("{\"channelId\":\"%s\",\n", channel) );
+            out.append(String.format(" \"band\":{\n") );
+            out.append(String.format("   \"T1\":%.2f\n", bandDiff.T1) );
+            out.append(String.format("   \"T2\":%.2f\n", bandDiff.T2) );
+            out.append(String.format("   \"dBDiff\":%.4f\n", bandDiff.ampDiff) );
+            out.append(String.format("   \"phDiff\":%.4f\n", bandDiff.phsDiff) );
+            out.append(String.format("   }\n") );
+
+            bandDiff = bandTable.get("longTDiff");
+            out.append(String.format(" \"band\":{\n") );
+            out.append(String.format("   \"T1\":%.2f\n", bandDiff.T1) );
+            out.append(String.format("   \"T2\":%.2f\n", bandDiff.T2) );
+            out.append(String.format("   \"dBDiff\":%.4f\n", bandDiff.ampDiff) );
+            out.append(String.format("   \"phDiff\":%.4f\n", bandDiff.phsDiff) );
+            out.append(String.format("   }\n") );
+
+            return out.toString();
         }
 
         public String toString() {

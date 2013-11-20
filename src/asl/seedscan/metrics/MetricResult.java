@@ -65,7 +65,7 @@ public class MetricResult
     {
     	return station;
     }
-    
+
     public void addResult(Channel channel, Double value, ByteBuffer digest)
     {
         addResult(createResultId(channel), value, digest);
@@ -118,14 +118,26 @@ public class MetricResult
     	return String.format("%s-%s,%s-%s", channelA.getLocation(), channelB.getLocation(),
     										channelA.getChannel(),  channelB.getChannel());
     }
-    
+
     public static Channel createChannel(String id)
     {
+logger.info("createChannel: id=" + id);
     	Channel channel = null;
-    	String[] parts = id.split(",");
-    	if (parts.length == 2) {
-    		channel = new Channel(parts[0], parts[1]);
-    	}
+        if (id.length() > 15) { // This is likely to be coming from a CalibrationMetric
+                              // so handle differently
+            // id = "{ "channelId":"00-LHZ", "band": { ..."
+            String[] f1 = id.split(":");       // f1="00-LHZ","band"
+            String[] f2 = f1[1].split(",");    // f2="00-LHZ"
+            String[] f3 = f2[0].split("-");    // f3[0]="00" f3[1]="LHZ"
+            channel = new Channel(f3[0],f3[1]);
+        }
+        else {
+    	    String[] parts = id.split(",");
+    	    if (parts.length == 2) {
+    		    channel = new Channel(parts[0], parts[1]);
+    	    }
+        }
+logger.info("createChannel: channel=[{}]", channel);
     	return channel;
     }
 }

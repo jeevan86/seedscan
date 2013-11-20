@@ -193,17 +193,23 @@ public class MetricDatabase
 				
 				for (String id : results.getIdSet())
 				{
-					Channel channel = MetricResult.createChannel(id);
 					java.sql.Date date = new java.sql.Date(results.getDate().getTime().getTime());
-					
+					Channel channel = MetricResult.createChannel(id);
+
 					callStatement.setDate(1, date, results.getDate());
 					callStatement.setString(2, results.getMetricName());
 					callStatement.setString(3, results.getStation().getNetwork());
 					callStatement.setString(4, results.getStation().getStation());
 					callStatement.setString(5, channel.getLocation());
 					callStatement.setString(6, channel.getChannel());
-					callStatement.setDouble(7, results.getResult(id));
 					callStatement.setBytes(8, results.getDigest(id).array());
+
+                    if (results.getMetricName().equals("CalibrationMetric") ){
+					    callStatement.setString(7, id);
+                    }
+                    else {
+					    callStatement.setDouble(7, results.getResult(id));
+                    }
 					
 					callStatement.executeQuery();
 				}
