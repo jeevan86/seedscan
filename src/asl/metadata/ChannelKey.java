@@ -69,17 +69,23 @@ public class ChannelKey
     //      XX - seen in II seed files
     //      P1 - Princeton Modes Synthetic - seen in II seed files
     //      P3 - Princeton  SEM  Synthetic - seen in II seed files
-    
 
+/**
     // Temp fix for station US_WMOK which has some channel blockettes tagged with location="HR"
         if (location.equals("HR")) {  // Add to this any unruly location code you want to flag ...
             location = "XX";
-            //logger.severe( String.format("ChannelKey.setLocation: Got location code=HR --> I'll set it to XX and continue parsing dataless") );
             logger.warn( String.format("ChannelKey.setLocation: Got location code=HR chan=%s--> I'll set it to XX and continue parsing dataless", name) );
         }
+**/
 
-        if (location == null || location.equals("") ){
-            location = "--";
+        if (location == null || location.equals("") || location.equals("--") ){
+            //location = "--";
+            logger.warn("setLocation(): Map input location=[{}] to new location=[00]", location);
+            location = "00";
+        }
+        else if (location.equals("HR") ){
+            logger.warn("setLocation(): Map input location=[{}] to new location=[10]", location);
+            location = "10";
         }
         else {
             if (location.length() != 2) {
