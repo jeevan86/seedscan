@@ -260,10 +260,18 @@ implements Runnable
                             }
                         }
                         location = seedstring.substring(10,12).trim();
+
                     // MTH:
-                        if (location.equals("") || location == null) {
-                            location = "--";            // Set Default location to "--"
+                    // Set the default location = "00"
+                        if (location.equals("--") || location.equals("") || location == null ) {
+                            logger.warn("miniseed location=[{}] was changed to [00]", location);
+                            location = "00";
                         }
+                        else if (location.equals("HR")) {
+                            logger.warn("miniseed location=[{}] was changed to [10]", location);
+                            location = "10";
+                        }
+
                         if (m_patternLocation != null) {
                             matcher = m_patternLocation.matcher(location);
                             if (!matcher.matches()) {

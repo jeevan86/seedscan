@@ -106,8 +106,10 @@ extends PowerBandMetric
 
         for (Channel channel : channels){
 
-         // Check to see that we have data + metadata & see if the digest has changed wrt the database:
-         // Update: At this point we KNOW we have metadata since it is driving the channel loop
+            if (!metricData.hasChannelData(channel)){
+                //logger.warn("No data found for channel[{}] --> Skip metric", channel);
+                continue;
+            }
 
             ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel), getForceUpdate() );
 

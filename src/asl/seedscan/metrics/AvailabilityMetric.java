@@ -55,6 +55,11 @@ extends Metric
 
         for (Channel channel : channels){
 
+            if (!metricData.hasChannelData(channel)){
+                //logger.warn("No data found for channel[{}] --> Skip metric", channel);
+                continue;
+            }
+
             ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel), getForceUpdate());
 
             if (digest == null) { // means oldDigest == newDigest and we don't need to recompute the metric 

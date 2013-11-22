@@ -87,6 +87,11 @@ extends Metric
 
         for (Channel channel : channels){
 
+            if (!metricData.hasChannelData(channel)){
+                //logger.warn("No data found for channel[{}] --> Skip metric", channel);
+                continue;
+            }
+
             if ( !(channel.getChannel().equals("BHZ")) && stationMeta.getChanMeta(channel).getInstrumentType().contains("STS-2")) {
             // Skip STS-2/STS-2.5 Horizontal Channels
                 logger.info("InstrumentType = STS-2/2.5 --> Skip horizontal channel={}", channel);
