@@ -291,11 +291,11 @@ implements Runnable
                         else {
                      // Set the default location codes
                             if (location.equals("--") || location.equals("") || location == null ) {
-                                logger.warn("miniseed location=[{}] was changed to [00]", location);
+                                logger.warn("miniseed channel=[{}] location=[{}] was changed to [00]", channel,location);
                                 location = "00";
                             }
                             if (location.equals("HR")) {
-                                logger.warn("miniseed location=[{}] was changed to [10]", location);
+                                logger.warn("miniseed channel=[{}] location=[{}] was changed to [10]", channel,location);
                                 location = "10";
                             }
                         }

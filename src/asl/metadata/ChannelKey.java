@@ -92,11 +92,11 @@ public class ChannelKey
         else {
      // Set Default location codes:
             if (location.equals("--") || location.equals("") || location == null ) {
-                logger.warn("metadata location=[{}] was changed to [00]", location);
+                logger.warn("metadata name=[{}] location=[{}] was changed to [00]", name,location);
                 location = "00";
             }
             if (location.equals("HR")) {
-                logger.warn("metadata location=[{}] was changed to [10]", location);
+                logger.warn("metadata name=[{}] location=[{}] was changed to [10]", name,location);
                 location = "10";
             }
         }   
