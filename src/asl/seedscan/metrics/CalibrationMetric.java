@@ -166,7 +166,13 @@ extends Metric
             return null;
         }
 
-        CalibrationResult calibration = new CalibrationResult(channel, new Channel("--",channelExtension), 
+        String location = "00";
+        if (channelExtension.contains("C1")) {
+            location = "10";
+        }
+        Channel calChannel = new Channel(location, channelExtension);
+
+        CalibrationResult calibration = new CalibrationResult(channel, calChannel, 
                 EpochData.epochToTimeString(blockette320.getCalibrationCalendar()), calDuration/1000);
 
         if ( calEndEpoch > dataEndEpoch ) {
@@ -202,8 +208,8 @@ extends Metric
     //    compute the PSD of each
     //    Calibration input channel seed files (e.g., BC0.512.seed) do not have location code so it defaults to "--":
 
-        double[] outData = metricData.getWindowedData(channel, calStartEpoch, calStartEpoch + calDuration);
-        double[] inData  = metricData.getWindowedData(new Channel("--",channelExtension), calStartEpoch, calStartEpoch + calDuration);
+        double[] outData = metricData.getWindowedData(channel,    calStartEpoch, calStartEpoch + calDuration);
+        double[] inData  = metricData.getWindowedData(calChannel, calStartEpoch, calStartEpoch + calDuration);
 
         if (inData == null || inData.length <= 0) {
             logger.error("We have no data for reported cal input channel=[{}] for station=[{}] --> Skip metric", channelExtension, getStation());

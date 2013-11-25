@@ -45,14 +45,14 @@ public class ChannelKey
         location = blockette.getFieldValue(3,0);
         name     = blockette.getFieldValue(4,0);
 
-        setLocation(location);
         setChannel(name);
+        setLocation(location);
     }
 
     public ChannelKey(String location, String name)
     {
-        setLocation(location);
         setChannel(name);
+        setLocation(location);
     }
     public ChannelKey(Channel channel)
     {
@@ -78,27 +78,39 @@ public class ChannelKey
         }
 **/
 
-        if (location == null || location.equals("") || location.equals("--") ){
-            //location = "--";
-            logger.warn("setLocation(): Map input location=[{}] to new location=[00]", location);
+     // Set the location for calibration channels {"BC0", "BC1", "LC0", "LC1"}                      
+        if (name.contains("C0") ){
+            logger.warn("Found metadata calibration channel=[{}] --> Change location=[{}] to new location=[00]"
+                        , name, location);
             location = "00";
-        }
-        else if (location.equals("HR") ){
-            logger.warn("setLocation(): Map input location=[{}] to new location=[10]", location);
+        }   
+        else if (name.contains("C1") ){
+            logger.warn("Found metadata calibration channel=[{}] --> Change location=[{}] to new location=[10]"
+                        , name, location);
             location = "10";
-        }
+        }   
         else {
-            if (location.length() != 2) {
-                throw new RuntimeException( String.format("Error: Location code=[%s] chan=[%s] is NOT a valid 2-char code (e.g., %s)", location, name, validCodes) );
+     // Set Default location codes:
+            if (location.equals("--") || location.equals("") || location == null ) {
+                logger.warn("metadata location=[{}] was changed to [00]", location);
+                location = "00";
             }
-            Pattern pattern  = Pattern.compile("^[0-9][0-9]$");
-            Matcher matcher  = pattern.matcher(location);
-            if (!matcher.matches() && !location.equals("--") && !location.equals("XX") ) {
-                //throw new RuntimeException( String.format("Error: Location code=[%s] is NOT valid (e.g., %s)", location, validCodes) );
+            if (location.equals("HR")) {
+                logger.warn("metadata location=[{}] was changed to [10]", location);
+                location = "10";
             }
-        }
-        this.location = location;
+        }   
 
+        if (location.length() != 2) {
+            throw new RuntimeException( String.format("Error: Location code=[%s] chan=[%s] is NOT a valid 2-char code (e.g., %s)", location, name, validCodes) );
+        }
+        Pattern pattern  = Pattern.compile("^[0-9][0-9]$");
+        Matcher matcher  = pattern.matcher(location);
+        if (!matcher.matches() && !location.equals("--") && !location.equals("XX") ) {
+            //throw new RuntimeException( String.format("Error: Location code=[%s] is NOT valid (e.g., %s)", location, validCodes) );
+        }
+
+        this.location = location;
     }
 
     private void setChannel(String channel) {

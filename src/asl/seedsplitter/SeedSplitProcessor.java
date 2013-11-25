@@ -260,18 +260,6 @@ implements Runnable
                             }
                         }
                         location = seedstring.substring(10,12).trim();
-
-                    // MTH:
-                    // Set the default location = "00"
-                        if (location.equals("--") || location.equals("") || location == null ) {
-                            logger.warn("miniseed location=[{}] was changed to [00]", location);
-                            location = "00";
-                        }
-                        else if (location.equals("HR")) {
-                            logger.warn("miniseed location=[{}] was changed to [10]", location);
-                            location = "10";
-                        }
-
                         if (m_patternLocation != null) {
                             matcher = m_patternLocation.matcher(location);
                             if (!matcher.matches()) {
@@ -287,6 +275,31 @@ implements Runnable
                                 break progress;
                             }
                         }
+
+                     // MTH:
+                     // Set the location for calibration channels {"BC0", "BC1", "LC0", "LC1"} 
+                        if (channel.contains("C0") ){
+                            logger.warn("Found miniseed calibration channel=[{}] --> Change location=[{}] to new location=[00]"
+                                        , channel, location);
+                            location = "00";
+                        }
+                        else if (channel.contains("C1") ){
+                            logger.warn("Found miniseed calibration channel=[{}] --> Change location=[{}] to new location=[10]"
+                                        , channel, location);
+                            location = "10";
+                        }
+                        else {
+                     // Set the default location codes
+                            if (location.equals("--") || location.equals("") || location == null ) {
+                                logger.warn("miniseed location=[{}] was changed to [00]", location);
+                                location = "00";
+                            }
+                            if (location.equals("HR")) {
+                                logger.warn("miniseed location=[{}] was changed to [10]", location);
+                                location = "10";
+                            }
+                        }
+
                         sampleRate = MiniSeed.crackRate(recordBytes);
                         try {
                             interval = DataSet.sampleRateToInterval(sampleRate);

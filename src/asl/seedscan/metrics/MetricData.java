@@ -190,6 +190,10 @@ public class MetricData
 // ----- Random CalibrationData ------------------//
 
     public boolean hasCalibrationData() {
+        if (metadata.getNetwork().equals("II")) {
+            //if (hasChannelData( new Channel("CC",
+        }
+
         if (randomCal == null) {
             return false;
         }
