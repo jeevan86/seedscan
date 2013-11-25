@@ -161,6 +161,21 @@ public class MetricData
         return false;           
     }
 
+    // Same as above but only checks keys against channel name (doesn't look at location)
+    public boolean hasChannelData(String name)
+    {
+        if (data == null) { return false; }
+        String locationName = "-" + name;
+        Set<String> keys = data.keySet();
+        for (String key : keys){          // key looks like "IU_ANMO 00-BHZ (20.0 Hz)"
+            if (key.contains(locationName) ){
+                return true;
+            }
+        }
+        return false;
+    }
+
+
 
     // -----------------  get ChannelData methods ----------------------------------------- //
 
@@ -189,15 +204,24 @@ public class MetricData
 
 // ----- Random CalibrationData ------------------//
 
+/**
+ * Note we don't rely on the metadata to contain any info about calibration
+ *   channels.
+ * We simply look for the presence of random calibration blockettes (320's)
+ *   for the IU stations, or miniseed channels like "LC0" or "LC1" for the
+ *   II stations.
+ */
     public boolean hasCalibrationData() {
-        if (metadata.getNetwork().equals("II")) {
-            //if (hasChannelData( new Channel("CC",
+        if (randomCal != null) {
+            return true;
         }
-
-        if (randomCal == null) {
-            return false;
+        else if (metadata.getNetwork().equals("II")) {
+            if (hasChannelData("BC0") || hasChannelData("BC1") 
+             || hasChannelData("LC0") || hasChannelData("LC1") ) {
+                return true;
+            }
         }
-        return true;
+        return false;
     }
     public ArrayList<Blockette320> getChannelCalData(Channel channel)
     {

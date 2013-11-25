@@ -78,28 +78,15 @@ public class ChannelKey
         }
 **/
 
-     // Set the location for calibration channels {"BC0", "BC1", "LC0", "LC1"}                      
-        if (name.contains("C0") ){
-            logger.warn("Found metadata calibration channel=[{}] --> Change location=[{}] to new location=[00]"
-                        , name, location);
-            location = "00";
-        }   
-        else if (name.contains("C1") ){
-            logger.warn("Found metadata calibration channel=[{}] --> Change location=[{}] to new location=[10]"
-                        , name, location);
-            location = "10";
-        }   
-        else {
      // Set Default location codes:
-            if (location.equals("--") || location.equals("") || location == null ) {
-                logger.warn("metadata name=[{}] location=[{}] was changed to [00]", name,location);
-                location = "00";
-            }
-            if (location.equals("HR")) {
-                logger.warn("metadata name=[{}] location=[{}] was changed to [10]", name,location);
-                location = "10";
-            }
-        }   
+        if (location.equals("--") || location.equals("") || location == null ) {
+            logger.debug("metadata name=[{}] location=[{}] was changed to [00]", name,location);
+            location = "00";
+        }
+        if (location.equals("HR")) {
+            logger.debug("metadata name=[{}] location=[{}] was changed to [10]", name,location);
+            location = "10";
+        }
 
         if (location.length() != 2) {
             throw new RuntimeException( String.format("Error: Location code=[%s] chan=[%s] is NOT a valid 2-char code (e.g., %s)", location, name, validCodes) );
