@@ -118,10 +118,11 @@ extends Metric
 
                 // In this special case, we don't care about the (single double) result value 
                 // since everything is packed into a JSON String so we'll just directly call 
-                // MetricResult.addResult(String id, double value, digest):
                 double dummyValue = -999.;
+/** Temp disable in master branch until James tests the JSON injections
                 metricResult.addResult(calResult.toJSONString(), dummyValue, digest);
                 //MetricResult.createChannel(calResult.toJSONString());
+**/
             }
 
         }// end foreach channel
