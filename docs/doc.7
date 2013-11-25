@@ -1,0 +1,45 @@
+====    7. Metrics
+
+    
+                public abstract class Metric
+                    private Hashtable<String, String> arguments;
+                    private Hashtable<CrossPowerKey, CrossPower> crossPowerMap;
+                    protected StationMeta  stationMeta  = null;
+                    protected MetricData   metricData   = null;
+                    protected MetricResult metricResult = null;
+                                        |
+                                        |
+                             -----------------------
+                             |                     |
+                             |                     |
+                             |                     |
+public class AvailabilityMetric             public abstract class PowerBandMetric 
+             extends Metric                                       extends Metric
+                                                   |
+                                                   |
+                                                   |
+                                            public class NLNMDeviationMetric
+                                                         extends PowerBandMetric
+
+
+
+    public void process() {
+        // Loop channels for this metric
+        for (Channel channel : channels){
+        // Calc the digest for this channel (= f(data + metadata for this/these channel/channels)
+            ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel), getForceUpdate());
+            // If we are not connected to the database, then this is no old digest to compare
+            // to and we will compute the metric
+            if (digest == null) { // means oldDigest == newDigest and we don't need to recompute the metric 
+                logger.warn("Digest unchanged station:[{}] channel:[{}] --> Skip metric", getStation(), channel);
+                continue;
+            }
+            double result = computeMetric(channel);
+            metricResult.addResult(channel, result, digest);
+        }// end foreach channel
+    } // end process()
+
+Note: There is 1 metricResult for each metric instance. It holds a value map and a digest map.
+      Each map entry represents the metric result for a given channel of combination of
+      channels
+

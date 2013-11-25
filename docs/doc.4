@@ -1,0 +1,48 @@
+====    4. SeedScan
+
+SeedScan main()
+    Parse command line
+    Verify config.xml against schemas/SeedScan.xsd: parser.parseConfig(configFile);
+    Configure logging - this is now done entirely in ./log4j.properties
+    Configure Database connection
+    Configure Scans
+        foreach ScanT
+            Create the Scan object that will be passed to each Scanner
+            e.g., 
+            scan.setPathPattern(scanCfg.getPath())
+            scan.setDatalessDir(scanCfg.getDatalessDir())
+            scan.setStartDay(scanCfg.getStartDay())
+            scan.setDaysToScan(scanCfg.setDaysToScan())
+            Loop MetricT
+                scan.addMetric(wrapper = new MetricWrapper(metricClass))
+            endLoop
+        end foreach
+
+    Start readerThread
+    Start injectorThread
+
+    Configure metaServer - Could be local (e.g., this JVM), or remote (using RMI to 
+        query a remote JVM for the station metadata.
+
+    Get a list of Stations to Scan:
+      1. config.xml: <stationList> - Use this to specify the stations to scan
+         for ALL Scans
+      2. config.xml: <station_subset> - Use this to specify the stations
+         to scan for THIS Scan.
+      3. If neither field above is found, then query the metaServer for a list 
+         of stations that we have metadata for
+        (e.g., the metaServer will scan in all the dataless files like IU.dataless,
+        II.dataless, etc. and generate a list of all known stations. Thus, if
+        we don't have metadata for a station, there is no way to scan it).
+
+        List<Station> stations = metaServer.getStationList();
+
+    Loop over Scans
+        foreach Scan
+            create a ScanManager (=threadpool to manage Scanners) and pass the station
+            list + Scan object to it.
+        //end foreach
+    //end loop
+
+End SeedScan (= halt the injector, reader and metaserver threads)
+

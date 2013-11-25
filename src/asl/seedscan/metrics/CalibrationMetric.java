@@ -88,7 +88,7 @@ extends Metric
         for (Channel channel : channels){
 
             if (!metricData.hasChannelData(channel)){
-                //logger.warn("No data found for channel[{}] --> Skip metric", channel);
+                logger.warn("No data found for channel[{}] --> Skip metric", channel);
                 continue;
             }
 
@@ -166,11 +166,9 @@ extends Metric
             return null;
         }
 
-        String location = "00";
-        if (channelExtension.contains("C1")) {
-            location = "10";
-        }
-        Channel calChannel = new Channel(location, channelExtension);
+        // Cal channels will have (no) location = "" in the miniseed files, but this will
+        //   be mapped to the default location code="00"
+        Channel calChannel = new Channel("00", channelExtension);
 
         CalibrationResult calibration = new CalibrationResult(channel, calChannel, 
                 EpochData.epochToTimeString(blockette320.getCalibrationCalendar()), calDuration/1000);

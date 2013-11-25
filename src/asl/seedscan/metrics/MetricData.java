@@ -150,7 +150,6 @@ public class MetricData
     public boolean hasChannelData(String location, String name)
     {
         if (data == null) { return false; }
-
         String locationName = location + "-" + name;
         Set<String> keys = data.keySet();
         for (String key : keys){          // key looks like "IU_ANMO 00-BHZ (20.0 Hz)"
@@ -174,7 +173,6 @@ public class MetricData
         }
         return false;
     }
-
 
 
     // -----------------  get ChannelData methods ----------------------------------------- //

@@ -1,0 +1,17 @@
+file    Topic
+=====   =========================
+doc.0   build.xml   
+doc.1   config.xml
+doc.2   jaxb
+doc.3   argument passing summary
+doc.4   SeedScan main()
+doc.5   ScanManager
+doc.6   Scanner
+doc.7   Metric
+
+README.old - Contains some misc detailed notes about:
+    digest calculation
+    Metric class details (e.g., computePSD)
+    StationMeta
+    Rotations
+    Instrument Repsonse

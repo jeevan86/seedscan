@@ -1,0 +1,35 @@
+====    0. build.xml is the ant build file
+
+   It contains several targets that you can list by doing:
+   >ant -p
+Buildfile: /Users/mth/mth/Projects/asl/seedscan/build.xml
+
+        ASL SeedScan Data Quality Analyzer
+    
+Main targets:
+
+ clean          clean up
+ clean_build    clean up build content [del /build]
+ clean_docs     clean up docs
+ clean_jaxb     clean up JAXB generated sources [del dir=seedscan.config.src]
+ clean_package  clean up package content
+ compile        Compile the source [depends = init,jaxb]
+ data           Add resource files
+ docs           generate the javadoc documentation
+ init           mkdir /build and /build/resources [depends = clean_build]
+ jar            generate the distribution
+ jaxb           JAXB class generation for config file schema [depends = clean_jaxb]
+ libraries      Add libraries
+ package        zips all sources and relevent files into an archive
+ seedscan       Clean build + test [depends = compile, test]
+ test           Run main from /build dir
+Default target: compile
+
+ The default target = compile, so:
+ >ant      --> will compile
+               This will activate several sub targest like clean_build, clean_jaxb, etc.
+               The resulting compiled classes will be located in build/
+ >ant test --> will run the (previously compiled) seedscan from the build/ dir
+ >ant seedscan will compile and then run test
+ >ant jar      will create SeedScan.jar
+

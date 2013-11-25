@@ -1,0 +1,46 @@
+====    6. Scanner
+
+    This is really the meat of SeedScan.
+    Each Scanner will scan all the requested days for a *single* station.
+    Each Scanner will operate in its own thread (managed by ScanManager).
+
+Scanner.scan() {
+    Loop over days to scan
+        [1] Get all the channel metadata for this station, for this day:
+            StationMeta stnMeta = metaServer.getStationMeta(station, timestamp);
+** Note that we actually make [2] calls to metaServer.getStationMeta() for the 
+   current day timestamp (one to make sure we have stnMeta for the day,
+   and another inside of getMetricData() to attach the current day stnMeta
+   to the current day MetricData object
+
+        [2] Read all miniseed files for this station, for this day (and the next
+            day for event metrics that span the day):
+           // Data path is specified in config.xml
+            ArchivePath pathEngine = new ArchivePath(timestamp, station);
+            String path pathEngine.makePath(scan.getPathPattern());
+            Hashtable<String,ArrayList<DataSet>> table;
+            table = splitter.doInBackground();
+
+        [3] Loop over Metrics to compute, for this station, for this day:
+            MetricData metricData = new MetricData(reader, table, stnMeta);
+            for (MetricWrapper wrapper : scan.getMetrics() )
+               Metric metric = wrapper.getNewInstance();
+               metric.setData(metricData);
+        // **  Call the metric's process() method to compute the metric:
+               metric.process();
+               MetricResult results = metric.getMetricResult();
+               for (String id : results.getIDSet()
+                    double value = results.getResult(id);
+               end for
+        // **  If the database is connected, try to inject the metric results just computed
+               injector.inject(results);
+            end Loop over Metrics
+
+        * Note that the crossPowerMap Hashtable is passed from metric to metric so that we
+          don't have to recompute the PSD for each channel - if it's already computed we
+          can retrieve it and use it in a new metric.
+
+    end Loop over days to scan
+}
+End Scanner
+

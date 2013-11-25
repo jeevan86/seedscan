@@ -1,0 +1,110 @@
+====    3. Putting it all together: Argument Passing from config.xml 
+           and MetricWrapper details
+
+======= IN A NUTSHELL ===========
+A. SeedScan:    for (MetricT met: scanCfg.getMetrics().getMetric()) {
+                    try {
+                        Class metricClass = Class.forName(met.getClassName());
+                        MetricWrapper wrapper = new MetricWrapper(metricClass);
+
+    // 1. Call new MetricWrapper(NLNMDeviationMetric):
+    //    public MetricWrapper(metricClass) {
+    //        Metric arguments = (Metric)metricClass.newInstance()  --> calls new NLNMDeviationMetric()
+    //    }
+    // 2. public NLNMDeviationMetric() {
+    //      super();
+    //      addArgument("modelfile");       // This MUST be called BEFORE you try to call Metric.add(name, value)
+    //    }
+                        for (ArgumentT arg: met.getArgument()) {
+                            wrapper.add(arg.getName(), arg.getValue());
+
+    // 3. metricWrapper.add(name, value), where name + value are taken from config.xml
+    //    MetricWrapper:    public void add(String name, String value) {
+    //                           arguments.add(name, value);   // Actually calling Metric.add(name, value) !!
+    //                      }
+
+                        }
+    // 4. Add the metricWrapper (with its args) to the scan:
+                        scan.addMetric(wrapper);
+                ...
+SeedScan        }
+
+B. Scanner:
+// [ ] Loop over Metrics to compute, for this station, for this day
+
+            for (MetricWrapper wrapper: scan.getMetrics()) {
+                Metric metric = wrapper.getNewInstance();
+            ...
+            }
+
+    // 5.  metricWrapper.getNewInstance():
+           public Metric getNewInstance() { 
+            try {
+                Metric metric = (Metric)metricClass.newInstance(); // This will instantiate the class (= call its constructor)
+                Enumeration<String> names = arguments.names();     // Actually calling (Metric).names() e.g., NLNMDeviationMetric.names()
+                while (names.hasMoreElements()) {                  //   which was populated in SeedScan above
+                    String name = names.nextElement();
+            // MTH: added this condition so that some arguments in config.xml (e.g., <cfg:argument name=forceupdate value=../>
+            //      could be optional and we don't want a NullPointer error when we try to put a null value:
+                    if (arguments.get(name) != null) {
+                        metric.add(name, arguments.get(name));
+                    }
+                }
+            }
+======= END IN A NUTSHELL ===========
+
+
+config.xml: argument to PowerBandMetric (e.g., NLNMDeviationMetric):
+          <cfg:argument cfg:name="lower-limit">4</cfg:argument>
+
+Part I = SeedScan main:
+1. SeedScan: MetricWrapper wrapper = new MetricWrapper( MetricClass - e.g. NLNMDeviationMetric);
+             2. public MetricWrapper(metricClass) {
+                    this.metricClass = metricClass;
+                    Metric arguments = (Metric)metricClass.newInstance();
+                  ** e.g., arguments = (Metric)NLNMDeviationMetric.newInstance()
+                }
+             3. public NLNMDeviationMetric() {
+                    super();     ---> 4. public PowerBandMetric() {
+                                            super(); ---> 5. public Metric() {
+                                                                 arguments = new Hashtable<String,String>();
+                                                             }
+                                         6. addArgument("lower-limit");  --> Metric.addArgument(String name)
+                                            addArgument("lower-limit");  --> Metric.addArgument(String name)
+                                      }
+                 7. addArgument("modelfile");                            --> Metric.addArgument(String name)    "AA"
+                }
+
+                                                  = metricClass
+8. SeedScan: wrapper.add("lower-limit", "4"); --> arguments.add(name, value)
+    NLNMDeviationMetric.add(name, value) --> PowerBandMetric.add() --> 9. Metric.add(name, value) {
+                                                                            if (!arguments.containsKey(name) {}
+                                                                            else {
+                                                                                arguments.put(name, value);
+                                                                            }
+
+// First check that the argument "name" is in the Hash, then add the "value"
+// At this point we've added (name,value) to the Metric Hashtable for this metric Class (e.g., NLNMDeviationMetric)
+
+
+Part II = Scanner Loop: over metrics to compute for this Station + Day
+        for (MetricWrapper wrapper : scan.getMetrics() ) {   // scan.getMetrics() returns ArrayList<MetricWrapper>
+            1. Metric metric = wrapper.getNewInstance();
+
+                    MetricWrapper.getNewInstance() {
+                        Metric metric = (Metric)metricClass.newInstance();  ** Same point as "AA" above, except Metric.arguments is filled
+                        Enumeration<String> names = arguments.names();
+                          // metricClass = NLNMDeviationMetric.names() --> PowerBandMetric.names() --> Metric.names():
+                        2.     Metric: public final Enumeration<String> names() {
+                                          return arguments.keys();
+                                       }
+                        3. Now add the arguments (name,value) explicitly to NLNMDeviationMetric ??
+                        while (names.hasMoreElements() ) {
+                            String name = names.nextElement();
+                            metric.add(name, arguments.get(name)); 
+                        }
+                    }
+
+            4. metric.process(); // e.g., NLNMDeviationMetric.process() with arguments Hash set
+        }
+

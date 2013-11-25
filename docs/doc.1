@@ -1,0 +1,21 @@
+====    1. config.xml is the XML config file
+
+The fields in config.xml are pretty self-explanatory.
+Note that one can either use <start_date> (e.g., 2012160) or <start_day> to start the scan
+     (e.g., <start_day>200 - means start scanning from 200 days before present day)
+The scans run *backwards* in time, so <start_date>2012160 + <days_to_scan>3 will
+scan in the following order:
+2012160
+2012159
+2012158
+
+The config.xml file will verified against the XSD schema (schemas/SeedScanConfig.xsd)
+at run time.  Use the schema to set the rules or what's allowable in config.xml.
+
+If you add a field to config.xml without first entering it into SeedScanConfig.xsd,
+you'll get a java.lang.RuntimeException: Could not unmarshal config file ...
+
+By default, seedscan will look for ./config.xml, however, you can specify
+a different config file with the "-c" command line option:
+>java asl.seedscan.SeedScan -c path/to/some/config.xml
+

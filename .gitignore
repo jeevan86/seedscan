@@ -5,10 +5,16 @@ build
 config.xml
 config.xml~
 doc
-logs/*.log
+logs/*
 log.txt
+*.old
+*.txt
+*.class
 rdseed.err_log*
 seedscan.jar
 SeedScan.jar
 seedscan.lock
 src/asl/seedscan/config
+output
+output2
+ASL_NoTrack

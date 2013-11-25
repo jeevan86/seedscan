@@ -1,0 +1,14 @@
+====    5. ScanManager
+
+    Create a fixed thread pool (based on number of available processors)
+    Add tasks to the queue
+    Use thread pool to execute the tasks.
+
+    Each task = a Scanner (A Scanner() is created for each station on list). 
+
+    The boolean method passesFilter was used to carry the idea of filtering
+    stations/networks to scan using the entire metadata station list, where
+    the filters are generated from the config.xml.
+
+    This was a Joel idea that I decided to finish implementing - not sure
+    if I completely finished it.

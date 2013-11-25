@@ -1,0 +1,116 @@
+====    2. jaxb
+
+Jaxb will generate java source code from the config.xml file when
+you build.
+
+The code will go into a new directory:
+src/asl/seedscan/config
+
+If you look in there, you'll see several class files like:
+ConfigT.java
+ScanT.java
+MetricT.java
+e.g., every class name ends in a "T".
+
+When you add a new parameter field into config.xml (which schemas/SeedScanSchema.xsd must
+know about), jaxb will generate related java code for this on the fly.
+
+For instance, <cfg:scan> maps to: src/asl/seedscan/config/ScanT.java,
+while: 
+<cfg:scan>
+    <cfg:dataless_dir>somePathToDatalessDir</cfg:dataless_dir>
+</cfg:scan>
+
+maps to the getter/setter methods:
+  ScanT.getDatalessDir() and ScanT.setDatalessDir(String datalessDir)
+
+Note the conversion from XML syntax (dataless_dir) to jaxb (datalessDir)
+
+2. SeedScan:
+   Now that you have some field (e.g., datalessDir) from config.xml to ScanT,
+you still have to somehow add it to Scan.java.
+To do this, you first add the relevant getter/setter methods to Scan:
+private String datalessDir = null;
+public void setDatalessDir(String datalessDir){}
+public String getDatalessDir(){ return datalessDir;}
+
+Then, you use the setter method from SeedScan to pass the field from
+ScanT to Scan:
+                Scan scan = new Scan(scanCfg.getName()); // where scanCfg = (ScanT)
+                scan.setDatalessDir(scanCfg.getDatalessDir());
+
+3. Metric Wrappers
+    The same pattern applies to going from the jaxb MetricT to actual Metric
+instances. You create a MetricWrapper to get the config.xml metric arguments
+to the metric instances:
+
+In SeedScan: 
+                for (MetricT met: scanCfg.getMetrics().getMetric()) {
+                    try {
+                        Class metricClass = Class.forName(met.getClassName());
+                        MetricWrapper wrapper = new MetricWrapper(metricClass);
+                        for (ArgumentT arg: met.getArgument()) {
+                            wrapper.add(arg.getName(), arg.getValue());
+                        }
+                        scan.addMetric(wrapper);
+                }
+
+Metric has private Hashtable<String, String> arguments
+    It gets initialized via MetricWrapper: Any metric class that has an "addArgument(name)"
+    will trigger an argument.put(name, "").
+    
+    The argument values will be filled in from arguments found in config.xml. argument.put(name, value)
+
+    However, if there is an argument name in config.xml that is not in arguments (e.g., was not initialized),
+    SeedScan will throw a Java 1 Error.
+
+
+4. Example passing the bandpass arguments to NLNMDeviationMetric
+
+SeedScan:   //Start configure Scan = [daily]
+
+            //Loop over metrics (from config.xml) and attach to Scan
+                for (MetricT met: scanCfg.getMetrics().getMetric()) {
+
+                // e.g., scanCfg.metric=[asl.seedscan.metrics.NLNMDeviationMetric]
+                    MetricWrapper wrapper = new MetricWrapper( asl.seedscan.metrics.NLNMDeviationMetric )
+                        public MetricWrapper(Class metricClass) {
+                            this.metricClass = metricClass;
+                            Metric arguments = (Metric)metricClass.newInstance();  --> call NLNMDeviationMetric Constructor
+                        }
+// Instantiate this metric --> call the NLNMDeviationMetric constructor:
+                        public NLNMDeviationMetric(){
+                            super(); 
+                            addArgument("nlnm-modelfile");
+// addArgument must be here to initialize this argument. The value is put in later (below)
+// This MUST be called BEFORE you try to call Metric.add(name, value)
+                        }
+
+// Sequence of constructor calls:
+            ** NLNMDeviationMetric constructor --> PowerBandMetric constructor --> Metric constructor
+                        1.  Metric constructor() {
+                                arguments = new Hashtable<String, String>();
+                                addArgument("makeplots");
+                                addArgument("forceupdate");
+                            }
+                        2.  PowerBandMetric constructor() {
+                                super();
+                                addArgument("lower-limit");
+                                addArgument("upper-limit");
+                            }
+                        3.  NLNMDeviationMetric constructor() {
+                                super();
+                                addArgument("nlnm-modelfile");
+                                addArgument("nhnm-modelfile");
+                            }
+
+                    // Start loop over arguments found in config.xml and attach to this wrapper
+                    for (ArgumentT arg: met.getArgument()) {
+                        wrapper.add(arg.getName(), arg.getValue());
+                    }
+                    scan.addMetric(wrapper);
+
+// MetricWrapper.add(name,val) --> Metric.add(name,val)
+    public void add(String name, String value) throws NoSuchFieldException {
+        arguments.add(name, value);               // We are actually calling Metric.add(name,value):
+    }

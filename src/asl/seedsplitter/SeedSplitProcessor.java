@@ -278,11 +278,11 @@ implements Runnable
 
                      // Set the default location codes
                         if (location.equals("--") || location.equals("") || location == null ) {
-                            logger.warn("miniseed channel=[{}] location=[{}] was changed to [00]", channel,location);
+                            logger.debug("miniseed channel=[{}] location=[{}] was changed to [00]", channel,location);
                             location = "00";
                         }
                         if (location.equals("HR")) {
-                            logger.warn("miniseed channel=[{}] location=[{}] was changed to [10]", channel,location);
+                            logger.debug("miniseed channel=[{}] location=[{}] was changed to [10]", channel,location);
                             location = "10";
                         }
 
