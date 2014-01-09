@@ -102,7 +102,7 @@ public class SeedScan
         }
 
         Option opt;
-        Iterator iter = cmdLine.iterator();
+        Iterator<?> iter = cmdLine.iterator();
         while (iter.hasNext()) {
             opt = (Option)iter.next();
             if (opt.getOpt().equals("c")) {
