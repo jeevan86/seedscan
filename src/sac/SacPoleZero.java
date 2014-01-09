@@ -107,9 +107,9 @@ public class SacPoleZero {
         this.constant = constant;
     }
 
-    private static String nextLine(Iterator it) {
+    private static String nextLine(Iterator<String> it) {
         if(it.hasNext()) {
-            return (String)it.next();
+            return it.next();
         } else {
             return "";
         }
