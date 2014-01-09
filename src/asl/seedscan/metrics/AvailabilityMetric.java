@@ -55,10 +55,10 @@ extends Metric
 
         for (Channel channel : channels){
 
-            if (!metricData.hasChannelData(channel)){
+            //if (!metricData.hasChannelData(channel)){
                 //logger.warn("No data found for channel[{}] --> Skip metric", channel);
-                continue;
-            }
+            //    continue;
+            //}
 
             ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel), getForceUpdate());
 
