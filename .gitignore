@@ -2,6 +2,7 @@
 *.pyc
 *.swp
 build
+.classpath
 config.xml
 config.xml~
 doc
