@@ -171,7 +171,7 @@ if (calFlags & 0x04) --> bit 2 set = calFlags = 04 [Automatic Cal]
             charBuf[i] = (char) bb.get();
         }
         String noiseType = new String(charBuf);
-        if (noiseType == null) { noiseType = new String("NoiseTypeNotFound"); }
+
 
         this.calInputChannel = channel;
         this.calDuration     = duration;
