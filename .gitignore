@@ -15,6 +15,7 @@ rdseed.err_log*
 seedscan.jar
 SeedScan.jar
 seedscan.lock
+.settings
 src/asl/seedscan/config
 output
 output2
