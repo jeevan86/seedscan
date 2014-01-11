@@ -74,6 +74,9 @@ class OpaqueContext
             case STREAM_END:
             case FILE_END:
                 complete = true;
+		default:
+			break;
+
         }
         return complete;
     }
