@@ -107,13 +107,11 @@ public class Cmplx implements java.io.Serializable {
 
     /* instance methods */
     public final double real() {
-        double r;
-        return (r = this.r);
+        return this.r;
     }
 
     public final double imag() {
-        double r;
-        return (r = this.i);
+        return this.i;
     }
 
     public final double mag() {
