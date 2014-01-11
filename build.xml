@@ -72,7 +72,7 @@
 <!--
             <jvmarg value="-Xmx1024m"/>
 -->
-            <jvmarg value="-Xmx4096m"/>
+            <jvmarg value="-Xmx30g"/>
             <jvmarg value="-Djava.awt.headless=true"/>
         </java>
     </target>
