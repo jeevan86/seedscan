@@ -88,7 +88,7 @@ public class Timeseries
             timeseries[n - i - 1] *= taper;
             Wss += 2.0*taper*taper;
         }   
-        Wss += (double)(n - 2.*ramp);   
+        Wss += (n - 2.*ramp);   
         return Wss;   
     }
 
