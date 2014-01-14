@@ -285,14 +285,9 @@ public class Scanner
 
 /**
  *  Return a MetricData object for the station + timestamp
- *  If a StationMeta is passed in, then this must be for the current Day so 
- *  attach a MetricReader to the MetricData, otherwise don't
  */
     private MetricData getMetricData(GregorianCalendar timestamp) {
 
-      //System.out.format("== getMetricData: request data for Station=[%s] Day=[%s]\n", station, EpochData.epochToDateString(timestamp));
-
-        //StationMeta stationMeta = metaGen.getStationMeta(station, timestamp); 
         StationMeta stationMeta = metaServer.getStationMeta(station, timestamp); 
         if (stationMeta == null) {
             return null;
