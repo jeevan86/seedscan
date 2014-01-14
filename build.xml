@@ -30,6 +30,7 @@
             <include name="**/*.jar" />
         </fileset>
         <pathelement location="." />
+        <pathelement location="src" />
     </path>
 
 <!--ANT SEEDSCAN-->
