@@ -43,6 +43,7 @@ import asl.util.Trace;
 
 import timeutils.Timeseries;
 
+//New metric for PSD Differences in 90-110, 200-500 second period ranges
 public class DifferencePBM 
 extends PowerBandMetric
 {
