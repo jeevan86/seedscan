@@ -574,7 +574,7 @@ implements Runnable
                 logger.debug("Empty tree for '" +chanKey+ "'");
             }
         }
-        logger.debug("SeedSplitProcessor Thread> Yeah, we're done.");
+        logger.debug("<SeedSplitProcessor Thread> Yeah, we're done.");
         logger.debug("Kept " +kept+ " records");
         logger.debug("Discarded " +discarded+ " records");
         for (String countKey: recordCounts.keySet()) {

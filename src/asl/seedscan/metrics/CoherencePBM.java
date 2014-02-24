@@ -97,7 +97,6 @@ extends PowerBandMetric
                 continue;
             }
 
-
             double result = computeMetric(channelX, channelY);
             if (result == NO_RESULT) {
                 // Do nothing --> skip to next channel
@@ -163,6 +162,7 @@ extends PowerBandMetric
 
         double[] per      = new double[nf];
         double[] gammaPer = new double[nf];
+        
         // per[nf-1] = 1/freq[0] = 1/0 = inf --> set manually:
         per[nf-1] = 0;  
         for (int k = 0; k < nf-1; k++){
@@ -237,9 +237,7 @@ extends PowerBandMetric
             plotMaker.addTraceToPanel( new Trace(per, gammaPer, channelLabel, color, stroke), iPanel);
         }
 
-
         return averageValue;
-
     } // end computeMetric()
 
 

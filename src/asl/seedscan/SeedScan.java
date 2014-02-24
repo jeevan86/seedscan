@@ -22,16 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Set;
-
 import java.io.*;
-
-import java.io.BufferedInputStream;
-import java.io.Console;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URI;
@@ -236,7 +227,6 @@ public class SeedScan
             }
         }
 
-
 // ==== Establish Database Connection ====
         // TODO: State Tracking in the Database
         // - Record scan started in database.
@@ -256,11 +246,19 @@ public class SeedScan
         // in order to preserve overall system memory resources.
 
         Scan scan = null;
-
+        Filter networks = null;
+        Set<String> netKeys = null;
+        
 // ==== Perform Scans ====
 
         scan = scans.get("daily");
-
+        networks = scan.getNetworks();
+        if(networks == null)
+        	netKeys = null;
+        else
+        	netKeys = networks.getKeys();
+        		
+        
 //MTH: This part could/should be moved up higher except that we need to know datalessDir, which,
 //     at this point, is configured on a per scan basis ... so we need to know what scan we're doing
         MetaServer metaServer = null;
@@ -275,11 +273,11 @@ public class SeedScan
                 }
             }
             else {
-                metaServer = new MetaServer(scan.getDatalessDir());
+            	metaServer = new MetaServer(scan.getDatalessDir(), netKeys);
             }
         }
         else { // Use local MetaServer
-            metaServer = new MetaServer(scan.getDatalessDir());
+        	metaServer = new MetaServer(scan.getDatalessDir(), netKeys);
         }
 
         List<Station> stations = null;

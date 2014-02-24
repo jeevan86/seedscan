@@ -19,6 +19,7 @@
 package asl.util;
 
 import java.util.Hashtable;
+import java.util.Set;
 
 public class Filter
 {
@@ -44,5 +45,9 @@ public class Filter
     public boolean filter(String key)
     {
         return filters.containsKey(key) ^ exclusive;
+    }
+    public Set<String> getKeys()
+    {
+    	return filters.keySet();
     }
 }

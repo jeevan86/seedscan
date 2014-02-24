@@ -97,8 +97,9 @@ extends Metric
      // stationMeta.getTimestamp() returns a Calendar object for the expected day
      //   convert it from milisecs to microsecs
         long expectedStartTime = stationMeta.getTimestamp().getTimeInMillis() * 1000;
-        double gapThreshold = interval / 2.;
-
+        //double gapThreshold = interval / 2.;
+        double gapThreshold = interval / 1.;
+        
      // Check for possible gap at the beginning of the day
         if ((firstSetStartTime - expectedStartTime) > gapThreshold) {
             gapCount++;
