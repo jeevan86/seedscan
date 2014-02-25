@@ -144,18 +144,14 @@ extends PowerBandMetric
      // nf = number of positive frequencies + DC (nf = nfft/2 + 1, [f: 0, df, 2df, ...,nfft/2*df] )
         int nf = Gxx.length;
         double freq[] = new double[nf];
-        //double gamma[]= new double[nf];
-	double diff[] = new double[nf];	
+        double diff[] = new double[nf];	
 
         // Compute diff[f] and fill freq array
         for ( int k = 0; k < nf; k++){
             freq[k] = (double)k * df;
-	    //gamma[k]= (Gxy[k]*Gxy[k]) / (Gxx[k]*Gyy[k]);
-            //gamma[k]= Math.sqrt(gamma[k]);
-	    diff[k] = 10*Math.log10(Gxx[k]) - 10*Math.log10(Gyy[k]); 
-	}
+            diff[k] = 10*Math.log10(Gxx[k]) - 10*Math.log10(Gyy[k]); 
+        }
        	diff[0] = 0; 
-	//gamma[0]=0;
         //Timeseries.timeoutXY(freq, gamma, "Gamma");
         //Timeseries.timeoutXY(freq, Gxx, "Gxx");
         //Timeseries.timeoutXY(freq, Gyy, "Gyy");
@@ -165,16 +161,14 @@ extends PowerBandMetric
         // Reverse freq[] --> per[] where per[0]=shortest T and per[nf-2]=longest T:
 
         double[] per      = new double[nf];
-        //double[] gammaPer = new double[nf];
       	double[] diffPer = new double[nf]; 
 
-	// per[nf-1] = 1/freq[0] = 1/0 = inf --> set manually:
+      	// per[nf-1] = 1/freq[0] = 1/0 = inf --> set manually:
         per[nf-1] = 0;  
         for (int k = 0; k < nf-1; k++){
-            per[k]     = 1./freq[nf-k-1];
-            //gammaPer[k]  = gamma[nf-k-1];
+            per[k] = 1./freq[nf-k-1];
        	    diffPer[k] = diff[nf-k-1]; 
-	}
+        }
         double Tmin  = per[0];    // Should be = 1/fNyq = 2/fs = 0.1 for fs=20Hz
         double Tmax  = per[nf-2]; // Should be = 1/df = Ndt
 
@@ -195,9 +189,8 @@ extends PowerBandMetric
                 break;
             }
             else if (per[k] >= lowPeriod){
-                //averageValue += gammaPer[k];
                 averageValue += diffPer[k]; 
-		nPeriods++;
+                nPeriods++;
             }
         }
 
@@ -242,11 +235,9 @@ extends PowerBandMetric
             String channelLabel = MetricResult.createResultId(channelX, channelY);
             //plotMaker.addTraceToPanel( new Trace(per, gammaPer, channelLabel, color, stroke), iPanel);
        	    plotMaker.addTraceToPanel(new Trace(per, diffPer, channelLabel, color, stroke), iPanel); 
-	}
-
+        }
 
         return averageValue;
-
     } // end computeMetric()
 
 

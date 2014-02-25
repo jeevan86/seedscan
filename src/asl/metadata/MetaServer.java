@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Calendar;
 import java.util.List;
+import java.util.Set;
 import java.net.URI;
 
 import asl.metadata.MetaGenerator;
@@ -69,13 +70,13 @@ public class MetaServer
     }
 
     // Empty constructor --> Use local MetaGenerator class to load metadata
-    public MetaServer(String datalessDir) 
+    public MetaServer(String datalessDir, Set<String> networkSubset) 
     {
         logger.info("use *Local* MetaGenerator: datalessDir=" + datalessDir);
         try {
             metaGen = MetaGenerator.getInstance();
             //metaGen.loadDataless("/Users/mth/mth/ASLData/dcc/metadata/dataless");
-            metaGen.loadDataless(datalessDir);
+            metaGen.loadDataless(datalessDir, networkSubset);
         }
         catch (Exception e) {
             logger.error(e.getMessage());

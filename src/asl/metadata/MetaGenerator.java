@@ -25,6 +25,7 @@ import freq.Cmplx;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.Calendar;
 import java.util.Enumeration;
@@ -89,7 +90,7 @@ public class MetaGenerator
     * 
     * @param  datalessDir  path to dataless seed files, read from config.xml 
     */
-    public void loadDataless(String datalessDir)
+    public void loadDataless(String datalessDir, final Set<String> networkSubset)
     {
         File dir = new File(datalessDir);
         if (!dir.exists()) {
@@ -101,17 +102,36 @@ public class MetaGenerator
             System.exit(0);
         }
 
-        FilenameFilter textFilter = new FilenameFilter() {
-          public boolean accept(File dir, String name) {
-              if ( name.endsWith(".dataless") && (name.length() == 11) ) {
-                  return true;
-              } else {
-                  return false;
-              }
+        /* Create List of network subset IDs '<ID>.dataless' */
+        final List<String> networkExt = new ArrayList<String>();
+        if(networkSubset != null) {
+        	String ext = new String();
+        	for(String key : networkSubset) {
+        		ext = key + ".dataless";
+        		networkExt.add(ext);
+        	}
+        }
+        FilenameFilter textFilter = new FilenameFilter() 
+        {
+          public boolean accept(File dir, String name) 
+          {
+        	  if(!networkExt.isEmpty()) {
+        		  if(networkExt.contains(name)) {
+        			  return true;
+        		  } else {
+        			  return false;
+        		  }
+        	  } else {
+	              if ( name.endsWith(".dataless") && (name.length() == 11) ) {
+	                  return true;
+	              } else {
+	                  return false;
+	              }
+        	  }
           }
         };
 
-        String[] files    = dir.list(textFilter);
+        String[] files = dir.list(textFilter);
 
         for (String fileName : files) {
             String datalessFile = dir + "/" + fileName;
@@ -321,7 +341,7 @@ public class MetaGenerator
         System.out.println("=== Start MetaGenerator Server ====");
         try {
             MetaGenerator metaGen = getInstance();
-            metaGen.loadDataless("/Users/mth/mth/ASLData/dcc/metadata/dataless");
+            metaGen.loadDataless("/Users/mth/mth/ASLData/dcc/metadata/dataless", null);
             metaGen.print();
 
             Naming.rebind("MetaGen", metaGen);
