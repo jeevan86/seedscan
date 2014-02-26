@@ -45,6 +45,10 @@ public class ScanManager
         this.scan = scan;
 
         int threadCount = Runtime.getRuntime().availableProcessors();
+        //We don't want to overload the computer. There are also injector threads and the main thread.
+        if (threadCount > 20){
+            threadCount = 20;
+        }
 
         logger.info("Number of Threads to Use = [{}]", threadCount);
 
