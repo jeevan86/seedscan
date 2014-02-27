@@ -43,17 +43,20 @@ public class ScanManager
 
     {
         this.scan = scan;
-        
-        // will change this line back to availableProcessors() after testing
-        // the new DeadChannelMetric()
+
         int threadCount = Runtime.getRuntime().availableProcessors();
-        //int threadCount = 1;        		
+        //We don't want to overload the computer. There are also injector threads and the main thread.
+        if (threadCount > 20){
+            threadCount = 20;
+        }
+
         logger.info("Number of Threads to Use = [{}]", threadCount);
 
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);
         for (Station station : stationList) {
             if (passesFilter(station)) {
                 logger.debug("Add station={} to the task queue", station);
+                logger.info("Add station={} to the task queue", station);
                 executor.execute( new Scanner(reader, injector, station, scan, metaServer) );
             }
             else {
