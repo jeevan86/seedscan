@@ -60,7 +60,7 @@ extends Metric
             }
 
             ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel), getForceUpdate());
-
+            
             if (digest == null) { // means oldDigest == newDigest and we don't need to recompute the metric
                 logger.warn("Digest unchanged station:[{}] channel:[{}] --> Skip metric", getStation(), channel);
                 continue;

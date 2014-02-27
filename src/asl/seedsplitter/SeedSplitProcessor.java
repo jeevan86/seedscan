@@ -344,7 +344,7 @@ implements Runnable
                         // report a gap so the user is aware of the jump?
                         //
                         //long intervalAdjustment = (interval > 10000 ? 1000 : 0);
-                        long intervalAdjustment = interval / 100;
+                        long intervalAdjustment = interval / 1;
 
                         boolean replaceDataSet = false;
                         // Temporarily disabled fudge factor

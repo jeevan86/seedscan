@@ -64,64 +64,17 @@ extends PowerBandMetric
 		return "DeadChannelMetric";
 	}
 
-	public DeadChannelMetric() {
-		super();
-		addArgument("nlnm-modelfile");
-		addArgument("nhnm-modelfile");
-	}
-
-	private static String NLNMFile;
-	private static String NHNMFile;
-
-	private static NoiseModel NLNM;
-	private static NoiseModel NHNM;
-
-	private PlotMaker2 plotMaker = null;
-
 	public void process()
 	{
-		logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
-
-		try {
-			NLNMFile = get("nlnm-modelfile");
-			NHNMFile = get("nhnm-modelfile");
-		}
-		catch(Exception e) {
-			logger.error("Failed to get nlnm-modelfile from config.xml:" + e.getMessage());
-		}
-
-		// Low noise model (NLNM) MUST exist or we can't compute the metric (NHNM is optional)
-		if (!getNLNM().isValid()) {
-			logger.warn("Low Noise Model (NLNM) does NOT exist --> Skip Metric");
-			return;
-		}
-
-		// Get all LH channels in metadata
-		List<Channel> channels = stationMeta.getChannelArray("LH");
-
-		if (channels = null || channels.size() == 0) {
-			logger.warn("No LH? channels found for station={}", getStation());
-			return;
-		}
-
-		// Loop over channels, get metadata & data for channel and Calculate Metric
-		for (Channel channel : channels) {
-			if (!metricData.hasChannelData(channel)) {
-				//logger.warn("No data found for channel[{}] --> Skip metric", channel);
-				continue;
-			}
-
-			ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel), getForceUpdate());
-
-			if (digest == null) { // means oldDigest == newDigest and we don't need to recompute the metric
-				logger.warn("Digest unchanged station:[{}] channel:[{}] --> Skip Metric", getStation(), channel);
-				continue;
-			}
-
-			double result = computeMetric(channel);
-			if (result == NO_RESULT) {
-				// Do nothing --> skip to next channel
-			}
-		}
+			String station;
+			String day;
+			Calendar date;	
+			station = getStation();
+			day = getDay();
+			logger.info("-Enter- [ Station {} ] [ Day {} ]", station, day);
+			
+			// Low noise model (NLNM) MUST exist or we can't compute the metric
+			System.out.format("DeadChannelMetric station/date: %s/%s", station, day);
 	}
 }
+
