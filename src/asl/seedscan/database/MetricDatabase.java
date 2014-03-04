@@ -155,10 +155,12 @@ public class MetricDatabase
 	public Double getMetricValue(Calendar date, String metricName, Station station, Channel channel)
 	{
 		Double value = null;
+		String sqlDateString = null;
 		try
 		{
 			CallableStatement callStatement = connection.prepareCall("SELECT spGetMetricValue(?, ?, ?, ?, ?, ?)");
 			java.sql.Date sqlDate = new java.sql.Date(date.getTime().getTime());
+			sqlDateString = sqlDate.toString();
 			callStatement.setDate(1, sqlDate, date);
 			callStatement.setString(2, metricName);
 			callStatement.setString(3, station.getNetwork());
@@ -174,6 +176,9 @@ public class MetricDatabase
 		catch (SQLException e)
 		{
 			logger.error(e.getMessage());
+		}
+		if (value == null) { 
+			logger.warn("No value returned for sqldate:[{}] metric:[{}] station:[{}] channel:[{}]", sqlDateString, metricName, station, channel);
 		}
 		return value;
 	}

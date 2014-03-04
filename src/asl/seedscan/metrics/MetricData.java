@@ -176,7 +176,27 @@ public class MetricData
 
 
     // -----------------  get ChannelData methods ----------------------------------------- //
-
+/**
+ * @return Double = metric value for given channel, station and date
+ */
+    public Double getMetricValue(Calendar date, String metricName, Station station, Channel channel)
+    {
+    	Double metricVal = null;
+    	MetricValueIdentifier id = new MetricValueIdentifier(date, metricName, station, channel);
+    	
+    	// Retrieve metric value from Database
+    	if (metricReader.isConnected()) {
+    		metricVal = metricReader.getMetricValue(id);
+    		return metricVal;
+    	}
+    	else
+    	{
+    		metricVal = null;
+    		logger.warn("Metric Reader is not connected: getMetricValue()");
+    		return metricVal;
+    	}
+    }
+    
 /**
  *
  * @return ArrayList<DataSet> = All DataSets for a given channel (e.g., "00-BHZ")

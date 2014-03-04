@@ -48,6 +48,7 @@ public class ScanManager
         //We don't want to overload the computer. There are also injector threads and the main thread.
         if (threadCount > 20){
             threadCount = 20;
+            //threadCount = 1;
         }
 
         logger.info("Number of Threads to Use = [{}]", threadCount);
@@ -56,7 +57,6 @@ public class ScanManager
         for (Station station : stationList) {
             if (passesFilter(station)) {
                 logger.debug("Add station={} to the task queue", station);
-                logger.info("Add station={} to the task queue", station);
                 executor.execute( new Scanner(reader, injector, station, scan, metaServer) );
             }
             else {
