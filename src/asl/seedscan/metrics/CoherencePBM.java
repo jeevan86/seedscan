@@ -103,7 +103,6 @@ extends PowerBandMetric
             }
             else {
                 metricResult.addResult(channelX, channelY, result, digest);
-
             }
 
         }// end foreach channel

@@ -178,6 +178,12 @@ public abstract class Metric
     {   // returns yyyy:ddd:hh:mm
         return (EpochData.epochToDateString( stationMeta.getTimestamp() ) );
     }
+    public Calendar getDate()
+    {
+    	// returns Calendar date from StationMeta
+    	return stationMeta.getTimestamp();
+    }
+    
     public String getDOY()
     {
         String[] dateArray = getDay().split(":");
