@@ -104,10 +104,9 @@ extends PowerBandMetric
 
    // Loop over channels, get metadata & data for channel and Calculate Metric
 
-        for (Channel channel : channels){
-
-            if (!metricData.hasChannelData(channel)){
-                //logger.warn("No data found for channel[{}] --> Skip metric", channel);
+        for (Channel channel : channels) {
+	    if (!metricData.hasChannelData(channel)){
+                logger.warn("No data found for channel[{}] --> Skip metric", channel);
                 continue;
             }
 
