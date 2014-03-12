@@ -81,7 +81,6 @@ extends Metric
         return "EventCompareStrongMotion";
     }
 
-
     public void process()
     {
 
@@ -353,24 +352,22 @@ xDist = gcarc;
             arrivalTimes[1] = arrivalTimeS;
 
             return arrivalTimes;
-
     }
     
     public void makePlots(ArrayList<double[]> d00, ArrayList<double[]> d10, ArrayList<double[]> d20, int nstart, int nend, 
-                          String key, int eventNumber){
+                          String key, int eventNumber) {
 
         PlotMaker2 plotMaker = null;
-        final String plotTitle = String.format("[ Event: %s ] [ Station: %s ] [ Dist: %.2f ] %s", key, getStation(), xDist,
-                                               getName() );
+        final String plotTitle = String.format("[ Event: %s ] [ Station: %s ] [ Dist: %.2f ] %s", key, getStation(), xDist, getName() );
 
         final String pngName   = String.format("%s.strongmtn.ev-%d.png", getOutputDir(), eventNumber );
 
         if (plotMaker == null) {
             plotMaker = new PlotMaker2(plotTitle);
             plotMaker.initialize3Panels("LHZ", "LH1/LHN", "LH2/LHE");
-
         }
-        int iPanel = 0;
+        
+	int iPanel = 0;
         Color color = Color.black;
 
         BasicStroke stroke = new BasicStroke(2.0f);
@@ -378,7 +375,7 @@ xDist = gcarc;
         int npts = nend - nstart + 1;
 
         double[] xsecs = new double[ npts ];
-        for (int k=0; k<xsecs.length; k++){
+        for (int k=0; k<xsecs.length; k++) {
             xsecs[k] = (float)(k + nstart);        // hard-wired for LH? dt=1.0
         }
 

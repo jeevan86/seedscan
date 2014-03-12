@@ -86,7 +86,6 @@ extends Metric
         return "EventCompareSynthetic";
     }
 
-
     public void process()
     {
         logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
