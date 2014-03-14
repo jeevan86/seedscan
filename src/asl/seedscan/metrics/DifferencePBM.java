@@ -136,17 +136,18 @@ extends PowerBandMetric
 
         if (dfX != dfY) {  // Oops - spectra have different frequency sampling!
             StringBuilder message = new StringBuilder();
-	    message.append(String.format("DifferencePBM Error station=[{}] channelX[{}] channelY=[{}] day=[{}] metric=[{}]: dfX != dfY --> Can't continue\n", station, channelX, channelY, day, metric));
-	    throw new RuntimeException(message.toString());
+	    message.append(String.format("DifferencePBM Error: station=[{}] channelX[{}] channelY=[{}] day=[{}] metric=[{}]: dfX != dfY --> Can't continue\n", station, channelX, channelY, day, metric));
+	    RuntimeException e = new RuntimeException(message.toString());
+	    logger.error("DifferencePBM RuntimeException:", e);
         }
         double df = dfX;
 
         if (Gxx.length != Gyy.length || Gxx.length != Gxy.length) {  // Something's wrong ...
             StringBuilder message = new StringBuilder();
-	    message.append(String.format("DifferencePBM Error station=[{}] channelX[{}] channelY=[{}] day=[{}] metric=[{}]: Gxx.length != Gyy.length --> Can't continue\n", station, channelX, channelY, day, metric));
-	    throw new RuntimeException(message.toString());
-        }
-     // nf = number of positive frequencies + DC (nf = nfft/2 + 1, [f: 0, df, 2df, ...,nfft/2*df] )
+	    message.append(String.format("DifferencePBM Error: station=[{}] channelX[{}] channelY=[{}] day=[{}] metric=[{}]: Gxx.length != Gyy.length --> Can't continue\n", station, channelX, channelY, day, metric));
+	    RuntimeException e = new RuntimeException(message.toString());
+       	    logger.error("DifferencePBM RuntimeException:", e); 
+	}
         int nf = Gxx.length;
         double freq[] = new double[nf];
         double diff[] = new double[nf];	
@@ -157,13 +158,6 @@ extends PowerBandMetric
             diff[k] = 10*Math.log10(Gxx[k]) - 10*Math.log10(Gyy[k]); 
         }
        	diff[0] = 0; 
-        //Timeseries.timeoutXY(freq, gamma, "Gamma");
-        //Timeseries.timeoutXY(freq, Gxx, "Gxx");
-        //Timeseries.timeoutXY(freq, Gyy, "Gyy");
-        //Timeseries.timeoutXY(freq, Gxy, "Gxy");
-
-        // Convert gamma[f] to gamma[T]
-        // Reverse freq[] --> per[] where per[0]=shortest T and per[nf-2]=longest T:
 
         double[] per      = new double[nf];
       	double[] diffPer = new double[nf]; 
@@ -201,9 +195,10 @@ extends PowerBandMetric
 
         if (nPeriods == 0) {
             StringBuilder message = new StringBuilder();
-            message.append(String.format("DifferencePBM Error station=[{}] channelX=[{}] channelY=[{}] day=[{}] metric=[{}]: Requested band [%f - %f] contains NO periods --> divide by zero!\n", station, channelX, channelY, day, metric, lowPeriod, highPeriod) );
-            throw new RuntimeException(message.toString());
-        }
+            message.append(String.format("DifferencePBM Error: station=[{}] channelX=[{}] channelY=[{}] day=[{}] metric=[{}]: Requested band [%f - %f] contains NO periods --> divide by zero!\n", station, channelX, channelY, day, metric, lowPeriod, highPeriod) );
+            RuntimeException e = new RuntimeException(message.toString());
+       	    logger.error("DifferencePBM RuntimeException:", e); 
+	}
         averageValue /= (double)nPeriods;
 /**
         if (getMakePlots()) {   // Output files like 2012160.IU_ANMO.00-LHZ.png = psd
@@ -239,9 +234,6 @@ extends PowerBandMetric
             //plotMaker.addTraceToPanel( new Trace(per, gammaPer, channelLabel, color, stroke), iPanel);
        	    plotMaker.addTraceToPanel(new Trace(per, diffPer, channelLabel, color, stroke), iPanel); 
         }
-
         return averageValue;
     } // end computeMetric()
-
-
 } // end class

@@ -79,7 +79,8 @@ extends Metric
 
        	String station = getStation();	// i.e. IU_ANMO
 	String day = getDay();		// yyyy:ddd:hh:mm
-	
+	String metric = getName();
+
 	if (metricData.hasCalibrationData() == false) {
             logger.info("No Calibration loaded for station=[{}] day=[{}] --> Skip Metric", getStation(), getDay());
             return;
@@ -108,7 +109,7 @@ extends Metric
                 continue;
             }
 
-            CalibrationResult calResult = computeMetric(channel, station, day);
+            CalibrationResult calResult = computeMetric(channel, station, day, metric);
 
             if (calResult == null) {
                 logger.info("CalResult == NULL for Channel=[{}] + Day=[{}]", channel, getDay());
@@ -131,7 +132,7 @@ extends Metric
         }// end foreach channel
     } // end process()
 
-    private CalibrationResult computeMetric(Channel channel, String station, String day) {
+    private CalibrationResult computeMetric(Channel channel, String station, String day, String metric) {
 
         if (!metricData.hasChannelData(channel)) {
             return null;
@@ -145,7 +146,7 @@ extends Metric
         }
 
         if (calBlocks.size() > 1) {
-            logger.error("Found more than 1 calibration blockette (station=[{}] channel=[{}] day=[{}])! --> What to do ?", station, channel.toString(), day);
+            logger.error("{} Error: Found more than 1 calibration blockette (station=[{}] channel=[{}] day=[{}])! --> What to do ?", metric, station, channel.toString(), day);
         }
 
         Blockette320 blockette320 = calBlocks.get(0);
@@ -214,11 +215,11 @@ extends Metric
         double[] inData  = metricData.getWindowedData(calChannel, calStartEpoch, calStartEpoch + calDuration);
 
         if (inData == null || inData.length <= 0) {
-            logger.error("We have no data for reported cal input channel=[{}] for station=[{}] day=[{}] --> Skip metric", channelExtension, station, day);
+            logger.error("{} Error: We have no data for reported cal input channel=[{}] for station=[{}] day=[{}] --> Skip metric", metric, channelExtension, station, day);
             return null;
         }
         if (outData == null || outData.length <= 0) {
-            logger.error("We have no data for reported cal output channel=[{}] for station=[{}] day=[{}] --> Skip metric", channel, station, day);
+            logger.error("{} Error: We have no data for reported cal output channel=[{}] for station=[{}] day=[{}] --> Skip metric", metric, channel.toString(), station, day);
             return null;
         }
 
@@ -249,7 +250,10 @@ extends Metric
             s = 1.;
         }
         else {
-            throw new RuntimeException("Error: Unrecognized stage1 type != {'A' || 'B'} --> can't compute!");
+            StringBuilder message = new StringBuilder() 
+	    message.append(String.format("{} Error: station=[{}] channel[{}] day=[{}]: Unrecognized stage1 type != {'A' || 'B'} --> can't compute!", metric, station, channel.toString(), day));
+	    RuntimeException e = new RuntimeException(message.toString());
+	    logger.error("CalibrationMetric RuntimeException:", e);
         }
 
         PSD psdXY        = new PSD(inData, outData, dt);
@@ -288,7 +292,7 @@ extends Metric
         double Tnorm= 0;
         SensorInfo sensorInfo = getSensorInfo(sensorType);
         if (sensorInfo == null) {
-            logger.error("Couldn't find instrument calibration info for sensorType=[{}] for station=[{}] day=[{}]", sensorType, station, day);
+            logger.error("{} Error: Couldn't find instrument calibration info for sensorType=[{}] for station=[{}] day=[{}]", metric, sensorType, station, day);
             logger.warn("Use default Tmin, Tmax, Tnorm");
             Tmin  = 60; 
             Tmax  = 400;
@@ -452,7 +456,7 @@ extends Metric
                         Tnorm= Double.parseDouble(args[3]);
                     }
                     catch (Exception e) {
-                        logger.error("Caught exception:", e.getMessage());
+                        logger.error("CalibrationMetric Exception:", e);
                     }
                     SensorInfo sensorInfo = new SensorInfo(sensorName, Tmin, Tmax, Tnorm);
                     sensorTable.put(sensorName, sensorInfo);
@@ -461,13 +465,15 @@ extends Metric
                 i++;
             }
         } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
+            //e.printStackTrace();
+       	    logger.error("CalibrationMetric IOException:", e);
+	} finally {
             try {
                 if (br != null)br.close();
             } catch (IOException ex) {
-                ex.printStackTrace();
-            }
+                //ex.printStackTrace();
+           	logger.error("CalibrationMetric IOException:", ex); 
+	    }
         }
 
         return true;
@@ -480,7 +486,7 @@ extends Metric
                 fileName = get("instrument-calibration-file");
             }
             catch (Exception e) {
-                logger.error("Failed attempt to read instrument-calibration-file from config.xml: ", e.getMessage() );
+                logger.error("CalibrationMetric: Failed attempt to read instrument-calibration-file from config.xml: ", e);
             }
             readSensorTable(fileName);
         }
