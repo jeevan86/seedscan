@@ -63,4 +63,3 @@ public class CrossPowerKey
         //return key.equals((String)obj);
     }
 }
-

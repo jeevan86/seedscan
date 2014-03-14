@@ -320,7 +320,10 @@ public class MetricData
         double srate2 = metadata.getChanMeta(channel2).getSampleRate();
 
         if (srate1 != srate2) {
-            throw new RuntimeException("MetricData.createRotatedChannels(): Error: srate1 != srate2 !!");
+            StringBuilder message = new StringBuilder();
+	    message.append(String.format("MetricData.createRotatedChannels(): Error: srate1 != srate2!!\n"));
+	    RuntimeException e = new RuntimeException(message.toString());
+	    logger.error("MetricData RuntimeException:", e);
         }
 
         double[] n = new double[ndata];
@@ -335,7 +338,6 @@ public class MetricData
         dispZNE.add(e);
 
         return dispZNE;
-
     }
 
 /**
@@ -346,19 +348,17 @@ public class MetricData
                                             double f1, double f2, double f3, double f4) 
     {
         if (!metadata.hasChannel(channel)) {
-            logger.error( String.format("Error: Metadata NOT found for channel=[%s] --> Can't return Displacement",channel) );
+            logger.error(String.format("MetricData Error: Metadata NOT found for channel=[%s] --> Can't return Displacement", channel));
             return null;
         }
         double[] timeseries = getWindowedData(channel, windowStartEpoch, windowEndEpoch);
         if (timeseries == null) {
-            logger.error( String.format("Error: Did not get requested window for channel=[%s] --> Can't return Displacement",channel) );
+            logger.error(String.format("MetricData Error: Did not get requested window for channel=[%s] --> Can't return Displacement", channel));
             return null;
         }
         double filtered[] = removeInstrumentAndFilter(responseUnits, channel, timeseries, f1, f2, f3, f4);
 
         return filtered;
-
-    }
 
     public double bpass(int n,int n1,int n2,int n3,int n4) {
 
@@ -369,12 +369,11 @@ public class MetricData
         else return(-9999999.);
     }
 
-
     public double[] removeInstrumentAndFilter(ResponseUnits responseUnits, Channel channel, double[] timeseries, 
                                               double f1, double f2, double f3, double f4){
 
         if (!(f1 < f2 && f2 < f3 && f3 < f4)) {
-            logger.error( String.format("removeInstrumentAndFilter: Error: invalid freq: range: [%f-%f ----- %f-%f]", f1, f2, f3, f4) );
+            logger.error( String.format("MetricData: removeInstrumentAndFilter: Error: invalid freq: range: [%f-%f ----- %f-%f]", f1, f2, f3, f4) );
             return null;
         }
 
@@ -382,7 +381,12 @@ public class MetricData
         double srate = chanMeta.getSampleRate();
         int ndata    = timeseries.length; 
 
-        if (srate == 0) throw new RuntimeException("Error: Got srate=0");
+        if (srate == 0) { 
+	    StringBuilder message = new StringBuilder();
+	    message.append(String.format("MetricData Error: channel=[{}] Got srate=0\n", channel.toString()));
+	    RuntimeException e = new RuntimeException(message.toString()); 
+	    logger.error("MetricData RuntimeException:", e); 
+	} 
 
      // Find smallest power of 2 >= ndata:
         int nfft=1;

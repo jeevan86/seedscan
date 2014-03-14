@@ -51,6 +51,7 @@ extends Metric
 
         String station = getStation();
 	String day = getDay();
+	String metric = getName();
 
 	// Get a sorted list of continuous channels for this stationMeta and loop over:
         List<Channel> channels = stationMeta.getContinuousChannels();
@@ -69,7 +70,7 @@ extends Metric
                 continue;
             }
 
-            double result = computeMetric(channel, station, day);
+            double result = computeMetric(channel, station, day, metric);
 
             if (result == NO_RESULT) {
                 // Do nothing --> skip to next channel
@@ -83,11 +84,11 @@ extends Metric
     } // end process()
 
 
-    private double computeMetric(Channel channel, String station, String day) {
+    private double computeMetric(Channel channel, String station, String day, String metric) {
 
         List<DataSet>datasets = metricData.getChannelData(channel);
         if (datasets == null) {  // No data --> Skip this channel
-            logger.error("No datasets found for station=[{}] channel=[{}] day=[{}] --> Skip Metric", station, channel, day);
+            logger.error("{} Error: No datasets found for station=[{}] channel=[{}] day=[{}] --> Skip Metric", metric, station, channel, day);
             return NO_RESULT;
         }
 
@@ -120,5 +121,4 @@ extends Metric
         return (double)gapCount;
 
     } // end computeMetric()
-
 }

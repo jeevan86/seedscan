@@ -171,7 +171,7 @@ extends Metric
        // Loop over Events for this day
 
         SortedSet<String> eventKeys = new TreeSet<String>(eventCMTs.keySet());
-        for (String key : eventKeys){
+        for (String key : eventKeys) {
 
             EventCMT eventCMT = eventCMTs.get(key);
 

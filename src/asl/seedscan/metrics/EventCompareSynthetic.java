@@ -355,12 +355,12 @@ extends Metric
     //private double rmsDiff(double[] data1, double[] data2, int n1, int n2) {
     private double calcDiff(double[] data1, double[] data2, int n1, int n2) {
         if (n2 < n1) {
-            logger.error("calcDiff: n2 < n1 --> Bad window");
+            logger.error("{} Error: station=[{}] day=[{}]: calcDiff: n2 < n1 --> Bad window", getName(), getStation(), getDay());
             return NO_RESULT;
         }
         if (n2 >= data1.length || n2 >= data2.length) {
-            logger.error(String.format("calcDiff: n2=[%d] > data1.length=[%d] and/or data2.length=[%d] --> Bad window", 
-                         n2, data1.length, data2.length) );
+            logger.error(String.format("{} Error: station=[{}] day=[{}]: calcDiff: n2=[%d] > data1.length=[%d] and/or data2.length=[%d] --> Bad window", 
+                         getName(), getStation(), getDay(), n2, data1.length, data2.length));
             return NO_RESULT;
         }
         double rms=0.;
@@ -377,7 +377,7 @@ extends Metric
         //rms  =  Math.sqrt(rms);
 
         if (denomenator == 0.) {
-            logger.error("calcDiff: denomenator==0 --> Divide by 0 --> Expect result = Infinity!");
+            logger.error("{} Error: station=[{}] day=[{}]: calcDiff: denomenator==0 --> Divide by 0 --> Expect result = Infinity!", getName(), getStation(), getDay());
         }
         double result = numerator / denomenator;
 

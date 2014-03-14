@@ -150,4 +150,3 @@ extends PowerBandMetric
 		}
 	}
 }
-
