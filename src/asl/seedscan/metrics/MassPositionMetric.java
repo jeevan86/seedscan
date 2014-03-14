@@ -50,15 +50,14 @@ extends Metric
     {
         logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
 
-   // Get all VM? channels in metadata to use for loop
+   	// Get all VM? channels in metadata to use for loop
         List<Channel> channels = stationMeta.getChannelArray("VM"); 
 
-   // Loop over channels, get metadata & data for channel and Calculate Metric
+   	// Loop over channels, get metadata & data for channel and Calculate Metric
+	for (Channel channel : channels) {
 
-        for (Channel channel : channels) {
-
-            if (!metricData.hasChannelData(channel)){
-                //logger.warn("No data found for channel[{}] --> Skip metric", channel);
+            if (!metricData.hasChannelData(channel)) {
+                logger.warn("No data found for channel[{}] --> Skip metric", channel);
                 continue;
             }
 
@@ -86,8 +85,9 @@ extends Metric
         double upperBound = 0;
         double lowerBound = 0;
 
-     // Get Stage 1, make sure it is a Polynomial Stage (MacLaurin) and get Coefficients
-        ResponseStage stage = chanMeta.getStage(1);
+     	// Get Stage 1, make sure it is a Polynomial Stage (MacLaurin) and get Coefficients
+       	// will add RuntimeException() to logger.error('msg', e) 
+	ResponseStage stage = chanMeta.getStage(1);
         if (!(stage instanceof PolynomialStage)) {
             throw new RuntimeException("MassPositionMetric: Stage1 is NOT a PolynomialStage!");
         }
@@ -127,6 +127,4 @@ extends Metric
 
         return 100. * Math.abs(massPosition - massCenter) / massRange;
     }
-
-
 } // end class

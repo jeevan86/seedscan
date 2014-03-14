@@ -384,8 +384,7 @@ extends Metric
         return result;
     }
 
-    public void makePlots(ArrayList<double[]> d00, ArrayList<double[]> d10, ArrayList<double[]> d20, int nstart, int nend, 
-                          String key, int eventNumber){
+    public void makePlots(ArrayList<double[]> d00, ArrayList<double[]> d10, ArrayList<double[]> d20, int nstart, int nend, String key, int eventNumber) {
 
         PlotMaker2 plotMaker = null;
         EventCMT eventCMT = eventCMTs.get(key);
@@ -395,15 +394,13 @@ extends Metric
         double stlo  = stationMeta.getLongitude();
         double gcarc = SphericalCoords.distance(evla, evlo, stla, stlo);
 
-        final String plotTitle = String.format("[ Event: %s ] [ Station: %s ] [ Dist: %.2f ] %s", key, getStation(), gcarc,
-                                               getName() );
+        final String plotTitle = String.format("[ Event: %s ] [ Station: %s ] [ Dist: %.2f ] %s", key, getStation(), gcarc, getName() );
 
         final String pngName   = String.format("%s.synthcompare.ev-%d.png", getOutputDir(), eventNumber );
 
         if (plotMaker == null) {
             plotMaker = new PlotMaker2(plotTitle);
             plotMaker.initialize3Panels("LHZ", "LH1/LHN", "LH2/LHE");
-
         }
         int iPanel = 0;
         Color color = Color.black;
@@ -449,6 +446,4 @@ extends Metric
 
         plotMaker.writePlot(pngName);
     }
-
-
 }

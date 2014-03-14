@@ -49,13 +49,16 @@ extends Metric
     {
         logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
 
-    // Get a sorted list of continuous channels for this stationMeta and loop over:
+        String station = getStation();
+	String day = getDay();
+
+	// Get a sorted list of continuous channels for this stationMeta and loop over:
         List<Channel> channels = stationMeta.getContinuousChannels();
 
         for (Channel channel : channels){
 
             if (!metricData.hasChannelData(channel)){
-                //logger.warn("No data found for channel[{}] --> Skip metric", channel);
+                logger.warn("No data found for channel[{}] --> Skip metric", channel);
                 continue;
             }
 
@@ -66,7 +69,7 @@ extends Metric
                 continue;
             }
 
-            double result = computeMetric(channel);
+            double result = computeMetric(channel, station, day);
 
             if (result == NO_RESULT) {
                 // Do nothing --> skip to next channel
@@ -80,11 +83,11 @@ extends Metric
     } // end process()
 
 
-    private double computeMetric(Channel channel) {
+    private double computeMetric(Channel channel, String station, String day) {
 
         List<DataSet>datasets = metricData.getChannelData(channel);
         if (datasets == null) {  // No data --> Skip this channel
-            logger.error("No datasets found for channel=[" + channel + "] --> Skip Metric");
+            logger.error("No datasets found for station=[{}] channel=[{}] day=[{}] --> Skip Metric", station, channel, day);
             return NO_RESULT;
         }
 
