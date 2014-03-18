@@ -252,6 +252,7 @@ extends Metric
             message.append(String.format("{} Error: station=[{}] channel[{}] day=[{}]: Unrecognized stage1 type != {'A' || 'B'} --> can't compute!", metric, station, channel.toString(), day));
             RuntimeException e = new RuntimeException(message.toString());
             logger.error("CalibrationMetric RuntimeException:", e);
+            return null;
         }
 
         PSD psdXY        = new PSD(inData, outData, dt);
@@ -469,7 +470,7 @@ extends Metric
                 	br.close();
             } catch (IOException ex) {
                 //ex.printStackTrace();
-           	logger.error("CalibrationMetric IOException:", ex); 
+            	logger.error("CalibrationMetric IOException:", ex); 
             }
         }
         return true;

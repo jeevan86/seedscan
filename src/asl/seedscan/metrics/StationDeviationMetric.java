@@ -79,7 +79,7 @@ extends PowerBandMetric
         try {
             pathPattern = get("modelpath");
         } catch (NoSuchFieldException ex) {
-            System.out.format("Error: Station Model Path ('modelpath') was not specified!\n");
+            logger.warn("Error: Station Model Path ('modelpath') was not specified!");
             return; // Without the modelpath we can't compute the metric --> return
         }
         ArchivePath pathEngine = new ArchivePath(new Station(stationMeta.getNetwork(), stationMeta.getStation() ) );
@@ -210,6 +210,7 @@ extends PowerBandMetric
                 ,getName(),lowPeriod, highPeriod) );
             RuntimeException e = new RuntimeException(message.toString());
             logger.error("StationDeviation RuntimeException:", e);
+            return NO_RESULT;
         }
 
         deviation = deviation/(double)nPeriods;
@@ -229,6 +230,7 @@ extends PowerBandMetric
         			getName(), xdata.length, ydata.length));
             RuntimeException e = new RuntimeException(message.toString());
             logger.error("StationDeviation RuntimeException:", e);
+            return;
         }
         if (plotMaker == null) {
             String date = String.format("%04d%03d", metricResult.getDate().get(Calendar.YEAR),
@@ -299,6 +301,7 @@ extends PowerBandMetric
                     String message = "==Error reading Station Model File: got " + args.length + " args on one line!";
                     RuntimeException e = new RuntimeException(message);
                     logger.error("StationDeviation RuntimeException:", e);
+                    return false;
                 }
                 try {
                 	tmpPers.add( Double.valueOf(args[0].trim()).doubleValue() );
@@ -306,8 +309,8 @@ extends PowerBandMetric
                 }
                 catch (NumberFormatException e) {
                 	StringBuilder message = new StringBuilder();
-                	message.append(String.format("== StationDeviation: Error reading modelFile=[%s]: %s\n", fName, e));
-                    logger.warn(message.toString());
+                	message.append(String.format("== StationDeviation: Error reading modelFile=[%s]: \n", fName));
+                	logger.error(message.toString(), e);
                     return false;
                 }
             }

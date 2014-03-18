@@ -138,6 +138,7 @@ extends PowerBandMetric
             message.append(String.format("DifferencePBM Error: station=[{}] channelX[{}] channelY=[{}] day=[{}] metric=[{}]: dfX != dfY --> Can't continue\n", station, channelX, channelY, day, metric));
             RuntimeException e = new RuntimeException(message.toString());
             logger.error("DifferencePBM RuntimeException:", e);
+            return NO_RESULT;
         }
         double df = dfX;
 
@@ -146,6 +147,7 @@ extends PowerBandMetric
             message.append(String.format("DifferencePBM Error: station=[{}] channelX[{}] channelY=[{}] day=[{}] metric=[{}]: Gxx.length != Gyy.length --> Can't continue\n", station, channelX, channelY, day, metric));
             RuntimeException e = new RuntimeException(message.toString());
        	    logger.error("DifferencePBM RuntimeException:", e); 
+       	    return NO_RESULT;
         }
         
         int nf = Gxx.length;
@@ -198,6 +200,7 @@ extends PowerBandMetric
             message.append(String.format("DifferencePBM Error: station=[{}] channelX=[{}] channelY=[{}] day=[{}] metric=[{}]: Requested band [%f - %f] contains NO periods --> divide by zero!\n", station, channelX, channelY, day, metric, lowPeriod, highPeriod) );
             RuntimeException e = new RuntimeException(message.toString());
        	    logger.error("DifferencePBM RuntimeException:", e); 
+       	    return NO_RESULT;
         }
         averageValue /= (double)nPeriods;
 /**

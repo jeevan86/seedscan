@@ -224,6 +224,7 @@ extends PowerBandMetric
             message.append(String.format("NLNMDeviation Error station=[{}] day=[{}] metric=[{}]: Requested band [%f - %f sec] contains NO periods within NLNM\n", station, day, metric,lowPeriod, highPeriod));
             RuntimeException e = new RuntimeException(message.toString());
             logger.error("NLNMDeviation RuntimeException:", e);
+            return NO_RESULT;
         }
         deviation = deviation/(double)nPeriods;
 

@@ -239,6 +239,7 @@ public abstract class Metric
             message.append(String.format("Argument '" +name+ "' is not recognized.\n"));
             NoSuchFieldException e = new NoSuchFieldException(message.toString()); 
             logger.error("Metric.add() NoSuchFieldException:", e); 
+            return;
         }
         arguments.put(name, value);
 
@@ -267,6 +268,7 @@ public abstract class Metric
             message.append(String.format("Argument '" +name+ "' is not recognized.\n"));
             NoSuchFieldException e = new NoSuchFieldException(message.toString()); 
             logger.error("Metric.get() NoSuchFieldException:", e);
+            return null;
         }
         String argumentValue = arguments.get(name);
         if ((argumentValue == null) || (argumentValue.equals(""))) {
@@ -319,13 +321,15 @@ public abstract class Metric
             message.append(String.format("computePSD() ERROR: srateX (=" + srateX + ") != srateY (=" + srateY + ")\n"));
             RuntimeException e = new RuntimeException(message.toString());
        	    logger.error("MetricData RuntimeException:", e); 
+       	    return null;
         }
         srate = srateX;
         ndata = chanXData.length; 
 
         if (srate == 0) {	
         	RuntimeException e = new RuntimeException("Error: Got srate=0");
-       	    logger.error("MetricData RuntimeException:", e);	
+       	    logger.error("MetricData RuntimeException:", e);
+       	    return null;
         } 
         double dt = 1./srate;
 
@@ -356,6 +360,7 @@ public abstract class Metric
                 message.append(String.format("NLNMDeviation Error: responseMagC[k]=0 --> divide by zero!\n"));
                 RuntimeException e = new RuntimeException(message.toString());
                 logger.error("Metric RuntimeException:", e);	
+                return null;
             }
             else {   // Divide out (squared)instrument response & Convert to dB:
                 spec[k] = Cmplx.div(spec[k], responseMagC[k]);

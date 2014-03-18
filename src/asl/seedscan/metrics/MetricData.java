@@ -323,6 +323,7 @@ public class MetricData
             message.append(String.format("MetricData.createRotatedChannels(): Error: srate1 != srate2!!\n"));
             RuntimeException e = new RuntimeException(message.toString());
             logger.error("MetricData RuntimeException:", e);
+            return null;
         }
 
         double[] n = new double[ndata];
@@ -384,7 +385,8 @@ public class MetricData
         	StringBuilder message = new StringBuilder();
         	message.append(String.format("MetricData Error: channel=[{}] Got srate=0\n", channel.toString()));
         	RuntimeException e = new RuntimeException(message.toString()); 
-        	logger.error("MetricData RuntimeException:", e); 
+        	logger.error("MetricData RuntimeException:", e);
+        	return null;
         } 
 
         // Find smallest power of 2 >= ndata:
@@ -711,6 +713,7 @@ public class MetricData
             message.append(String.format("MetricData.createRotatedChannels(): Error channel1=[%s] and/or channel2=[%s]: srate1 != srate2 !!\n", channel1, channel2));
             RuntimeException e = new RuntimeException(message.toString()); 
             logger.error("MetricData RuntimeException:", e); 
+            return;
         }
 
         double[]   chanNData = new double[ndata];
