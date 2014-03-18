@@ -95,8 +95,7 @@ extends PowerBandMetric
 
    // Loop over channels, get metadata & data for channel and Calculate Metric
 
-        for (Channel channel : channels){
-
+        for (Channel channel : channels) {
             if (!metricData.hasChannelData(channel)){
                 //logger.warn("No data found for channel[{}] --> Skip metric", channel);
                 continue;
@@ -127,8 +126,6 @@ extends PowerBandMetric
             final String pngName   = String.format("%s.%s.png", getOutputDir(), "stn-dev" );
             plotMaker.writePlot(pngName);
         }
-
-
     } // end process()
 
 
@@ -137,8 +134,8 @@ extends PowerBandMetric
     // Read in specific noise model for this station+channel          // ../ANMO.00.LH1.90
         String modelFileName = stationMeta.getStation() + "." + channel.getLocation() + "." + channel.getChannel() + ".90";
         if (!readModel(modelFileName)) {
-            System.out.format("%s Error: ModelFile=%s not found for requested channel:%s --> Skipping\n"
-                              ,getName(), modelFileName, channel.getChannel());
+            logger.warn(String.format("%s Error: ModelFile=%s not found for requested channel:%s --> Skipping\n"
+                              ,getName(), modelFileName, channel.getChannel()));
             return NO_RESULT;
         }
 
@@ -188,7 +185,7 @@ extends PowerBandMetric
         double highPeriod = band.getHigh();
 
         if (!checkPowerBand(lowPeriod, highPeriod, Tmin, Tmax)){
-            System.out.format("%s powerBand Error: Skipping channel:%s\n", getName(), channel);
+            logger.warn(String.format("%s powerBand Error: Skipping channel:%s\n", getName(), channel));
             return NO_RESULT;
         }
 
@@ -211,7 +208,8 @@ extends PowerBandMetric
             StringBuilder message = new StringBuilder();
             message.append(String.format("%s Error: Requested band [%f - %f] contains NO periods within station model\n"
                 ,getName(),lowPeriod, highPeriod) );
-            throw new RuntimeException(message.toString());
+            RuntimeException e = new RuntimeException(message.toString());
+            logger.error("StationDeviation RuntimeException:", e);
         }
 
         deviation = deviation/(double)nPeriods;
@@ -226,8 +224,11 @@ extends PowerBandMetric
 
     private void makePlots(Channel channel, double xdata[], double ydata[]) {
         if (xdata.length != ydata.length) {
-            throw new RuntimeException(String.format("%s makePlots() Error: xdata.len=%d != ydata.len=%d",
-                                       getName(), xdata.length, ydata.length) );
+        	StringBuilder message = new StringBuilder();
+        	message.append(String.format("%s makePlots() Error: xdata.len=%d != ydata.len=%d", 
+        			getName(), xdata.length, ydata.length));
+            RuntimeException e = new RuntimeException(message.toString());
+            logger.error("StationDeviation RuntimeException:", e);
         }
         if (plotMaker == null) {
             String date = String.format("%04d%03d", metricResult.getDate().get(Calendar.YEAR),
@@ -250,8 +251,12 @@ extends PowerBandMetric
             iPanel = 2;
         }
         else { // ??
-            throw new RuntimeException(String.format("%s makePlots() Don't know how to plot channel=%s", 
-                                       getName(), channel) );
+        	StringBuilder message = new StringBuilder();
+        	message.append(String.format("%s makePlots() Don't know how to plot channel=%s", 
+                    getName(), channel));
+        	RuntimeException e = new RuntimeException(message.toString());
+        	logger.error("StationDeviation RuntimeException:", e);
+        	return;
         }
 
         if (channel.getLocation().equals("00")) {
@@ -275,6 +280,9 @@ extends PowerBandMetric
    // First see if the file exists
         if (!(new File(fileName).exists())) {
             //System.out.format("=== %s: ModelFile=%s does NOT exist!\n", getName(), fileName);
+        	StringBuilder message = new StringBuilder();
+        	message.append(String.format("=== %s: ModelFile=%s does NOT exist!\n", getName(), fileName));
+        	logger.warn(message.toString());
             return false;
         }
    // Temp ArrayList(s) to read in unknown number of (x,y) pairs:
@@ -289,24 +297,27 @@ extends PowerBandMetric
 // MTH: This is hard-wired for Adam's station model files which have 7 columns:
                 if (args.length != 7) {
                     String message = "==Error reading Station Model File: got " + args.length + " args on one line!";
-                    throw new RuntimeException(message);
+                    RuntimeException e = new RuntimeException(message);
+                    logger.error("StationDeviation RuntimeException:", e);
                 }
                 try {
-                tmpPers.add( Double.valueOf(args[0].trim()).doubleValue() );
-                tmpPows.add( Double.valueOf(args[2].trim()).doubleValue() );
+                	tmpPers.add( Double.valueOf(args[0].trim()).doubleValue() );
+                	tmpPows.add( Double.valueOf(args[2].trim()).doubleValue() );
                 }
                 catch (NumberFormatException e) {
-                    System.out.format("== StationDeviation: Error reading modelFile=[%s]: %s\n", fName, e);
+                	StringBuilder message = new StringBuilder();
+                	message.append(String.format("== StationDeviation: Error reading modelFile=[%s]: %s\n", fName, e));
+                    logger.warn(message.toString());
                     return false;
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("StationDeviation IOException:", e);
         } finally {
             try {
                 if (br != null)br.close();
             } catch (IOException ex) {
-                ex.printStackTrace();
+                logger.error("StationDeviation IOException:", ex);
             }
         }
         Double[] tmpPeriods  = tmpPers.toArray(new Double[]{});
@@ -323,7 +334,4 @@ extends PowerBandMetric
         return true;
 
     } // end readModel
-
-
 } // end class
-

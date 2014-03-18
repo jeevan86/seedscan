@@ -87,8 +87,8 @@ public abstract class Metric
 
     public MetricValueIdentifier createIdentifier(Channel channel)
     {
-    	return new MetricValueIdentifier(	metricResult.getDate(), metricResult.getMetricName(),
-    										metricResult.getStation(), channel);
+    	return new MetricValueIdentifier(metricResult.getDate(), metricResult.getMetricName(),
+    					metricResult.getStation(), channel);
     }
     
     public MetricValueIdentifier createIdentifier(Channel channelA, Channel channelB)
@@ -122,7 +122,7 @@ public abstract class Metric
                 psd = computePSD(channelA, channelB, df);
             }
             catch (NullPointerException e) {
-                logger.error("Metric.getCrossPower NullPointerException:" + e);
+                logger.error("Metric.getCrossPower NullPointerException:", e);
             }
             crossPower = new CrossPower(psd, df[0]);
             crossPowerMap.put(key, crossPower);
@@ -132,18 +132,18 @@ public abstract class Metric
 
     public Hashtable<String, SacTimeSeries> getEventSynthetics(String eventIdString)
     {
-            if (eventSynthetics.containsKey( eventIdString ) ){
-                return eventSynthetics.get( eventIdString );
-            }
-            else {
-                System.out.format("== Metric.getEventSynthetics - Synthetics not found for eventIdString=[%s]\n", eventIdString);
-                return null;
-            }
+        if (eventSynthetics.containsKey( eventIdString ) ){
+            return eventSynthetics.get( eventIdString );
+        }
+        else {
+            logger.warn(String.format("== Metric.getEventSynthetics - Synthetics not found for eventIdString=[%s]\n", eventIdString));
+            return null;
+        }
     }
 
     public Hashtable<String, EventCMT> getEventTable()
     {
-            return eventTable;
+        return eventTable;
     }
 
     public void setEventSynthetics(Hashtable<String, Hashtable<String, SacTimeSeries>> eventSynthetics)
@@ -161,7 +161,7 @@ public abstract class Metric
         return metricResult;
     }
 
-    public void setBaseOutputDir(String outputDir){
+    public void setBaseOutputDir(String outputDir) {
         this.outputDir = outputDir;
     }
 
@@ -170,13 +170,12 @@ public abstract class Metric
     }
     public String getOutputDir(){
         // e.g., "outputs/2012/2012160/2012160.IU_ANMO"
-        return new String( String.format("%s/%4s/%4s%3s/%4s%3s.%s", getBaseOutputDir(), getYear(), getYear(), getDOY(),
-                           getYear(), getDOY(), getStation())  );
+        return new String(String.format("%s/%4s/%4s%3s/%4s%3s.%s", getBaseOutputDir(), getYear(), getYear(), getDOY(), getYear(), getDOY(), getStation()));
     }
 
     public String getDay()
     {   // returns yyyy:ddd:hh:mm
-        return (EpochData.epochToDateString( stationMeta.getTimestamp() ) );
+        return (EpochData.epochToDateString(stationMeta.getTimestamp()));
     }
     public Calendar getDate()
     {
@@ -226,7 +225,6 @@ public abstract class Metric
         return true;
     }
 
-
 // Dynamic argument managment
     protected final void addArgument(String name)
     {
@@ -237,7 +235,10 @@ public abstract class Metric
     throws NoSuchFieldException
     {
         if (!arguments.containsKey(name)) {
-            throw new NoSuchFieldException("Argument '" +name+ "' is not recognized.");
+            StringBuilder message = new StringBuilder();
+            message.append(String.format("Argument '" +name+ "' is not recognized.\n"));
+            NoSuchFieldException e = new NoSuchFieldException(message.toString()); 
+            logger.error("Metric.add() NoSuchFieldException:", e); 
         }
         arguments.put(name, value);
 
@@ -262,7 +263,10 @@ public abstract class Metric
     throws NoSuchFieldException
     {
         if (!arguments.containsKey(name)) {
-            throw new NoSuchFieldException("Argument '" +name+ "' is not recognized.");
+            StringBuilder message = new StringBuilder();
+            message.append(String.format("Argument '" +name+ "' is not recognized.\n"));
+            NoSuchFieldException e = new NoSuchFieldException(message.toString()); 
+            logger.error("Metric.get() NoSuchFieldException:", e);
         }
         String argumentValue = arguments.get(name);
         if ((argumentValue == null) || (argumentValue.equals(""))) {
@@ -275,7 +279,6 @@ public abstract class Metric
     {
         return arguments.keys();
     }
-
 
 /**
  * computePSD - Done here so that it can be passed from metric to metric,
@@ -312,13 +315,18 @@ public abstract class Metric
         ChannelMeta chanMetaY = stationMeta.getChanMeta(channelY);
 
         if (srateX != srateY) {
-            String message = "computePSD() ERROR: srateX (=" + srateX + ") != srateY (=" + srateY + ")";
-            throw new RuntimeException(message);
+            StringBuilder message = new StringBuilder(); 
+            message.append(String.format("computePSD() ERROR: srateX (=" + srateX + ") != srateY (=" + srateY + ")\n"));
+            RuntimeException e = new RuntimeException(message.toString());
+       	    logger.error("MetricData RuntimeException:", e); 
         }
         srate = srateX;
         ndata = chanXData.length; 
 
-        if (srate == 0) throw new RuntimeException("Error: Got srate=0");
+        if (srate == 0) {	
+        	RuntimeException e = new RuntimeException("Error: Got srate=0");
+       	    logger.error("MetricData RuntimeException:", e);	
+        } 
         double dt = 1./srate;
 
         PSD psdRaw    = new PSD(chanXData, chanYData, dt);
@@ -333,7 +341,7 @@ public abstract class Metric
         Cmplx[]  instrumentResponseX = chanMetaX.getResponse(freq, ResponseUnits.ACCELERATION);
         Cmplx[]  instrumentResponseY = chanMetaY.getResponse(freq, ResponseUnits.ACCELERATION);
 
-        Cmplx[] responseMagC        = new Cmplx[nf];
+        Cmplx[] responseMagC = new Cmplx[nf];
 
         double[] psd  = new double[nf]; // Will hold the 1-sided PSD magnitude
         psd[0]=0; 
@@ -344,7 +352,10 @@ public abstract class Metric
         for(int k = 1; k < nf; k++){
             responseMagC[k] = Cmplx.mul(instrumentResponseX[k], instrumentResponseY[k].conjg()) ;
             if (responseMagC[k].mag() == 0) {
-                throw new RuntimeException("NLNMDeviation Error: responseMagC[k]=0 --> divide by zero!");
+                StringBuilder message = new StringBuilder();
+                message.append(String.format("NLNMDeviation Error: responseMagC[k]=0 --> divide by zero!\n"));
+                RuntimeException e = new RuntimeException(message.toString());
+                logger.error("Metric RuntimeException:", e);	
             }
             else {   // Divide out (squared)instrument response & Convert to dB:
                 spec[k] = Cmplx.div(spec[k], responseMagC[k]);
@@ -353,7 +364,5 @@ public abstract class Metric
         }
 
         return psd;
-
     } // end computePSD
-
 } // end class

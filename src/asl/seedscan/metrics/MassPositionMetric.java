@@ -50,16 +50,15 @@ extends Metric
     {
         logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
 
-   	String station = getStation();
-	String day = getDay();
-	String metric = getName();
+        String station = getStation();
+        String day = getDay();
+        String metric = getName();
 
-	// Get all VM? channels in metadata to use for loop
+        // Get all VM? channels in metadata to use for loop
         List<Channel> channels = stationMeta.getChannelArray("VM"); 
 
-   	// Loop over channels, get metadata & data for channel and Calculate Metric
-	for (Channel channel : channels) {
-
+        // Loop over channels, get metadata & data for channel and Calculate Metric
+        for (Channel channel : channels) {
             if (!metricData.hasChannelData(channel)) {
                 logger.warn("No data found for channel[{}] --> Skip metric", channel);
                 continue;
@@ -91,12 +90,12 @@ extends Metric
 
      	// Get Stage 1, make sure it is a Polynomial Stage (MacLaurin) and get Coefficients
        	// will add RuntimeException() to logger.error('msg', e) 
-	ResponseStage stage = chanMeta.getStage(1);
+        ResponseStage stage = chanMeta.getStage(1);
         if (!(stage instanceof PolynomialStage)) {
             StringBuilder message = new StringBuilder();
-	    message.append(String.format("{} Error: station=[{}] channel=[{}] day=[{}]: Stage 1 is NOT a PolynomialStage!\n", metric, station, channel.toString(), day));
-	    RuntimeException e = new RuntimeException(mesage.toString()); 
-	    logger.error("MassPositionMetric RuntimeException:", e);
+            message.append(String.format("{} Error: station=[{}] channel=[{}] day=[{}]: Stage 1 is NOT a PolynomialStage!\n", metric, station, channel.toString(), day));
+            RuntimeException e = new RuntimeException(message.toString()); 
+            logger.error("MassPositionMetric RuntimeException:", e);
         }
         PolynomialStage polyStage = (PolynomialStage)stage;
         double[] coefficients = polyStage.getRealPolynomialCoefficients();
@@ -106,9 +105,9 @@ extends Metric
      // We're expecting a MacLaurin Polynomial with 2 coefficients (a0, a1) to represent mass position
         if (coefficients.length != 2) {
             StringBuilder message = new StringBuilder();
-	    message.append(String.format("{} Error: station=[{}] channel=[{}] day=[{}]: We're expecting 2 coefficients for this PolynomialStage!\n", metric, station, channel.toString(), day));
-	    RuntimeException e = new RuntimeException(message.toString()); 
-	    logger.error("MassPositionMetric RuntimeException:", e); 
+            message.append(String.format("{} Error: station=[{}] channel=[{}] day=[{}]: We're expecting 2 coefficients for this PolynomialStage!\n", metric, station, channel.toString(), day));
+            RuntimeException e = new RuntimeException(message.toString()); 
+            logger.error("MassPositionMetric RuntimeException:", e); 
         }
         else {
             a0 = coefficients[0];
@@ -117,9 +116,9 @@ extends Metric
       // Make sure we have enough ingredients to calculate something useful
         if (a0 == 0 && a1 == 0 || lowerBound == 0 && upperBound == 0) {
             StringBuilder message = new StringBuilder();
-	    message.append(String.format("{} Error: station=[{}] channel=[{}] day=[{}]: We don't have enough information to compute mass position!\n", metric, station, channel.toString(), day));
-	    RuntimeException e = new RuntimeException(message.toString());
-	    logger.error("MassPositionMetric RuntimeException:", e);
+            message.append(String.format("{} Error: station=[{}] channel=[{}] day=[{}]: We don't have enough information to compute mass position!\n", metric, station, channel.toString(), day));
+            RuntimeException e = new RuntimeException(message.toString());
+            logger.error("MassPositionMetric RuntimeException:", e);
         }
 
         double massPosition  = 0;

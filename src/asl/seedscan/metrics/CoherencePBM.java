@@ -65,10 +65,10 @@ extends PowerBandMetric
         logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
 
        	String station = getStation();
-	String day = getDay();
-	String metric = getName();
+       	String day = getDay();
+       	String metric = getName();
 
-	if (!weHaveChannels("00", "LH") || !weHaveChannels("10", "LH") ){
+       	if (!weHaveChannels("00", "LH") || !weHaveChannels("10", "LH") ){
             logger.info(String.format("== %s: Day=[%s] Stn=[%s] - metadata + data NOT found for EITHER loc=00 -OR- loc=10 + band=LH --> Skip Metric",
                         getName(), getDay(), getStation()) );
             return;
@@ -115,8 +115,6 @@ extends PowerBandMetric
             final String pngName   = String.format("%s.%s.png", getOutputDir(), "coher" );
             plotMaker.writePlot(pngName);
         }
-
-
     } // end process()
 
 
@@ -147,7 +145,7 @@ extends PowerBandMetric
             StringBuilder message = new StringBuilder();
             message.append(String.format("CoherencePBM Error: station=[{}] channelX=[{}] channelY=[{}] day=[{}] metric=[{}]: Gxx.length != Gyy.length --> Can't continue\n", station, channelX, channelY, day, metric));
             RuntimeException e = new RuntimeException(message.toString());
-	    logger.error("CoherencePBM RuntimeException:", e);
+            logger.error("CoherencePBM RuntimeException:", e);
         }
      // nf = number of positive frequencies + DC (nf = nfft/2 + 1, [f: 0, df, 2df, ...,nfft/2*df] )
         int nf        = Gxx.length;
@@ -193,7 +191,7 @@ extends PowerBandMetric
         // Compute average Coherence within the requested period band:
         double averageValue = 0;
         int nPeriods = 0;
-        for (int k = 0; k < per.length; k++){
+        for (int k = 0; k < per.length; k++) {
             if (per[k] >  highPeriod){
                 break;
             }
@@ -207,7 +205,7 @@ extends PowerBandMetric
             StringBuilder message = new StringBuilder();
             message.append(String.format("CoherencePBM Error: station=[{}] channelX=[{}] channelY=[{}] day=[{}] metric[{}]: Requested band [%f - %f] contains NO periods --> divide by zero!\n", station, channelX, channelY, day, metric, lowPeriod, highPeriod) );
             RuntimeException e = new RuntimeException(message.toString());
-	    logger.error("CoherencePBM RuntimeException:", e);
+            logger.error("CoherencePBM RuntimeException:", e);
         }
         averageValue /= (double)nPeriods;
 
@@ -247,6 +245,4 @@ extends PowerBandMetric
 
         return averageValue;
     } // end computeMetric()
-
-
 } // end class

@@ -82,24 +82,22 @@ extends Metric
 
         if (lowPeriod >= highPeriod) {
             StringBuilder message = new StringBuilder();
-            message.append(String.format("checkPowerBand Error: Requested band [%f - %f] has lowPeriod >= highPeriod\n"
+            message.append(String.format("PowerBandMetric checkPowerBand Error: Requested band [%f - %f] has lowPeriod >= highPeriod\n"
                 ,lowPeriod, highPeriod) );
             //throw new RuntimeException(message.toString());
-            System.out.print(message.toString());
+            logger.warn(message.toString());
             return false;
         }
      // Make sure that we only compare to Noise Model within the range of useable periods/frequencies for this channel
         if (lowPeriod < Tmin || highPeriod > Tmax) {
             StringBuilder message = new StringBuilder();
-            message.append(String.format("checkPowerBand Error: Requested band [%f - %f] lies outside channel's Useable band [%f - %f]\n"
+            message.append(String.format("PowerBandMetric checkPowerBand Error: Requested band [%f - %f] lies outside channel's Useable band [%f - %f]\n"
                 ,lowPeriod, highPeriod, Tmin, Tmax) );
             //throw new RuntimeException(message.toString());
-            System.out.print(message.toString());
+            logger.warn(message.toString());
             return false;
         }
 
         return true;
     }
-
 }
-
