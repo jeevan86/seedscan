@@ -71,8 +71,7 @@ extends Metric
             computeMetric(channel);
 
         }// end foreach channel
-System.exit(0);
-
+        System.exit(0);
     } // end process()
 
     private void computeMetric(Channel channel) {
@@ -122,5 +121,4 @@ System.out.format("== eventCMT.timeInMillis = [%d]\n", cal2.getTimeInMillis() );
 **/
 
     } // end computeMetric()
-
 }

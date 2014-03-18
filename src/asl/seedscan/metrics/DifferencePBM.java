@@ -66,10 +66,10 @@ extends PowerBandMetric
         logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
 
         String station = getStation();
-	String day = getDay();
-	String metric = getName();
+        String day = getDay();
+        String metric = getName();
 
-	if (!weHaveChannels("00", "LH") || !weHaveChannels("10", "LH") ){
+        if (!weHaveChannels("00", "LH") || !weHaveChannels("10", "LH") ){
             logger.info(String.format("== %s: Day=[%s] Stn=[%s] - metadata + data NOT found for EITHER loc=00 -OR- loc=10 + band=LH --> Skip Metric",
                         getName(), getDay(), getStation()) );
             return;
@@ -108,8 +108,7 @@ extends PowerBandMetric
             }
             else {
                 metricResult.addResult(channelX, channelY, result, digest);
-	    }
-
+            }
         }// end foreach channel
 
         if (getMakePlots()) {
@@ -136,18 +135,19 @@ extends PowerBandMetric
 
         if (dfX != dfY) {  // Oops - spectra have different frequency sampling!
             StringBuilder message = new StringBuilder();
-	    message.append(String.format("DifferencePBM Error: station=[{}] channelX[{}] channelY=[{}] day=[{}] metric=[{}]: dfX != dfY --> Can't continue\n", station, channelX, channelY, day, metric));
-	    RuntimeException e = new RuntimeException(message.toString());
-	    logger.error("DifferencePBM RuntimeException:", e);
+            message.append(String.format("DifferencePBM Error: station=[{}] channelX[{}] channelY=[{}] day=[{}] metric=[{}]: dfX != dfY --> Can't continue\n", station, channelX, channelY, day, metric));
+            RuntimeException e = new RuntimeException(message.toString());
+            logger.error("DifferencePBM RuntimeException:", e);
         }
         double df = dfX;
 
         if (Gxx.length != Gyy.length || Gxx.length != Gxy.length) {  // Something's wrong ...
             StringBuilder message = new StringBuilder();
-	    message.append(String.format("DifferencePBM Error: station=[{}] channelX[{}] channelY=[{}] day=[{}] metric=[{}]: Gxx.length != Gyy.length --> Can't continue\n", station, channelX, channelY, day, metric));
-	    RuntimeException e = new RuntimeException(message.toString());
+            message.append(String.format("DifferencePBM Error: station=[{}] channelX[{}] channelY=[{}] day=[{}] metric=[{}]: Gxx.length != Gyy.length --> Can't continue\n", station, channelX, channelY, day, metric));
+            RuntimeException e = new RuntimeException(message.toString());
        	    logger.error("DifferencePBM RuntimeException:", e); 
-	}
+        }
+        
         int nf = Gxx.length;
         double freq[] = new double[nf];
         double diff[] = new double[nf];	
@@ -183,8 +183,8 @@ extends PowerBandMetric
         // Compute average Difference within the requested period band:
         double averageValue = 0;
         int nPeriods = 0;
-        for (int k = 0; k < per.length; k++){
-            if (per[k] >  highPeriod){
+        for (int k = 0; k < per.length; k++) {
+            if (per[k] >  highPeriod) {
                 break;
             }
             else if (per[k] >= lowPeriod){
@@ -198,7 +198,7 @@ extends PowerBandMetric
             message.append(String.format("DifferencePBM Error: station=[{}] channelX=[{}] channelY=[{}] day=[{}] metric=[{}]: Requested band [%f - %f] contains NO periods --> divide by zero!\n", station, channelX, channelY, day, metric, lowPeriod, highPeriod) );
             RuntimeException e = new RuntimeException(message.toString());
        	    logger.error("DifferencePBM RuntimeException:", e); 
-	}
+        }
         averageValue /= (double)nPeriods;
 /**
         if (getMakePlots()) {   // Output files like 2012160.IU_ANMO.00-LHZ.png = psd

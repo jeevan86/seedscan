@@ -78,10 +78,10 @@ extends Metric
         logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
 
        	String station = getStation();	// i.e. IU_ANMO
-	String day = getDay();		// yyyy:ddd:hh:mm
-	String metric = getName();
+       	String day = getDay();		// yyyy:ddd:hh:mm
+       	String metric = getName();
 
-	if (metricData.hasCalibrationData() == false) {
+       	if (metricData.hasCalibrationData() == false) {
             logger.info("No Calibration loaded for station=[{}] day=[{}] --> Skip Metric", getStation(), getDay());
             return;
         }
@@ -133,7 +133,6 @@ extends Metric
     } // end process()
 
     private CalibrationResult computeMetric(Channel channel, String station, String day, String metric) {
-
         if (!metricData.hasChannelData(channel)) {
             return null;
         }
@@ -204,7 +203,6 @@ extends Metric
                 //logger.info(blockette320.toString());
                 //logger.info("channel=[{}] total calDuration=[{}] sec", channel, calDuration/1000);
             }
-    
         }
 
     // We have the cal startTime and duration --> window both the input (BC?) and output (=channel data) and 
@@ -250,10 +248,10 @@ extends Metric
             s = 1.;
         }
         else {
-            StringBuilder message = new StringBuilder() 
-	    message.append(String.format("{} Error: station=[{}] channel[{}] day=[{}]: Unrecognized stage1 type != {'A' || 'B'} --> can't compute!", metric, station, channel.toString(), day));
-	    RuntimeException e = new RuntimeException(message.toString());
-	    logger.error("CalibrationMetric RuntimeException:", e);
+            StringBuilder message = new StringBuilder(); 
+            message.append(String.format("{} Error: station=[{}] channel[{}] day=[{}]: Unrecognized stage1 type != {'A' || 'B'} --> can't compute!", metric, station, channel.toString(), day));
+            RuntimeException e = new RuntimeException(message.toString());
+            logger.error("CalibrationMetric RuntimeException:", e);
         }
 
         PSD psdXY        = new PSD(inData, outData, dt);
@@ -406,11 +404,9 @@ extends Metric
 
             PlotMaker plotMaker = new PlotMaker(metricResult.getStation(), channel, metricResult.getDate());
             plotMaker.plotSpecAmp2(freq, ampResponse, phsResponse, calAmp, calPhs, plotTitle, pngName);
-
         }
 
         return calibration;
-
     } // end computeMetric()
 
 
@@ -429,7 +425,7 @@ extends Metric
 
         sensorTable = new Hashtable<String, SensorInfo>();
 
-   // First see if the file exists
+        // First see if the file exists
         if (!(new File(fileName).exists())) {
             logger.error("readSensorTable: file={} does NOT exist!", fileName);
             return false;
@@ -467,15 +463,15 @@ extends Metric
         } catch (IOException e) {
             //e.printStackTrace();
        	    logger.error("CalibrationMetric IOException:", e);
-	} finally {
+        } finally {
             try {
-                if (br != null)br.close();
+                if (br != null)
+                	br.close();
             } catch (IOException ex) {
                 //ex.printStackTrace();
            	logger.error("CalibrationMetric IOException:", ex); 
-	    }
+            }
         }
-
         return true;
     }
 
@@ -626,5 +622,4 @@ extends Metric
             return out.toString();
         }
     }
-
 }

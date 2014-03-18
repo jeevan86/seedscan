@@ -44,20 +44,18 @@ extends Metric
         return "GapCountMetric";
     }
 
-
     public void process()
     {
         logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
 
         String station = getStation();
-	String day = getDay();
-	String metric = getName();
+        String day = getDay();
+        String metric = getName();
 
-	// Get a sorted list of continuous channels for this stationMeta and loop over:
+        // Get a sorted list of continuous channels for this stationMeta and loop over:
         List<Channel> channels = stationMeta.getContinuousChannels();
 
         for (Channel channel : channels){
-
             if (!metricData.hasChannelData(channel)){
                 logger.warn("No data found for channel[{}] --> Skip metric", channel);
                 continue;
@@ -79,7 +77,6 @@ extends Metric
             else {
                 metricResult.addResult(channel, result, digest);
             }
-
         }// end foreach channel
     } // end process()
 
@@ -119,6 +116,5 @@ extends Metric
         }
 
         return (double)gapCount;
-
     } // end computeMetric()
 }

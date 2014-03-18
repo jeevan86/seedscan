@@ -121,7 +121,7 @@ public class MetricResult
 
     public static Channel createChannel(String id)
     {
-logger.info("createChannel: id=" + id);
+    	logger.info("createChannel: id=" + id);
     	Channel channel = null;
         if (id.length() > 15) { // This is likely to be coming from a CalibrationMetric
                               // so handle differently
@@ -137,7 +137,7 @@ logger.info("createChannel: id=" + id);
     		    channel = new Channel(parts[0], parts[1]);
     	    }
         }
-logger.info("createChannel: channel=[{}]", channel);
+        logger.info("createChannel: channel=[{}]", channel);
     	return channel;
     }
 }
