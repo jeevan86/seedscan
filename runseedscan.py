@@ -130,8 +130,9 @@ if __name__=="__main__":
 	os.system('mv log.* logfiles')
 	os.system('cp -f ' + debuglogs + ' ' + infologs + ' ' +
 		warnlogs + ' ' + errorlogs + ' logfiles') 
-	os.chdir(seedscandir + '/seedscan/null/')
-	os.system('cp -R --parents * ' + plotsdir)
+	if os.path.exists(seedscandir + '/seedscan/null/'):	
+		os.chdir(seedscandir + '/seedscan/null/')
+		os.system('cp -R --parents * ' + plotsdir)
 	os.chdir(curdire)
 	os.chdir(seedscandir)
 	os.system('psql -h aslpdf01.cr.usgs.gov -f analyzer.sql dataq_prod')
