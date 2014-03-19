@@ -79,13 +79,19 @@ extends PowerBandMetric
     public void process()
     {
         logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
-
+        
+        String station = getStation();
+        String day = getDay();
+        String metric = getName();
+        
         try {
 	        NLNMFile = get("nlnm-modelfile");
 	        NHNMFile = get("nhnm-modelfile");
         }
         catch(Exception e) {
-            logger.error("Failed to get nlnm-modelfile from config.xml:" + e.getMessage());
+            StringBuilder message = new StringBuilder();
+            message.append(String.format("station=[{}] day=[{}] metric=[{}]: Failed to get nlnm-modelfile from config.xml:\n", station, day, metric));
+            logger.error(message.toString(), e); 
         }
 
     // Low noise model (NLNM) MUST exist or we can't compute the metric (NHNM is optional)
@@ -98,16 +104,15 @@ extends PowerBandMetric
         List<Channel> channels = stationMeta.getChannelArray("LH"); 
 
         if (channels == null || channels.size() == 0) {
-            logger.warn("No LH? channels found for station={}", getStation() );
+            logger.warn("No LH? channels found for station={}", getStation());
             return;
         }
 
    // Loop over channels, get metadata & data for channel and Calculate Metric
 
-        for (Channel channel : channels){
-
-            if (!metricData.hasChannelData(channel)){
-                //logger.warn("No data found for channel[{}] --> Skip metric", channel);
+        for (Channel channel : channels) {
+        	if (!metricData.hasChannelData(channel)){
+                logger.warn("No data found for channel[{}] --> Skip metric", channel);
                 continue;
             }
 
@@ -118,7 +123,7 @@ extends PowerBandMetric
                 continue;
             }
 
-            double result = computeMetric(channel);
+            double result = computeMetric(channel, station, day, metric);
             if (result == NO_RESULT) {
                 // Do nothing --> skip to next channel
             }
@@ -132,7 +137,7 @@ extends PowerBandMetric
         // If we didn't add any channel-panels below, then plotMaker should still be null
         if (getMakePlots() && (plotMaker != null) ) {
             BasicStroke stroke = new BasicStroke(4.0f);
-            for (int iPanel=0; iPanel<3; iPanel++){
+            for (int iPanel=0; iPanel<3; iPanel++) {
                 plotMaker.addTraceToPanel( new Trace(getNLNM().getPeriods(), getNLNM().getPowers(),
                 		"NLNM", Color.black, stroke), iPanel);
                 if (getNHNM().isValid()) {
@@ -144,11 +149,10 @@ extends PowerBandMetric
             final String pngName   = String.format("%s.%s.png", getOutputDir(), "nlnm-dev" );
             plotMaker.writePlot(pngName);
         }
-
     } // end process()
 
 
-    private double computeMetric(Channel channel) {
+    private double computeMetric(Channel channel, String station, String day, String metric) {
 
      // Compute/Get the 1-sided psd[f] using Peterson's algorithm (24 hrs, 13 segments, etc.)
 
@@ -173,7 +177,7 @@ extends PowerBandMetric
         double[] psdPer = new double[nf];
      // per[nf-1] = 1/freq[0] = 1/0 = inf --> set manually:
         per[nf-1] = 0;  
-        for (int k = 0; k < nf-1; k++){
+        for (int k = 0; k < nf-1; k++) {
             per[k]     = 1./freq[nf-k-1];
             psdPer[k]  = psd[nf-k-1];
         }
@@ -196,7 +200,7 @@ extends PowerBandMetric
         double highPeriod = band.getHigh();
 
         if (!checkPowerBand(lowPeriod, highPeriod, Tmin, Tmax)){
-            logger.error("powerBand Error: Skipping channel:{}",channel);
+            logger.error("powerBand Error station=[{}] day=[{}] metric[{}]: Skipping channel:{}", station, day, metric, channel);
             return NO_RESULT;
         }
 
@@ -216,11 +220,11 @@ extends PowerBandMetric
         }
 
         if (nPeriods == 0) {
-            logger.error("Requested band [{} - {} sec] contains NO periods within NLNM!", lowPeriod, highPeriod);
             StringBuilder message = new StringBuilder();
-            message.append(String.format("NLNMDeviation Error: Requested band [%f - %f] contains NO periods within NLNM\n"
-                ,lowPeriod, highPeriod) );
-            throw new RuntimeException(message.toString());
+            message.append(String.format("NLNMDeviation Error station=[{}] day=[{}] metric=[{}]: Requested band [%f - %f sec] contains NO periods within NLNM\n", station, day, metric,lowPeriod, highPeriod));
+            RuntimeException e = new RuntimeException(message.toString());
+            logger.error("NLNMDeviation RuntimeException:", e);
+            return NO_RESULT;
         }
         deviation = deviation/(double)nPeriods;
 
@@ -229,13 +233,15 @@ extends PowerBandMetric
         }
 
         return deviation;
-
     } // end computeMetric()
 
     private void makePlots(Channel channel, double xdata[], double ydata[]) {
         if (xdata.length != ydata.length) {
-            throw new RuntimeException(String.format("%s makePlots() Error: xdata.len=%d != ydata.len=%d",
-                                       getName(), xdata.length, ydata.length) );
+            StringBuilder message = new StringBuilder();
+            message.append(String.format("%s makePlots() Error: xdata.len=%d != ydata.len=%d", getName(), xdata.length, ydata.length));
+            RuntimeException e = new RuntimeException(message.toString()); 
+            logger.error("NLNMDeviation RuntimeException:", e);
+            return;
         }
         if (plotMaker == null) {
             String date = String.format("%04d%03d", metricResult.getDate().get(Calendar.YEAR),
@@ -258,8 +264,11 @@ extends PowerBandMetric
             iPanel = 2;
         }
         else { // ??
-            throw new RuntimeException(String.format("%s makePlots() Don't know how to plot channel=%s", 
-                                       getName(), channel) );
+            StringBuilder message = new StringBuilder();
+            message.append(String.format("%s makePlots() Don't know how to plot channel=%s\n", getName(), channel));
+            RuntimeException e = new RuntimeException(message.toString()); 
+       	    logger.error("NLNMDeviation RuntimeException:", e); 
+       	    return;
         }
 
         if (channel.getLocation().equals("00")) {
@@ -315,7 +324,10 @@ extends PowerBandMetric
 
    // First see if the file exists
         if (!(new File(fileName).exists())) {
-            logger.error("Noise Model file={} does NOT exist!", fileName);
+            StringBuilder message = new StringBuilder();
+            message.append(String.format("Noise Model file={} does NOT exist!\n", fileName));
+            RuntimeException e = new RuntimeException(message.toString()); 
+            logger.error("NLNMDeviation RuntimeException:", e);
             return;
         }
    // Temp ArrayList(s) to read in unknown number of (x,y) pairs:
@@ -328,19 +340,21 @@ extends PowerBandMetric
             while ((line = br.readLine()) != null) {
                 String[] args = line.trim().split("\\s+") ;
                 if (args.length != 2) {
-                    String message = "==Error reading NLNM: got " + args.length + " args on one line!";
-                    throw new RuntimeException(message);
+                    String message = "==Error reading NLNM: got " + args.length + " args on one line!\n";
+                    RuntimeException e = new RuntimeException(message.toString()); 
+                    logger.error("NLNMDeviation RuntimeException:", e); 
+                    return;
                 }
                 tmpPers.add( Double.valueOf(args[0].trim()).doubleValue() );
                 tmpPows.add( Double.valueOf(args[1].trim()).doubleValue() );
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("NLNMDeviation IOException:", e); 
         } finally {
             try {
                 if (br != null)br.close();
             } catch (IOException ex) {
-                ex.printStackTrace();
+                logger.error("NLNMDeviation IOException:", ex); 
             }
         }
         Double[] modelPeriods  = tmpPers.toArray(new Double[]{});
@@ -355,7 +369,6 @@ extends PowerBandMetric
         }
         
         noiseModel.valid = true;
-
     } // end readNoiseModel
 
 
@@ -382,4 +395,3 @@ extends PowerBandMetric
     }
 
 } // end class
-

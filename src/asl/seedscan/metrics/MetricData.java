@@ -189,8 +189,7 @@ public class MetricData
     		metricVal = metricReader.getMetricValue(id);
     		return metricVal;
     	}
-    	else
-    	{
+    	else {
     		metricVal = null;
     		logger.warn("Metric Reader is not connected: getMetricValue()");
     		return metricVal;
@@ -206,8 +205,8 @@ public class MetricData
     {
         String locationName = location + "-" + name;
         Set<String> keys = data.keySet();
-        for (String key : keys){          // key looks like "IU_ANMO 00-BHZ (20.0 Hz)"
-           if (key.contains(locationName) ){
+        for (String key : keys) {          // key looks like "IU_ANMO 00-BHZ (20.0 Hz)"
+           if (key.contains(locationName)) {
             //System.out.format(" key=%s contains locationName=%s\n", key, locationName);
               return data.get(key);       // return ArrayList<DataSet>
            }
@@ -235,7 +234,7 @@ public class MetricData
         }
         else if (metadata.getNetwork().equals("II")) {
             if (hasChannelData("BC0") || hasChannelData("BC1") 
-             || hasChannelData("LC0") || hasChannelData("LC1") ) {
+             || hasChannelData("LC0") || hasChannelData("LC1")) {
                 return true;
             }
         }
@@ -243,16 +242,17 @@ public class MetricData
     }
     public ArrayList<Blockette320> getChannelCalData(Channel channel)
     {
-        return getChannelCalData(channel.getLocation(), channel.getChannel() );           
+        return getChannelCalData(channel.getLocation(), channel.getChannel());           
     }
     public ArrayList<Blockette320> getChannelCalData(String location, String name)
     {
-        if (!hasCalibrationData()) return null; // randomCal was never created --> Probably not a calibration day
+        if (!hasCalibrationData()) 
+	    return null; // randomCal was never created --> Probably not a calibration day
         String locationName = location + "-" + name;
         Set<String> keys = randomCal.keySet();
-        for (String key : keys){          // key looks like "IU_ANMO 00-BHZ (20.0 Hz)"
-           if (key.contains(locationName) ){
-              return randomCal.get(key); 
+        for (String key : keys) {          // key looks like "IU_ANMO 00-BHZ (20.0 Hz)"
+           if (key.contains(locationName)) {
+               return randomCal.get(key); 
            }
         }
         return null;           
@@ -269,9 +269,9 @@ public class MetricData
     {
         String locationName = location + "-" + name;
         Set<String> keys = qualityData.keySet();
-        for (String key : keys){          // key looks like "IU_ANMO 00-BHZ (20.0 Hz)"
-           if (key.contains(locationName) ){
-              return qualityData.get(key); 
+        for (String key : keys) {          // key looks like "IU_ANMO 00-BHZ (20.0 Hz)"
+           if (key.contains(locationName)) {
+               return qualityData.get(key); 
            }
         }
         return null;           
@@ -284,8 +284,7 @@ public class MetricData
  *         (e.g., "00-LH") for this time+freq window
  *         Return null if ANY of the requested channels of data are not found
  */
-    public ArrayList<double[]> getZNE(ResponseUnits responseUnits, String location, String band, long windowStartEpoch, 
-                                      long windowEndEpoch, double f1, double f2, double f3, double f4) 
+    public ArrayList<double[]> getZNE(ResponseUnits responseUnits, String location, String band, long windowStartEpoch, long windowEndEpoch, double f1, double f2, double f3, double f4) 
     {
         ArrayList<double[]> dispZNE = new ArrayList<double[]>();
 
@@ -320,7 +319,11 @@ public class MetricData
         double srate2 = metadata.getChanMeta(channel2).getSampleRate();
 
         if (srate1 != srate2) {
-            throw new RuntimeException("MetricData.createRotatedChannels(): Error: srate1 != srate2 !!");
+            StringBuilder message = new StringBuilder();
+            message.append(String.format("MetricData.createRotatedChannels(): Error: srate1 != srate2!!\n"));
+            RuntimeException e = new RuntimeException(message.toString());
+            logger.error("MetricData RuntimeException:", e);
+            return null;
         }
 
         double[] n = new double[ndata];
@@ -335,46 +338,42 @@ public class MetricData
         dispZNE.add(e);
 
         return dispZNE;
-
     }
 
 /**
  *  The name is a little misleading: getFilteredDisplacement will return whatever output units
  *    are requested: DISPLACEMENT, VELOCITY, ACCELERATION
  */
-    public double[] getFilteredDisplacement(ResponseUnits responseUnits, Channel channel, long windowStartEpoch, long windowEndEpoch,
-                                            double f1, double f2, double f3, double f4) 
+    public double[] getFilteredDisplacement(ResponseUnits responseUnits, Channel channel, long windowStartEpoch, long windowEndEpoch, double f1, double f2, double f3, double f4) 
     {
         if (!metadata.hasChannel(channel)) {
-            logger.error( String.format("Error: Metadata NOT found for channel=[%s] --> Can't return Displacement",channel) );
+        	logger.error(String.format("MetricData Error: Metadata NOT found for channel=[%s] --> Can't return Displacement", channel));
             return null;
         }
         double[] timeseries = getWindowedData(channel, windowStartEpoch, windowEndEpoch);
         if (timeseries == null) {
-            logger.error( String.format("Error: Did not get requested window for channel=[%s] --> Can't return Displacement",channel) );
+            logger.error(String.format("MetricData Error: Did not get requested window for channel=[%s] --> Can't return Displacement", channel));
             return null;
         }
         double filtered[] = removeInstrumentAndFilter(responseUnits, channel, timeseries, f1, f2, f3, f4);
 
         return filtered;
-
     }
-
+    
     public double bpass(int n,int n1,int n2,int n3,int n4) {
 
-             if (n<=n1 || n>=n4) return(0.);
+        if (n<=n1 || n>=n4) return(0.);
         else if (n>=n2 && n<=n3) return(1.);
         else if (n>n1  && n<n2 ) return( .5*(1-Math.cos(Math.PI*(n-n1)/(n2-n1))) );
         else if (n>n3  && n<n4 ) return( .5*(1-Math.cos(Math.PI*(n4-n)/(n4-n3))) );
         else return(-9999999.);
     }
 
-
     public double[] removeInstrumentAndFilter(ResponseUnits responseUnits, Channel channel, double[] timeseries, 
                                               double f1, double f2, double f3, double f4){
 
         if (!(f1 < f2 && f2 < f3 && f3 < f4)) {
-            logger.error( String.format("removeInstrumentAndFilter: Error: invalid freq: range: [%f-%f ----- %f-%f]", f1, f2, f3, f4) );
+            logger.error(String.format("MetricData: removeInstrumentAndFilter: Error: invalid freq: range: [%f-%f ----- %f-%f]", f1, f2, f3, f4));
             return null;
         }
 
@@ -382,14 +381,20 @@ public class MetricData
         double srate = chanMeta.getSampleRate();
         int ndata    = timeseries.length; 
 
-        if (srate == 0) throw new RuntimeException("Error: Got srate=0");
+        if (srate == 0) { 
+        	StringBuilder message = new StringBuilder();
+        	message.append(String.format("MetricData Error: channel=[{}] Got srate=0\n", channel.toString()));
+        	RuntimeException e = new RuntimeException(message.toString()); 
+        	logger.error("MetricData RuntimeException:", e);
+        	return null;
+        } 
 
-     // Find smallest power of 2 >= ndata:
+        // Find smallest power of 2 >= ndata:
         int nfft=1;
         while (nfft < ndata) nfft = (nfft << 1);
 
-     // We are going to do an nfft point FFT which will return 
-     //   nfft/2+1 +ve frequencies (including  DC + Nyq)
+        // We are going to do an nfft point FFT which will return 
+        //   nfft/2+1 +ve frequencies (including  DC + Nyq)
         int nf=nfft/2 + 1;
 
         double dt = 1./srate;
@@ -424,8 +429,8 @@ public class MetricData
 
         for(int k = 0; k < nf; k++){
             double taper = bpass(k,k1,k2,k3,k4);
-        // Remove instrument: We use conjg() here since the SEED inst resp FFT convention F(w) ~ e^-iwt    ****
-        //  while the Numerical Recipes convention is F(w) ~ e^+iwt
+            // Remove instrument: We use conjg() here since the SEED inst resp FFT convention F(w) ~ e^-iwt    ****
+            //  while the Numerical Recipes convention is F(w) ~ e^+iwt
             xfft[k] = Cmplx.div(xfft[k],instrumentResponse[k].conjg()); // Remove instrument
             xfft[k] = Cmplx.mul(xfft[k],taper);                         // Bandpass
         }
@@ -447,7 +452,6 @@ public class MetricData
         }
         return dfoo;
     }
-
 
 /** Doesn't appear to be used (?)
     public ArrayList<double[]> window(ArrayList<double[]> dataArrayIn, double delta, double xstart, double xend) {
@@ -478,12 +482,12 @@ public class MetricData
     public double[] getWindowedData(Channel channel, long windowStartEpoch, long windowEndEpoch) 
     {
         if (windowStartEpoch > windowEndEpoch) {
-            logger.error("Requested window Epoch [{} - {}] is NOT VALID (start > end)",windowStartEpoch, windowEndEpoch);
+            logger.error("Requested window Epoch [{} - {}] is NOT VALID (start > end)", windowStartEpoch, windowEndEpoch);
             return null;
         }
 
         if (!hasChannelData(channel)){
-            logger.error("We have NO data for channel=[{}]",channel);
+            logger.error("We have NO data for channel=[{}]", channel);
             return null;
         }
         ArrayList<DataSet>datasets = getChannelData(channel);
@@ -547,23 +551,22 @@ public class MetricData
             double srate2               = nextData.getSampleRate(); 
 
             if (srate2 != srate1) {
-                System.out.format("== getWindowedData ERROR: Requested window Epoch [%d - %d] extends into "
+                logger.warn(String.format("== getWindowedData ERROR: Requested window Epoch [%d - %d] extends into "
                 + "nextData window Epoch [%d - %d] for channel=[%s] but srate1[%f] != srate2[%f]\n", 
-                    windowStartEpoch, windowEndEpoch, nextDataStartEpoch, nextDataEndEpoch, channel, srate1, srate2 );
+                    windowStartEpoch, windowEndEpoch, nextDataStartEpoch, nextDataEndEpoch, channel, srate1, srate2));
                 return null;
             }
 
     // Requested Window must end in Day 2 (taken from next day dataset(0))
 
             if (windowEndEpoch > nextDataEndEpoch) {
-                System.out.format("== getWindowedData ERROR: Requested window Epoch [%d - %d] extends BEYOND "
+                logger.warn(String.format("== getWindowedData ERROR: Requested window Epoch [%d - %d] extends BEYOND "
                 + "found nextData window Epoch [%d - %d] for channel=[%s]\n", 
-                    windowStartEpoch, windowEndEpoch, nextDataStartEpoch, nextDataEndEpoch, channel );
+                    windowStartEpoch, windowEndEpoch, nextDataStartEpoch, nextDataEndEpoch, channel));
                 return null;
             }
 
             spansDay = true;
-
         }
 
         long windowMilliSecs = windowEndEpoch - windowStartEpoch;
@@ -598,8 +601,6 @@ public class MetricData
 
     } // end getWindowedData
 
-
-
 /**
  *  Return a full day (86400 sec) array of data assembled from a channel's DataSets
  *  Zero pad any gaps between DataSets
@@ -607,7 +608,7 @@ public class MetricData
     public double[] getPaddedDayData(Channel channel) 
     {
         if (!hasChannelData(channel)){
-            System.out.format("== MetricData.getPaddedDayData() ERROR: We have NO data for channel=[%s]\n", channel);
+            logger.warn(String.format("== MetricData.getPaddedDayData() ERROR: We have NO data for channel=[%s]\n", channel));
             return null;
         }
         ArrayList<DataSet>datasets = getChannelData(channel);
@@ -656,7 +657,6 @@ public class MetricData
         return data;
     }
 
-
 /*
  *  Rotate/Create new derived channels: (chan1, chan2) --> (chanN, chanE)
  *  And add these to StationData
@@ -679,14 +679,14 @@ public class MetricData
         }
     // If we still can't find 2 horizontals to rotate then give up
         if (hasChannelData(channel1)==false || hasChannelData(channel2)==false){
-            System.out.format("== createRotatedChannelData: Error -- Unable to find data "
-            + "for channel1=[%s] and/or channel2=[%s] --> Unable to Rotate!\n",channel1, channel2);
+            logger.warn(String.format("== createRotatedChannelData: Error -- Unable to find data "
+            + "for channel1=[%s] and/or channel2=[%s] --> Unable to Rotate!\n",channel1, channel2));
             return;
         }
 
         if (metadata.hasChannel(channel1)==false || metadata.hasChannel(channel2)==false){
-            System.out.format("== createRotatedChannelData: Error -- Unable to find metadata "
-            + "for channel1=[%s] and/or channel2=[%s] --> Unable to Rotate!\n",channel1, channel2);
+            logger.warn(String.format("== createRotatedChannelData: Error -- Unable to find metadata "
+            + "for channel1=[%s] and/or channel2=[%s] --> Unable to Rotate!\n",channel1, channel2));
             return;
         }
 
@@ -709,7 +709,11 @@ public class MetricData
         double srate1 = getChannelData(channel1).get(0).getSampleRate();
         double srate2 = getChannelData(channel2).get(0).getSampleRate();
         if (srate1 != srate2) {
-            throw new RuntimeException("MetricData.createRotatedChannels(): Error: srate1 != srate2 !!");
+            StringBuilder message = new StringBuilder();
+            message.append(String.format("MetricData.createRotatedChannels(): Error channel1=[%s] and/or channel2=[%s]: srate1 != srate2 !!\n", channel1, channel2));
+            RuntimeException e = new RuntimeException(message.toString()); 
+            logger.error("MetricData RuntimeException:", e); 
+            return;
         }
 
         double[]   chanNData = new double[ndata];
@@ -775,7 +779,7 @@ public class MetricData
         try {
             northDataSet.setSampleRate(srate1);
         } catch (IllegalSampleRateException e) {
-            logger.error(String.format("MetricData.createRotatedChannels(): Invalid Sample Rate = %f", srate1) );
+            logger.error(String.format("MetricData.createRotatedChannels(): Invalid Sample Rate = %f", srate1));
         }
 
         int[] intArray = new int[ndata];
@@ -797,7 +801,7 @@ public class MetricData
         try {
             eastDataSet.setSampleRate(srate1);
         } catch (IllegalSampleRateException e) {
-            logger.error(String.format("MetricData.createRotatedChannels(): Invalid Sample Rate = %f", srate1) );
+            logger.error(String.format("MetricData.createRotatedChannels(): Invalid Sample Rate = %f", srate1));
         }
 
         for (int i=0; i<ndata; i++){
@@ -810,7 +814,6 @@ public class MetricData
         data.put(eastKey, dataList);
 
     } // end createRotatedChannels()
-
 
 /**
  *  getChannelOverlap - find the overlapping samples between 2+ channels
@@ -830,10 +833,10 @@ public class MetricData
         ArrayList<DataSet> channelXData = getChannelData(channelX);
         ArrayList<DataSet> channelYData = getChannelData(channelY);
         if (channelXData == null) {
-            System.out.format("== getChannelOverlap: Error --> No DataSets found for Channel=%s\n", channelX);
+            logger.warn(String.format("== getChannelOverlap: Error --> No DataSets found for Channel=%s\n", channelX));
         }
         if (channelYData == null) {
-            System.out.format("== getChannelOverlap: Error --> No DataSets found for Channel=%s\n", channelY);
+            logger.warn(String.format("== getChannelOverlap: Error --> No DataSets found for Channel=%s\n", channelY));
         }
         dataLists.add(channelXData);
         dataLists.add(channelYData);
@@ -875,7 +878,7 @@ public class MetricData
                         channels[i] = intArrayToDoubleArray(channel);
                     } catch (SequenceRangeException e) {
                         //System.out.println("SequenceRangeException");
-                        e.printStackTrace();
+                    	logger.error("MetricData SequenceRangeException:", e);	
                     }
                     found = true;
                     break;
@@ -885,7 +888,7 @@ public class MetricData
 
     // See if we have a problem with the channel data we are about to return:
         if (channels[0].length == 0 || channels[1].length == 0 || channels[0].length != channels[1].length){
-            System.out.println("== getChannelOverlap: WARNING --> Something has gone wrong!");
+            logger.warn("== getChannelOverlap: WARNING --> Something has gone wrong!");
         }
 
     // MTH: hack to return the startTime of the overlapping length of data points
@@ -894,7 +897,6 @@ public class MetricData
         return channels;
 
     } // end getChannelOverlap
-
 
     /**
      * Converts an array of type int into an array of type double.
@@ -957,7 +959,7 @@ public class MetricData
 
     // Check again for metadata. If we still don't have it (e.g., we weren't able to rotate) --> return null digest
         if (!metadata.hasChannels(channelArray)) { 
-            System.out.format("MetricData.valueDigestChanged: We don't have metadata to compute the digest for this channelArray "
+            logger.warn("MetricData.valueDigestChanged: We don't have metadata to compute the digest for this channelArray "
                               + " --> return null digest\n");
             return null;
         }
@@ -1000,15 +1002,13 @@ public class MetricData
                 if (forceUpdate) {  // Don't do anything --> return the digest to force the metric computation
                     String msg = String.format("== valueDigestChanged: metricName=%s Digests are Equal BUT forceUpdate=[%s]"
                     + " so compute the metric anyway!\n", metricName, forceUpdate);
-                    System.out.println(msg);
                     logger.warn(msg);
                 }
                 else {
                     newDigest = null;
                 }
             }
-            logger.warn(String.format( "valueDigestChanged() --> oldDigest = getMetricValueDigest(%s, %s, %s, %s)",
-                                       EpochData.epochToDateString(date), metricName, station, channelId));
+            logger.warn(String.format("valueDigestChanged() --> oldDigest = getMetricValueDigest(%s, %s, %s, %s)", EpochData.epochToDateString(date), metricName, station, channelId));
         }
         else {
             //System.out.println("=== MetricData.metricReader *IS NOT* connected");
@@ -1035,7 +1035,7 @@ public class MetricData
         for (Channel channel : channels){
             ChannelMeta chanMeta  = getMetaData().getChanMeta(channel);
             if (chanMeta == null){
-                System.out.format("MetricData.getHash() Error: metadata not found for requested channel:%s\n",channel);
+                logger.warn(String.format("MetricData.getHash() Error: metadata not found for requested channel:%s\n", channel));
                 return null;
             }
             else {
@@ -1049,7 +1049,7 @@ public class MetricData
             else { // Add in the data digests
                 ArrayList<DataSet>datasets = getChannelData(channel);
                 if (datasets == null){
-                    System.out.format("MetricData.getHash() Error: Data not found for requested channel:%s\n",channel);
+                    logger.warn(String.format("MetricData.getHash() Error: Data not found for requested channel:%s\n", channel));
                     return null;
                 }
                 else {
@@ -1060,7 +1060,6 @@ public class MetricData
                 }
             }
         }
-
         return MemberDigest.multiBuffer(digests);
     }
 
@@ -1072,7 +1071,7 @@ public class MetricData
     public void checkForRotatedChannels(ChannelArray channelArray)
     {
         ArrayList<Channel> channels = channelArray.getChannels();
-        for (Channel channel : channels){
+        for (Channel channel : channels) {
             //System.out.format("== checkForRotatedChannels: request channel=%s\n", channel);
 
         // channelPrefix = channel band + instrument code  e.g., 'L' + 'H' = "LH"
@@ -1100,5 +1099,4 @@ public class MetricData
             }
         }
     }
-
 }

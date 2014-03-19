@@ -81,7 +81,6 @@ extends Metric
         return "EventCompareStrongMotion";
     }
 
-
     public void process()
     {
 
@@ -172,7 +171,7 @@ extends Metric
        // Loop over Events for this day
 
         SortedSet<String> eventKeys = new TreeSet<String>(eventCMTs.keySet());
-        for (String key : eventKeys){
+        for (String key : eventKeys) {
 
             EventCMT eventCMT = eventCMTs.get(key);
 
@@ -297,79 +296,77 @@ extends Metric
 
     private double[] getEventArrivalTimes(EventCMT eventCMT) {
 
-            long eventStartTime = eventCMT.getTimeInMillis();   // Event origin epoch time in millisecs
+        long eventStartTime = eventCMT.getTimeInMillis();   // Event origin epoch time in millisecs
 
-            double evla  = eventCMT.getLatitude();
-            double evlo  = eventCMT.getLongitude();
-            double evdep = eventCMT.getDepth();
-            double stla  = stationMeta.getLatitude();
-            double stlo  = stationMeta.getLongitude();
-            double gcarc = SphericalCoords.distance(evla, evlo, stla, stlo);
-xDist = gcarc;
-            double azim  = SphericalCoords.azimuth(evla, evlo, stla, stlo);
-            TauP_Time timeTool = null;
-            try {
-                timeTool = new TauP_Time("prem");
-                timeTool.parsePhaseList("P,S");
-                timeTool.depthCorrect(evdep);
-                timeTool.calculate(gcarc);
-            }
-            catch(Exception e) {
-            }
+        double evla  = eventCMT.getLatitude();
+        double evlo  = eventCMT.getLongitude();
+        double evdep = eventCMT.getDepth();
+        double stla  = stationMeta.getLatitude();
+        double stlo  = stationMeta.getLongitude();
+        double gcarc = SphericalCoords.distance(evla, evlo, stla, stlo);
+        xDist = gcarc;
+        double azim  = SphericalCoords.azimuth(evla, evlo, stla, stlo);
+        TauP_Time timeTool = null;
+        try {
+            timeTool = new TauP_Time("prem");
+            timeTool.parsePhaseList("P,S");
+            timeTool.depthCorrect(evdep);
+            timeTool.calculate(gcarc);
+        }
+        catch(Exception e) {
+        }
 
-            List<Arrival> arrivals = timeTool.getArrivals();
+        List<Arrival> arrivals = timeTool.getArrivals();
 
-            //for (int i=0; i<arrivals.size(); i++){
-                //Arrival arrival = arrivals.get(i);
-                //System.out.println(arrival.getName()+" arrives at "+ (arrival.getDist()*180.0/Math.PI)+" degrees after "+ arrival.getTime()+" seconds.");
-            //}
-// We could screen by max distance (e.g., 90 deg for P direct)
-// or by counting arrivals (since you won't get a P arrival beyond about 97 deg or so)
-            if (arrivals.size() != 2) { // Either we don't have both P & S or we don't have just P & S
-                logger.warn(String.format("Error: Expected P and/or S arrival times not found [gcarc=%8.4f]",gcarc));
-                return null;
-            }
+        //for (int i=0; i<arrivals.size(); i++){
+            //Arrival arrival = arrivals.get(i);
+            //System.out.println(arrival.getName()+" arrives at "+ (arrival.getDist()*180.0/Math.PI)+" degrees after "+ arrival.getTime()+" seconds.");
+        //}
+        // We could screen by max distance (e.g., 90 deg for P direct)
+        // or by counting arrivals (since you won't get a P arrival beyond about 97 deg or so)
+        if (arrivals.size() != 2) { // Either we don't have both P & S or we don't have just P & S
+            logger.warn(String.format("Error: Expected P and/or S arrival times not found [gcarc=%8.4f]",gcarc));
+            return null;
+        }
 
-            double arrivalTimeP = 0.;
-            if (arrivals.get(0).getName().equals("P")){
-                arrivalTimeP = arrivals.get(0).getTime();
-            }
-            else {
-                logger.warn(String.format("Error: Expected P arrival time not found"));
-            }
-            double arrivalTimeS = 0.;
-            if (arrivals.get(1).getName().equals("S")){
-                arrivalTimeS = arrivals.get(1).getTime();
-            }
-            else {
-                logger.warn(String.format("Error: Expected S arrival time not found"));
-            }
+        double arrivalTimeP = 0.;
+        if (arrivals.get(0).getName().equals("P")){
+            arrivalTimeP = arrivals.get(0).getTime();
+        }
+        else {
+            logger.warn(String.format("Error: Expected P arrival time not found"));
+        }
+        double arrivalTimeS = 0.;
+        if (arrivals.get(1).getName().equals("S")){
+            arrivalTimeS = arrivals.get(1).getTime();
+        }
+        else {
+            logger.warn(String.format("Error: Expected S arrival time not found"));
+        }
 
-            logger.info(String.format("Event:%s <evla,evlo> = <%.2f, %.2f> Station:%s <%.2f, %.2f> gcarc=%.2f azim=%.2f tP=%.3f tS=%.3f\n",
-                eventCMT.getEventID(), evla, evlo, getStation(), stla, stlo, gcarc, azim, arrivalTimeP, arrivalTimeS ) );
+        logger.info(String.format("Event:%s <evla,evlo> = <%.2f, %.2f> Station:%s <%.2f, %.2f> gcarc=%.2f azim=%.2f tP=%.3f tS=%.3f\n",
+            eventCMT.getEventID(), evla, evlo, getStation(), stla, stlo, gcarc, azim, arrivalTimeP, arrivalTimeS ) );
 
-            double[] arrivalTimes = new double[2];
-            arrivalTimes[0] = arrivalTimeP;
-            arrivalTimes[1] = arrivalTimeS;
+        double[] arrivalTimes = new double[2];
+        arrivalTimes[0] = arrivalTimeP;
+        arrivalTimes[1] = arrivalTimeS;
 
-            return arrivalTimes;
-
+        return arrivalTimes;
     }
     
     public void makePlots(ArrayList<double[]> d00, ArrayList<double[]> d10, ArrayList<double[]> d20, int nstart, int nend, 
-                          String key, int eventNumber){
+                          String key, int eventNumber) {
 
         PlotMaker2 plotMaker = null;
-        final String plotTitle = String.format("[ Event: %s ] [ Station: %s ] [ Dist: %.2f ] %s", key, getStation(), xDist,
-                                               getName() );
+        final String plotTitle = String.format("[ Event: %s ] [ Station: %s ] [ Dist: %.2f ] %s", key, getStation(), xDist, getName() );
 
         final String pngName   = String.format("%s.strongmtn.ev-%d.png", getOutputDir(), eventNumber );
 
         if (plotMaker == null) {
             plotMaker = new PlotMaker2(plotTitle);
             plotMaker.initialize3Panels("LHZ", "LH1/LHN", "LH2/LHE");
-
         }
+        
         int iPanel = 0;
         Color color = Color.black;
 
@@ -378,7 +375,7 @@ xDist = gcarc;
         int npts = nend - nstart + 1;
 
         double[] xsecs = new double[ npts ];
-        for (int k=0; k<xsecs.length; k++){
+        for (int k=0; k<xsecs.length; k++) {
             xsecs[k] = (float)(k + nstart);        // hard-wired for LH? dt=1.0
         }
 

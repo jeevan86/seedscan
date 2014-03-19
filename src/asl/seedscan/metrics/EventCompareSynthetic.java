@@ -86,7 +86,6 @@ extends Metric
         return "EventCompareSynthetic";
     }
 
-
     public void process()
     {
         logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
@@ -356,12 +355,12 @@ extends Metric
     //private double rmsDiff(double[] data1, double[] data2, int n1, int n2) {
     private double calcDiff(double[] data1, double[] data2, int n1, int n2) {
         if (n2 < n1) {
-            logger.error("calcDiff: n2 < n1 --> Bad window");
+            logger.error("{} Error: station=[{}] day=[{}]: calcDiff: n2 < n1 --> Bad window", getName(), getStation(), getDay());
             return NO_RESULT;
         }
         if (n2 >= data1.length || n2 >= data2.length) {
-            logger.error(String.format("calcDiff: n2=[%d] > data1.length=[%d] and/or data2.length=[%d] --> Bad window", 
-                         n2, data1.length, data2.length) );
+            logger.error(String.format("{} Error: station=[{}] day=[{}]: calcDiff: n2=[%d] > data1.length=[%d] and/or data2.length=[%d] --> Bad window", 
+                         getName(), getStation(), getDay(), n2, data1.length, data2.length));
             return NO_RESULT;
         }
         double rms=0.;
@@ -378,15 +377,14 @@ extends Metric
         //rms  =  Math.sqrt(rms);
 
         if (denomenator == 0.) {
-            logger.error("calcDiff: denomenator==0 --> Divide by 0 --> Expect result = Infinity!");
+            logger.error("{} Error: station=[{}] day=[{}]: calcDiff: denomenator==0 --> Divide by 0 --> Expect result = Infinity!", getName(), getStation(), getDay());
         }
         double result = numerator / denomenator;
 
         return result;
     }
 
-    public void makePlots(ArrayList<double[]> d00, ArrayList<double[]> d10, ArrayList<double[]> d20, int nstart, int nend, 
-                          String key, int eventNumber){
+    public void makePlots(ArrayList<double[]> d00, ArrayList<double[]> d10, ArrayList<double[]> d20, int nstart, int nend, String key, int eventNumber) {
 
         PlotMaker2 plotMaker = null;
         EventCMT eventCMT = eventCMTs.get(key);
@@ -396,15 +394,13 @@ extends Metric
         double stlo  = stationMeta.getLongitude();
         double gcarc = SphericalCoords.distance(evla, evlo, stla, stlo);
 
-        final String plotTitle = String.format("[ Event: %s ] [ Station: %s ] [ Dist: %.2f ] %s", key, getStation(), gcarc,
-                                               getName() );
+        final String plotTitle = String.format("[ Event: %s ] [ Station: %s ] [ Dist: %.2f ] %s", key, getStation(), gcarc, getName() );
 
         final String pngName   = String.format("%s.synthcompare.ev-%d.png", getOutputDir(), eventNumber );
 
         if (plotMaker == null) {
             plotMaker = new PlotMaker2(plotTitle);
             plotMaker.initialize3Panels("LHZ", "LH1/LHN", "LH2/LHE");
-
         }
         int iPanel = 0;
         Color color = Color.black;
@@ -450,6 +446,4 @@ extends Metric
 
         plotMaker.writePlot(pngName);
     }
-
-
 }

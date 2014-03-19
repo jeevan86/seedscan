@@ -67,87 +67,86 @@ extends PowerBandMetric
 
 	public void process()
 	{
-			logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
+		logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
 			
-			String metricname;
-			String netstat;
-			String net;
-			String stat;
-			Station station;
-			String day;
-			Calendar date;
-			String period;
-			Double NLNMValue;
-			Double threshold;
-			String NLNMBaseName;
-			String NLNMName;
-			String NLNMDay;
+		Station station;
+		String day;
+		String metric;
+		
+		String netstat;
+		String net;
+		String stat;
+		Calendar date;
+		String period;
+		Double NLNMValue;
+		Double threshold;
+		String NLNMBaseName;
+		String NLNMName;
+		String NLNMDay;
 			
-			day = getDay();
-			date = getDate();
-			metricname = getName();
-			threshold = -7.0;
+		day = getDay();
+		date = getDate();
+		metric = getName();
+		threshold = -7.0;
 			
-			// Pull lower/upper limits for NLNMDeviationMetric
-			netstat = getStation();
-			String[] tmp = netstat.split("[_]");
-			net = tmp[0]; stat = tmp[1];
-			station = new Station(net, stat);
+		// Pull lower/upper limits for NLNMDeviationMetric
+		netstat = getStation();
+		String[] tmp = netstat.split("[_]");
+		net = tmp[0]; stat = tmp[1];
+		station = new Station(net, stat);
 			
-			// Set NLNMDeviationMetric name (used for DB pull)
-			NLNMBaseName = "NLNMDeviationMetric";
-			String[] tokens = metricname.split("[:]");
-			period = tokens[1];
-			NLNMName = NLNMBaseName + ":" + period;
-			NLNMDay = (EpochData.epochToDateString(date));
+		// Set NLNMDeviationMetric name (used for DB pull)
+		NLNMBaseName = "NLNMDeviationMetric";
+		String[] tokens = metric.split("[:]");
+		period = tokens[1];
+		NLNMName = NLNMBaseName + ":" + period;
+		NLNMDay = (EpochData.epochToDateString(date));
 			
-			// Get NLNM Metric Value using name, date and channels
-			List<Channel> channels = stationMeta.getChannelArray("LH");
+		// Get NLNM Metric Value using name, date and channels
+		List<Channel> channels = stationMeta.getChannelArray("LH");
 			
-			if (channels == null || channels.size() == 0) {
-				logger.warn("No LH? channels found for station={}", station);
-				return;
+		if (channels == null || channels.size() == 0) {
+			logger.warn("No LH? channels found for station={}", station.toString());
+			return;
+		}
+			
+		// Loop over channels, get metadata & data for channel and calculate metric
+		for (Channel channel : channels) {
+			if (!metricData.hasChannelData(channel)) {
+				logger.warn("No data found for channel[{}] --> Skip metric", channel);
+				continue;
 			}
-			
-			// Loop over channels, get metadata & data for channel and calculate metric
-			for (Channel channel : channels)
-			{
-				if (!metricData.hasChannelData(channel)) {
-					//logger.warn("No data found for channel[{}] --> Skip metric", channel);
-					continue;
+				
+			NLNMValue = metricData.getMetricValue(date, NLNMName, station, channel);
+			ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel), getForceUpdate());
+				
+			// => oldDigest == newDigest, no need to recompute metric
+			if (digest == null) { 
+				logger.warn("Digest unchanged station:[{}] channel:[{}] --> Skip metric", station, channel);
+				continue;
+			}
+				
+			double result = 0.0;
+			if (NLNMValue == null) {
+				// Do nothing --> skip to next channel
+			}
+			else {
+				// Dead channel if -7dB below NLNM
+				if (NLNMValue <= threshold) {
+					result = 0.0; 
 				}
-				
-				NLNMValue = metricData.getMetricValue(date, NLNMName, station, channel);
-				ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel), getForceUpdate());
-				
-				// => oldDigest == newDigest, no need to recompute metric
-				if (digest == null) { 
-					logger.warn("Digest unchanged station:[{}] channel:[{}] --> Skip metric", station, channel);
-					continue;
-				}
-				
-				double result = 0.0;
-				if (NLNMValue == null) {
-					// Do nothing --> skip to next channel
+				else if (NLNMValue > threshold) {
+					result = 1.0; 
 				}
 				else {
-					// Dead channel if -7dB below NLNM
-					if (NLNMValue <= threshold) {
-						result = 0.0; 
-					}
-					else if (NLNMValue > threshold) {
-						result = 1.0; 
-					}
-					else {
-						result = NO_RESULT; 
-					}
+					result = NO_RESULT; 
+				}
 					
-					// Add result to metricResult
-					if (result != NO_RESULT) {
-						metricResult.addResult(channel, result, digest);
-					}
+				// Add result to metricResult
+				if (result != NO_RESULT) {
+					metricResult.addResult(channel, result, digest);
 				}
 			}
+		}
 	}
 }
-

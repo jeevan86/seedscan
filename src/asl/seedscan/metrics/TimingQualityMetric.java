@@ -54,7 +54,6 @@ extends Metric
         List<Channel> channels = stationMeta.getContinuousChannels();
 
         for (Channel channel : channels){
-
             if (!metricData.hasChannelData(channel)){
                 //logger.warn("No data found for channel[{}] --> Skip metric", channel);
                 continue;
@@ -76,7 +75,6 @@ extends Metric
             else {
                 metricResult.addResult(channel, result, digest);
             }
-
         }// end foreach channel
     } // end process()
 
@@ -113,5 +111,4 @@ extends Metric
         return averageQuality;
 
     } // end computeMetric()
-
 }

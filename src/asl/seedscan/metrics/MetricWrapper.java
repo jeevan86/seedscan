@@ -66,17 +66,14 @@ public class MetricWrapper
             }
             return metric;
         } catch (InstantiationException ex) {
-            String message = ex.getClass().getName() + " in MetricWrapper.getNewInstance(), should never happen!";
-            logger.error(message);
-            throw new RuntimeException(message);
+        	logger.error("MetricWrapper.getNewInstance() InstantiationException:", ex); 
+        	return null;
         } catch (IllegalAccessException ex) {
-            String message = ex.getClass().getName() + " in MetricWrapper.getNewInstance(), should never happen!";
-            logger.error(message);
-            throw new RuntimeException(message);
+            logger.error("MetricWrapper.getNewInstance() IllegalAccessException:", ex);
+            return null;
         } catch (NoSuchFieldException ex) {
-            String message = ex.getClass().getName() + " in MetricWrapper.getNewInstance(), should never happen!";
-            logger.error(message);
-            throw new RuntimeException(message);
+            logger.error("MetricWrapper.getNewInstance() NoSuchFieldException:", ex);
+            return null;
         }
     }
 }

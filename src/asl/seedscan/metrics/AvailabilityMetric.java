@@ -107,7 +107,5 @@ extends Metric
         }
 
         return availability;
-
     } // end computeMetric()
-
 }

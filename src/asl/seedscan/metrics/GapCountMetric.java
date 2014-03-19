@@ -44,18 +44,20 @@ extends Metric
         return "GapCountMetric";
     }
 
-
     public void process()
     {
         logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
 
-    // Get a sorted list of continuous channels for this stationMeta and loop over:
+        String station = getStation();
+        String day = getDay();
+        String metric = getName();
+
+        // Get a sorted list of continuous channels for this stationMeta and loop over:
         List<Channel> channels = stationMeta.getContinuousChannels();
 
         for (Channel channel : channels){
-
             if (!metricData.hasChannelData(channel)){
-                //logger.warn("No data found for channel[{}] --> Skip metric", channel);
+                logger.warn("No data found for channel[{}] --> Skip metric", channel);
                 continue;
             }
 
@@ -66,7 +68,7 @@ extends Metric
                 continue;
             }
 
-            double result = computeMetric(channel);
+            double result = computeMetric(channel, station, day, metric);
 
             if (result == NO_RESULT) {
                 // Do nothing --> skip to next channel
@@ -75,16 +77,15 @@ extends Metric
             else {
                 metricResult.addResult(channel, result, digest);
             }
-
         }// end foreach channel
     } // end process()
 
 
-    private double computeMetric(Channel channel) {
+    private double computeMetric(Channel channel, String station, String day, String metric) {
 
         List<DataSet>datasets = metricData.getChannelData(channel);
         if (datasets == null) {  // No data --> Skip this channel
-            logger.error("No datasets found for channel=[" + channel + "] --> Skip Metric");
+            logger.error("{} Error: No datasets found for station=[{}] channel=[{}] day=[{}] --> Skip Metric", metric, station, channel, day);
             return NO_RESULT;
         }
 
@@ -115,7 +116,5 @@ extends Metric
         }
 
         return (double)gapCount;
-
     } // end computeMetric()
-
 }
