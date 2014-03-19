@@ -206,8 +206,8 @@ extends PowerBandMetric
 
         if (nPeriods == 0) {
             StringBuilder message = new StringBuilder();
-            message.append(String.format("%s Error: Requested band [%f - %f] contains NO periods within station model\n"
-                ,getName(),lowPeriod, highPeriod) );
+            message.append(String.format("%s %s Error: Requested band [%f - %f] contains NO periods within station model\n"
+                ,getName(), getDay(), lowPeriod, highPeriod) );
             RuntimeException e = new RuntimeException(message.toString());
             logger.error("StationDeviation RuntimeException:", e);
             return NO_RESULT;
@@ -226,8 +226,8 @@ extends PowerBandMetric
     private void makePlots(Channel channel, double xdata[], double ydata[]) {
         if (xdata.length != ydata.length) {
         	StringBuilder message = new StringBuilder();
-        	message.append(String.format("%s makePlots() Error: xdata.len=%d != ydata.len=%d", 
-        			getName(), xdata.length, ydata.length));
+        	message.append(String.format("%s %s makePlots() Error: xdata.len=%d != ydata.len=%d", 
+        			getName(), getDay(), xdata.length, ydata.length));
             RuntimeException e = new RuntimeException(message.toString());
             logger.error("StationDeviation RuntimeException:", e);
             return;
@@ -254,8 +254,8 @@ extends PowerBandMetric
         }
         else { // ??
         	StringBuilder message = new StringBuilder();
-        	message.append(String.format("%s makePlots() Don't know how to plot channel=%s", 
-                    getName(), channel));
+        	message.append(String.format("%s %s makePlots() Don't know how to plot channel=%s", 
+                    getName(), getDay(), channel));
         	RuntimeException e = new RuntimeException(message.toString());
         	logger.error("StationDeviation RuntimeException:", e);
         	return;
@@ -309,7 +309,7 @@ extends PowerBandMetric
                 }
                 catch (NumberFormatException e) {
                 	StringBuilder message = new StringBuilder();
-                	message.append(String.format("== StationDeviation: Error reading modelFile=[%s]: \n", fName));
+                	message.append(String.format("== StationDeviation %s: Error reading modelFile=[%s]: \n", getDay(), fName));
                 	logger.error(message.toString(), e);
                     return false;
                 }
