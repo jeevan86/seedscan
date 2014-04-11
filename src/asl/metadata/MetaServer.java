@@ -64,7 +64,8 @@ public class MetaServer
         }
         catch (Exception e) {
             //System.out.format("== MetaServer: Error=%s\n", e.getMessage() );
-            logger.error(e.getMessage());
+            logger.error("MetaServer Exception:", e);
+            return;
         }
         useRemoteMeta = true;
     }
@@ -79,7 +80,8 @@ public class MetaServer
             metaGen.loadDataless(datalessDir, networkSubset);
         }
         catch (Exception e) {
-            logger.error(e.getMessage());
+        	logger.error("MetaServer Exception:", e);
+        	return;
         }
     }
 
@@ -88,7 +90,8 @@ public class MetaServer
             UnicastRemoteObject.unexportObject(metaGen, true);
         }
         catch(RemoteException e) {
-            logger.error("Caught exception:", e.getMessage());
+            logger.error("MetaServer RemoteException:", e);
+            return;
         }
     }
 
@@ -104,7 +107,8 @@ public class MetaServer
             }
         }
         catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error("MetaServer Exception:", e);
+            return null;
         }
         logger.debug("getStationMeta Done");
         return stnMeta;
@@ -121,7 +125,8 @@ public class MetaServer
             }
         }
         catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error("MetaServer Exception:", e);
+            return null;
         }
         return stations;
     }

@@ -67,8 +67,8 @@ public class MetricDatabase
 		}
 		catch (SQLException e)
 		{
-			System.err.print(e);
-			logger.error("Could not open station database.");
+			//System.err.print(e);
+			logger.error("MetricDatabase: Could not open station database.", e);
 			// MTH: For now let's continue
 			// throw new RuntimeException("Could not open station database.");
 		}
@@ -110,7 +110,7 @@ public class MetricDatabase
 		}
 		catch (SQLException e)
 		{
-			logger.error(e.getMessage());
+			logger.error("MetricDatabase SQLException:", e);
 		}
 		
 		return digest;
@@ -146,7 +146,7 @@ public class MetricDatabase
 		catch (SQLException e)
 		{
 			// System.out.print(e);
-			logger.error(e.getMessage());
+			logger.error("MetricDatabase SQLException:", e);
 		}
 		
 		return digest;
@@ -175,7 +175,7 @@ public class MetricDatabase
 		}
 		catch (SQLException e)
 		{
-			logger.error(e.getMessage());
+			logger.error("MetricDatabase SQLException:", e);
 		}
 		if (value == null) { 
 			logger.warn("No value returned for sqldate:[{}] metric:[{}] station:[{}] channel:[{}]", sqlDateString, metricName, station, channel);
@@ -224,7 +224,7 @@ public class MetricDatabase
 			}
 			catch (SQLException e)
 			{
-				logger.error(e.getMessage());
+				logger.error("MetricDatabase SQLException:", e);
 			}
 		}
 		
@@ -245,7 +245,7 @@ public class MetricDatabase
 		}
 		catch (SQLException e)
 		{
-			logger.error(e.getMessage());
+			logger.error("MetricDatabase SQLException:", e);
 		}
 		return result;
 	}

@@ -21,10 +21,10 @@ package asl.util;
 
 import asl.metadata.Station;
 import asl.metadata.Channel;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.awt.Font;
-
 import java.io.IOException;
 import java.io.File;
 
@@ -41,6 +41,8 @@ import org.jfree.chart.annotations.XYTextAnnotation;
 import org.jfree.data.xy.*;
 import org.jfree.data.Range;
 import org.jfree.util.ShapeUtilities;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.Rectangle;
 import java.awt.Shape;
@@ -54,6 +56,7 @@ import java.awt.Paint;
  */
 public class PlotMaker 
 {
+	private static final Logger logger = LoggerFactory.getLogger(asl.util.PlotMaker.class);
     private Station station;
     private Channel channel, channelX, channelY;
     private Channel[] channels;
@@ -108,6 +111,8 @@ public class PlotMaker
 
         if (channelData.size() != channels.length) {
             System.out.format("== plotZNE_3x3: Error: We have [%d channels] but [%d channelData]\n", channels.length, channelData.size() );
+            String message = String.format("== plotZNE_3x3: Error: We have [%d channels] but [%d channelData]\n", channels.length, channelData.size());
+            logger.error(message);
             return;
         }
     
@@ -214,8 +219,8 @@ public class PlotMaker
         try {
             ChartUtilities.saveChartAsPNG(outputFile, chart, 1400, 800);
         } catch (IOException e) {
-            System.err.println("Problem occurred creating chart.");
-
+            //System.err.println("Problem occurred creating chart.");
+        	logger.error("PlotMaker IOException:", e);
         }
 
     }
@@ -238,6 +243,8 @@ public class PlotMaker
         if (!checkFileOut(outputFile)) {
             System.out.format("== plotPSD: request to output plot=[%s] but we are unable to create it "
                               + " --> skip plot\n", pngName );
+            logger.warn("== plotPSD: request to output plot=[%s] but we are unable to create it "
+                              + " --> skip plot\n", pngName);
             return;
         }
 
@@ -312,8 +319,8 @@ public class PlotMaker
         try { 
             ChartUtilities.saveChartAsPNG(outputFile, chart, 500, 300);
         } catch (IOException e) { 
-            System.err.println("Problem occurred creating chart.");
-
+            //System.err.println("Problem occurred creating chart.");
+        	logger.error("PlotMaker IOException:", e);
         }
     } // end plotPSD
 
@@ -331,6 +338,8 @@ public class PlotMaker
         if (!checkFileOut(outputFile)) {
             System.out.format("== plotCoherence: request to output plot=[%s] but we are unable to create it "
                               + " --> skip plot\n", pngName );
+            logger.warn("== plotCoherence: request to output plot=[%s] but we are unable to create it "
+                              + " --> skip plot\n", pngName);
             return;
         }
 
@@ -374,8 +383,8 @@ public class PlotMaker
         try { 
             ChartUtilities.saveChartAsPNG(outputFile, chart, 500, 300);
         } catch (IOException e) { 
-            System.err.println("Problem occurred creating chart.");
-
+            //System.err.println("Problem occurred creating chart.");
+        	logger.error("PlotMaker IOException:", e);
         }
     } // end plotCoherence
 
@@ -400,7 +409,7 @@ public class PlotMaker
         final double XMIN = .00009;
         final double XMAX = freq[freq.length-1];
 
-System.out.format("== plotSpecAmp2: nfreq=%d npts=%d pngName=%s\n", freq.length, amp2.length, pngName);
+        System.out.format("== plotSpecAmp2: nfreq=%d npts=%d pngName=%s\n", freq.length, amp2.length, pngName);
 
         final XYSeries series1 = new XYSeries("Amp_PZ");
         final XYSeries series1b= new XYSeries("Amp_Cal");
@@ -438,7 +447,7 @@ System.out.format("== plotSpecAmp2: nfreq=%d npts=%d pngName=%s\n", freq.length,
         renderer.setSeriesPaint(0, paints[0]);
         //renderer.setSeriesPaint(1, paints[1]);
 
-	final XYLineAndShapeRenderer renderer2 = new XYLineAndShapeRenderer();
+        final XYLineAndShapeRenderer renderer2 = new XYLineAndShapeRenderer();
         renderer2.setSeriesPaint(0, paints[1]);
         renderer2.setSeriesShapesVisible(0, false);
         renderer2.setSeriesLinesVisible(0, true);
@@ -488,9 +497,9 @@ System.out.format("== plotSpecAmp2: nfreq=%d npts=%d pngName=%s\n", freq.length,
 
         //CombinedXYPlot combinedPlot = new CombinedXYPlot( horizontalAxis, CombinedXYPlot.VERTICAL );
         CombinedDomainXYPlot combinedPlot = new CombinedDomainXYPlot( horizontalAxis );
-	combinedPlot.add(xyplot,1);
-	combinedPlot.add(xyplot2,1);
-	combinedPlot.setGap(15.);
+        combinedPlot.add(xyplot,1);
+        combinedPlot.add(xyplot2,1);
+        combinedPlot.setGap(15.);
 
         //final JFreeChart chart = new JFreeChart(xyplot);
         final JFreeChart chart = new JFreeChart(combinedPlot);
@@ -499,8 +508,8 @@ System.out.format("== plotSpecAmp2: nfreq=%d npts=%d pngName=%s\n", freq.length,
         try { 
             ChartUtilities.saveChartAsPNG(outputFile, chart, 1000, 800);
         } catch (IOException e) { 
-            System.err.println("Problem occurred creating chart.");
-
+            //System.err.println("Problem occurred creating chart.");
+        	logger.error("PlotMaker IOException:", e);
         }
     } // end plotResp
 
@@ -520,6 +529,8 @@ System.out.format("== plotSpecAmp2: nfreq=%d npts=%d pngName=%s\n", freq.length,
         if (!checkFileOut(outputFile)) {
             System.out.format("== plotSpecAmp: request to output plot=[%s] but we are unable to create it "
                               + " --> skip plot\n", pngName );
+            logger.warn("== plotSpecAmp: request to output plot=[%s] but we are unable to create it "
+                              + " --> skip plot\n", pngName);
             return;
         }
 
@@ -550,7 +561,7 @@ System.out.format("== plotSpecAmp2: nfreq=%d npts=%d pngName=%s\n", freq.length,
         renderer.setSeriesPaint(0, paints[0]);
         //renderer.setSeriesPaint(1, paints[1]);
 
-	final XYLineAndShapeRenderer renderer2 = new XYLineAndShapeRenderer();
+        final XYLineAndShapeRenderer renderer2 = new XYLineAndShapeRenderer();
         renderer2.setSeriesPaint(0, paints[1]);
         renderer2.setSeriesShapesVisible(0, false);
         renderer2.setSeriesLinesVisible(0, true);
@@ -597,9 +608,9 @@ System.out.format("== plotSpecAmp2: nfreq=%d npts=%d pngName=%s\n", freq.length,
 
         //CombinedXYPlot combinedPlot = new CombinedXYPlot( horizontalAxis, CombinedXYPlot.VERTICAL );
         CombinedDomainXYPlot combinedPlot = new CombinedDomainXYPlot( horizontalAxis );
-	combinedPlot.add(xyplot,1);
-	combinedPlot.add(xyplot2,1);
-	combinedPlot.setGap(15.);
+        combinedPlot.add(xyplot,1);
+        combinedPlot.add(xyplot2,1);
+        combinedPlot.setGap(15.);
 
         //final JFreeChart chart = new JFreeChart(xyplot);
         final JFreeChart chart = new JFreeChart(combinedPlot);
@@ -611,8 +622,8 @@ System.out.format("== plotSpecAmp2: nfreq=%d npts=%d pngName=%s\n", freq.length,
             //ChartUtilities.saveChartAsPNG(outputFile, chart, 500, 300);
             ChartUtilities.saveChartAsPNG(outputFile, chart, 1000, 800);
         } catch (IOException e) { 
-            System.err.println("Problem occurred creating chart.");
-
+            //System.err.println("Problem occurred creating chart.");
+        	logger.error("PlotMaker IOException:", e);
         }
     } // end plotResp
 
@@ -650,10 +661,6 @@ System.out.format("== plotSpecAmp2: nfreq=%d npts=%d pngName=%s\n", freq.length,
         }
 
         return true;
-
     }
-
-
-
 }
 

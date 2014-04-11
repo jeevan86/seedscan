@@ -20,6 +20,7 @@ package asl.metadata;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,13 +46,15 @@ public class Blockette
         return number;
     }
 
-    public boolean addFieldData(String fieldIdentifier, String data)
+    public Boolean addFieldData(String fieldIdentifier, String data)
     throws BlocketteFieldIdentifierFormatException
     {
         String[] range = fieldIdentifier.split("-");
         if (range.length < 1) {
             //throw new BlocketteFieldIdentifierFormatException("Invalid field identifier '" +fieldIdentifier+ "'"); 
-            throw new BlocketteFieldIdentifierFormatException(); 
+        	BlocketteFieldIdentifierFormatException e = new BlocketteFieldIdentifierFormatException();
+            logger.error("Blockette FieldIdentifierFormatException:", e);
+            return null;
         }
 
         int start = Integer.parseInt(range[0]);
@@ -151,6 +154,5 @@ if (fields == null){
 }
         return fields;
     }
-
 }
 

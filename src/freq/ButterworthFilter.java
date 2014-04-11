@@ -4,6 +4,9 @@
 // change package
 package freq;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /* 
  * This file is part of the Anthony Lomax Java Library.
  *
@@ -29,7 +32,7 @@ package freq;
 
 
 public class ButterworthFilter implements FrequencyDomainProcess {
-
+	private static final Logger logger = LoggerFactory.getLogger(freq.ButterworthFilter.class);
 	private SeisGramText localeText;
 	public double highFreqCorner;
 	public double lowFreqCorner;
@@ -79,8 +82,10 @@ public class ButterworthFilter implements FrequencyDomainProcess {
 	public void setHighFreqCorner(double freqValue) 
 									throws FilterException {
 		if (freqValue < FREQ_MIN || freqValue > FREQ_MAX) {
-			throw new FilterException(
-				localeText.invalid_high_frequency_corner);
+			//throw new FilterException(localeText.invalid_high_frequency_corner);
+			FilterException e = new FilterException(localeText.invalid_high_frequency_corner);
+			logger.error("ButterworthFilter Exception:", e);
+			return;
 		}
 
 		highFreqCorner = freqValue;
@@ -97,8 +102,9 @@ public class ButterworthFilter implements FrequencyDomainProcess {
 		try {
 			freqValue = Double.valueOf(str).doubleValue();
 		} catch (NumberFormatException e) {
-			throw new FilterException(
-				localeText.invalid_high_frequency_corner);
+			//throw new FilterException(localeText.invalid_high_frequency_corner);
+			logger.error("ButterworthFilter NumberFormatException:", e);
+			return;
 		}
 
 		setHighFreqCorner(freqValue);
@@ -110,8 +116,10 @@ public class ButterworthFilter implements FrequencyDomainProcess {
 	public void setLowFreqCorner(double freqValue)
 									throws FilterException {
 		if (freqValue < FREQ_MIN || freqValue > FREQ_MAX) {
-			throw new FilterException(
-				localeText.invalid_low_frequency_corner);
+			//throw new FilterException(localeText.invalid_low_frequency_corner);
+			FilterException e = new FilterException(localeText.invalid_low_frequency_corner);
+			logger.error("ButterworthFilter Exception:", e);
+			return;
 		}
 
 		lowFreqCorner = freqValue;
@@ -128,8 +136,9 @@ public class ButterworthFilter implements FrequencyDomainProcess {
 		try {
 			freqValue = Double.valueOf(str).doubleValue();
 		} catch (NumberFormatException e) {
-			throw new FilterException(
-				localeText.invalid_low_frequency_corner);
+			//throw new FilterException(localeText.invalid_low_frequency_corner);
+			logger.error("ButterworthFilter NumberFormatException:", e);
+			return;
 		}
 
 		setLowFreqCorner(freqValue);
@@ -143,8 +152,10 @@ public class ButterworthFilter implements FrequencyDomainProcess {
 
 		if (nPoles < NUM_POLES_MIN || nPoles > NUM_POLES_MAX
 				|| nPoles % 2 != 0) {
-			throw new FilterException(
-				localeText.invalid_number_of_poles);
+			//throw new FilterException(localeText.invalid_number_of_poles);
+			FilterException e = new FilterException(localeText.invalid_number_of_poles);
+			logger.error("ButterworthFilter Exception:", e);
+			return;
 		}
 
 		numPoles = nPoles;
@@ -161,8 +172,9 @@ public class ButterworthFilter implements FrequencyDomainProcess {
 		try {
 			nPoles = Integer.parseInt(str);
 		} catch (NumberFormatException e) {
-			throw new FilterException(
-				localeText.invalid_number_of_poles);
+			//throw new FilterException(localeText.invalid_number_of_poles);
+			logger.error("ButterworthFilter NumberFormatException:", e);
+			return;
 		}
 
 		setNumPoles(nPoles);
@@ -200,9 +212,11 @@ public class ButterworthFilter implements FrequencyDomainProcess {
 		}
 
 		if (badSettings > 0) {
-			throw new FilterException(errMessage + ".");
+			//throw new FilterException(errMessage + ".");
+			FilterException e = new FilterException(errMessage + ".");
+			logger.error("ButterworthFilter Exception:", e);
+			return;
 		}
-
 	}
 
 

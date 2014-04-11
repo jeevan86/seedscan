@@ -35,12 +35,16 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Hashtable;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /** This class represents the Blockette 2000 from the SEED standard V2.4 
  *
  * @author Joel Edwards <jdedwards@usgs.gov>
  */
 public class OpaqueParser
 {
+	private static final Logger logger = LoggerFactory.getLogger(seed.OpaqueParser.class);
     private Hashtable<String, OpaqueContext> contexts; 
 
     /** Creates a new instance of OpaqueParser
@@ -81,42 +85,67 @@ public class OpaqueParser
             // Record oreinted data must all be enclosed in a single Blockette 2000.
             // If it is split across multiple Blockette 2000s, it should identify as
             // stream-oriented, with continuation segments.
-            throw new OpaqueStateTransitionException(String.format("Invalid state transition: from %s to %s", lastState, state));
+            //throw new OpaqueStateTransitionException(String.format("Invalid state transition: from %s to %s", lastState, state));
+        	OpaqueStateTransitionException e = new OpaqueStateTransitionException(String.format("Invalid state transition: from %s to %s", lastState, state));
+        	logger.error("OpaqueParser StateTransitionException:", e);
+        	return;
         }
 
         // STREAM
         else if ((state == OpaqueState.STREAM_START) && (lastState != OpaqueState.INIT)) {
             // The first segment in the stream must not be preceded by any other.
-            throw new OpaqueStateTransitionException(String.format("Invalid state transition: from %s to %s", lastState, state));
+            //throw new OpaqueStateTransitionException(String.format("Invalid state transition: from %s to %s", lastState, state));
+        	OpaqueStateTransitionException e = new OpaqueStateTransitionException(String.format("Invalid state transition: from %s to %s", lastState, state));
+        	logger.error("OpaqueParser StateTransitionException:", e);
+        	return;
         }
         else if ((state == OpaqueState.STREAM_MID) && ((lastState != OpaqueState.STREAM_START) && (lastState != OpaqueState.STREAM_MID))) {
             // A stream continuation segment must be preceded by a stream start or stream continuation segment
-            throw new OpaqueStateTransitionException(String.format("Invalid state transition: from %s to %s", lastState, state));
+            //throw new OpaqueStateTransitionException(String.format("Invalid state transition: from %s to %s", lastState, state));
+        	OpaqueStateTransitionException e = new OpaqueStateTransitionException(String.format("Invalid state transition: from %s to %s", lastState, state));
+        	logger.error("OpaqueParser StateTransitionException:", e);
+        	return;
         }
         else if ((state == OpaqueState.STREAM_END) && ((lastState != OpaqueState.STREAM_START) && (lastState != OpaqueState.STREAM_MID))) {
             // A stream end segment must be preceded by a stream start or stream continuation segment
-            throw new OpaqueStateTransitionException(String.format("Invalid state transition: from %s to %s", lastState, state));
+            //throw new OpaqueStateTransitionException(String.format("Invalid state transition: from %s to %s", lastState, state));
+        	OpaqueStateTransitionException e = new OpaqueStateTransitionException(String.format("Invalid state transition: from %s to %s", lastState, state));
+        	logger.error("OpaqueParser StateTransitionException:", e);
+        	return;
         }
 
         // FILE
         else if ((state == OpaqueState.FILE_START) && (lastState != OpaqueState.INIT)) {
             // The first segment in the file must not be preceded by any other.
-            throw new OpaqueStateTransitionException(String.format("Invalid state transition: from %s to %s", lastState, state));
+            //throw new OpaqueStateTransitionException(String.format("Invalid state transition: from %s to %s", lastState, state));
+        	OpaqueStateTransitionException e = new OpaqueStateTransitionException(String.format("Invalid state transition: from %s to %s", lastState, state));
+        	logger.error("OpaqueParser StateTransitionException:", e);
+        	return;
         }
         else if ((state == OpaqueState.FILE_MID) && ((lastState != OpaqueState.FILE_START) && (lastState != OpaqueState.FILE_MID))) {
             // A file continuation segment must be preceded by a file start or file continuation segment
-            throw new OpaqueStateTransitionException(String.format("Invalid state transition: from %s to %s", lastState, state));
+            //throw new OpaqueStateTransitionException(String.format("Invalid state transition: from %s to %s", lastState, state));
+        	OpaqueStateTransitionException e = new OpaqueStateTransitionException(String.format("Invalid state transition: from %s to %s", lastState, state));
+        	logger.error("OpaqueParser StateTransitionExceptoin:", e);
+        	return;
         }
         else if ((state == OpaqueState.FILE_END) && ((lastState != OpaqueState.INIT) && (lastState != OpaqueState.FILE_START) && (lastState != OpaqueState.FILE_MID))) {
             // A file end segment can be the only segment in a file oriented group
-            throw new OpaqueStateTransitionException(String.format("Invalid state transition: from %s to %s", lastState, state)); }
+            //throw new OpaqueStateTransitionException(String.format("Invalid state transition: from %s to %s", lastState, state)); 
+        	OpaqueStateTransitionException e = new OpaqueStateTransitionException(String.format("Invalid state transition: from %s to %s", lastState, state));
+        	logger.error("OpaqueParser StateTransitionException:", e);
+        	return;
+        }
 
 
         int recordNumber = blk.getRecordNumber();
         int lastRecordNumber = context.getRecordNumber();
         if (recordNumber != (lastRecordNumber + 1)) {
             // Record numbers must be sequential
-            throw new OpaqueSegmentOutOfOrderException(String.format("Invalid record number step: from %d to %d", lastRecordNumber, recordNumber));
+            //throw new OpaqueSegmentOutOfOrderException(String.format("Invalid record number step: from %d to %d", lastRecordNumber, recordNumber));
+        	OpaqueSegmentOutOfOrderException e = new OpaqueSegmentOutOfOrderException(String.format("Invalid record number step: from %d to %d", lastRecordNumber, recordNumber));
+        	logger.error("OpaqueParser SegmentOutOfOrderException:", e);
+        	return;
         }
 
         byte[] opaqueData = blk.getOpaqueData();

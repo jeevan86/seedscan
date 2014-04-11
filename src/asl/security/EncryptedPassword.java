@@ -21,10 +21,14 @@ package asl.security;
 
 import javax.xml.bind.DatatypeConverter;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class EncryptedPassword
 extends Encrypted
 implements Password
 {
+	private static final Logger logger = LoggerFactory.getLogger(asl.security.EncryptedPassword.class);
  // constructor(s)
     public EncryptedPassword(byte[] key)
     {
@@ -45,6 +49,7 @@ implements Password
         try {
             result = encrypt(password);
         } catch (EncryptionException e) {
+        	logger.error("EncryptedPassword EncryptionException:", e);
             result = false;
         }
         return result;

@@ -18,13 +18,16 @@
  */
 package timeutils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import freq.*;
 import sac.SacTimeSeries;
 import sac.SacHeader;
 
 public class MyFilter
 {
-
+	private static final Logger logger = LoggerFactory.getLogger(timeutils.MyFilter.class);
     public static void bandpass(SacTimeSeries sacSeries, double f1, double f2, double f3, double f4) {
         SacHeader hdr = sacSeries.getHeader();
         double delta  = (double)hdr.getDelta();
@@ -43,8 +46,9 @@ public class MyFilter
             return;
         }
         if (delta <= 0) {
-            String msg = String.format("bandpass: Error: invalid delta dt: [%f]", delta);
-            System.out.println(msg);
+            String msg = String.format("MyFilter bandpass: Error: invalid delta dt: [%f]", delta);
+            //System.out.println(msg);
+            logger.error(msg);
             return;
         }
 

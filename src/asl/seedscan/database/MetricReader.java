@@ -84,7 +84,7 @@ extends TaskThread<QueryContext<? extends Object>>
 				context.getReplyQueue().put(result);
 			}
 		} catch (InterruptedException ex) {
-			logger.warn("Interrupted while attempting to send reply. This may have caused a station thread to hang!");
+			logger.warn("Interrupted while attempting to send reply. This may have caused a station thread to hang!", ex);
 		}
 	}
 
@@ -104,7 +104,7 @@ extends TaskThread<QueryContext<? extends Object>>
 			addTask("GET-METRIC-VALUE", context);
 			value = context.getReplyQueue().take().getResult();
 		} catch (InterruptedException ex) {
-			logger.warn("Interrupted while awaiting reply from database reader thread.");
+			logger.warn("Interrupted while awaiting reply from database reader thread.", ex);
 		}
 		return value;
 	}
@@ -117,7 +117,7 @@ extends TaskThread<QueryContext<? extends Object>>
 			addTask("GET-METRIC-DIGEST", context);
 			digest = context.getReplyQueue().take().getResult();
 		} catch (InterruptedException ex) {
-			logger.warn("Interrupted while awaiting reply from database reader thread.");
+			logger.warn("Interrupted while awaiting reply from database reader thread.", ex);
 		}
 		return digest;
 	}
@@ -133,7 +133,7 @@ extends TaskThread<QueryContext<? extends Object>>
 			addTask("GET-METRIC-VALUE-DIGEST", context);
 			digest = context.getReplyQueue().take().getResult();
 		} catch (InterruptedException ex) {
-			logger.warn("Interrupted while awaiting reply from database reader thread.");
+			logger.warn("Interrupted while awaiting reply from database reader thread.", ex);
 		}
 		return digest;
 	}

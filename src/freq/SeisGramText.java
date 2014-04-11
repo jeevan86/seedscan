@@ -27,11 +27,15 @@ package freq;
 
 import java.util.Locale;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 /** A class for multi-language text */
 
 public class SeisGramText {
 
+	private static final Logger logger = LoggerFactory.getLogger(freq.SeisGramText.class);
     private static final String LOCALE_NAME_DEFAULT = "en_US";
     private static final String LANGUAGE_DEFAULT = "en";
     private static final String COUNTRY_DEFAULT = "US";
@@ -426,6 +430,7 @@ public class SeisGramText {
             loc.setDefault(
                 new Locale(LANGUAGE_DEFAULT, COUNTRY_DEFAULT));
         } catch (Exception e) {
+        	logger.error("SeisGramText Exception:", e);
         }
 
         return(loc);

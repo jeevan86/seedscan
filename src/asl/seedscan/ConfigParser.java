@@ -72,9 +72,10 @@ public class ConfigParser
         try {
             schema = factory.newSchema(sources);
         } catch (SAXException ex) {
-            String message = "Could not generate schema from supplied files: " + ex.toString();
-            logger.error(message);
-            throw new RuntimeException(message);
+        	//throw new RuntimeException(message);
+            String message = "ConfigParser SAXException: Could not generate schema from supplied files:";
+            logger.error(message, ex);
+            return null;
         }
 
         return schema;
@@ -94,13 +95,15 @@ public class ConfigParser
             JAXBElement<ConfigT> cfgRoot = (JAXBElement<ConfigT>)unmarshaller.unmarshal(stream);
             cfg = cfgRoot.getValue();
         } catch (FileNotFoundException ex) {
-            String message = "Could not locate config file: " + ex.toString();
-            logger.error(message);
-            throw new RuntimeException(message);
+        	//throw new RuntimeException(message);
+            String message = "ConfigParser FileNotFoundException: Could not locate config file:";
+            logger.error(message, ex);
+            return null;
         } catch (JAXBException ex) {
-            String message = "Could not unmarshal config file: " + ex.toString();
-            logger.error(message);
-            throw new RuntimeException(message);
+        	//throw new RuntimeException(message);
+            String message = "ConfigParser JAXBException: Could not unmarshal config file:";
+            logger.error(message, ex);
+            return null;
         }
 
         return cfg;

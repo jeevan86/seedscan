@@ -36,6 +36,10 @@ import java.util.Collections;
 //import gov.usgs.anss.edgehydra.*;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 /**
 
  * This class allows a static entry where a the user submits a seed name, time
@@ -61,6 +65,7 @@ import java.util.Collections;
 @SuppressWarnings("cast")
 public class RawToMiniSeed {
   // Static variables
+	private static final Logger logger = LoggerFactory.getLogger(seed.RawToMiniSeed.class);
   static private DecimalFormat df6; 
   static private final Map<String, RawToMiniSeed> chans = (Map<String,RawToMiniSeed>)
       Collections.synchronizedMap(new TreeMap<String, RawToMiniSeed>());     // The list of known channels
@@ -571,7 +576,8 @@ public class RawToMiniSeed {
     } catch (RuntimeException e) {
       prta("RuntimeException special catch in RTMS: seed="+name+" yr="+year+" doy="+doy+
           " sec="+sec);
-      e.printStackTrace();
+      //e.printStackTrace();
+      logger.error("RawToMiniSeed RuntimeException:", e);
       julian=SeedUtil.toJulian(1972,1);   // give it some Julian day just in case
     }
     ndata=0;
@@ -677,7 +683,9 @@ public class RawToMiniSeed {
       prta("RTMS: odd rm="+chans.get(seedname));
       prta("RTMS: odd rm2="+secondChans.get(seedname));
       prta("RTMS: odd rm3="+oob.get(seedname));
-      new RuntimeException("RTMS: "+seedname+" julian="+julian+" "+SeedUtil.toJulian(year,doy)+"  time not right! yr="+year+" doy="+doy+" sec="+sec+" micros="+micros).printStackTrace();
+      RuntimeException e = new RuntimeException("RTMS: "+seedname+" julian="+julian+" "+SeedUtil.toJulian(year,doy)+"  time not right! yr="+year+" doy="+doy+" sec="+sec+" micros="+micros);
+      logger.error("RawToMiniSeed RuntimeException:", e);
+      return;
     }
     
     // If this data is from the next day, cut off the old day
@@ -997,6 +1005,7 @@ public class RawToMiniSeed {
     }
     catch (IllegalSeednameException e) {
       prt("Putbuf: illegal seedname="+e.getMessage());
+      logger.error("RawToMiniSeed IllegalSeednameException:", e);
     }
 
   }
@@ -1074,7 +1083,7 @@ public class RawToMiniSeed {
         prt(seedname+" ns="+ns+" curWord="+currentWord+" curFrm="+currentFrame+" nextdiff="+nextDiff);
         for(int i=0; i<ndata; i++) prt("d["+i+"]="+d[i]+" data["+i+"]="+data[i]);
         RuntimeException e = new RuntimeException("force out does not work");
-        e.printStackTrace();
+        logger.error("RawToMiniSeed RuntimeException:", e);
         //System.exit(0);     // extreme action!
       }
 

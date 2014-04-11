@@ -21,9 +21,13 @@ package asl.metadata.meta_new;
 
 import java.util.ArrayList;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class DigitalStage extends ResponseStage
                           implements Cloneable
 {
+	private static final Logger logger = LoggerFactory.getLogger(asl.metadata.meta_new.DigitalStage.class);
     private static final long serialVersionUID = 1L;
 
     private int decimationFactor = 1;
@@ -50,6 +54,7 @@ public class DigitalStage extends ResponseStage
         try {
             return (DigitalStage) super.clone();
         } catch (CloneNotSupportedException e) {
+        	logger.error("DigitalStage CloneNotSupported:", e);
             return null;
         }
     }
@@ -127,8 +132,5 @@ B054F08-09    1 -9.933270E-04  0.000000E+00
       return result.toString();
     }
 **/
-
-
-
 }
 

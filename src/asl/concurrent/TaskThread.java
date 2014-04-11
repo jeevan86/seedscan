@@ -94,7 +94,7 @@ implements Runnable
                     performTask(task);
                 }
             } catch (InterruptedException exception) {
-                logger.warn("Caught InterruptedException");
+                logger.warn("Caught InterruptedException:", exception);
             }
         }
         cleanup();

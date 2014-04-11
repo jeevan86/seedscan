@@ -44,8 +44,12 @@ import java.util.GregorianCalendar;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @SuppressWarnings("cast")
 public class Util extends Object {
+	private static final Logger logger = LoggerFactory.getLogger(seed.Util.class);
   static String process="UNSET";
   static PrintStream stdout=System.out;
   static PrintStream stderr=System.err;
@@ -95,7 +99,8 @@ public class Util extends Object {
           sb.append( (char) b[i]);
         }
       } catch (IOException e) {
-        Util.IOErrorPrint(e,"Getting console input");
+        //Util.IOErrorPrint(e,"Getting console input");
+    	  logger.error("Util IOException:", e);
       }
     }
 
@@ -220,7 +225,8 @@ public class Util extends Object {
         Util.prt(txt);
       }
     } catch (SQLException e) {
-     Util.SQLErrorPrint(e,"MetaData access failed");
+     //Util.SQLErrorPrint(e,"MetaData access failed");
+    	logger.error("Util SQLException:", e);
     }
   }
   
@@ -284,7 +290,8 @@ public class Util extends Object {
 //        Util.prt(txt);
       }
     } catch (SQLException e) {
-     Util.SQLErrorPrint(e,"MetaData access failed");
+     //Util.SQLErrorPrint(e,"MetaData access failed");
+    	logger.error("Util SQLException:", e);
     }
   }
      
@@ -837,6 +844,7 @@ public class Util extends Object {
       im=Integer.parseInt(mn);
     } catch(NumberFormatException e) {
       Util.prt("Time: not a integers "+hr+":"+mn+ " string="+s);
+      logger.warn("Util NumberFormatException:", e);
       return new Time((long) 0);
     }
     if(tk.hasMoreTokens()) {
@@ -910,7 +918,7 @@ public class Util extends Object {
    *@param msecs Millis since midnight
    *@return The number of millis since 1970 per GregorianCalendar
    */
-  public synchronized static long toGregorian2(int yymmdd, int msecs) {
+  public synchronized static Long toGregorian2(int yymmdd, int msecs) {
     if(gstat == null) {
       gstat = new GregorianCalendar();
       gstat.setTimeZone(TimeZone.getTimeZone("GMT+0"));
@@ -928,8 +936,12 @@ public class Util extends Object {
     msecs =msecs - secs*1000;
     if(yr < 2000 || yr > 2030 || mon<=0 || mon > 12 || hr<0 || hr >23 || min <0 || min >59
         || secs < 0 || secs > 59 || msecs < 0 || msecs > 999) {
-      throw new RuntimeException("toGregorian data out of range yr="+yr+
-          " mon="+mon+" day="+day+" "+hr+":"+min+":"+secs+"."+msecs);
+      //throw new RuntimeException("toGregorian data out of range yr="+yr+
+      //    " mon="+mon+" day="+day+" "+hr+":"+min+":"+secs+"."+msecs);
+    	RuntimeException e = new RuntimeException("toGregorian data out of range yr="+yr+
+    	          " mon="+mon+" day="+day+" "+hr+":"+min+":"+secs+"."+msecs);
+    	logger.error("Util RuntimeException:", e);
+    	return null;
     }
     gstat.set(yr, mon-1, day, hr, min,secs);
     gstat.add(Calendar.MILLISECOND, msecs);
@@ -950,8 +962,12 @@ public class Util extends Object {
     msecs =msecs - secs*1000;
     if(yr < 2000 || yr > 2030 || mon<=0 || mon > 12 || hr<0 || hr >23 || min <0 || min >59
         || secs < 0 || secs > 59 || msecs < 0 || msecs > 999) {
-      throw new RuntimeException("toGregorian data out of range yr="+yr+
-          " mon="+mon+" day="+day+" "+hr+":"+min+":"+secs+"."+msecs);
+      //throw new RuntimeException("toGregorian data out of range yr="+yr+
+      //    " mon="+mon+" day="+day+" "+hr+":"+min+":"+secs+"."+msecs);
+    	RuntimeException e = new RuntimeException("toGregorian data out of range yr="+yr+
+    	          " mon="+mon+" day="+day+" "+hr+":"+min+":"+secs+"."+msecs);
+    	logger.error("Util RuntimeException:", e);
+    	return null;
     }
     GregorianCalendar now = new GregorianCalendar();
     now.setTimeZone(TimeZone.getTimeZone("GMT+0"));
@@ -1175,6 +1191,7 @@ public class Util extends Object {
       y = Integer.parseInt(yr);
     } catch( NumberFormatException e) {
       Util.prt("dateToString() Month or day not a int mon="+mon+ " day="+day);
+      logger.warn("Util NumberFormatException:", e);
       return Util.date(Util.year(),1,1);
     }
     if(m <= 0 || m >12) {
@@ -1231,8 +1248,10 @@ public static  int [] ymd_from_doy(int yr, int doy) throws RuntimeException
     }
   }
   System.out.println("ymd_from_doy: impossible drop through!   yr="+yr+" doy="+doy);
-  throw new RuntimeException("ymd_from_DOY : impossible yr="+yr+" doy="+doy);
-
+  //throw new RuntimeException("ymd_from_DOY : impossible yr="+yr+" doy="+doy);
+  RuntimeException e = new RuntimeException("ymd_from_DOY : impossible yr="+yr+" doy="+doy);
+  logger.error("Util RuntimeException:", e);
+  return null;
 }
 
   
@@ -1306,6 +1325,7 @@ public static  int [] ymd_from_doy(int yr, int doy) throws RuntimeException
       if(frac.length() == 6) ms = ms/1000;
     } catch( NumberFormatException e) {
       Util.prt("dateToString2() fail to decode ints s="+s);
+      logger.warn("Util NumberFormatException:", e);
       return Util.date(1970,1,1,0,0,0);
     }
     if(m <= 0 || m >12) {

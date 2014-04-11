@@ -299,22 +299,24 @@ public class EventLoader
                                 dayCMTs.put(idString, eventCMT);
                             }
                             catch (NumberFormatException e) {
-                                logger.error(String.format( "caught NumberFormatException=[%s] "
-                                           + "while trying to read cmtFile=[%s]\n", e, cmtFile) );
+                                StringBuilder message = new StringBuilder();
+                                message.append(String.format("Caught NumberFormatException while trying to read cmtFile=[%s]\n", cmtFile));
+                                logger.error(message.toString(), e);
                             }
                         } // else line != null
 
                     } // end try to read cmtFile 
-                    catch (IOException e) { 
-                        logger.error(String.format( "caught IOException=[%s] "
-                                          + "while trying to read cmtFile=[%s]\n", e, cmtFile) );
+                    catch (IOException e) {
+                        StringBuilder message = new StringBuilder();
+                        message.append(String.format("Caught IOException while trying to read cmtFile=[%s]\n", cmtFile));
+                        logger.error(message.toString(), e);
                     }
                     finally {
                         try {
                             if (br != null)br.close();
                         }
                         catch (IOException ex) {
-                            ex.printStackTrace();
+                            logger.error("EventLoader IOException:", ex);
                         }
                     }
 

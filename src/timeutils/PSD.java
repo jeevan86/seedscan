@@ -1,6 +1,9 @@
 
 package timeutils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import freq.Cmplx;
 
 /** 
@@ -8,6 +11,7 @@ import freq.Cmplx;
  */
 public class PSD 
 {
+	private static final Logger logger = LoggerFactory.getLogger(timeutils.PSD.class);
     Cmplx[]  psd   = null;
     double[] freq  = null;
     double[] dataX = null;
@@ -20,10 +24,16 @@ public class PSD
     public PSD(double[] dataX, double[] dataY, double dt)
     {
         if (dataX.length != dataY.length) {
-            throw new RuntimeException("== PSD Error: ndataX != ndataY --> Can't create new PSD");
+            //throw new RuntimeException("== PSD Error: ndataX != ndataY --> Can't create new PSD");
+        	RuntimeException e = new RuntimeException("== PSD Error: ndataX != ndataY --> Can't create new PSD");
+        	logger.error("PSD RuntimeException:", e);
+        	return;
         }
         if (dt <= 0.) {
-            throw new RuntimeException("== PSD Error: Invalid dt --> Can't create new PSD");
+            //throw new RuntimeException("== PSD Error: Invalid dt --> Can't create new PSD");
+        	RuntimeException e = new RuntimeException("== PSD Error: Invalid dt --> Can't create new PSD");
+        	logger.error("PSD RuntimeException:", e);
+        	return;
         }
         this.dataX = dataX;
         this.dataY = dataY;

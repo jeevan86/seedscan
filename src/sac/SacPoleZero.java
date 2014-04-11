@@ -8,11 +8,15 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @author crotwell Created on Jul 15, 2005
  */
 public class SacPoleZero {
 
+	private static final Logger logger = LoggerFactory.getLogger(sac.SacPoleZero.class);
     public SacPoleZero(BufferedReader in) throws IOException {
         read(in);
     }
@@ -98,8 +102,11 @@ public class SacPoleZero {
                 constant = Float.parseFloat(sline[1]);
                 line = nextLine(it);
             } else {
-                throw new IOException("Unknown line in SAC polezero file: "
-                        + line);
+                //throw new IOException("Unknown line in SAC polezero file: "
+                //        + line);
+            	IOException e = new IOException("Unknown line in SAC polezero file:" + line);
+            	logger.error("SacPoleZero IOException:", e);
+            	return;
             }
         }
         this.poles = poles;

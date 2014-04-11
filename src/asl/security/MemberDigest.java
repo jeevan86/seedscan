@@ -55,7 +55,11 @@ public abstract class MemberDigest
             digest = MessageDigest.getInstance(algorithm);
         }
         catch (NoSuchAlgorithmException ex) {
-            throw new RuntimeException("Could not initialize digest for the '" +algorithm+ "' algorithm");
+            //throw new RuntimeException("Could not initialize digest for the '" +algorithm+ "' algorithm");
+        	String message = new String("Could not initialize digest for the '" +algorithm+ "' algorithm");
+        	RuntimeException e = new RuntimeException(message.toString());
+        	logger.error("MemberDigest RuntimeException:", e);
+        	return;
         }
     }
 

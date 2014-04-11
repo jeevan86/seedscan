@@ -138,7 +138,10 @@ extends SwingWorker<Hashtable<String,ArrayList<DataSet>>, SeedSplitProgress>
         Pattern pVerify = Pattern.compile("^[A-Za-z0-9*?.]+$");
         Matcher mVerify = pVerify.matcher(filter);
         if (!mVerify.matches()) {
-            throw new InvalidFilterException("Invalid filter text: '" +filter+ "' ");
+            //throw new InvalidFilterException("Invalid filter text: '" +filter+ "' ");
+        	InvalidFilterException e = new InvalidFilterException("Invalid filter text: '" +filter+ "' ");
+        	logger.error("SeedSplitter InvalidFilterException:", e);
+        	return;
         }
 
         String pText = filter.replaceAll("[*]",".*");
@@ -147,7 +150,10 @@ extends SwingWorker<Hashtable<String,ArrayList<DataSet>>, SeedSplitProgress>
         try {
             pattern = Pattern.compile(pText); 
         } catch (PatternSyntaxException e) {
-            throw new InvalidFilterException("Invalid filter text: '" +filter+ "'");
+            //throw new InvalidFilterException("Invalid filter text: '" +filter+ "'");
+        	InvalidFilterException ex = new InvalidFilterException("Invalid filter text: '" +filter+ "'");
+        	logger.error("SeedSplitter InvalidFilterException:", ex);
+        	return;
         }
 
         if ((which & NETWORK) > 0) {
@@ -278,11 +284,15 @@ extends SwingWorker<Hashtable<String,ArrayList<DataSet>>, SeedSplitProgress>
                                 logger.debug("Progress Percent: " + progressPercent + "%");
                             }
                         }
-                    } catch (InterruptedException e) {;}
+                    } catch (InterruptedException e) {
+                    	logger.error("SeedSplitter InterruptedException:", e);
+                    }
                 }
                 m_digests[i] = stream.getDigestString();
             } catch (FileNotFoundException e) {
-                logger.debug("File '" +file.getName()+ "' not found\n");
+                //logger.debug("File '" +file.getName()+ "' not found\n");
+                String message = "SeedSplitter FileNotFoundException: File '" +file.getName()+ "' not found\n";
+                logger.error(message, e);
                 // Should we do something more? Throw an exception?
             }
             m_table = processor.getTable();
@@ -301,12 +311,16 @@ extends SwingWorker<Hashtable<String,ArrayList<DataSet>>, SeedSplitProgress>
             if (inputThread != null) {
                 try {
                     inputThread.join();
-                } catch (InterruptedException e) {;}
+                } catch (InterruptedException e) {
+                	logger.error("SeedSplitter InterruptedEx:", e);
+                }
             }
             if ((processorThread != null) && (progress.isComplete())) {
                 try {
                     processorThread.join();
-                } catch (InterruptedException e) {;}
+                } catch (InterruptedException e) {
+                	logger.error("SeedSplitter InterruptedException:", e);
+                }
             }
             logger.debug("Finished processing file " + file.getName() + "  " + progressPercent + "% complete");
             stageBytes += file.length();

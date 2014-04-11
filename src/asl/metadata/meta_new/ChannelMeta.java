@@ -57,6 +57,7 @@ import java.io.File;
 public class ChannelMeta extends MemberDigest 
                          implements Serializable, Cloneable
 {
+	private static final Logger logger = LoggerFactory.getLogger(asl.metadata.meta_new.ChannelMeta.class);
     private static final long serialVersionUID = 1L;
 
     private String name = null;
@@ -319,6 +320,10 @@ public class ChannelMeta extends MemberDigest
         if (getNumberOfStages() == 0) {
             System.out.format("ChannelMeta.invalidResponse(): Error: No stages have been loaded for chan-loc=%s-%s\n"
                                ,this.getLocation(), this.getName() );
+            StringBuilder message = new StringBuilder();
+            message.append(String.format("ChannelMeta.invalidResponse(): Error: No stages have been loaded for chan-loc=%s-%s\n"
+                               ,this.getLocation(), this.getName()));
+            logger.error(message.toString());
             return true;
         }
 
@@ -326,6 +331,10 @@ public class ChannelMeta extends MemberDigest
             if (!hasStage(0) || !hasStage(1) || !hasStage(2)){
                 System.out.format("ChannelMeta.invalidResponse(): Error: All Stages[=0,1,2] have NOT been loaded for chan-loc=%s-%s\n"
                                    ,this.getLocation(), this.getName() );
+                StringBuilder message = new StringBuilder();
+                message.append(String.format("ChannelMeta.invalidResponse(): Error: All Stages[=0,1,2] have NOT been loaded for chan-loc=%s-%s\n"
+                                   ,this.getLocation(), this.getName()));
+                logger.error(message.toString());
                 return true;
             }
             double stageGain0 = stages.get(0).getStageGain(); // Really this is the Sensitivity
@@ -335,6 +344,10 @@ public class ChannelMeta extends MemberDigest
             if (stageGain0 <= 0 || stageGain1 <=0 || stageGain2 <=0 ) {
                 System.out.format("ChannelMeta.invalidResponse(): Error: Gain =0 for either stages 0, 1 or 2 for chan-loc=%s-%s\n"
                                    ,this.getLocation(), this.getName() );
+                StringBuilder message = new StringBuilder();
+                message.append(String.format("ChannelMeta.invalidResponse(): Error: Gain =0 for either stages 0, 1 or 2 for chan-loc=%s-%s\n"
+                                   ,this.getLocation(), this.getName()));
+                logger.error(message.toString());
                 return true;
             }
    // Check stage1Gain * stage2Gain against the mid-level sensitivity (=stage0Gain):
@@ -343,6 +356,9 @@ public class ChannelMeta extends MemberDigest
 // MTH: Adam says that some Q680's have this problem and we should use the Sensitivity (stageGain0) instead:
             if (diff > 10) { // Alert user that difference is > 1% of Sensitivity
                 System.out.format("***Alert: stageGain0=%f VS. stage1=%f * stage2=%f (diff=%f%%)\n", stageGain0, stageGain1, stageGain2, diff);
+                StringBuilder message = new StringBuilder();
+                message.append(String.format("***Alert: stageGain0=%f VS. stage1=%f * stage2=%f (diff=%f%%)\n", stageGain0, stageGain1, stageGain2, diff));
+                logger.warn(message.toString());
             }
 
    // MTH: We could also check here that the PoleZero stage(s) was properly loaded 
@@ -389,10 +405,14 @@ public class ChannelMeta extends MemberDigest
         }
 
         if (freqs.length == 0) {
-            throw new RuntimeException("getResponse(): freqs.length = 0!");
+            RuntimeException e = new RuntimeException("getResponse(): freqs.length = 0!");
+            logger.error("ChannelMeta RuntimeException:", e);
+            return null;
         }
         if (invalidResponse()) {
-          throw new RuntimeException("getResponse(): Invalid Response!");
+          RuntimeException e = new RuntimeException("getResponse(): Invalid Response!");
+          logger.error("ChannelMeta RuntimeException:", e);
+          return null;
         }
         Cmplx[] response = null;
 
@@ -400,7 +420,9 @@ public class ChannelMeta extends MemberDigest
         ResponseStage stage = stages.get(1);
 
         if (!(stage instanceof PoleZeroStage)) {
-            throw new RuntimeException("getResponse(): Stage1 is NOT a PoleZeroStage!");
+            RuntimeException e = new RuntimeException("getResponse(): Stage1 is NOT a PoleZeroStage!");
+            logger.error("ChannelMeta RuntimeException:", e);
+            return null;
         }
         else {
             PoleZeroStage pz = (PoleZeroStage)stage;
@@ -414,7 +436,9 @@ public class ChannelMeta extends MemberDigest
                 if (inUnits == 0) {
                     String msg = String.format("getResponse(): [%s] Response requested but PoleZero Stage Input Units = Unknown!",
                                                responseOut);
-                    throw new RuntimeException(msg);
+                    RuntimeException e = new RuntimeException(msg);
+                    logger.error("ChannelMeta RuntimeException:", e);
+                    return null;
                 }
                 int n = outUnits - inUnits;
 
@@ -446,7 +470,9 @@ public class ChannelMeta extends MemberDigest
                     s = 1.;
                 }
                 else {
-                    throw new RuntimeException("getResponse(): Unknown PoleZero StageType!");
+                    RuntimeException e = new RuntimeException("getResponse(): Unknown PoleZero StageType!");
+                    logger.error("ChannelMeta RuntimeException:", e);
+                    return null;
                 }
 //System.out.format("== Channel=%s inUnits=%d outUnits=%d n=%d s=%f\n", this.getChannel(), inUnits, outUnits, n);
 
@@ -483,6 +509,8 @@ public class ChannelMeta extends MemberDigest
         if (diff > 10) { 
             System.out.println("== ChannelMeta.getResponse(): WARNING: Sensitivity != Stage1Gain * Stage2Gain "
                             + "--> Use Sensitivity to scale!");
+            logger.warn("== ChannelMeta.getResponse(): WARNING: Sensitivity != Stage1Gain * Stage2Gain "
+                            + "--> Use Sensitivity to scale!");
             scale = stage0Gain;
         }
         else {
@@ -491,6 +519,7 @@ public class ChannelMeta extends MemberDigest
 
         if (scale <= 0.) {
             System.out.println("== ChannelMeta.getResponse(): WARNING: Channel response scale <= 0 !!");
+            logger.warn("== ChannelMeta.getResponse(): WARNING: Channel response scale <= 0 !!");
         }
 
         for (int i=0; i<freqs.length; i++){
@@ -532,8 +561,12 @@ public class ChannelMeta extends MemberDigest
                         DigitalStage digitalStage = new DigitalStage(stageNumber, 'D', Gain, frequencyOfGain);
                         this.addStage(stageNumber, digitalStage);
                         if (stageNumber != 0) {
-                            //System.out.format("== Warning: MetaGenerator: [%s_%s %s-%s] stage:%d has NO Blockette B054\n", 
-                                               //station.getNetwork(), station.getStation(), location, name, stageNumber);
+                            System.out.format("== Warning: MetaGenerator: [%s_%s %s-%s] stage:%d has NO Blockette B054\n", 
+                                               station.getNetwork(), station.getStation(), location, name, stageNumber);
+                            StringBuilder message = new StringBuilder();
+                            message.append(String.format("== Warning: MetaGenerator: [%s_%s %s-%s] stage:%d has NO Blockette B054\n", 
+                                               station.getNetwork(), station.getStation(), location, name, stageNumber));
+                            logger.warn(message.toString());
                         }
                     }
                 }

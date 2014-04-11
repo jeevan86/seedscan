@@ -70,12 +70,18 @@ public class StationData
            MissingBlocketteDataException
     {
         if (blockette.getNumber() != STATION_COMMENT_BLOCKETTE_NUMBER) {
-            throw new WrongBlocketteException();
+            //throw new WrongBlocketteException();
+        	WrongBlocketteException e = new WrongBlocketteException();
+        	logger.error("StationData WrongBlocketteException:", e);
+        	return null;
         }
         //Epoch epochNew = new Epoch(blockette);
         String timestampString = blockette.getFieldValue(3, 0);
         if (timestampString == null) {
-            throw new MissingBlocketteDataException();
+            //throw new MissingBlocketteDataException();
+        	MissingBlocketteDataException e = new MissingBlocketteDataException();
+        	logger.error("StationData MissingBlocketteDataException:", e);
+        	return null;
         }
         Calendar timestamp = BlocketteTimestamp.parseTimestamp(timestampString);
         comments.put(timestamp, blockette);
@@ -99,12 +105,18 @@ public class StationData
            MissingBlocketteDataException
     {
         if (blockette.getNumber() != STATION_EPOCH_BLOCKETTE_NUMBER) {
-            throw new WrongBlocketteException();
+            //throw new WrongBlocketteException();
+        	WrongBlocketteException e = new WrongBlocketteException();
+        	logger.error("StationData WrongBlocketteException:", e);
+        	return null;
         }
         //Epoch epochNew = new Epoch(blockette);
         String timestampString = blockette.getFieldValue(13, 0);
         if (timestampString == null) {
-            throw new MissingBlocketteDataException();
+            //throw new MissingBlocketteDataException();
+            MissingBlocketteDataException e = new MissingBlocketteDataException();
+            logger.error("StationData MissingBlocketteDataException:", e);
+            return null;
         }
         Calendar timestamp = BlocketteTimestamp.parseTimestamp(timestampString);
         epochs.put(timestamp, blockette);
@@ -160,7 +172,10 @@ Epoch index
             endTimeStamp = BlocketteTimestamp.parseTimestamp(timestampString);
           }
           catch (TimestampFormatException e) {
-            System.out.println("StationData.printEpochs() Error converting timestampString=" + timestampString);
+            System.out.format("StationData.printEpochs() Error converting timestampString=%s", timestampString);
+            StringBuilder message = new StringBuilder();
+            message.append(String.format("StationData.printEpochs() Error converting timestampString=%s", timestampString));
+            logger.error(message.toString(), e);
           }
         }
         if (endTimeStamp == null) {            // This Epoch is open
@@ -215,7 +230,10 @@ Epoch index
             endDate = EpochData.epochToDateString(endtimestamp);
           }
           catch (TimestampFormatException e) {
-            System.out.println("StationData.printEpochs() Error converting timestampString=" + timestampString);
+            System.out.format("StationData.printEpochs() Error converting timestampString=%s", timestampString);
+            StringBuilder message = new StringBuilder();
+            message.append(String.format("StationData.printEpochs() Error converting timestampString=%s", timestampString));
+            logger.error(message.toString(), e);
           }
         }
         System.out.format("==StationData Epoch: %s - %s\n",startDate,endDate);
