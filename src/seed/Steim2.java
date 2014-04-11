@@ -21,6 +21,9 @@ package seed;
 //import gov.usgs.anss.edge.*;
 import java.util.GregorianCalendar;
 import java.util.Calendar;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 /**
  *  Class for decoding or encoding Steim2-compressed data blocks
  *  to or from an array of integer values.
@@ -44,8 +47,7 @@ import java.util.Calendar;
  */
 
 public class Steim2 {
-
-
+  private static final Logger logger = LoggerFactory.getLogger(seed.Steim2.class);
   static int xminus1;
   static boolean dbg;
   static boolean strictRIC=false;
@@ -100,7 +102,10 @@ public class Steim2 {
 	 *  bytes.
 	 */	public static int[] decode(byte[] b, int numSamples, boolean swapBytes, int bias) throws SteimException {
 		if (b.length % 64 != 0) {
-		  throw new SteimException("encoded data length is not multiple of 64 bytes (" + b.length + ")"); 
+		  //throw new SteimException("encoded data length is not multiple of 64 bytes (" + b.length + ")"); 
+			SteimException e = new SteimException("encoded data length is not multiple of 64 bytes (" + b.length + ")");
+			logger.error("Steim2 SteimException:", e);
+			return null;
 		}
     dbg=false;
     for(int i=0; i<63; i++) {frameReverse[i]=2147000000; frameNsamp[i] = 0;frameForward[i]=-2147000000;}
@@ -128,7 +133,7 @@ public class Steim2 {
 			firstData = 0; // d(0) is byte 0 by default
 			if (i==0) {   // special case for first frame
 				lastValue = bias; // assign our X(-1)
-        xminus1=lastValue;
+				xminus1=lastValue;
 				// x0 and xn are in 1 and 2 spots
 				start = tempSamples[1];  // X(0) is byte 1 for frame 0
 				end = tempSamples[2];    // X(n) is byte 2 for frame 0
@@ -159,19 +164,26 @@ public class Steim2 {
 		}  // end for each frame...
     if(current <= 0) {
       //System.out.println("Steim2 illegal # current");
-      throw new SteimException("Steim2 found no samples in block");
+      //throw new SteimException("Steim2 found no samples in block");
+    	SteimException e = new SteimException("Steim2 found no samples in block");
+    	logger.error("Steim2 SteimException:", e);
+    	return null;
     }
     if(samples[current-1] != end && (end != 0 || strictRIC)) {       // if end is zero, presume it was never set and hence is not an error
       reverseError="Steim2 reverse integration error is="+samples[current-1]+"!="+end+" expected at "+(current-1);
       //System.out.println("Steim2 reverse integration error is="+samples[current-1]+"!="+end+" rev constant");
-      if(traceBackErrors) 
-        new RuntimeException("Steim2 rev int err (non-fatal) is="+samples[current-1]+"!="+end+" rev constant").printStackTrace();
+      if(traceBackErrors) {
+        RuntimeException e = new RuntimeException("Steim2 rev int err (non-fatal) is="+samples[current-1]+"!="+end+" rev constant");
+        logger.error("Steim2 RuntimeException:", e);
+      }
     }
     if(current != numSamples) {
       sampleCountError="Steim2 sample count error got "+current+" expected "+numSamples;
       //System.out.println(sampleCountError);
-      if(traceBackErrors) 
-        new RuntimeException("Steim2 sample Count err (non-fatal) is="+current+" expected"+numSamples).printStackTrace();
+      if(traceBackErrors) {
+        RuntimeException e = new RuntimeException("Steim2 sample Count err (non-fatal) is="+current+" expected"+numSamples);
+        logger.error("Steim2 RuntimeException:", e);
+      }
     }
 		return samples;
 	}

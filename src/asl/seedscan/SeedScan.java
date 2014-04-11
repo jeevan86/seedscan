@@ -88,7 +88,7 @@ public class SeedScan
         try {
             cmdLine = optParser.parse(options, args, true);
         } catch (org.apache.commons.cli.ParseException e) {
-            logger.error("Error while parsing command-line arguments.");
+            logger.error("SeedScan: Error while parsing command-line arguments:", e);
             System.exit(1);
         }
 
@@ -209,16 +209,20 @@ public class SeedScan
                         }
                         scan.addMetric(wrapper);
                     } catch (ClassNotFoundException ex) {
-                        logger.error("No such metric class '" +met.getClassName()+ "'");
+                    	String message = "SeedScan: No such metric class '" +met.getClassName()+ "'";
+                        logger.error(message, ex);
                         System.exit(1);
                     } catch (InstantiationException ex) {
-                        logger.error("Could not dynamically instantiate class '" +met.getClassName()+ "'");
+                    	String message = "Could not dynamically instantiate class '" +met.getClassName()+ "'";
+                        logger.error(message, ex);
                         System.exit(1);
                     } catch (IllegalAccessException ex) {
-                        logger.error("Illegal access while loading class '" +met.getClassName()+ "'");
+                    	String message = "Illegal access while loading class '" +met.getClassName()+ "'";
+                        logger.error(message, ex);
                         System.exit(1);
                     } catch (NoSuchFieldException ex) {
-                        logger.error("Invalid dynamic argument to Metric subclass '" +met.getClassName()+ "'");
+                    	String message = "Invalid dynamic argument to Metric subclass '" +met.getClassName()+ "'";
+                        logger.error(message, ex);
                         System.exit(1);
                     }
 
@@ -269,7 +273,7 @@ public class SeedScan
                     metaServer = new MetaServer( new URI(remoteServer) );
                 }
                 catch (Exception e) {
-                    logger.error("caught URI exception:" + e.getMessage() );
+                    logger.error("SeedScan: Caught URI exception:", e);
                 }
             }
             else {

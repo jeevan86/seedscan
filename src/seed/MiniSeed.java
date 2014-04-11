@@ -34,6 +34,9 @@ import java.util.GregorianCalendar;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /** This class represents a mini-seed packet.  It can translate binary data in
  * a byte array and break apart the fixed data header and other data blockettes
  * and represent them as separate internal structures.
@@ -41,6 +44,7 @@ import java.util.Collection;
  * @author davidketchum
  */
 public class MiniSeed  implements MiniSeedOutputHandler {
+	private static final Logger logger = LoggerFactory.getLogger(seed.MiniSeed.class);
   public final static int ACTIVITY_CAL_ON=1;
   public final static int ACTIVITY_TIME_CORRECTION_APPLIED=2;
   public final static int ACTIVITY_BEGIN_EVENT=4;
@@ -505,13 +509,16 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     ByteBuffer bb = ByteBuffer.wrap(buf);
     return swapNeeded(buf,bb);
   }
-  public static boolean swapNeeded(byte [] buf, ByteBuffer bb) throws IllegalSeednameException {
+  public static Boolean swapNeeded(byte [] buf, ByteBuffer bb) throws IllegalSeednameException {
     boolean swap=false;
     if( buf[0] <'0' || buf[0] > '9' || buf[1] <'0' ||  buf[1] > '9' ||
         buf[2] <'0' || buf[2] > '9' || buf[3] <'0' ||  buf[3] > '9' ||
         buf[4] <'0' || buf[4] > '9' || buf[5] <'0' ||  buf[5] > '9' ||
         (buf[6] != 'D' && buf[6] != 'R' && buf[6] !='Q') || buf[7] != ' ' ) {
-      throw new IllegalSeednameException("Bad seq # or [DQR] "+toStringRaw(buf));
+      //throw new IllegalSeednameException("Bad seq # or [DQR] "+toStringRaw(buf));
+    	IllegalSeednameException e = new IllegalSeednameException("Bad seq # or [DQR] "+toStringRaw(buf));
+    	logger.error("MiniSeed IllegalSeednameException:", e);
+    	return null;
     }
     bb.position(39);          // position # of blockettes that follow
     int nblks=bb.get();       // get it
@@ -525,7 +532,9 @@ public class MiniSeed  implements MiniSeedOutputHandler {
         offset = bb.getShort(); // get byte swapped version
         if(offset > 200 || offset < 0) {
           Util.prt("MiniSEED: cannot figure out if this is swapped or not!!! Assume not. offset="+offset+" "+toStringRaw(buf));
-          new RuntimeException("Cannot figure swap from offset ").printStackTrace();
+          RuntimeException e = new RuntimeException("Cannot figure swap from offset ");
+          logger.error("MiniSeed RuntimeException:", e);
+          return null;
         }
         else swap=true;
       }
@@ -1413,7 +1422,9 @@ public class MiniSeed  implements MiniSeedOutputHandler {
         } 
       }
     }
-    catch(SteimException e) {}
+    catch(SteimException e) {
+    	logger.error("MiniSeed SteimException:", e); 
+    }
   }
   /** this routine splits a bigger miniseed block into multiple 512.  It has two algorithms
    * depending on whether the input block is a agreegate of 512s or not.  If it is, the blocks
@@ -1616,6 +1627,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     }
     catch (SteimException e) {
       Util.prt("**** block gave steim decode error. "+e.getMessage());
+      logger.error("MiniSeed SteimException:", e); 
       return null;
     }
         
@@ -1635,6 +1647,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     }
     catch(IllegalSeednameException e ) {
       Util.prt("putbuf building ms512 has IllegalSeednameException "+e.getMessage());
+      logger.error("MiniSeed IllegalSeednameException:", e); 
     }
 
   }
@@ -1812,18 +1825,36 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     for(int i=0; i<12; i++) {
       ch = name.charAt(i);
       if( !(Character.isLetterOrDigit(ch) || ch == ' ' || ch == '?' || ch == '_' ||
-              ch == '-'))
-        throw new IllegalSeednameException(
-          "A seedname character is not letter, digit, space or [?-] ("+
-            Util.toAllPrintable(name)+") at "+i);
+              ch == '-')) {
+        //throw new IllegalSeednameException(
+        //  "A seedname character is not letter, digit, space or [?-] ("+
+        //    Util.toAllPrintable(name)+") at "+i);
+    	IllegalSeednameException e = new IllegalSeednameException(
+    	          "A seedname character is not letter, digit, space or [?-] ("+
+    	                  Util.toAllPrintable(name)+") at "+i);
+    	logger.error("MiniSeed IllegalSeednameException:", e);
+    	return;
+      }
     }
-    if(name.charAt(0) == ' ' /*|| name.charAt(1) == ' '*/)  // GEOS is network 'G'
-      throw new IllegalSeednameException(" network code blank ("+name+")");
-    if(name.charAt(2) == ' ' || name.charAt(3) == ' ' || name.charAt(4) == ' ')
-      throw new IllegalSeednameException("Station code too short ("+name+")");
+    if(name.charAt(0) == ' ' /*|| name.charAt(1) == ' '*/) {  // GEOS is network 'G' 
+      //throw new IllegalSeednameException(" network code blank ("+name+")");
+    	IllegalSeednameException e = new IllegalSeednameException(" network code blank ("+name+")");
+    	logger.error("MiniSeed IllegalSeednameException:", e);
+    	return;
+    }
+    if(name.charAt(2) == ' ' || name.charAt(3) == ' ' || name.charAt(4) == ' ') {
+      //throw new IllegalSeednameException("Station code too short ("+name+")");
+    	IllegalSeednameException e = new IllegalSeednameException("Station code too short ("+name+")");
+    	logger.error("MiniSeed IllegalSeednameException:", e);
+    	return;
+    }
     if( !(Character.isLetter(name.charAt(7)) && Character.isLetter(name.charAt(8)) &&
-        Character.isLetterOrDigit(name.charAt(9))))
-      throw new IllegalSeednameException("Channel code not Letter, Letter, LetterOrDigit ("+name+")");
+        Character.isLetterOrDigit(name.charAt(9)))) {
+      //throw new IllegalSeednameException("Channel code not Letter, Letter, LetterOrDigit ("+name+")");
+    	IllegalSeednameException e = new IllegalSeednameException("Channel code not Letter, Letter, LetterOrDigit ("+name+")");
+    	logger.error("MiniSeed IllegalSeednameException:", e);
+    	return;
+    }
 
 
   }

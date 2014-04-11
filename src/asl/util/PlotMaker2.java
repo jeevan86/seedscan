@@ -21,6 +21,7 @@ package asl.util;
 
 import asl.metadata.Station;
 import asl.metadata.Channel;
+
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.SortedSet;
@@ -49,6 +50,8 @@ import org.jfree.data.xy.*;
 import org.jfree.data.Range;
 import org.jfree.util.ShapeUtilities;
 import org.jfree.ui.TextAnchor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.Rectangle;
 import java.awt.Shape;
@@ -61,6 +64,7 @@ import java.awt.Paint;
  */
 public class PlotMaker2 
 {
+	private static final Logger logger = LoggerFactory.getLogger(asl.util.PlotMaker2.class);
     private String plotTitle;
 
     private ArrayList<Panel> panels;
@@ -73,10 +77,16 @@ public class PlotMaker2
 
     public void addTraceToPanel(Trace trace, int iPanel) {
         if (panels == null) {
-            throw new RuntimeException("== PlotMaker.addTraceToPanel: panels == null !!");
+            //throw new RuntimeException("== PlotMaker.addTraceToPanel: panels == null !!");
+        	RuntimeException e = new RuntimeException("== PlotMaker.addTraceToPanel: panels == null !!");
+        	logger.error("PlotMaker2 RuntimeException:", e);
+        	return;
         }
         if (iPanel >= panels.size()) {
-            throw new RuntimeException("== PlotMaker.addTraceToPanel: Requested iPanel > panels.size() !!");
+            //throw new RuntimeException("== PlotMaker.addTraceToPanel: Requested iPanel > panels.size() !!");
+        	RuntimeException e = new RuntimeException("== PlotMaker.addTraceToPanel: Requested iPanel > panels.size() !!");
+        	logger.error("PlotMaker2 RuntimeException:", e);
+        	return;
         }
         Panel panel = panels.get(iPanel);
         panel.addTrace(trace);
@@ -104,6 +114,8 @@ public class PlotMaker2
         if (!checkFileOut(outputFile)) {
             System.out.format("== plotMaker: request to output plot=[%s] but we are unable to create it "
                               + " --> skip plot\n", fileName );
+            logger.warn("== plotMaker: request to output plot=[%s] but we are unable to create it "
+                              + " --> skip plot\n", fileName);
             return;
         }
 
@@ -242,8 +254,8 @@ public class PlotMaker2
         try {
             ChartUtilities.saveChartAsPNG(outputFile, chart, 1400, 1400);
         } catch (IOException e) {
-            System.err.println("Problem occurred creating chart.");
-
+            //System.err.println("Problem occurred creating chart.");
+        	logger.error("PlotMaker2 IOException:", e);
         }
 
     } // writePlot()
@@ -283,5 +295,4 @@ public class PlotMaker2
         return true;
 
     }
-
 }

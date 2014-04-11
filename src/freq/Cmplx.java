@@ -3,6 +3,9 @@
 // change package
 package freq;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /*
  * This file is part of the Anthony Lomax Java Library. Copyright (C) 1999
  * Anthony Lomax <lomax@faille.unice.fr> This program is free software; you can
@@ -18,6 +21,7 @@ package freq;
  */
 
 public class Cmplx implements java.io.Serializable {
+	private static final Logger logger = LoggerFactory.getLogger(freq.Cmplx.class);
     private static final long serialVersionUID = 1L;
 
     public double r; // real part
@@ -245,8 +249,12 @@ public class Cmplx implements java.io.Serializable {
                                          float[] gdata,
                                          float delta) {
         if(fdata.length != gdata.length) {
-            throw new IllegalArgumentException("fdata and gdata must have same length. "
-                    + fdata.length + " " + gdata.length);
+            //throw new IllegalArgumentException("fdata and gdata must have same length. "
+            //        + fdata.length + " " + gdata.length);
+        	String message = String.format("fdata and gdata must have same length. " + fdata.length + " " + gdata.length);
+        	IllegalArgumentException e = new IllegalArgumentException(message);
+        	logger.error("Cmplx IllegalArgumentException:", e);
+        	return null;
         }
         Cmplx[] fTrans = fft(fdata);
         Cmplx[] gTrans = fft(gdata);
@@ -270,8 +278,12 @@ public class Cmplx implements java.io.Serializable {
      */
     public static final float[] correlate(float[] fdata, float[] gdata) {
         if(fdata.length != gdata.length) {
-            throw new IllegalArgumentException("fdata and gdata must have same length. "
-                    + fdata.length + " " + gdata.length);
+            //throw new IllegalArgumentException("fdata and gdata must have same length. "
+            //        + fdata.length + " " + gdata.length);
+        	String message = String.format("fdata and gdata must have same length. " + fdata.length + " " + gdata.length);
+        	IllegalArgumentException e = new IllegalArgumentException(message);
+        	logger.error("Cmplx IllegalArgumentException:", e);
+        	return null;
         }
         Cmplx[] fTrans = fft(fdata);
         Cmplx[] gTrans = fft(gdata);
@@ -445,19 +457,4 @@ public class Cmplx implements java.io.Serializable {
         }
 
 **/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 } // End class Cmplx

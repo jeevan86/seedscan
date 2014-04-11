@@ -39,7 +39,9 @@ import java.io.Serializable;
  */
 public abstract class ResponseStage implements Comparable<ResponseStage>, Serializable
 {
-    protected int    stageNumber;
+
+	private static final long serialVersionUID = 1L;
+	protected int    stageNumber;
     protected char   stageType;
     protected double stageGain; 
     protected double stageGainFrequency; 

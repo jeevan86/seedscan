@@ -22,11 +22,15 @@ import java.io.PrintWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import sac.SacTimeSeries;
 import sac.SacHeader;
 
 public class Timeseries
 {
+	private static final Logger logger = LoggerFactory.getLogger(timeutils.Timeseries.class);
     public static void detrend(double[] timeseries)
     {
        int ndata = timeseries.length;
@@ -65,7 +69,10 @@ public class Timeseries
             mean += timeseries[i];
         }
         if (timeseries.length == 0) {
-            throw new RuntimeException("Error: debias: timeseries.length=0 --> No data!");
+            //throw new RuntimeException("Error: debias: timeseries.length=0 --> No data!");
+        	RuntimeException e = new RuntimeException("Error: debias: timeseries.length=0 --> No data!");
+        	logger.error("Timeseries RuntimeException:", e);
+        	return;
         }
         else {
             mean /= (double)timeseries.length;
@@ -158,7 +165,8 @@ public class Timeseries
            out.format("%12.6f %12.6f \n", x[i], y[i]);
        } 
        catch (IOException e) {
-         System.err.println("Caught IOException: " +  e.getMessage());
+         //System.err.println("Caught IOException: " +  e.getMessage());
+    	   logger.error("Timeseries IOException:", e);
        } 
        finally {
          if (out != null) out.close();
@@ -190,7 +198,8 @@ public class Timeseries
            out.format("%f\n", timeseries[i]);
        } 
        catch (IOException e) {
-         System.err.println("Caught IOException: " +  e.getMessage());
+         //System.err.println("Caught IOException: " +  e.getMessage());
+    	   logger.error("Timesries IOException:", e);
        } 
        finally {
          if (out != null) out.close();
@@ -299,6 +308,8 @@ public class Timeseries
         }
         catch (Exception e) {
             System.out.format("== Timeseries.writeSacFile: Error when attempting to read in default sac hdr [%s]\n", e);
+            String message = "== Timeseries.writeSacFile: Error when attempting to read in default sac hdr\n";
+            logger.error(message, e);
         }
 
         hdr.setDelta((float)dt);

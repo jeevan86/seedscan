@@ -22,11 +22,15 @@ package asl.util;
 import java.awt.Color;
 import java.awt.Stroke;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /** 
  * @author Mike Hagerty    <hagertmb@bc.edu>
  */
 public class Trace 
 {
+	private static final Logger logger = LoggerFactory.getLogger(asl.util.Trace.class);
     private double[] xdata;
     private double[] ydata;
     private String   traceName;
@@ -37,10 +41,16 @@ public class Trace
     public Trace(double[] x, double[] y, String name, Color color, Stroke stroke)
     {
         if (x.length <= 0 || y.length <= 0) {
-            throw new RuntimeException("Trace Error: Either x[] or y[] is empty!");
+            //throw new RuntimeException("Trace Error: Either x[] or y[] is empty!");
+        	RuntimeException e = new RuntimeException("Trace Error: Either x[] or y[] is empty!");
+        	logger.error("Trace RuntimeException:", e);
+        	return;
         }
         if (x.length != y.length) {
-            throw new RuntimeException("Trace Error: x.lenth != y.length !");
+            //throw new RuntimeException("Trace Error: x.lenth != y.length !");
+        	RuntimeException e = new RuntimeException("Trace Error: x.lenth != y.length !");
+        	logger.error("Trace RuntimeException:", e);
+        	return;
         }
         this.xdata = new double[x.length];
         System.arraycopy(x,0,this.xdata,0,x.length);

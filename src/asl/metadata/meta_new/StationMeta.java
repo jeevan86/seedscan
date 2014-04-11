@@ -77,14 +77,20 @@ public class StationMeta
     public void setLatitude(double latitude)
     {
         if (! (latitude <= 90. && latitude >= -90) ) {
-           throw new RuntimeException("Error: station latitude must be: -90 <= val <= 90");
+           //throw new RuntimeException("Error: station latitude must be: -90 <= val <= 90");
+           RuntimeException e = new RuntimeException("Error: station latitude must be: -90 <= val <= 90");
+           logger.error("StationMeta RuntimeException:", e);
+           return;
         }
         this.latitude = latitude;
     }
     public void setLongitude(double longitude)
     {
         if (! (longitude <= 180. && longitude >= -180) ) {
-           throw new RuntimeException("Error: station longitude must be: -180 <= val <= 180");
+           //throw new RuntimeException("Error: station longitude must be: -180 <= val <= 180");
+           RuntimeException e = new RuntimeException("Error: station longitude must be: -180 <= val <= 180");
+           logger.error("StationMeta RuntimeException:", e);
+           return;
         }
         this.longitude = longitude;
     }
@@ -420,12 +426,15 @@ public class StationMeta
         }
         else {
             System.out.format("== addRotatedChannel: Error -- Don't know how to make channel=[%s]\n", derivedChannelName);
+            logger.error(String.format("== addRotatedChannel: Error -- Don't know how to make channel=[%s]\n", derivedChannelName));
             return;
         }
 
         if (!found) {
             System.out.format("== addRotatedChannel: Error -- StationMeta doesn't contain horizontal channels "
                             + "needed to make channel=[%s]\n", derivedChannelName);
+            logger.error(String.format("== addRotatedChannel: Error -- StationMeta doesn't contain horizontal channels "
+                            + "needed to make channel=[%s]\n", derivedChannelName));
             return;
         }
 

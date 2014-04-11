@@ -48,23 +48,35 @@ public class Station
     public void setNetwork(String network) {
         if (network != null) {
             if (!(network.length()==2) ) {
-                throw new RuntimeException("network name MUST be 2-character string!");
+                //throw new RuntimeException("network name MUST be 2-character string!");
+                RuntimeException e = new RuntimeException("Network name MUST be 2-character string!");
+                logger.error("Station RuntimeException:", e);
+                return;
             }
             else {
                 this.network = network;
             }
         }
         else {
-            throw new RuntimeException("network name CANNOT be null!");
+            //throw new RuntimeException("network name CANNOT be null!");
+            RuntimeException e = new RuntimeException("Network name CANNOT be null!");
+            logger.error("Station RuntimException:", e);
+            return;
         }
     }
 
     public void setStation(String station) {
         if (station == null) {
-            throw new RuntimeException("station cannot be null");
+            //throw new RuntimeException("station cannot be null");
+        	RuntimeException e = new RuntimeException("Station cannot be null!");
+        	logger.error("Station RuntimException:", e);
+        	return;
         }
         if (station.length() < 3 || station.length() > 5)  {
-            throw new RuntimeException("Error: Station name MUST be between 3 and 5 characters long");
+            //throw new RuntimeException("Error: Station name MUST be between 3 and 5 characters long");
+        	RuntimeException e = new RuntimeException("Error: Station name MUST be between 3 and 5 characters long");
+        	logger.error("Station RuntimException:", e);
+        	return;
         }
         this.station = station;
     }

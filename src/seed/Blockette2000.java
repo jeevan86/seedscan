@@ -75,6 +75,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /** This class represents the Blockette 2000 from the SEED standard V2.4 
  *
  * @author Joel Edwards <jdedwards@usgs.gov>
@@ -82,6 +85,7 @@ import java.util.Collection;
 public class Blockette2000
 extends Blockette
 {
+	private static final Logger logger = LoggerFactory.getLogger(seed.Blockette2000.class);
     public static final short FIXED_LENGTH = 15;
     public static final ByteOrder DEFAULT_WORD_ORDER = ByteOrder.BIG_ENDIAN; 
     public static final Charset TAG_CHARSET = Charset.forName("UTF-8");
@@ -109,7 +113,13 @@ extends Blockette
         setOpaqueByteOrder(DEFAULT_WORD_ORDER);
         setStrict(false);
         try { setOpaqueState(OpaqueState.RECORD); }
-        catch (OpaqueStateException ex) { throw new RuntimeException("This should be impossible!"); } }
+        catch (OpaqueStateException ex) { 
+        	//throw new RuntimeException("This should be impossible!"); 
+        	RuntimeException e = new RuntimeException("This should be impossible!");
+        	logger.error("Blockette2000 RuntimeException:", e);
+        	return;
+        }
+     }
 
     /** Creates a new instance of Blockette2000
      *
@@ -185,7 +195,11 @@ extends Blockette
             case FILE_START   : buf[13] |= 0x10; break;
             case FILE_MID     : buf[13] |= 0x20; break;
             case FILE_END     : buf[13] |= 0x30; break;
-            default   : throw new OpaqueStateException(String.format("State value %s", state));
+            default   : 
+            	//throw new OpaqueStateException(String.format("State value %s", state));
+            	OpaqueStateException e = new OpaqueStateException(String.format("State value %s", state));
+            	logger.error("Blockette2000 OpaqueStateException:", e);
+            	return;
         }
     }
 
@@ -201,7 +215,11 @@ extends Blockette
             case 0x10 : state = OpaqueState.FILE_START; break;
             case 0x20 : state = OpaqueState.FILE_MID; break;
             case 0x30 : state = OpaqueState.FILE_END; break;
-            default   : throw new OpaqueStateException(String.format("State flags 0x%02x", buf[13] & 0x3d));
+            default   : 
+            	//throw new OpaqueStateException(String.format("State flags 0x%02x", buf[13] & 0x3d));
+            	OpaqueStateException e = new OpaqueStateException(String.format("State flags 0x%02x", buf[13] & 0x3d));
+            	logger.error("Blockette2000 OpaqueStateException:", e);
+            	return null;
         }
         return state;
     }

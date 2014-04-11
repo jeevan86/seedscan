@@ -51,7 +51,8 @@ public class SeedVolume
             //System.out.format("== new SeedVolume() networkKey=[%s]\n", networkKey);
         }
         catch(WrongBlocketteException e) {
-            System.out.format("== SeedVolume Error: WrongBlocketteException:%s\n", e.getMessage() );
+            //System.out.format("== SeedVolume Error: WrongBlocketteException:%s\n", e.getMessage() );
+            logger.error("== SeedVolume Error: WrongBlocketteException:", e);
         }
         stations = new Hashtable<StationKey, StationData>();
         stationLocators = new ArrayList<Blockette>();

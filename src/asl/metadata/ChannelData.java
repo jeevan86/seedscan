@@ -68,12 +68,16 @@ public class ChannelData
            WrongBlocketteException
     {
         if (blockette.getNumber() != CHANNEL_COMMENT_BLOCKETTE_NUMBER) {
-            throw new WrongBlocketteException();
+        	WrongBlocketteException e = new WrongBlocketteException();
+        	logger.error("ChannelData WrongBlocketteException:", e);
+        	return null;
         }
         //Epoch epochNew = new Epoch(blockette);
         String timestampString = blockette.getFieldValue(3, 0);
         if (timestampString == null) {
-            throw new MissingBlocketteDataException();
+            MissingBlocketteDataException e = new MissingBlocketteDataException();
+            logger.error("ChannelData MissingBlocketteDataException", e);
+        	return null;
         }
         Calendar timestamp = BlocketteTimestamp.parseTimestamp(timestampString);
         comments.put(timestamp, blockette);
@@ -97,13 +101,17 @@ public class ChannelData
            WrongBlocketteException
     {
         if (blockette.getNumber() != CHANNEL_EPOCH_INFO_BLOCKETTE_NUMBER) {
-            throw new WrongBlocketteException();
+        	WrongBlocketteException e = new WrongBlocketteException();
+        	logger.error("ChannelData WrongBlocketteException", e);
+            return null;
         }
         //Epoch epochNew = new Epoch(blockette);
         String timestampString = blockette.getFieldValue(22, 0);
 
         if (timestampString == null) {
-            throw new MissingBlocketteDataException();
+        	MissingBlocketteDataException e = new MissingBlocketteDataException();
+        	logger.error("ChannelData MissingBlocketteDataException", e);
+            return null;
         }
         Calendar timestamp = BlocketteTimestamp.parseTimestamp(timestampString);
         EpochData data = new EpochData(blockette);

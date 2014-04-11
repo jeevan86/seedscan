@@ -114,19 +114,26 @@ public class Encrypted
                 cipherText = cipher.doFinal(plainText.getBytes(CHAR_ENCODING));
                 success = true;
             } catch (BadPaddingException e) {
-                throw new EncryptionException(e.toString());
+                //throw new EncryptionException(e.toString());
+            	logger.error("Encrypted BadPaddingException:", e);
             } catch (IllegalBlockSizeException e) {
-                throw new EncryptionException(e.toString());
+                //throw new EncryptionException(e.toString());
+            	logger.error("Encrypted IllegalBlockSizeException:", e);
             } catch (InvalidAlgorithmParameterException e) {
-                throw new EncryptionException(e.toString());
+                //throw new EncryptionException(e.toString());
+            	logger.error("Encrypted InvalidAlgorithmParameterException:", e);
             } catch (InvalidKeyException e) {
-                throw new EncryptionException(e.toString());
+                //throw new EncryptionException(e.toString());
+            	logger.error("Encrypted InvalidKeyException:", e);
             } catch (NoSuchPaddingException e) {
-                throw new EncryptionException(e.toString());
+                //throw new EncryptionException(e.toString());
+            	logger.error("Encrytped NoSuchPaddingException:", e);
             } catch (NoSuchAlgorithmException e) {
-                throw new EncryptionException(e.toString());
+                //throw new EncryptionException(e.toString());
+            	logger.error("Encrytped NoSuchAlgorithmException:", e);
             } catch (UnsupportedEncodingException e) {
-                throw new EncryptionException(e.toString());
+                //throw new EncryptionException(e.toString());
+            	logger.error("Encrypted UnsupportedEncodingException:", e);
             }
         }
         return success;
@@ -152,19 +159,26 @@ public class Encrypted
                     plainText = new String(clearText, CHAR_ENCODING);
                 }
             } catch (BadPaddingException e) {
-                throw new EncryptionException(e.toString());
+                //throw new EncryptionException(e.toString());
+            	logger.error("Encrypted BadPaddingException:", e);
             } catch (IllegalBlockSizeException e) {
-                throw new EncryptionException(e.toString());
+                //throw new EncryptionException(e.toString());
+            	logger.error("Encrypted IllegalBlockSizeException:", e);
             } catch (InvalidAlgorithmParameterException e) {
-                throw new EncryptionException(e.toString());
+                //throw new EncryptionException(e.toString());
+            	logger.error("Encrypted InvalidAlgorithmParameterException:", e);
             } catch (InvalidKeyException e) {
-                throw new EncryptionException(e.toString());
+                //throw new EncryptionException(e.toString());
+            	logger.error("Encrypted InvalidKeyException:", e);
             } catch (NoSuchPaddingException e) {
-                throw new EncryptionException(e.toString());
+                //throw new EncryptionException(e.toString());
+            	logger.error("Encrypted NoSuchPaddingException:", e);
             } catch (NoSuchAlgorithmException e) {
-                throw new EncryptionException(e.toString());
+                //throw new EncryptionException(e.toString());
+            	logger.error("Encrypted NoSuchAlgorithmException:", e);
             } catch (UnsupportedEncodingException e) {
-                throw new EncryptionException(e.toString());
+                //throw new EncryptionException(e.toString());
+            	logger.error("Encrypted UnsupoortedEncodingException:", e);
             }
         }
         return plainText;

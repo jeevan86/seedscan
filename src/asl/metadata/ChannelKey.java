@@ -40,7 +40,9 @@ public class ChannelKey
     throws WrongBlocketteException
     {
         if (blockette.getNumber() != CHANNEL_EPOCH_BLOCKETTE_NUMBER) {
-            throw new WrongBlocketteException();
+        	WrongBlocketteException e = new WrongBlocketteException();
+        	logger.error("ChannelKey WrongBlocketteException", e);
+        	return;
         }
         location = blockette.getFieldValue(3,0);
         name     = blockette.getFieldValue(4,0);
@@ -89,7 +91,11 @@ public class ChannelKey
         }
 
         if (location.length() != 2) {
-            throw new RuntimeException( String.format("Error: Location code=[%s] chan=[%s] is NOT a valid 2-char code (e.g., %s)", location, name, validCodes) );
+        	StringBuilder message = new StringBuilder();
+        	message.append(String.format("Error: Location code=[%s] chan=[%s] is NOT a valid 2-char code (e.g., %s)\n", location, name, validCodes));
+        	RuntimeException e = new RuntimeException(message.toString());
+        	logger.error("ChannelKey RuntimeException:", e);
+        	return;
         }
         Pattern pattern  = Pattern.compile("^[0-9][0-9]$");
         Matcher matcher  = pattern.matcher(location);
@@ -102,11 +108,17 @@ public class ChannelKey
 
     private void setChannel(String channel) {
         if (channel == null) {
-            throw new RuntimeException("channel cannot be null");
+        	RuntimeException e = new RuntimeException();
+        	logger.error("ChannelKey RuntimeException:", e);
+            return;
         }
     // MTH: For now we'll allow either 3-char ("LHZ") or 4-char ("LHND") channels
         if (channel.length() < 3 || channel.length() > 4) { 
-            throw new RuntimeException( String.format("Error: Channel code=[%s] is NOT valid (must be 3 or 4-chars long)", channel) );
+        	StringBuilder message = new StringBuilder();
+        	message.append(String.format("Error: Channel code=[%s] is NOT valid (must be 3 or 4-chars long)\n", channel));
+        	RuntimeException e = new RuntimeException(message.toString());
+        	logger.error("ChannelKey RuntimeException:", e);
+        	return;
         }
         this.name = channel;
     }

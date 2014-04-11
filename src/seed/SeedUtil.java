@@ -33,6 +33,9 @@ import java.util.GregorianCalendar;
 import java.util.TimeZone;
 import java.text.DecimalFormat;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /** This clas is all static methods for maniupulating julian days, day-of-year,
  * back and forth.
  *
@@ -40,6 +43,7 @@ import java.text.DecimalFormat;
  */
 @SuppressWarnings("cast")
 public class SeedUtil {
+	private static final Logger logger = LoggerFactory.getLogger(seed.SeedUtil.class);
 static int [] daytab = new int[] {0,31,28,31,30,31,30,31,31,30,31,30,31};
 static int [] dayleap = new int[]{0,31,29,31,30,31,30,31,31,30,31,30,31};
 /**
@@ -134,7 +138,10 @@ public static  int [] ymd_from_doy(int yr, int doy) throws RuntimeException
     }
   }
   System.out.println("ymd_from_doy: impossible drop through!   yr="+yr+" doy="+doy);
-  throw new RuntimeException("ymd_from_DOY : impossible yr="+yr+" doy="+doy);
+  //throw new RuntimeException("ymd_from_DOY : impossible yr="+yr+" doy="+doy);
+  RuntimeException e = new RuntimeException("ymd_from_DOY : impossible yr="+yr+" doy="+doy);
+  logger.error("SeedUtil RuntimeException:", e);
+  return null;
 
 }
 

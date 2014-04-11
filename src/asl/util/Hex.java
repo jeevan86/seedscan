@@ -20,8 +20,12 @@ package asl.util;
 
 import java.nio.ByteBuffer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class Hex
 {
+	private static final Logger logger = LoggerFactory.getLogger(asl.util.Hex.class);
     public static String byteArrayToHexString(byte[] byteArray)
     throws IllegalArgumentException
     {
@@ -39,8 +43,8 @@ public class Hex
     {
         StringBuilder builder = new StringBuilder();
         for (byte b: byteArray) {
-            builder.append((char)valueToHexChar(((b >> 4) & 0x0f), upperCase));
-            builder.append((char)valueToHexChar((b & 0x0f), upperCase));
+            builder.append((char)((int) valueToHexChar(((b >> 4) & 0x0f), upperCase)));
+            builder.append((char)((int) valueToHexChar((b & 0x0f), upperCase)));
         }
         return builder.toString();
     }
@@ -69,7 +73,7 @@ public class Hex
         return valueToHexChar(b, false);
     }
 
-    public static int valueToHexChar(int b, boolean upper)
+    public static Integer valueToHexChar(int b, boolean upper)
     throws IllegalArgumentException
     {
         char result;
@@ -90,12 +94,16 @@ public class Hex
             case 13 : result = (upper ? 'D' : 'd'); break;
             case 14 : result = (upper ? 'E' : 'e'); break;
             case 15 : result = (upper ? 'F' : 'f'); break;
-            default : throw new IllegalArgumentException();
+            default : 
+            	//throw new IllegalArgumentException();
+            	IllegalArgumentException e = new IllegalArgumentException();
+            	logger.error("Hex IllegalArgumentException:", e);
+            	return null;
         }
-        return result;
+        return (int) result;
     }
 
-    private static int hexCharToValue(int c)
+    private static Integer hexCharToValue(int c)
     {
         int result;
         switch (c) {
@@ -121,7 +129,11 @@ public class Hex
             case 'e' : result = 14; break;
             case 'F' :
             case 'f' : result = 15; break;
-            default  : throw new IllegalArgumentException();
+            default  : 
+            	//throw new IllegalArgumentException();
+            	IllegalArgumentException e = new IllegalArgumentException();
+            	logger.error("Hex IllegalArgumentException:", e);
+            	return null;
         }
         return result;
     }

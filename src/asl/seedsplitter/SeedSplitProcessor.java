@@ -468,11 +468,11 @@ implements Runnable
                     } // end else MTH
 
                 } catch (SteimException e) {
-                    logger.warn("Caught SteimException");
+                    logger.warn("SeedSplitProcessor SteimException:", e);
                 } catch (InterruptedException e) {
-                    logger.warn("Caught InterruptedException");
+                    logger.warn("SeedSplitProcessor InterruptedException:", e);
                 } catch (IllegalSeednameException e) {
-                    logger.warn("Caught IllegalSeednameException");
+                    logger.warn("SeedSplitProcessor IllegalSeednameException:", e);
                 } // end try
             }
             m_progressQueue.put(progress);
@@ -553,14 +553,17 @@ implements Runnable
                         currDataSet.mergeInto(lastDataSet);
                         logger.debug("Done.");
                     } catch (SequenceIntervalMismatchException e) {
-                        throw new RuntimeException("Interval Mismatch. This should never happen!");
+                        //throw new RuntimeException("Interval Mismatch. This should never happen!");
+                    	String message = "SeedSplitProcessor RuntimeException: Interval Mismatch. This should never happen!";
+                    	logger.error(message, e);
+                    	return;
                     } catch (SequenceMergeRangeException e) {
-                        logger.debug("Failed.");
+                        logger.error("SeedSplitProcessor SequenceMergeRangeException:", e);
                         list.add(lastDataSet);
                         lastDataSet = currDataSet;
                         currDataSet = null;
                     } catch (SequenceTimingException e) {
-                        logger.debug("Timing Error. Sequences could not be correctly paired!");
+                        logger.error("SeedSplitProcessor SequenceTimingException: Sequences could not be correctly paired!", e);
                         list.add(lastDataSet);
                         currDataSet.trimStart(lastDataSet.getStartTime());
                         lastDataSet = currDataSet;

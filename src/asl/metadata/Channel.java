@@ -112,20 +112,32 @@ public class Channel
 
     public void setChannel(String channel) {
         if (channel == null) {
-            throw new RuntimeException("channel cannot be null");
+        	StringBuilder message = new StringBuilder();
+        	message.append("Channel cannot be null\n");
+        	RuntimeException e = new RuntimeException(message.toString());
+            logger.error("Channel RuntimeException:", e);
+            return;
         }
     //  Most channels should be exactly 3-chars long (e.g., LH1), however, derived
     //    channels (e.g., LHND) will be 4-chars and maybe/probably there will be others
     //  e.g., MetricResult.createChannel ( new Channel("00-10" , "LHND-LHND") ) ...
         if (channel.length() < 3) {
-            throw new RuntimeException("channel name MUST be at least 3-characters long");
+        	StringBuilder message = new StringBuilder();
+        	message.append("Channel name MUST be at least 3-characters long\n");
+        	RuntimeException e = new RuntimeException(message.toString());
+            logger.error("Channel RuntimeException:", e);
+            return;
         }
         this.channel = channel;
     }
 
     private void setStation(Station station) {
         if (station == null) {
-            throw new RuntimeException("station cannot be null");
+        	StringBuilder message = new StringBuilder();
+        	message.append("Station cannot be null\n");
+        	RuntimeException e = new RuntimeException(message.toString());
+            logger.error("Channel RuntimeException:", e);
+            return;
         }
         this.station = station;
     }

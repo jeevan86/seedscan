@@ -33,12 +33,16 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Hashtable;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /** This class represents the Blockette 2000 from the SEED standard V2.4 
  *
  * @author Joel Edwards <jdedwards@usgs.gov>
  */
 public class OpaqueBuilder
 {
+	private static final Logger logger = LoggerFactory.getLogger(seed.OpaqueBuilder.class);
     private boolean finished = false;
 
     private OpaqueContext context; 
@@ -90,7 +94,10 @@ public class OpaqueBuilder
            OpaqueStateTransitionException
     {
         if (finished) {
-            throw new BuilderFinishedException("This OpaqueBuilder's finish() method has already been called.");
+            //throw new BuilderFinishedException("This OpaqueBuilder's finish() method has already been called.");
+        	BuilderFinishedException e = new BuilderFinishedException("This OpaqueBuilder's finish() method has already been called.");
+        	logger.error("OpaqueBuilder BuilderFinishedException:", e);
+        	return;
         }
         if (length == 0) {
             return;
@@ -117,7 +124,11 @@ public class OpaqueBuilder
                 case STREAM_MID   : state = OpaqueState.STREAM_MID; break;
                 case FILE_START   : 
                 case FILE_MID     : state = OpaqueState.FILE_MID; break;
-                default : throw new OpaqueStateTransitionException(String.format("Invalid mid-stream state: %s", lastState));
+                default : 
+                	//throw new OpaqueStateTransitionException(String.format("Invalid mid-stream state: %s", lastState));
+                	OpaqueStateTransitionException e = new OpaqueStateTransitionException(String.format("Invalid mid-stream state: %s", lastState));
+                	logger.error("OpaqueBuilder StateTransitionException:", e);
+                	return;
             }
 
             Blockette2000 blk = new Blockette2000();

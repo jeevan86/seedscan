@@ -41,6 +41,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Class that represents a sac file. All headers are have the same names as
  * within the Sac program. Can read the whole file or just the header as well as
@@ -60,6 +63,7 @@ import java.io.RandomAccessFile;
  */
 public class SacTimeSeries {
 
+	private static final Logger logger = LoggerFactory.getLogger(sac.SacTimeSeries.class);
     public SacTimeSeries() {}
 
     /** create a new SAC timeseries from the given header and data. The header values
@@ -198,31 +202,53 @@ public class SacTimeSeries {
 
     public void read(File sacFile) throws FileNotFoundException, IOException {
         if (sacFile.length() < data_offset) {
-            throw new IOException(sacFile.getName() + " does not appear to be a sac file! File size ("
-                    + sacFile.length() + " is less than sac's header size (" + data_offset + ")");
+            //throw new IOException(sacFile.getName() + " does not appear to be a sac file! File size ("
+            //        + sacFile.length() + " is less than sac's header size (" + data_offset + ")");
+        	IOException e = new IOException(sacFile.getName() + " does not appear to be a sac file! File size ("
+                            + sacFile.length() + " is less than sac's header size (" + data_offset + ")");
+        	logger.error("SacTimeSeries IOException:", e);
+        	return;
         }
         DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(sacFile)));
         try {
             header = new SacHeader(dis);
             if (header.getLeven() == 1 && header.getIftype() == ITIME) {
                 if( sacFile.length() != header.getNpts() * 4 + data_offset) {
-                    throw new IOException(sacFile.getName() + " does not appear to be a sac file! npts(" + header.getNpts()
-                                          + ") * 4 + header(" + data_offset + ") !=  file length=" + sacFile.length() + "\n  as linux: npts("
-                                          + SacHeader.swapBytes(header.getNpts()) + ")*4 + header(" + data_offset + ") !=  file length="
-                                          + sacFile.length());
+                    //throw new IOException(sacFile.getName() + " does not appear to be a sac file! npts(" + header.getNpts()
+                    //                      + ") * 4 + header(" + data_offset + ") !=  file length=" + sacFile.length() + "\n  as linux: npts("
+                    //                      + SacHeader.swapBytes(header.getNpts()) + ")*4 + header(" + data_offset + ") !=  file length="
+                    //                      + sacFile.length());
+                    IOException e = new IOException(sacFile.getName() + " does not appear to be a sac file! npts(" + header.getNpts()
+                            + ") * 4 + header(" + data_offset + ") !=  file length=" + sacFile.length() + "\n  as linux: npts("
+                            + SacHeader.swapBytes(header.getNpts()) + ")*4 + header(" + data_offset + ") !=  file length="
+                            + sacFile.length());
+                    logger.error("SacTimeSeries IOException:", e);
+                    return;
                 }
             } else if (header.getLeven() == 1 || (header.getIftype() == IAMPH || header.getIftype() == IRLIM)) {
                 if( sacFile.length() != header.getNpts() * 4 * 2 + data_offset) {
-                    throw new IOException(sacFile.getName() + " does not appear to be a amph or rlim sac file! npts(" + header.getNpts()
-                                          + ") * 4 *2 + header(" + data_offset + ") !=  file length=" + sacFile.length() + "\n  as linux: npts("
-                                          + SacHeader.swapBytes(header.getNpts()) + ")*4*2 + header(" + data_offset + ") !=  file length="
-                                          + sacFile.length());
+                    //throw new IOException(sacFile.getName() + " does not appear to be a amph or rlim sac file! npts(" + header.getNpts()
+                    //                      + ") * 4 *2 + header(" + data_offset + ") !=  file length=" + sacFile.length() + "\n  as linux: npts("
+                    //                      + SacHeader.swapBytes(header.getNpts()) + ")*4*2 + header(" + data_offset + ") !=  file length="
+                    //                      + sacFile.length());
+                    IOException e = new IOException(sacFile.getName() + " does not appear to be a amph or rlim sac file! npts(" + header.getNpts()
+                            + ") * 4 *2 + header(" + data_offset + ") !=  file length=" + sacFile.length() + "\n  as linux: npts("
+                            + SacHeader.swapBytes(header.getNpts()) + ")*4*2 + header(" + data_offset + ") !=  file length="
+                            + sacFile.length());
+                    logger.error("SacTimeSeries IOException:", e);
+                    return;
                 }
             } else if (header.getLeven() == 0 && sacFile.length() != header.getNpts() * 4 * 2 + data_offset) {
-                throw new IOException(sacFile.getName() + " does not appear to be a uneven sac file! npts("
-                                      + header.getNpts() + ") * 4 *2 + header(" + data_offset + ") !=  file length=" + sacFile.length()
-                                      + "\n  as linux: npts(" + SacHeader.swapBytes(header.getNpts()) + ")*4*2 + header(" + data_offset
-                                      + ") !=  file length=" + sacFile.length());
+                //throw new IOException(sacFile.getName() + " does not appear to be a uneven sac file! npts("
+                //                      + header.getNpts() + ") * 4 *2 + header(" + data_offset + ") !=  file length=" + sacFile.length()
+                //                      + "\n  as linux: npts(" + SacHeader.swapBytes(header.getNpts()) + ")*4*2 + header(" + data_offset
+                //                      + ") !=  file length=" + sacFile.length());
+                IOException e = new IOException(sacFile.getName() + " does not appear to be a uneven sac file! npts("
+                        + header.getNpts() + ") * 4 *2 + header(" + data_offset + ") !=  file length=" + sacFile.length()
+                        + "\n  as linux: npts(" + SacHeader.swapBytes(header.getNpts()) + ")*4*2 + header(" + data_offset
+                        + ") !=  file length=" + sacFile.length());
+                logger.error("SacTimeSeries IOException:", e);
+                return;
             }
             readData(dis);
         } finally {
@@ -326,7 +352,10 @@ public class SacTimeSeries {
             SacHeader header = new SacHeader(raFile);
             if (header.getLeven() == FALSE || header.getIftype() == IRLIM || header.getIftype() == IAMPH) {
                 raFile.close();
-                throw new IOException("Can only append to evenly sampled sac files, ie only Y");
+                //throw new IOException("Can only append to evenly sampled sac files, ie only Y");
+                IOException e = new IOException("Can only append to evenly sampled sac files, ie only Y");
+                logger.error("SacTimeSeries IOException:", e);
+                return;
             }
             int origNpts = header.getNpts();
             header.setNpts(header.getNpts() + data.length);
@@ -385,10 +414,12 @@ public class SacTimeSeries {
                     + data.header.getNpts());
             System.out.println("Done writing");
         } catch(FileNotFoundException e) {
-            System.out.println("File " + args[0] + " doesn't exist.");
+            //System.out.println("File " + args[0] + " doesn't exist.");
+        	logger.error("SacTimeSeries FileNotFoundException:", e);
         } catch(IOException e) {
-            System.out.println("IOException: " + e.getMessage());
-            e.printStackTrace();
+            //System.out.println("IOException: " + e.getMessage());
+            //e.printStackTrace();
+        	logger.error("SacTimeSeries IOException:", e);
         }
     }
 }

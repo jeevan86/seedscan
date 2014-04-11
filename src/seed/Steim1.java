@@ -18,6 +18,9 @@
  */
 
 package seed;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import seed.SteimException;
 
 //import edu.iris.Fissures.seed.util.*;
@@ -47,6 +50,7 @@ import seed.SteimException;
 
 public class Steim1 {
 
+	private static final Logger logger = LoggerFactory.getLogger(seed.Steim1.class);
 	/**
 	 *  Decode the indicated number of samples from the provided byte array and
 	 *  return an integer array of the decompressed values.  Being differencing
@@ -70,7 +74,10 @@ public class Steim1 {
 		// a previous value which acts as a starting constant for continuing differences integration.  At the
 		// very start, bias is set to 0.
 		if (b.length % 64 != 0) {
-			throw new SteimException("encoded data length is not multiple of 64 bytes (" + b.length + ")"); 
+			//throw new SteimException("encoded data length is not multiple of 64 bytes (" + b.length + ")");
+			SteimException e = new SteimException("encoded data length is not multiple of 64 bytes (" + b.length + ")");
+			logger.error("Steim1 SteimException:", e);
+			return null;
 		}
 		int[] samples = new int[numSamples];
 		int[] tempSamples;
@@ -143,10 +150,16 @@ public class Steim1 {
 			throw new SteimException("samples array is zero size");
 		}
 		if (frames <= 0) {
-			throw new SteimException("number of frames is not a positive value");
+			//throw new SteimException("number of frames is not a positive value");
+			SteimException e = new SteimException("number of frames is not a positive value");
+			logger.error("Steim1 SteimException:", e);
+			return null;
 		}
 		if (frames > 63) {
-			throw new SteimException("cannot encode more than 63 frames, you asked for " + frames);
+			//throw new SteimException("cannot encode more than 63 frames, you asked for " + frames);
+			SteimException e = new SteimException("cannot encode more than 63 frames, you asked for " + frames);
+			logger.error("Steim1 SteimException:", e);
+			return null;
 		}
 		// all encoding will be contained within a frame block
 		// Steim encoding 1

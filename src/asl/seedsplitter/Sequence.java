@@ -138,8 +138,10 @@ extends MemberDigest
             m_interval = sampleRateToInterval(sampleRate);
             m_sampleRate = sampleRate; 
         } catch (IllegalSampleRateException e) {
-            e.printStackTrace();
-            throw e;
+            //e.printStackTrace();
+            //throw e;
+        	logger.error("Sequence IllegalSampleRateException:", e);
+        	return;
         }
     }
 
@@ -216,7 +218,10 @@ extends MemberDigest
                 newSequence.extend(series, 0, series.length);
                 this.swapData(newSequence);
             } catch (SequenceRangeException e) {
-                throw new RuntimeException("Sequence Range Error in trim(). This should never happen!");
+                //throw new RuntimeException("Sequence Range Error in trim(). This should never happen!");
+            	String message = "Sequence RangeException: Sequence Range Error in trim(). This should never happen!";
+            	logger.error(message, e);
+            	return;
             }
 
         }
@@ -297,7 +302,10 @@ extends MemberDigest
            SequenceTimingException
     {
         if (m_interval != seq.m_interval) {
-            throw new SequenceIntervalMismatchException();
+            //throw new SequenceIntervalMismatchException();
+        	SequenceIntervalMismatchException e = new SequenceIntervalMismatchException();
+        	logger.error("Sequence IntervalMismatchException:", e);
+        	return;
         }
 
         //if ((Math.abs(m_startTime - seq.m_startTime) % m_interval) != 0) {
@@ -319,7 +327,10 @@ extends MemberDigest
             if (((m_startTime - seq.getEndTime()) < (m_interval - intervalAdjustment)) ||
                 ((m_startTime - seq.getEndTime()) > (m_interval + intervalAdjustment))) {
                 logger.debug("Source is more than 1 data point after target. (difference = " +(m_startTime - seq.getEndTime())+ " ms OR " +((m_startTime - seq.getEndTime())/m_interval)+ " data points)");
-                throw new SequenceMergeRangeException("Source is more than 1 data point after target.");
+                //throw new SequenceMergeRangeException("Source is more than 1 data point after target.");
+                SequenceMergeRangeException e = new SequenceMergeRangeException("Source is more than 1 data point after target.");
+                logger.error("Sequence MergeRangeException:", e);
+                return;
             }
         }
 
@@ -327,7 +338,9 @@ extends MemberDigest
             if (((seq.m_startTime - this.getEndTime()) < (m_interval - intervalAdjustment)) ||
                 ((seq.m_startTime - this.getEndTime()) > (m_interval + intervalAdjustment))) {
                 logger.debug("Target is more than 1 data point after source. (difference = " +(seq.m_startTime - this.getEndTime())+ ")");
-                throw new SequenceMergeRangeException("Target is more than 1 data point after source.");
+                //throw new SequenceMergeRangeException("Target is more than 1 data point after source.");
+                SequenceMergeRangeException e = new SequenceMergeRangeException("Target is more than 1 data point after source.");
+                return;
             } else {
                 logger.debug("Swapping source and target prior to merge.");
                 seq.mergeInto(this);
@@ -414,8 +427,11 @@ extends MemberDigest
             try {
                 pool.addBlock(block);
             } catch (BlockSizeMismatchException e) {
-                e.printStackTrace();
-                throw new RuntimeException("Impossible situation! BlockSizeMismatchException on BlockPool.addBlock()", e); // This should never happen
+                //e.printStackTrace();
+                //throw new RuntimeException("Impossible situation! BlockSizeMismatchException on BlockPool.addBlock()", e); // This should never happen
+            	String message = "Sequence BlockSizeMismatchException: BlockPool.addBlock() Impossible situation!";
+            	logger.error(message, e);
+            	return;
             }
         }
     }
@@ -535,10 +551,16 @@ extends MemberDigest
            SequenceRangeException
     {
         if (index >= m_length) {
-            throw new IndexOutOfBoundsException();
+            //throw new IndexOutOfBoundsException();
+        	IndexOutOfBoundsException e = new IndexOutOfBoundsException();
+        	logger.error("Sequence IndexOBException:", e);
+        	return null;
         }
         if ((index + count) > m_length) {
-            throw new SequenceRangeException();
+            //throw new SequenceRangeException();
+        	SequenceRangeException e = new SequenceRangeException();
+        	logger.error("Sequence RangeException:", e);
+        	return null;
         }
         if (m_length == 0) {
             return null;
@@ -582,9 +604,11 @@ extends MemberDigest
         try {
             return this.getSeries(0, m_length);
         } catch (IndexOutOfBoundsException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
+        	logger.error("Sequence IndexOutOfBoundsException:", e);
         } catch (SequenceRangeException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
+        	logger.error("Sequence RangeException:", e);
         }
         return null;
     }
@@ -604,7 +628,10 @@ extends MemberDigest
         int[] series = null;
         int index = 0;
         if (startTime < m_startTime) {
-            throw new SequenceRangeException();
+            //throw new SequenceRangeException();
+        	SequenceRangeException e = new SequenceRangeException();
+        	logger.error("Sequence RangeException:", e);
+        	return null;
         } else {
             long diff = startTime - m_startTime;
             index = (int)(diff / m_interval + (((diff % m_interval) > 0) ? 1 : 0));
@@ -613,8 +640,11 @@ extends MemberDigest
         try {
             series = this.getSeries(index, count);
         } catch (IndexOutOfBoundsException e) {
-            e.printStackTrace();
-            throw new SequenceRangeException();
+            //e.printStackTrace();
+            //throw new SequenceRangeException();
+        	SequenceRangeException ex = new SequenceRangeException();
+        	logger.error("Sequence IndexOBException:", ex);
+        	return null;
         }
         return series;
     }
@@ -636,10 +666,16 @@ extends MemberDigest
         int index = 0;
         int count = 0;
         if (endTime > this.getEndTime()) {
-            throw new SequenceRangeException();
+            //throw new SequenceRangeException();
+        	SequenceRangeException e = new SequenceRangeException();
+        	logger.error("Sequence RangeException:", e);
+        	return null;
         }
         if (startTime < m_startTime) {
-            throw new SequenceRangeException();
+            //throw new SequenceRangeException();
+        	SequenceRangeException e = new SequenceRangeException();
+        	logger.error("Sequence RangeException:", e);
+        	return null;
         }
         count = (int)((endTime - startTime) / m_interval);
         index = (int)(((startTime - m_startTime) + (m_interval / 2)) / m_interval);
@@ -647,8 +683,11 @@ extends MemberDigest
         try {
             series = this.getSeries(index, count);
         } catch (IndexOutOfBoundsException e) {
-            e.printStackTrace();
-            throw new SequenceRangeException();
+            //e.printStackTrace();
+            //throw new SequenceRangeException();
+        	SequenceRangeException ex = new SequenceRangeException();
+        	logger.error("Sequence IndexOBException:", ex);
+        	return null;
         }
         return series;
     }
@@ -761,11 +800,14 @@ extends MemberDigest
      * @return	A boolean value: true if the range of this Sequence is within the range of the reference Sequence.
      * @throws SequenceIntervalMismatchException if the reference Sequence's frequency does not match that of this Sequence.
      */
-    public boolean subSequenceOf(Sequence seq) 
+    public Boolean subSequenceOf(Sequence seq) 
     throws SequenceIntervalMismatchException 
     {
         if (seq.m_interval != m_interval) {
-            throw new SequenceIntervalMismatchException();
+            //throw new SequenceIntervalMismatchException();
+        	SequenceIntervalMismatchException e = new SequenceIntervalMismatchException();
+        	logger.error("Sequence IntervalMismatchException:", e);
+        	return null;
         }
         return ((m_startTime >= seq.m_startTime) && (this.getEndTime() <= seq.getEndTime()));
     }
@@ -778,7 +820,7 @@ extends MemberDigest
      * @return	A long integer value representing the supplied sample rate as an interval.
      * @throws IllegalSampleRateException if the supplied sample rate is not one of the accpeted values.
      */
-    public static long sampleRateToInterval(double sampleRate) 
+    public static Long sampleRateToInterval(double sampleRate) 
     throws IllegalSampleRateException 
     {
         long interval;
@@ -802,7 +844,12 @@ extends MemberDigest
         else if (sampleRate == 2000.0  ) interval =        500L;
         else if (sampleRate == 4000.0  ) interval =        250L;
         else if (sampleRate == 5000.0  ) interval =        200L;
-        else throw new IllegalSampleRateException("The selected sample rate (" + sampleRate + " Hz) is not supported.");
+        else {
+        	//throw new IllegalSampleRateException("The selected sample rate (" + sampleRate + " Hz) is not supported.");
+        	IllegalSampleRateException e = new IllegalSampleRateException("The selected sample rate (" + sampleRate + " Hz) is not supported.");
+        	logger.error("Sequence IllegalSampleRateException:", e);
+        	return null;
+        }
         return interval;
     }
 
@@ -850,7 +897,10 @@ extends MemberDigest
             }
             else {
                 if (collapsed.getInterval() != sequence.getInterval()) {
-                    throw new SequenceIntervalMismatchException();
+                    //throw new SequenceIntervalMismatchException();
+                	SequenceIntervalMismatchException e = new SequenceIntervalMismatchException();
+                	logger.error("Sequence IntervalMismatchException:", e);
+                	return null;
                 }
                 Sequence source = sequence;
                 if (collapsed.startsAfter(sequence)) {

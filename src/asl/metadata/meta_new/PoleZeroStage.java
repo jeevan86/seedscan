@@ -20,6 +20,10 @@
 package asl.metadata.meta_new;
 
 import java.util.ArrayList;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import freq.Cmplx;
 
 /**
@@ -29,6 +33,7 @@ import freq.Cmplx;
 public class PoleZeroStage extends ResponseStage
                            implements Cloneable
 {
+	private static final Logger logger = LoggerFactory.getLogger(asl.metadata.meta_new.PoleZeroStage.class);
     private ArrayList<Cmplx> poles;
     private ArrayList<Cmplx> zeros;
     private double normalizationConstant;
@@ -139,10 +144,14 @@ public class PoleZeroStage extends ResponseStage
       // Looks like the polezero info has been loaded ... so continue ...
       }
       else {
-        throw new RuntimeException("[ PoleZeroStage-->getResponse Error: PoleZero info does not appear to be loaded! ]");
+        RuntimeException e = new RuntimeException("[ PoleZeroStage-->getResponse Error: PoleZero info does not appear to be loaded! ]");
+        logger.error("PoleZeroStage RuntimeException:", e);
+        return null;
       }
       if (!(freqs.length > 0)){
-        throw new RuntimeException("[ PoleZeroStage-->getResponse Error: Input freqs[] has no zero length! ]");
+        RuntimeException e = new RuntimeException("[ PoleZeroStage-->getResponse Error: Input freqs[] has no zero length! ]");
+        logger.error("PoleZeroStage RuntimeException:", e);
+        return null;
       }
       Cmplx[] response = new Cmplx[freqs.length];
       for (int i=0; i<freqs.length; i++){
@@ -187,7 +196,9 @@ public class PoleZeroStage extends ResponseStage
         s = new Cmplx(0.0, f);
       }
       else {
-        throw new RuntimeException("[ PoleZeroStage-->evalResponse Error: Cannot evalResp a non-PoleZero Stage!]");
+        RuntimeException e = new RuntimeException("[ PoleZeroStage-->evalResponse Error: Cannot evalResp a non-PoleZero Stage!]");
+        logger.error("PoleZeroStage RuntimeException:", e);
+        return null;
       }
 
       for (int j=0; j<getNumberOfZeros(); j++){
