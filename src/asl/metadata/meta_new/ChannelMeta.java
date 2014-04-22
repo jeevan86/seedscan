@@ -462,27 +462,19 @@ public class ChannelMeta extends MemberDigest
  //  Ex: if the response units are Velocity (inUnits=2) and we want our output units = Acceleration (outUnits=3), then
  //      n = 3 - 2 = 1, and we return I'(w)=I(w)/(iw) = -i/w * I(w)
 
-                double s;
-                if (pz.getStageType() == 'A'){
-                    s = 2.*Math.PI;
-                }
-                else if (pz.getStageType() == 'B'){
-                    s = 1.;
-                }
-                else {
-                    RuntimeException e = new RuntimeException("getResponse(): Unknown PoleZero StageType!");
-                    logger.error("ChannelMeta RuntimeException:", e);
-                    return null;
-                }
-//System.out.format("== Channel=%s inUnits=%d outUnits=%d n=%d s=%f\n", this.getChannel(), inUnits, outUnits, n);
 
+//Here we set s to be omega.  This doesn't depend on the reponse type as was previous.                
+		double s = 2.*Math.PI;
+                
+//Here we integrate
                 if (n < 0) {                    // INTEGRATION RESPONSE I(w) x (iw)^n
                     for (int i=0; i<freqs.length; i++){
-                        Cmplx iw    = new Cmplx(0.0, s*freqs[i]);
+                        Cmplx iw = new Cmplx(0.0, s*freqs[i]);
                         for (int j=1; j<Math.abs(n); j++) iw = Cmplx.mul(iw, iw);
                         response[i] = Cmplx.mul(iw, response[i]);
                     }
                 }
+//Here we differentiate
                 else if (n > 0) {               // DIFFERENTIATION RESPONSE I(w) / (iw)^n
                     for (int i=0; i<freqs.length; i++){
                         Cmplx iw    = new Cmplx(0.0, -1.0/(s*freqs[i]) );
