@@ -43,23 +43,23 @@ public abstract class MemberDigest
 
     /**
      * Constructor.
+     * @throws RuntimeException 
      */
     public MemberDigest()
+    throws RuntimeException
     {
-        this("MD5");
+    	this("MD5");
     }
 
     public MemberDigest(String algorithm)
+    throws RuntimeException
     {
         try {
             digest = MessageDigest.getInstance(algorithm);
         }
         catch (NoSuchAlgorithmException ex) {
-            //throw new RuntimeException("Could not initialize digest for the '" +algorithm+ "' algorithm");
-        	String message = new String("Could not initialize digest for the '" +algorithm+ "' algorithm");
-        	RuntimeException e = new RuntimeException(message.toString());
-        	logger.error("MemberDigest RuntimeException:", e);
-        	return;
+        	String message = String.format("Could not initialize digest for the '" +algorithm+ "' algorithm:" + ex.toString());
+            throw new RuntimeException(message);
         }
     }
 
@@ -69,7 +69,11 @@ public abstract class MemberDigest
         digest.reset();
         addDigestMembers();
         raw = ByteBuffer.wrap(digest.digest());
-        str = Hex.byteArrayToHexString(raw.array());
+        try {
+        	str = Hex.byteArrayToHexString(raw.array());
+        } catch (IllegalArgumentException e) {
+        	logger.error("MemberDigest IllegalArgumentException:", e);
+        }
     }
 
     public ByteBuffer getDigestBytes() {

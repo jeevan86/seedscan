@@ -130,9 +130,10 @@ implements Runnable
         if (m_digest != null ) {
             try {
                 result = Hex.byteArrayToHexString(((MessageDigest)m_digest.clone()).digest());
-            }
-            catch (CloneNotSupportedException ex) {
-            	logger.warn("SeedInputStream CloneNotSupportedException:", ex);
+            } catch (CloneNotSupportedException ex) {
+            	logger.error("SeedInputStream CloneNotSupportedException:", ex);
+            } catch (IllegalArgumentException ex) {
+            	logger.error("SeedInputStream IllegalArgumentException:", ex);
             }
         }
         return result;
@@ -196,7 +197,7 @@ implements Runnable
                             try {
                                 recordLength = MiniSeed.crackBlockSize(m_buffer);
                             } catch (IllegalSeednameException e) {
-                                logger.debug("Invalid Format, Skipping Chunk.");
+                                logger.debug("Invalid Format, Skipping Chunk.", e);
                                 m_skippedBytes += m_bufferBytes;
                                 m_bufferBytes = 0;
                             }
@@ -225,9 +226,9 @@ implements Runnable
                     }
                 }
             } catch (IOException e) {
-                logger.warn("SeedInputStream IOException:", e);
+                logger.error("SeedInputStream IOException:", e);
             } catch (InterruptedException e) {
-                logger.warn("SeedInputStream InterruptedException:", e);
+                logger.error("SeedInputStream InterruptedException:", e);
             }
         }
     }

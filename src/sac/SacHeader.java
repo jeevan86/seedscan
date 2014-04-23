@@ -66,12 +66,8 @@ public class SacHeader {
      */
     public SacHeader(File sacFile) throws IOException {
         if (sacFile.length() < data_offset) {
-            //throw new IOException(sacFile.getName() + " does not appear to be a sac file! File size ("
-            //        + sacFile.length() + " is less than sac's header size (" + data_offset + ")");
-        	IOException e = new IOException(sacFile.getName() + " does not appear to be a sac file! File size (" 
-        			+ sacFile.length() + " is less than sac's header size (" + data_offset + ")");
-        	logger.error("SacHeader IOException:", e);
-        	return;
+            throw new IOException(sacFile.getName() + " does not appear to be a sac file! File size ("
+                    + sacFile.length() + " is less than sac's header size (" + data_offset + ")");
         }
         DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(sacFile)));
         try {
@@ -119,14 +115,9 @@ public class SacHeader {
             }
         } else if ( ! (headerBuf[NVHDR_OFFSET] == 0 && headerBuf[NVHDR_OFFSET + 1] == 0 && headerBuf[NVHDR_OFFSET + 2] == 0
                 &&headerBuf[NVHDR_OFFSET + 3] == 6)) {
-            //throw new IOException("Does not appear to be a SAC file, NVHDR header bytes should be (int) 6 but found "+
-            //        headerBuf[NVHDR_OFFSET] +" "+ headerBuf[NVHDR_OFFSET + 1] +" "+ headerBuf[NVHDR_OFFSET + 2] +" "+
-            //        headerBuf[NVHDR_OFFSET + 3]);
-        	IOException e = new IOException("Does not appear to be a SAC file, NVHDR header bytes should be (int) 6 but found "+
-                            headerBuf[NVHDR_OFFSET] +" "+ headerBuf[NVHDR_OFFSET + 1] +" "+ headerBuf[NVHDR_OFFSET + 2] +" "+
-                            headerBuf[NVHDR_OFFSET + 3]);
-        	logger.error("SacHeader IOException:", e);
-        	return;
+            throw new IOException("Does not appear to be a SAC file, NVHDR header bytes should be (int) 6 but found "+
+                    headerBuf[NVHDR_OFFSET] +" "+ headerBuf[NVHDR_OFFSET + 1] +" "+ headerBuf[NVHDR_OFFSET + 2] +" "+
+                    headerBuf[NVHDR_OFFSET + 3]);
         }
         DataInputStream dis = new DataInputStream(new ByteArrayInputStream(headerBuf));
         delta = dis.readFloat();
@@ -1144,7 +1135,9 @@ public class SacHeader {
         this.fmt = fmt;
     }
 
-    public Float getTHeader(int index) {
+    public Float getTHeader(int index) 
+    throws IllegalArgumentException
+    {
         switch(index){
             case 0:
                 return getT0();
@@ -1167,14 +1160,13 @@ public class SacHeader {
             case 9:
                 return getT9();
             default:
-                //throw new IllegalArgumentException("Illegal T header index, "+index+", must be 0-9");
-            	IllegalArgumentException e = new IllegalArgumentException("Illegal T header index, "+index+", must be 0-9");
-            	logger.error("SacHeader IllegalArgumentException:", e);
-            	return null;
+                throw new IllegalArgumentException("Illegal T header index, "+index+", must be 0-9");
         }
     }
     
-    public void setTHeader(int index, float val) {
+    public void setTHeader(int index, float val) 
+    throws IllegalArgumentException
+    {
         switch(index){
             case 0:
                 setT0(val);
@@ -1207,10 +1199,7 @@ public class SacHeader {
                 setT9(val);
                 break;
             default:
-                //throw new IllegalArgumentException("Illegal T header index, "+index+", must be 0-9");
-            	IllegalArgumentException e = new IllegalArgumentException("Illegal T header index, "+index+", must be 0-9");
-            	logger.error("SacHeader IllegalArgumentException:", e);
-            	return;
+                throw new IllegalArgumentException("Illegal T header index, "+index+", must be 0-9");
         }
     }
     
@@ -1219,7 +1208,9 @@ public class SacHeader {
      * KT header to be the label. indices 0-9 map to T0-T9 and index 10 maps to 
      * the A header.
      */
-    public void setTHeader(int index, float val, String kLabel) {
+    public void setTHeader(int index, float val, String kLabel) 
+    throws IllegalArgumentException
+    {
         switch(index){
             case 0:
                 setT0(val);
@@ -1262,14 +1253,13 @@ public class SacHeader {
                 setKt9(kLabel);
                 break;
             default:
-                //throw new IllegalArgumentException("Illegal T header index, "+index+", must be 0-9");
-            	IllegalArgumentException e = new IllegalArgumentException("Illegal T header index, "+index+", must be 0-9");
-            	logger.error("SacHeader IllegalArgumentException:", e);
-            	return;
+                throw new IllegalArgumentException("Illegal T header index, "+index+", must be 0-9");
         }
     }
 
-    public String getKTHeader(int index) {
+    public String getKTHeader(int index) 
+    throws IllegalArgumentException
+    {
         switch(index){
             case 0:
                 return getKt0();
@@ -1292,14 +1282,13 @@ public class SacHeader {
             case 9:
                 return getKt9();
             default:
-                //throw new IllegalArgumentException("Illegal T header index, "+index+", must be 0-9");
-            	IllegalArgumentException e = new IllegalArgumentException("Illegal T header index, "+index+", must be 0-9");
-            	logger.error("SacHeader IllegalArgumentException:", e);
-            	return null;
+                throw new IllegalArgumentException("Illegal T header index, "+index+", must be 0-9");
         }
     }
 
-    public void setKtHeader(int index, String val) {
+    public void setKtHeader(int index, String val) 
+    throws IllegalArgumentException
+    {
         switch(index){
             case 0:
                 setKt0(val);
@@ -1332,10 +1321,7 @@ public class SacHeader {
                 setKt9(val);
                 break;
             default:
-                //throw new IllegalArgumentException("Illegal T header index, "+index+", must be 0-9");
-            	IllegalArgumentException e = new IllegalArgumentException("Illegal T header index, "+index+", must be 0-9");
-            	logger.error("SacHeader IllegalArgumentException:", e);
-            	return;
+                throw new IllegalArgumentException("Illegal T header index, "+index+", must be 0-9");
         }
     }
     
@@ -1638,7 +1624,9 @@ public class SacHeader {
         this.mag = mag;
     }
 
-    public Float getUserHeader(int index) {
+    public Float getUserHeader(int index) 
+    throws IllegalArgumentException
+    {
         switch(index){
             case 0:
                 return getUser0();
@@ -1661,14 +1649,13 @@ public class SacHeader {
             case 9:
                 return getUser9();
             default:
-                //throw new IllegalArgumentException("Illegal User header index, "+index+", must be 0-9");
-            	IllegalArgumentException e = new IllegalArgumentException("Illegal User header index, "+index+", must be 0-9");
-            	logger.error("SacHeader IllegalArgumentException:", e);
-            	return null;
+                throw new IllegalArgumentException("Illegal User header index, "+index+", must be 0-9");
         }
     }
     
-    public void setUserHeader(int index, float val) {
+    public void setUserHeader(int index, float val) 
+    throws IllegalArgumentException
+    {
         switch(index){
             case 0:
                 setUser0(val);
@@ -1701,10 +1688,7 @@ public class SacHeader {
                 setUser9(val);
                 break;
             default:
-                //throw new IllegalArgumentException("Illegal User header index, "+index+", must be 0-9");
-            	IllegalArgumentException e = new IllegalArgumentException("Illegal User header index, "+index+", must be 0-9");
-            	logger.error("SacHeader IllegalArgumentException:", e);
-            	return;
+                throw new IllegalArgumentException("Illegal User header index, "+index+", must be 0-9");
         }
     }
     

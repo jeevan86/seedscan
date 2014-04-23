@@ -28,9 +28,9 @@ import java.nio.ByteBuffer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Calendar;
-
 import java.awt.BasicStroke;
 import java.awt.Color;
 
@@ -39,8 +39,9 @@ import asl.metadata.ChannelArray;
 import asl.metadata.Station;
 import asl.util.Hex;
 import asl.util.PlotMaker2;
+import asl.util.PlotMakerException;
 import asl.util.Trace;
-
+import asl.util.TraceException;
 import timeutils.Timeseries;
 
 //New metric for PSD Differences in 90-110, 200-500 second period ranges
@@ -102,12 +103,20 @@ extends PowerBandMetric
                 continue;
             }
 
-            double result = computeMetric(channelX, channelY, station, day, metric);
-            if (result == NO_RESULT) {
-                // Do nothing --> skip to next channel
-            }
-            else {
-                metricResult.addResult(channelX, channelY, result, digest);
+            try {
+	            double result = computeMetric(channelX, channelY, station, day, metric);
+	            if (result == NO_RESULT) {
+	                // Do nothing --> skip to next channel
+	            }
+	            else {
+	                metricResult.addResult(channelX, channelY, result, digest);
+	            }
+            } catch (MetricException e) {
+            	logger.error("DifferencePBM Exception:", e);
+            } catch (PlotMakerException e) {
+            	logger.error("DifferencePBM Exception:", e);
+            } catch (TraceException e) {
+            	logger.error("DifferencePBM Exception:", e);
             }
         }// end foreach channel
 
@@ -118,7 +127,11 @@ extends PowerBandMetric
     } // end process()
 
 
-    private double computeMetric(Channel channelX, Channel channelY, String station, String day, String metric) {
+    private double computeMetric(Channel channelX, Channel channelY, String station, String day, String metric) 
+    throws MetricException,
+    	   PlotMakerException,
+    	   TraceException
+    {
 
      // Compute/Get the 1-sided psd[f] using Peterson's algorithm (24 hrs, 13 segments, etc.)
 
@@ -136,18 +149,14 @@ extends PowerBandMetric
         if (dfX != dfY) {  // Oops - spectra have different frequency sampling!
             StringBuilder message = new StringBuilder();
             message.append(String.format("DifferencePBM Error: station=[{}] channelX[{}] channelY=[{}] day=[{}] metric=[{}]: dfX != dfY --> Can't continue\n", station, channelX, channelY, day, metric));
-            RuntimeException e = new RuntimeException(message.toString());
-            logger.error("DifferencePBM RuntimeException:", e);
-            return NO_RESULT;
+            throw new MetricException(message.toString());
         }
         double df = dfX;
 
         if (Gxx.length != Gyy.length || Gxx.length != Gxy.length) {  // Something's wrong ...
             StringBuilder message = new StringBuilder();
             message.append(String.format("DifferencePBM Error: station=[{}] channelX[{}] channelY=[{}] day=[{}] metric=[{}]: Gxx.length != Gyy.length --> Can't continue\n", station, channelX, channelY, day, metric));
-            RuntimeException e = new RuntimeException(message.toString());
-       	    logger.error("DifferencePBM RuntimeException:", e); 
-       	    return NO_RESULT;
+            throw new MetricException(message.toString());
         }
         
         int nf = Gxx.length;
@@ -198,9 +207,7 @@ extends PowerBandMetric
         if (nPeriods == 0) {
             StringBuilder message = new StringBuilder();
             message.append(String.format("DifferencePBM Error: station=[{}] channelX=[{}] channelY=[{}] day=[{}] metric=[{}]: Requested band [%f - %f] contains NO periods --> divide by zero!\n", station, channelX, channelY, day, metric, lowPeriod, highPeriod) );
-            RuntimeException e = new RuntimeException(message.toString());
-       	    logger.error("DifferencePBM RuntimeException:", e); 
-       	    return NO_RESULT;
+            throw new MetricException(message.toString());
         }
         averageValue /= (double)nPeriods;
 /**
@@ -234,8 +241,14 @@ extends PowerBandMetric
             else { // ??
             }
             String channelLabel = MetricResult.createResultId(channelX, channelY);
-            //plotMaker.addTraceToPanel( new Trace(per, gammaPer, channelLabel, color, stroke), iPanel);
-       	    plotMaker.addTraceToPanel(new Trace(per, diffPer, channelLabel, color, stroke), iPanel); 
+            try {
+            	//plotMaker.addTraceToPanel( new Trace(per, gammaPer, channelLabel, color, stroke), iPanel);
+            	plotMaker.addTraceToPanel(new Trace(per, diffPer, channelLabel, color, stroke), iPanel); 
+            } catch (PlotMakerException e) {
+            	throw e;
+            } catch (TraceException e) {
+            	throw e;
+            }
         }
         return averageValue;
     } // end computeMetric()

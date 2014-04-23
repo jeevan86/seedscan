@@ -24,23 +24,25 @@ import java.awt.BasicStroke;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Hashtable;
 import java.util.TreeSet;
 import java.util.SortedSet;
-
 import java.nio.ByteBuffer;
+
 import asl.util.Hex;
 import asl.util.PlotMaker2;
+import asl.util.PlotMakerException;
 import asl.util.Trace;
-
+import asl.util.TraceException;
 import asl.metadata.Channel;
 import asl.metadata.ChannelArray;
 import asl.metadata.meta_new.ChannelMeta;
 import asl.metadata.meta_new.ChannelMeta.ResponseUnits;
+import asl.metadata.meta_new.ChannelMetaException;
 import asl.seedsplitter.DataSet;
-
 import sac.SacTimeSeries;
 import sac.SacHeader;
 import edu.sc.seis.TauP.Arrival;
@@ -168,113 +170,121 @@ extends Metric
         int nEvents = 0;
         int eventNumber = 0;
 
-       // Loop over Events for this day
-
-        SortedSet<String> eventKeys = new TreeSet<String>(eventCMTs.keySet());
-        for (String key : eventKeys) {
-
-            EventCMT eventCMT = eventCMTs.get(key);
-
-        // Window the data from the Event (PDE) Origin.
-        //   Use larger time window to do the instrument decons and trim it down later:
-
-            long duration = 8000000L; // 8000 sec = 8000000 msecs
-            long eventStartTime = eventCMT.getTimeInMillis();   // Event origin epoch time in millisecs
-            long eventEndTime   = eventStartTime + duration;
-
-        // Use P and S arrival times to trim the window down for comparison:
-            double[] arrivalTimes = getEventArrivalTimes(eventCMT);
-            if (arrivalTimes == null) {
-                System.out.format("== %s: arrivalTimes==null for stn=[%s]: Distance to stn probably > 97-deg --> Don't compute metric\n", getName(), getStation());
-                continue;
-            }
-
-            eventNumber ++;
-            int nstart = (int)(arrivalTimes[0] - 120.); // P - 120 sec
-            int nend   = (int)(arrivalTimes[1] + 60.);  // S + 120 sec
-            if (nstart < 0) nstart = 0;
-//System.out.format("== %s: arrivalTimes[0]==%f arrivalTimes[1]=%f: nstart=%d nend=%d\n", getName(), arrivalTimes[0],
-//arrivalTimes[1], nstart, nend);
-
-            ResponseUnits units = ResponseUnits.DISPLACEMENT;
-            ArrayList<double[]> dataDisp    = new ArrayList<double[]>();
-
-            ArrayList<double[]> dataDisp00  = null;
-            if (compute00) {
-                dataDisp00  = metricData.getZNE(units, "00", "LH", eventStartTime, eventEndTime, f1, f2, f3, f4);
-                if (dataDisp00 != null) {
-                    dataDisp.addAll(dataDisp00);
-                }
-                else {
-                    compute00 = false;
-                }
-            }
-            ArrayList<double[]> dataDisp10  = null;
-            if (compute10) {
-                dataDisp10  = metricData.getZNE(units, "10", "LH", eventStartTime, eventEndTime, f1, f2, f3, f4);
-                if (dataDisp10 != null) {
-                    dataDisp.addAll(dataDisp10);
-                }
-                else {
-                    compute10 = false;
-                }
-            }
-            ArrayList<double[]> dataDisp20  = metricData.getZNE(units, "20", "LN", eventStartTime, eventEndTime, f1, f2, f3, f4);
-            if (dataDisp20 != null) {
-                dataDisp.addAll(dataDisp20);
-            }
-
-            if ((dataDisp00 == null && dataDisp10 == null) || dataDisp20 == null) {
-                System.out.format("== %s: getZNE returned null data --> skip this event\n", getName() );
-                continue;
-            }
-
-            if (getMakePlots()){
-                makePlots(dataDisp00, dataDisp10, dataDisp20, nstart, nend, key, eventNumber);
-            }
-
-
-        // Displacements are in meters so rmsDiff's will be small
-        //   scale rmsDiffs to micrometers:
-
-            if (compute00) {
-                for (int i=0; i<3; i++) {
-                    results[i] += 1.e6 * rmsDiff( dataDisp00.get(i), dataDisp20.get(i), nstart, nend);
-                }
-            }
-            if (compute10) {
-                for (int i=0; i<3; i++) {
-                    results[i+3] += 1.e6 * rmsDiff( dataDisp10.get(i), dataDisp20.get(i), nstart, nend);
-                }
-            }
-
-            nEvents++;
-
-        } // eventKeys: end loop over events
-
-        if (nEvents == 0) { // Didn't make any measurements for this station
-            return;
+        // Loop over Events for this day
+        try {	// getZNE() method try/catch
+	        SortedSet<String> eventKeys = new TreeSet<String>(eventCMTs.keySet());
+	        for (String key : eventKeys) {
+	
+	            EventCMT eventCMT = eventCMTs.get(key);
+	
+	            // Window the data from the Event (PDE) Origin.
+	            //   Use larger time window to do the instrument decons and trim it down later:
+	
+	            long duration = 8000000L; // 8000 sec = 8000000 msecs
+	            long eventStartTime = eventCMT.getTimeInMillis();   // Event origin epoch time in millisecs
+	            long eventEndTime   = eventStartTime + duration;
+	
+	            // Use P and S arrival times to trim the window down for comparison:
+	            double[] arrivalTimes = getEventArrivalTimes(eventCMT);
+	            if (arrivalTimes == null) {
+	                System.out.format("== %s: arrivalTimes==null for stn=[%s]: Distance to stn probably > 97-deg --> Don't compute metric\n", getName(), getStation());
+	                continue;
+	            }
+	
+	            eventNumber ++;
+	            int nstart = (int)(arrivalTimes[0] - 120.); // P - 120 sec
+	            int nend   = (int)(arrivalTimes[1] + 60.);  // S + 120 sec
+	            if (nstart < 0) nstart = 0;
+	            //System.out.format("== %s: arrivalTimes[0]==%f arrivalTimes[1]=%f: nstart=%d nend=%d\n", getName(), arrivalTimes[0],
+	            //arrivalTimes[1], nstart, nend);
+	
+	            ResponseUnits units = ResponseUnits.DISPLACEMENT;
+	            ArrayList<double[]> dataDisp    = new ArrayList<double[]>();
+	
+	            ArrayList<double[]> dataDisp00  = null;
+	            if (compute00) {
+	                dataDisp00  = metricData.getZNE(units, "00", "LH", eventStartTime, eventEndTime, f1, f2, f3, f4);
+	                if (dataDisp00 != null) {
+	                    dataDisp.addAll(dataDisp00);
+	                }
+	                else {
+	                    compute00 = false;
+	                }
+	            }
+	            ArrayList<double[]> dataDisp10  = null;
+	            if (compute10) {
+	                dataDisp10  = metricData.getZNE(units, "10", "LH", eventStartTime, eventEndTime, f1, f2, f3, f4);
+	                if (dataDisp10 != null) {
+	                    dataDisp.addAll(dataDisp10);
+	                }
+	                else {
+	                    compute10 = false;
+	                }
+	            }
+	            ArrayList<double[]> dataDisp20  = metricData.getZNE(units, "20", "LN", eventStartTime, eventEndTime, f1, f2, f3, f4);
+	            if (dataDisp20 != null) {
+	                dataDisp.addAll(dataDisp20);
+	            }
+	
+	            if ((dataDisp00 == null && dataDisp10 == null) || dataDisp20 == null) {
+	                System.out.format("== %s: getZNE returned null data --> skip this event\n", getName() );
+	                continue;
+	            }
+	
+	            if (getMakePlots()){
+	                makePlots(dataDisp00, dataDisp10, dataDisp20, nstart, nend, key, eventNumber);
+	            }
+	
+	
+	            // Displacements are in meters so rmsDiff's will be small
+	            //   scale rmsDiffs to micrometers:
+	
+	            if (compute00) {
+	                for (int i=0; i<3; i++) {
+	                    results[i] += 1.e6 * rmsDiff( dataDisp00.get(i), dataDisp20.get(i), nstart, nend);
+	                }
+	            }
+	            if (compute10) {
+	                for (int i=0; i<3; i++) {
+	                    results[i+3] += 1.e6 * rmsDiff( dataDisp10.get(i), dataDisp20.get(i), nstart, nend);
+	                }
+	            }
+	
+	            nEvents++;
+	
+	        } // eventKeys: end loop over events
+	
+	        if (nEvents == 0) { // Didn't make any measurements for this station
+	            return;
+	        }
+	
+	        if (compute00) {
+	            for (int i=0; i<3; i++) {
+	                Channel channelX = channels[i];
+	                Channel channelY = channels[i+6];
+	                double result = results[i]/(double)nEvents;
+	                ByteBuffer digest = digestArray[i];
+	                metricResult.addResult(channelX, channelY, result, digest);
+	            }
+	        }
+	        if (compute10) {
+	            for (int i=3; i<6; i++) {
+	                Channel channelX = channels[i];
+	                Channel channelY = channels[i+3];
+	                double result = results[i]/(double)nEvents;
+	                ByteBuffer digest = digestArray[i];
+	                metricResult.addResult(channelX, channelY, result, digest);
+	            }
+	        }
+        } catch (ChannelMetaException e) {
+        	logger.error("EventCompareStrongMotion ChannelMetaException:", e);
+        } catch (MetricException e) {
+        	logger.error("EventCompareStrongMotion MetricException:", e);
+        } catch (PlotMakerException e) {
+        	logger.error("EventCompareStrongMotion PlotMakerException:", e);
+        } catch (TraceException e) {
+        	logger.error("EventCompareStrongMotion TraceException:", e);
         }
-
-        if (compute00) {
-            for (int i=0; i<3; i++) {
-                Channel channelX = channels[i];
-                Channel channelY = channels[i+6];
-                double result = results[i]/(double)nEvents;
-                ByteBuffer digest = digestArray[i];
-                metricResult.addResult(channelX, channelY, result, digest);
-            }
-        }
-        if (compute10) {
-            for (int i=3; i<6; i++) {
-                Channel channelX = channels[i];
-                Channel channelY = channels[i+3];
-                double result = results[i]/(double)nEvents;
-                ByteBuffer digest = digestArray[i];
-                metricResult.addResult(channelX, channelY, result, digest);
-            }
-        }
-
     } // end process()
 
 /**
@@ -314,6 +324,7 @@ extends Metric
             timeTool.calculate(gcarc);
         }
         catch(Exception e) {
+        	logger.error("EventCompareStrongMotion Exception:", e);
         }
 
         List<Arrival> arrivals = timeTool.getArrivals();
@@ -355,7 +366,10 @@ extends Metric
     }
     
     public void makePlots(ArrayList<double[]> d00, ArrayList<double[]> d10, ArrayList<double[]> d20, int nstart, int nend, 
-                          String key, int eventNumber) {
+                          String key, int eventNumber) 
+    throws PlotMakerException,
+    	   TraceException
+    {
 
         PlotMaker2 plotMaker = null;
         final String plotTitle = String.format("[ Event: %s ] [ Station: %s ] [ Dist: %.2f ] %s", key, getStation(), xDist, getName() );
@@ -379,34 +393,40 @@ extends Metric
             xsecs[k] = (float)(k + nstart);        // hard-wired for LH? dt=1.0
         }
 
-        if (d00 != null) {
-            for (int i=0; i<d00.size(); i++) {
-                double[] dataIn  = d00.get(i);
-                double[] dataOut = new double[npts];
-                //System.out.format("== d00 channels[%d]=[%s] dataIn=%d pnts dataOut=%d pnts npts=%d nstart=%d\n", i, channels[i].toString(),
-                //dataIn.length, dataOut.length, npts , nstart);
-                System.arraycopy(dataIn,nstart,dataOut,0,npts);
-                plotMaker.addTraceToPanel( new Trace(xsecs, dataOut, channels[i].toString(), Color.green, stroke), i);
-            }
+        try {
+	        if (d00 != null) {
+	            for (int i=0; i<d00.size(); i++) {
+	                double[] dataIn  = d00.get(i);
+	                double[] dataOut = new double[npts];
+	                //System.out.format("== d00 channels[%d]=[%s] dataIn=%d pnts dataOut=%d pnts npts=%d nstart=%d\n", i, channels[i].toString(),
+	                //dataIn.length, dataOut.length, npts , nstart);
+	                System.arraycopy(dataIn,nstart,dataOut,0,npts);
+	                plotMaker.addTraceToPanel( new Trace(xsecs, dataOut, channels[i].toString(), Color.green, stroke), i);
+	            }
+	        }
+	        if (d10 != null) {
+	            for (int i=0; i<d10.size(); i++) {
+	                double[] dataIn  = d10.get(i);
+	                double[] dataOut = new double[npts];
+	                System.arraycopy(dataIn,nstart,dataOut,0,npts);
+	                //System.out.format("== d10 channels[%d]=[%s]\n", i+3, channels[i+3].toString() );
+	                plotMaker.addTraceToPanel( new Trace(xsecs, dataOut, channels[i+3].toString(), Color.red, stroke), i);
+	            }
+	        }
+	        if (d20 != null) {
+	            for (int i=0; i<d20.size(); i++) {
+	                double[] dataIn  = d20.get(i);
+	                double[] dataOut = new double[npts];
+	                System.arraycopy(dataIn,nstart,dataOut,0,npts);
+	                //System.out.format("== d20 channels[%d]=[%s]\n", i+6, channels[i+6].toString() );
+	                plotMaker.addTraceToPanel( new Trace(xsecs, dataOut, channels[i+6].toString(), Color.black, stroke), i);
+	            }
+	        }
+	        plotMaker.writePlot(pngName);
+        } catch (PlotMakerException e) {
+        	throw e;
+        } catch (TraceException e) {
+        	throw e;
         }
-        if (d10 != null) {
-            for (int i=0; i<d10.size(); i++) {
-                double[] dataIn  = d10.get(i);
-                double[] dataOut = new double[npts];
-                System.arraycopy(dataIn,nstart,dataOut,0,npts);
-                //System.out.format("== d10 channels[%d]=[%s]\n", i+3, channels[i+3].toString() );
-                plotMaker.addTraceToPanel( new Trace(xsecs, dataOut, channels[i+3].toString(), Color.red, stroke), i);
-            }
-        }
-        if (d20 != null) {
-            for (int i=0; i<d20.size(); i++) {
-                double[] dataIn  = d20.get(i);
-                double[] dataOut = new double[npts];
-                System.arraycopy(dataIn,nstart,dataOut,0,npts);
-                //System.out.format("== d20 channels[%d]=[%s]\n", i+6, channels[i+6].toString() );
-                plotMaker.addTraceToPanel( new Trace(xsecs, dataOut, channels[i+6].toString(), Color.black, stroke), i);
-            }
-        }
-        plotMaker.writePlot(pngName);
     }
 }

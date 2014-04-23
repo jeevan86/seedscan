@@ -100,91 +100,87 @@ public class Steim2 {
 	 *  @return int array of length <b>numSamples</b>.
 	 *  @throws SteimException - encoded data length is not multiple of 64
 	 *  bytes.
-	 */	public static int[] decode(byte[] b, int numSamples, boolean swapBytes, int bias) throws SteimException {
-		if (b.length % 64 != 0) {
-		  //throw new SteimException("encoded data length is not multiple of 64 bytes (" + b.length + ")"); 
-			SteimException e = new SteimException("encoded data length is not multiple of 64 bytes (" + b.length + ")");
-			logger.error("Steim2 SteimException:", e);
-			return null;
-		}
-    dbg=false;
-    for(int i=0; i<63; i++) {frameReverse[i]=2147000000; frameNsamp[i] = 0;frameForward[i]=-2147000000;}
-    reverseError=null;
-    sampleCountError=null;
-		int[] samples = new int[numSamples];
-    if(numSamples == 0) return samples;
-		int[] tempSamples;
-		int numFrames = b.length / 64;
-    if(numFrames < 1 || numFrames > 64) throw new SteimException("# frames unknown = "+numFrames);
-		int current = 0;
-		int start=0, end=0;
-		int firstData=0;
-		int lastValue = 0;
-    
-    if(dbg ){
-      if(sb == null) sb=new StringBuffer(10000);
-      else sb.delete(0,  sb.length()-1);
-    }
-    int lastCurrent=0;
-		//System.err.println("DEBUG: number of samples: " + numSamples + ", number of frames: " + numFrames + ", byte array size: " + b.length);
-		for (int i=0; i< numFrames; i++ ) {
-			//System.err.println("DEBUG: start of frame " + i);
-			tempSamples = extractSamples(b, i*64, swapBytes);   // returns only differences except for frame 0
-			firstData = 0; // d(0) is byte 0 by default
-			if (i==0) {   // special case for first frame
-				lastValue = bias; // assign our X(-1)
-				xminus1=lastValue;
-				// x0 and xn are in 1 and 2 spots
-				start = tempSamples[1];  // X(0) is byte 1 for frame 0
-				end = tempSamples[2];    // X(n) is byte 2 for frame 0
-				firstData = 3; // d(0) is byte 3 for frame 0
-				//System.err.println("DEBUG: frame " + i + ", bias = " + bias + ", x(0) = " + start + ", x(n) = " + end);
-				// if bias was zero, then we want the first sample to be X(0) constant
-        if(tempSamples.length < 4)
-          Util.prt("   **** Bad tempsamples (<3) in first frame!="+tempSamples.length);
-        else if (bias == 0) {
-          lastValue = start - tempSamples[3];  // X(-1) = X(0) - d(0)
-          xminus1 = lastValue;
-        }
+	 */	public static int[] decode(byte[] b, int numSamples, boolean swapBytes, int bias) 
+		throws SteimException {
+			if (b.length % 64 != 0) {
+				throw new SteimException("encoded data length is not multiple of 64 bytes (" + b.length + ")"); 
 			}
-			//System.err.print("DEBUG: ");
-			for (int j = firstData; j < tempSamples.length && current < numSamples; j++) {
-				samples[current] = lastValue + tempSamples[j];  // X(n) = X(n-1) + d(n)
-				lastValue = samples[current];
-				//System.err.print("d(" + (j-firstData) + ")" + tempSamples[j] + ", x(" + current + ")" + samples[current] + ";");
-				current++;
-			}
-			//System.err.println("DEBUG: end of frame " + i);
-      if(i == 0) frameNsamp[i] = current;
-      else frameNsamp[i] = current - lastCurrent;   // number of samples in this frame
-      if(current > 0) frameReverse[i] = samples[current-1];
-      frameForward[i] = samples[lastCurrent];
-      lastCurrent = current;
-      if(current >= numSamples) break;                // no need to process the empty frames
-		}  // end for each frame...
-    if(current <= 0) {
-      //System.out.println("Steim2 illegal # current");
-      //throw new SteimException("Steim2 found no samples in block");
-    	SteimException e = new SteimException("Steim2 found no samples in block");
-    	logger.error("Steim2 SteimException:", e);
-    	return null;
-    }
-    if(samples[current-1] != end && (end != 0 || strictRIC)) {       // if end is zero, presume it was never set and hence is not an error
-      reverseError="Steim2 reverse integration error is="+samples[current-1]+"!="+end+" expected at "+(current-1);
-      //System.out.println("Steim2 reverse integration error is="+samples[current-1]+"!="+end+" rev constant");
-      if(traceBackErrors) {
-        RuntimeException e = new RuntimeException("Steim2 rev int err (non-fatal) is="+samples[current-1]+"!="+end+" rev constant");
-        logger.error("Steim2 RuntimeException:", e);
-      }
-    }
-    if(current != numSamples) {
-      sampleCountError="Steim2 sample count error got "+current+" expected "+numSamples;
-      //System.out.println(sampleCountError);
-      if(traceBackErrors) {
-        RuntimeException e = new RuntimeException("Steim2 sample Count err (non-fatal) is="+current+" expected"+numSamples);
-        logger.error("Steim2 RuntimeException:", e);
-      }
-    }
+			
+		    dbg=false;
+		    for(int i=0; i<63; i++) {frameReverse[i]=2147000000; frameNsamp[i] = 0;frameForward[i]=-2147000000;}
+		    reverseError=null;
+		    sampleCountError=null;
+				int[] samples = new int[numSamples];
+		    if(numSamples == 0) return samples;
+				int[] tempSamples;
+				int numFrames = b.length / 64;
+		    if(numFrames < 1 || numFrames > 64) throw new SteimException("# frames unknown = "+numFrames);
+				int current = 0;
+				int start=0, end=0;
+				int firstData=0;
+				int lastValue = 0;
+		    
+		    if(dbg ){
+		      if(sb == null) sb=new StringBuffer(10000);
+		      else sb.delete(0,  sb.length()-1);
+		    }
+		    int lastCurrent=0;
+				//System.err.println("DEBUG: number of samples: " + numSamples + ", number of frames: " + numFrames + ", byte array size: " + b.length);
+				for (int i=0; i< numFrames; i++ ) {
+					//System.err.println("DEBUG: start of frame " + i);
+					tempSamples = extractSamples(b, i*64, swapBytes);   // returns only differences except for frame 0
+					firstData = 0; // d(0) is byte 0 by default
+					if (i==0) {   // special case for first frame
+						lastValue = bias; // assign our X(-1)
+						xminus1=lastValue;
+						// x0 and xn are in 1 and 2 spots
+						start = tempSamples[1];  // X(0) is byte 1 for frame 0
+						end = tempSamples[2];    // X(n) is byte 2 for frame 0
+						firstData = 3; // d(0) is byte 3 for frame 0
+						//System.err.println("DEBUG: frame " + i + ", bias = " + bias + ", x(0) = " + start + ", x(n) = " + end);
+						// if bias was zero, then we want the first sample to be X(0) constant
+		        if(tempSamples.length < 4)
+		          Util.prt("   **** Bad tempsamples (<3) in first frame!="+tempSamples.length);
+		        else if (bias == 0) {
+		          lastValue = start - tempSamples[3];  // X(-1) = X(0) - d(0)
+		          xminus1 = lastValue;
+		        }
+					}
+					//System.err.print("DEBUG: ");
+					for (int j = firstData; j < tempSamples.length && current < numSamples; j++) {
+						samples[current] = lastValue + tempSamples[j];  // X(n) = X(n-1) + d(n)
+						lastValue = samples[current];
+						//System.err.print("d(" + (j-firstData) + ")" + tempSamples[j] + ", x(" + current + ")" + samples[current] + ";");
+						current++;
+					}
+					//System.err.println("DEBUG: end of frame " + i);
+		      if(i == 0) frameNsamp[i] = current;
+		      else frameNsamp[i] = current - lastCurrent;   // number of samples in this frame
+		      if(current > 0) frameReverse[i] = samples[current-1];
+		      frameForward[i] = samples[lastCurrent];
+		      lastCurrent = current;
+		      if(current >= numSamples) break;                // no need to process the empty frames
+				}  // end for each frame...
+		    if(current <= 0) {
+		      //System.out.println("Steim2 illegal # current");
+		      throw new SteimException("Steim2 found no samples in block");
+		    }
+		    if(samples[current-1] != end && (end != 0 || strictRIC)) {       // if end is zero, presume it was never set and hence is not an error
+		      reverseError="Steim2 reverse integration error is="+samples[current-1]+"!="+end+" expected at "+(current-1);
+		      //System.out.println("Steim2 reverse integration error is="+samples[current-1]+"!="+end+" rev constant");
+		      if(traceBackErrors) {
+		        RuntimeException e = new RuntimeException("Steim2 rev int err (non-fatal) is="+samples[current-1]+"!="+end+" rev constant");
+		        logger.error("Steim2 RuntimeException:", e);
+		      }
+		    }
+		    if(current != numSamples) {
+		      sampleCountError="Steim2 sample count error got "+current+" expected "+numSamples;
+		      //System.out.println(sampleCountError);
+		      if(traceBackErrors) {
+		        RuntimeException e = new RuntimeException("Steim2 sample Count err (non-fatal) is="+current+" expected"+numSamples);
+		        logger.error("Steim2 RuntimeException:", e);
+		      }
+		    }
 		return samples;
 	}
 
@@ -194,8 +190,12 @@ public class Steim2 {
 	 * @see edu.iris.Fissures.codec.Steim2#decode(byte[],int,boolean,int)
 	 */
 	public static int[] decode(byte[] b, int numSamples, boolean swapBytes) throws SteimException {
-		// zero-bias version of decode
-		return decode(b,numSamples,swapBytes,0);
+		try {
+			// zero-bias version of decode
+			return decode(b,numSamples,swapBytes,0);
+		} catch (SteimException e) {
+			throw e;
+		}
 	}
 
 	public static byte[] encode(int[] samples) {
@@ -394,7 +394,11 @@ public class Steim2 {
 		b[21] = 1;
 		b[22] = 0;
 		b[23] = 0;
-		temp = Steim2.decode(b, 17, false);
+		try {
+			temp = Steim2.decode(b, 17, false);
+		} catch (SteimException e) {
+			throw e;
+		}
 	}
 
 }

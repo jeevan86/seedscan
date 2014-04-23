@@ -414,7 +414,7 @@ public class Util extends Object {
   /** sleep the give number of milliseconds
    *@param ms THe number of millis to sleep */
   public static void sleep(int ms) {
-    try {Thread.sleep(Math.max(1,ms));} catch(InterruptedException e) {}
+    try {Thread.sleep(Math.max(1,ms));} catch(InterruptedException e) {logger.error("Util InterruptedException:", e);}
   }
   /**
    * Escape a string for use in an SQL query. The string is returned enclosed in
@@ -918,7 +918,9 @@ public class Util extends Object {
    *@param msecs Millis since midnight
    *@return The number of millis since 1970 per GregorianCalendar
    */
-  public synchronized static Long toGregorian2(int yymmdd, int msecs) {
+  public synchronized static Long toGregorian2(int yymmdd, int msecs) 
+  throws RuntimeException
+  {
     if(gstat == null) {
       gstat = new GregorianCalendar();
       gstat.setTimeZone(TimeZone.getTimeZone("GMT+0"));
@@ -936,18 +938,16 @@ public class Util extends Object {
     msecs =msecs - secs*1000;
     if(yr < 2000 || yr > 2030 || mon<=0 || mon > 12 || hr<0 || hr >23 || min <0 || min >59
         || secs < 0 || secs > 59 || msecs < 0 || msecs > 999) {
-      //throw new RuntimeException("toGregorian data out of range yr="+yr+
-      //    " mon="+mon+" day="+day+" "+hr+":"+min+":"+secs+"."+msecs);
-    	RuntimeException e = new RuntimeException("toGregorian data out of range yr="+yr+
-    	          " mon="+mon+" day="+day+" "+hr+":"+min+":"+secs+"."+msecs);
-    	logger.error("Util RuntimeException:", e);
-    	return null;
+      throw new RuntimeException("toGregorian data out of range yr="+yr+
+          " mon="+mon+" day="+day+" "+hr+":"+min+":"+secs+"."+msecs);
     }
     gstat.set(yr, mon-1, day, hr, min,secs);
     gstat.add(Calendar.MILLISECOND, msecs);
     return gstat.getTimeInMillis();
   }
+  
   public synchronized static GregorianCalendar toGregorian(int yymmdd, int msecs) 
+  throws RuntimeException
   {
     int yr = yymmdd/10000;
     if(yr < 100) yr = yr + 2000;
@@ -962,12 +962,8 @@ public class Util extends Object {
     msecs =msecs - secs*1000;
     if(yr < 2000 || yr > 2030 || mon<=0 || mon > 12 || hr<0 || hr >23 || min <0 || min >59
         || secs < 0 || secs > 59 || msecs < 0 || msecs > 999) {
-      //throw new RuntimeException("toGregorian data out of range yr="+yr+
-      //    " mon="+mon+" day="+day+" "+hr+":"+min+":"+secs+"."+msecs);
-    	RuntimeException e = new RuntimeException("toGregorian data out of range yr="+yr+
-    	          " mon="+mon+" day="+day+" "+hr+":"+min+":"+secs+"."+msecs);
-    	logger.error("Util RuntimeException:", e);
-    	return null;
+      throw new RuntimeException("toGregorian data out of range yr="+yr+
+          " mon="+mon+" day="+day+" "+hr+":"+min+":"+secs+"."+msecs);
     }
     GregorianCalendar now = new GregorianCalendar();
     now.setTimeZone(TimeZone.getTimeZone("GMT+0"));
@@ -976,6 +972,7 @@ public class Util extends Object {
     //Util.prt(yr+"/"+mon+"/"+day+" "+hr+":"+min+":"+secs+"."+msecs+" "+Util.asctime(now)+" "+Util.ascdate(now));
     return now;
   }
+  
   /** given a gregorian calendar return a date encoded yymmdd
    *@param d The gregoriancalendar to convert
    *@return The yymmdd encoded date
@@ -1216,7 +1213,8 @@ public class Util extends Object {
  * @return an array in yr, mon, day
    *@throws RuntimeException if its mis formatted
  */
-public static  int [] ymd_from_doy(int yr, int doy) throws RuntimeException
+public static  int [] ymd_from_doy(int yr, int doy) 
+throws RuntimeException
 {	int [] daytab = new int[] {0,31,28,31,30,31,30,31,31,30,31,30,31};
   int [] dayleap = new int[]{0,31,29,31,30,31,30,31,31,30,31,30,31};
   int j;
@@ -1248,10 +1246,7 @@ public static  int [] ymd_from_doy(int yr, int doy) throws RuntimeException
     }
   }
   System.out.println("ymd_from_doy: impossible drop through!   yr="+yr+" doy="+doy);
-  //throw new RuntimeException("ymd_from_DOY : impossible yr="+yr+" doy="+doy);
-  RuntimeException e = new RuntimeException("ymd_from_DOY : impossible yr="+yr+" doy="+doy);
-  logger.error("Util RuntimeException:", e);
-  return null;
+  throw new RuntimeException("ymd_from_DOY : impossible yr="+yr+" doy="+doy);
 }
 
   

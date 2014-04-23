@@ -22,18 +22,13 @@ public class PSD
 
     // constructor(s)
     public PSD(double[] dataX, double[] dataY, double dt)
+    throws RuntimeException
     {
         if (dataX.length != dataY.length) {
-            //throw new RuntimeException("== PSD Error: ndataX != ndataY --> Can't create new PSD");
-        	RuntimeException e = new RuntimeException("== PSD Error: ndataX != ndataY --> Can't create new PSD");
-        	logger.error("PSD RuntimeException:", e);
-        	return;
+            throw new RuntimeException("== PSD Error: ndataX != ndataY --> Can't create new PSD");
         }
         if (dt <= 0.) {
-            //throw new RuntimeException("== PSD Error: Invalid dt --> Can't create new PSD");
-        	RuntimeException e = new RuntimeException("== PSD Error: Invalid dt --> Can't create new PSD");
-        	logger.error("PSD RuntimeException:", e);
-        	return;
+            throw new RuntimeException("== PSD Error: Invalid dt --> Can't create new PSD");
         }
         this.dataX = dataX;
         this.dataY = dataY;

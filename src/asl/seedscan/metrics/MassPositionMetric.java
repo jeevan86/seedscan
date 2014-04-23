@@ -71,15 +71,21 @@ extends Metric
                 continue;
             }
 
+            try {
             double result = computeMetric(channel, station, day, metric);
 
             metricResult.addResult(channel, result, digest);
+            } catch (MetricException e) {
+            	logger.error("MassPositionMetric Exception:", e);
+            }
 
         }// end foreach channel
     } // end process()
 
 
-    private double computeMetric(Channel channel, String station, String day, String metric) {
+    private double computeMetric(Channel channel, String station, String day, String metric) 
+    throws MetricException
+    {
         ChannelMeta chanMeta = stationMeta.getChanMeta(channel);
         List<DataSet>datasets = metricData.getChannelData(channel);
 
@@ -94,9 +100,7 @@ extends Metric
         if (!(stage instanceof PolynomialStage)) {
             StringBuilder message = new StringBuilder();
             message.append(String.format("{} Error: station=[{}] channel=[{}] day=[{}]: Stage 1 is NOT a PolynomialStage!\n", metric, station, channel.toString(), day));
-            RuntimeException e = new RuntimeException(message.toString()); 
-            logger.error("MassPositionMetric RuntimeException:", e);
-            return NO_RESULT;
+            throw new MetricException(message.toString());
         }
         PolynomialStage polyStage = (PolynomialStage)stage;
         double[] coefficients = polyStage.getRealPolynomialCoefficients();
@@ -107,9 +111,7 @@ extends Metric
         if (coefficients.length != 2) {
             StringBuilder message = new StringBuilder();
             message.append(String.format("{} Error: station=[{}] channel=[{}] day=[{}]: We're expecting 2 coefficients for this PolynomialStage!\n", metric, station, channel.toString(), day));
-            RuntimeException e = new RuntimeException(message.toString()); 
-            logger.error("MassPositionMetric RuntimeException:", e); 
-            return NO_RESULT;
+            throw new MetricException(message.toString());
         }
         else {
             a0 = coefficients[0];
@@ -119,9 +121,7 @@ extends Metric
         if (a0 == 0 && a1 == 0 || lowerBound == 0 && upperBound == 0) {
             StringBuilder message = new StringBuilder();
             message.append(String.format("{} Error: station=[{}] channel=[{}] day=[{}]: We don't have enough information to compute mass position!\n", metric, station, channel.toString(), day));
-            RuntimeException e = new RuntimeException(message.toString());
-            logger.error("MassPositionMetric RuntimeException:", e);
-            return NO_RESULT;
+            throw new MetricException(message.toString());
         }
 
         double massPosition  = 0;

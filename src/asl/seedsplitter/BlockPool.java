@@ -68,7 +68,7 @@ public class BlockPool
         throws BlockSizeMismatchException
     {
         if (block.length != m_blockSize) {
-            throw new BlockSizeMismatchException("");
+            throw new BlockSizeMismatchException("BlockPool BlockSizeMismatchException");
         }
         m_pool.add(block);
     }

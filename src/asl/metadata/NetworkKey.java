@@ -34,10 +34,7 @@ public class NetworkKey extends Key
     throws WrongBlocketteException
     {
         if (blockette.getNumber() != DATALESS_VOLUME_BLOCKETTE_NUMBER) {
-            //throw new WrongBlocketteException();
-        	WrongBlocketteException e = new WrongBlocketteException();
-        	logger.error("NetworKey WrongBlocketteException:", e);
-        	return;
+            throw new WrongBlocketteException();
         }
         network = blockette.getFieldValue(9,0);
     }

@@ -21,6 +21,7 @@ import asl.seedscan.event.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -28,26 +29,25 @@ import java.util.TimeZone;
 import java.util.Hashtable;
 import java.util.TreeSet;
 import java.util.SortedSet;
-
 import java.awt.BasicStroke;
 import java.awt.Color;
-
 import java.nio.ByteBuffer;
+
 import asl.util.Hex;
 import asl.util.PlotMaker;
 import asl.util.PlotMaker2;
+import asl.util.PlotMakerException;
 import asl.util.Trace;
-
+import asl.util.TraceException;
 import asl.metadata.Channel;
 import asl.metadata.EpochData;
 import asl.metadata.meta_new.ChannelMeta;
 import asl.metadata.meta_new.ChannelMeta.ResponseUnits;
+import asl.metadata.meta_new.ChannelMetaException;
 import asl.seedsplitter.DataSet;
-
 import sac.SacTimeSeries;
 import sac.SacHeader;
 import timeutils.MyFilter;
-
 import edu.sc.seis.TauP.SphericalCoords;
 
 //import com.oregondsp.signalProcessing.filter.iir.*;
@@ -171,133 +171,142 @@ extends Metric
         int nEvents = 0;
         int eventNumber = 0;
 
-       // Loop over Events for this day
-
-        SortedSet<String> eventKeys = new TreeSet<String>(eventCMTs.keySet());
-        for (String key : eventKeys){
-            Hashtable<String, SacTimeSeries> synthetics = getEventSynthetics(key);
-            if (synthetics == null) {
-                System.out.format("== %s: No synthetics found for key=[%s] for this station\n", getName(), key);
-                continue;
-            }
-         // We do have synthetics for this station for this event --> Compare to data
-         // 1. Load up 3-comp synthetics
-            SacTimeSeries[] sacSynthetics = new SacTimeSeries[3];
-            String[] kcmp = {"Z","N","E"};
-            for (int i=0; i<3; i++){
-                String fileKey = getStn() + ".XX.LX" + kcmp[i] + ".modes.sac.proc"; // e.g., "ANMO.XX.LXZ.modes.sac.proc"
-                if (synthetics.containsKey(fileKey)) {
-                    sacSynthetics[i]   = synthetics.get(fileKey); 
-                    MyFilter.bandpass(sacSynthetics[i], f1, f2, f3, f4);
-                }
-                else {
-                    logger.warn(String.format("Error: Did not find sac synthetic=[%s] in Hashtable", fileKey) );
-                    return;
-                }
-            }
-
-            try {
-                //sacSynthetics[0].write("synth.z");
-            }
-            catch (Exception e){
-            }
-            hdr = sacSynthetics[0].getHeader();
-
-            eventNumber++;
-
-            long eventStartTime = getSacStartTimeInMillis(hdr);
-            //long eventStartTime = (eventCMTs.get(key)).getTimeInMillis();
-            long duration = 8000000L; // 8000 sec = 8000000 msecs
-            long eventEndTime   = eventStartTime + duration;
-
-            // 2. Load up Displacement Array
-            ResponseUnits units = ResponseUnits.DISPLACEMENT;
-            ArrayList<double[]> dataDisp  = new ArrayList<double[]>();
-
-            ArrayList<double[]> dataDisp00  = null;
-            if (compute00) {
-                dataDisp00  = metricData.getZNE(units, "00", "LH", eventStartTime, eventEndTime, f1, f2, f3, f4);
-                if (dataDisp00 != null) {
-                    dataDisp.addAll(dataDisp00);
-                }
-                else {
-                    compute00 = false;
-                }
-            }
-            ArrayList<double[]> dataDisp10  = null;
-            if (compute10) {
-                dataDisp10  = metricData.getZNE(units, "10", "LH", eventStartTime, eventEndTime, f1, f2, f3, f4);
-                if (dataDisp10 != null) {
-                    dataDisp.addAll(dataDisp10);
-                }
-                else {
-                    compute10 = false;
-                }
-            }
-            ArrayList<double[]> dataDisp3 = sacArrayToDouble(sacSynthetics);
-            if (dataDisp3 == null) {
-                System.out.format("== %s: Error loading sac synthetics for stn=[%s] --> skip\n", getName(), getStation() );
-                continue;
-            }
-            else {
-                dataDisp.addAll(dataDisp3);
-            }
-
-            if (dataDisp00 == null && dataDisp10 == null) {
-                System.out.format("== %s: getZNE returned null data --> skip this event\n", getName() );
-                continue;
-            }
-
-            // Window to use for comparisons
-            int nstart=0;
-            int nend=hdr.getNpts()-1;
-
-            if (getMakePlots()){
-                makePlots(dataDisp00, dataDisp10, dataDisp3, nstart, nend, key, eventNumber);
-            }
-
-        // Displacements are in meters so rmsDiff's will be small
-        //   scale rmsDiffs to micrometers:
-        // 2013-09-16: Switch to calcDiff = scaled power ratio
-
-            if (compute00) {
-                for (int i=0; i<3; i++) {
-                    //results[i] += 1.e6 * rmsDiff( dataDisp00.get(i), dataDisp3.get(i), nstart, nend);
-                    results[i] += calcDiff( dataDisp00.get(i), dataDisp3.get(i), nstart, nend);
-                }
-            }
-            if (compute10) {
-                for (int i=0; i<3; i++) {
-                    //results[i+3] += 1.e6 * rmsDiff( dataDisp10.get(i), dataDisp3.get(i), nstart, nend);
-                    results[i+3] += calcDiff( dataDisp10.get(i), dataDisp3.get(i), nstart, nend);
-                }
-            }
-
-            nEvents++;
-
-        } // eventKeys: end loop over events
-
-        if (nEvents == 0) { // Didn't make any measurements for this station
-            return;
+        // Loop over Events for this day
+        try {
+	        SortedSet<String> eventKeys = new TreeSet<String>(eventCMTs.keySet());
+	        for (String key : eventKeys){
+	            Hashtable<String, SacTimeSeries> synthetics = getEventSynthetics(key);
+	            if (synthetics == null) {
+	                System.out.format("== %s: No synthetics found for key=[%s] for this station\n", getName(), key);
+	                continue;
+	            }
+	         // We do have synthetics for this station for this event --> Compare to data
+	         // 1. Load up 3-comp synthetics
+	            SacTimeSeries[] sacSynthetics = new SacTimeSeries[3];
+	            String[] kcmp = {"Z","N","E"};
+	            for (int i=0; i<3; i++){
+	                String fileKey = getStn() + ".XX.LX" + kcmp[i] + ".modes.sac.proc"; // e.g., "ANMO.XX.LXZ.modes.sac.proc"
+	                if (synthetics.containsKey(fileKey)) {
+	                    sacSynthetics[i]   = synthetics.get(fileKey); 
+	                    MyFilter.bandpass(sacSynthetics[i], f1, f2, f3, f4);
+	                }
+	                else {
+	                    logger.warn(String.format("Error: Did not find sac synthetic=[%s] in Hashtable", fileKey) );
+	                    return;
+	                }
+	            }
+	            /**
+	            try {
+	                //sacSynthetics[0].write("synth.z");
+	            }
+	            catch (Exception e){
+	            }
+	            **/
+	            hdr = sacSynthetics[0].getHeader();
+	
+	            eventNumber++;
+	
+	            long eventStartTime = getSacStartTimeInMillis(hdr);
+	            //long eventStartTime = (eventCMTs.get(key)).getTimeInMillis();
+	            long duration = 8000000L; // 8000 sec = 8000000 msecs
+	            long eventEndTime   = eventStartTime + duration;
+	
+	            // 2. Load up Displacement Array
+	            ResponseUnits units = ResponseUnits.DISPLACEMENT;
+	            ArrayList<double[]> dataDisp  = new ArrayList<double[]>();
+	
+	            ArrayList<double[]> dataDisp00  = null;
+	            if (compute00) {
+	                dataDisp00  = metricData.getZNE(units, "00", "LH", eventStartTime, eventEndTime, f1, f2, f3, f4);
+	                if (dataDisp00 != null) {
+	                    dataDisp.addAll(dataDisp00);
+	                }
+	                else {
+	                    compute00 = false;
+	                }
+	            }
+	            ArrayList<double[]> dataDisp10  = null;
+	            if (compute10) {
+	                dataDisp10  = metricData.getZNE(units, "10", "LH", eventStartTime, eventEndTime, f1, f2, f3, f4);
+	                if (dataDisp10 != null) {
+	                    dataDisp.addAll(dataDisp10);
+	                }
+	                else {
+	                    compute10 = false;
+	                }
+	            }
+	            ArrayList<double[]> dataDisp3 = sacArrayToDouble(sacSynthetics);
+	            if (dataDisp3 == null) {
+	                System.out.format("== %s: Error loading sac synthetics for stn=[%s] --> skip\n", getName(), getStation() );
+	                continue;
+	            }
+	            else {
+	                dataDisp.addAll(dataDisp3);
+	            }
+	
+	            if (dataDisp00 == null && dataDisp10 == null) {
+	                System.out.format("== %s: getZNE returned null data --> skip this event\n", getName() );
+	                continue;
+	            }
+	
+	            // Window to use for comparisons
+	            int nstart=0;
+	            int nend=hdr.getNpts()-1;
+	
+	            if (getMakePlots()){
+	                makePlots(dataDisp00, dataDisp10, dataDisp3, nstart, nend, key, eventNumber);
+	            }
+	
+	        // Displacements are in meters so rmsDiff's will be small
+	        //   scale rmsDiffs to micrometers:
+	        // 2013-09-16: Switch to calcDiff = scaled power ratio
+	
+	            if (compute00) {
+	                for (int i=0; i<3; i++) {
+	                    //results[i] += 1.e6 * rmsDiff( dataDisp00.get(i), dataDisp3.get(i), nstart, nend);
+	                    results[i] += calcDiff( dataDisp00.get(i), dataDisp3.get(i), nstart, nend);
+	                }
+	            }
+	            if (compute10) {
+	                for (int i=0; i<3; i++) {
+	                    //results[i+3] += 1.e6 * rmsDiff( dataDisp10.get(i), dataDisp3.get(i), nstart, nend);
+	                    results[i+3] += calcDiff( dataDisp10.get(i), dataDisp3.get(i), nstart, nend);
+	                }
+	            }
+	
+	            nEvents++;
+	
+	        } // eventKeys: end loop over events
+	
+	        if (nEvents == 0) { // Didn't make any measurements for this station
+	            return;
+	        }
+	
+	        if (compute00) {
+	            for (int i=0; i<3; i++) {
+	                Channel channelX = channels[i];
+	                double result = results[i]/(double)nEvents;
+	                ByteBuffer digest = digestArray[i];
+	                metricResult.addResult(channelX, result, digest);
+	            }
+	        }
+	        if (compute10) {
+	            for (int i=3; i<6; i++) {
+	                Channel channelX = channels[i];
+	                double result = results[i]/(double)nEvents;
+	                ByteBuffer digest = digestArray[i];
+	                metricResult.addResult(channelX, result, digest);
+	            }
+	        }
+        } catch (ChannelMetaException e) {
+        	logger.error("EventCompareSynthetic ChannelMetaException:", e);
+        } catch (MetricException e) {
+        	logger.error("EventCompareSynthetic MetricException:", e);
+        } catch (PlotMakerException e) {
+        	logger.error("EventCompareSynthetic PlotMakerException:", e);
+        } catch (TraceException e) {
+        	logger.error("EventCompareSynthetic TraceException:", e);
         }
-
-        if (compute00) {
-            for (int i=0; i<3; i++) {
-                Channel channelX = channels[i];
-                double result = results[i]/(double)nEvents;
-                ByteBuffer digest = digestArray[i];
-                metricResult.addResult(channelX, result, digest);
-            }
-        }
-        if (compute10) {
-            for (int i=3; i<6; i++) {
-                Channel channelX = channels[i];
-                double result = results[i]/(double)nEvents;
-                ByteBuffer digest = digestArray[i];
-                metricResult.addResult(channelX, result, digest);
-            }
-        }
-
     } // end process()
 
     private long getSacStartTimeInMillis(SacHeader hdr){
@@ -320,6 +329,7 @@ extends Metric
             sac.write(filename);
         }
         catch (Exception e) {
+        	logger.warn("EventCompareSynthetic Exception:", e);
         }
     }
 
@@ -384,8 +394,11 @@ extends Metric
         return result;
     }
 
-    public void makePlots(ArrayList<double[]> d00, ArrayList<double[]> d10, ArrayList<double[]> d20, int nstart, int nend, String key, int eventNumber) {
-
+    public void makePlots(ArrayList<double[]> d00, ArrayList<double[]> d10, ArrayList<double[]> d20, 
+    					int nstart, int nend, String key, int eventNumber) 
+    throws PlotMakerException,
+    	   TraceException
+    {
         PlotMaker2 plotMaker = null;
         EventCMT eventCMT = eventCMTs.get(key);
         double evla  = eventCMT.getLatitude();
@@ -414,36 +427,42 @@ extends Metric
             xsecs[k] = (float)(k + nstart);        // hard-wired for LH? dt=1.0
         }
 
-        if (d00 != null) {
-            for (int i=0; i<d00.size(); i++) {
-                double[] dataIn  = d00.get(i);
-                double[] dataOut = new double[npts];
-                System.arraycopy(dataIn,nstart,dataOut,0,npts);
-                plotMaker.addTraceToPanel( new Trace(xsecs, dataOut, channels[i].toString(), Color.green, stroke), i);
-            }
+        try {	// addTraceToPanel()
+	        if (d00 != null) {
+	            for (int i=0; i<d00.size(); i++) {
+	                double[] dataIn  = d00.get(i);
+	                double[] dataOut = new double[npts];
+	                System.arraycopy(dataIn,nstart,dataOut,0,npts);
+	                plotMaker.addTraceToPanel( new Trace(xsecs, dataOut, channels[i].toString(), Color.green, stroke), i);
+	            }
+	        }
+	        if (d10 != null) {
+	            for (int i=0; i<d10.size(); i++) {
+	                double[] dataIn  = d10.get(i);
+	                double[] dataOut = new double[npts];
+	                System.arraycopy(dataIn,nstart,dataOut,0,npts);
+	                plotMaker.addTraceToPanel( new Trace(xsecs, dataOut, channels[i+3].toString(), Color.red, stroke), i);
+	            }
+	        }
+	        if (d20 != null) {
+	            for (int i=0; i<d20.size(); i++) {
+	                double[] dataIn  = d20.get(i);
+	                double[] dataOut = new double[npts];
+	                System.arraycopy(dataIn,nstart,dataOut,0,npts);
+	                // Convert synthetic channel XX-LHN to XX-LHND for plot legend
+	                String kChan = channels[i+6].toString();
+	                if (channels[i+6].toString().contains("LHN") || channels[i+6].toString().contains("LHE") ) {
+	                    kChan += "D";
+	                }
+	                plotMaker.addTraceToPanel( new Trace(xsecs, dataOut, kChan, Color.black, stroke), i);
+	            }
+	        }
+	
+	        plotMaker.writePlot(pngName);
+        } catch (PlotMakerException e) {
+        	throw e;
+        } catch (TraceException e) {
+        	throw e;
         }
-        if (d10 != null) {
-            for (int i=0; i<d10.size(); i++) {
-                double[] dataIn  = d10.get(i);
-                double[] dataOut = new double[npts];
-                System.arraycopy(dataIn,nstart,dataOut,0,npts);
-                plotMaker.addTraceToPanel( new Trace(xsecs, dataOut, channels[i+3].toString(), Color.red, stroke), i);
-            }
-        }
-        if (d20 != null) {
-            for (int i=0; i<d20.size(); i++) {
-                double[] dataIn  = d20.get(i);
-                double[] dataOut = new double[npts];
-                System.arraycopy(dataIn,nstart,dataOut,0,npts);
-                // Convert synthetic channel XX-LHN to XX-LHND for plot legend
-                String kChan = channels[i+6].toString();
-                if (channels[i+6].toString().contains("LHN") || channels[i+6].toString().contains("LHE") ) {
-                    kChan += "D";
-                }
-                plotMaker.addTraceToPanel( new Trace(xsecs, dataOut, kChan, Color.black, stroke), i);
-            }
-        }
-
-        plotMaker.writePlot(pngName);
     }
 }

@@ -27,6 +27,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Hashtable;
 import java.util.TreeSet;
+
 import asl.metadata.*;
 
 
@@ -75,29 +76,31 @@ public class StationMeta
     }
 
     public void setLatitude(double latitude)
+    throws StationMetaException
     {
         if (! (latitude <= 90. && latitude >= -90) ) {
-           //throw new RuntimeException("Error: station latitude must be: -90 <= val <= 90");
-           RuntimeException e = new RuntimeException("Error: station latitude must be: -90 <= val <= 90");
-           logger.error("StationMeta RuntimeException:", e);
-           return;
+           throw new StationMetaException("Error: station latitude must be: -90 <= val <= 90");
         }
         this.latitude = latitude;
     }
+    
     public void setLongitude(double longitude)
+    throws StationMetaException
     {
         if (! (longitude <= 180. && longitude >= -180) ) {
-           //throw new RuntimeException("Error: station longitude must be: -180 <= val <= 180");
-           RuntimeException e = new RuntimeException("Error: station longitude must be: -180 <= val <= 180");
-           logger.error("StationMeta RuntimeException:", e);
-           return;
+           throw new StationMetaException("Error: station longitude must be: -180 <= val <= 180");
         }
         this.longitude = longitude;
     }
+    
     public void setLatLon(double latitude, double longitude)
     {
-        this.setLatitude(latitude);
-        this.setLongitude(longitude);
+    	try {
+    		this.setLatitude(latitude);
+    		this.setLongitude(longitude);
+    	} catch (StationMetaException e) {
+    		logger.error("StationMeta Exception:", e);
+    	}
     }
     public void setElevation(double elevation)
     {
@@ -185,7 +188,7 @@ public class StationMeta
     // Add found Primary + Secondary seismic channels to channel array in order:
         for (int i=0; i<2; i++){
             for (int j=0; j<3; j++){
-                if (keys.contains(     new ChannelKey(location[i], chan[j]) ) ){
+                if (keys.contains(new ChannelKey(location[i], chan[j]) ) ){
                     channelArrayList.add( new Channel(location[i], chan[j]) );
                 }
                 else if (keys.contains(new ChannelKey(location[i], chan[j+3]) ) ){
@@ -425,14 +428,14 @@ public class StationMeta
             azimuth = 90.;  // EAST
         }
         else {
-            System.out.format("== addRotatedChannel: Error -- Don't know how to make channel=[%s]\n", derivedChannelName);
+            //System.out.format("== addRotatedChannel: Error -- Don't know how to make channel=[%s]\n", derivedChannelName);
             logger.error(String.format("== addRotatedChannel: Error -- Don't know how to make channel=[%s]\n", derivedChannelName));
             return;
         }
 
         if (!found) {
-            System.out.format("== addRotatedChannel: Error -- StationMeta doesn't contain horizontal channels "
-                            + "needed to make channel=[%s]\n", derivedChannelName);
+            //System.out.format("== addRotatedChannel: Error -- StationMeta doesn't contain horizontal channels "
+            //                + "needed to make channel=[%s]\n", derivedChannelName);
             logger.error(String.format("== addRotatedChannel: Error -- StationMeta doesn't contain horizontal channels "
                             + "needed to make channel=[%s]\n", derivedChannelName));
             return;
@@ -441,10 +444,14 @@ public class StationMeta
         Channel origChannel    = new Channel(location, origChannelName);
         Channel derivedChannel = new Channel(location, derivedChannelName);
 
-        // Deep copy the orig chanMeta to the derived chanMeta and set the derived chanMeta azimuth
-        ChannelMeta derivedChannelMeta = (getChanMeta(origChannel)).copy(derivedChannel);
-        derivedChannelMeta.setAzimuth(azimuth);
-        this.addChannel( new ChannelKey(derivedChannel), derivedChannelMeta);
+        try {	// ChannelMeta.copy(channel)
+	        // Deep copy the orig chanMeta to the derived chanMeta and set the derived chanMeta azimuth
+	        ChannelMeta derivedChannelMeta = (getChanMeta(origChannel)).copy(derivedChannel);
+	        derivedChannelMeta.setAzimuth(azimuth);
+	        this.addChannel( new ChannelKey(derivedChannel), derivedChannelMeta);
+        } catch (RuntimeException e) {
+        	logger.error("StationMeta RuntimeException:", e);
+        }
     }
 
 

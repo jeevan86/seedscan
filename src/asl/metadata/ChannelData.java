@@ -68,20 +68,20 @@ public class ChannelData
            WrongBlocketteException
     {
         if (blockette.getNumber() != CHANNEL_COMMENT_BLOCKETTE_NUMBER) {
-        	WrongBlocketteException e = new WrongBlocketteException();
-        	logger.error("ChannelData WrongBlocketteException:", e);
-        	return null;
+        	throw new WrongBlocketteException();
         }
         //Epoch epochNew = new Epoch(blockette);
         String timestampString = blockette.getFieldValue(3, 0);
         if (timestampString == null) {
-            MissingBlocketteDataException e = new MissingBlocketteDataException();
-            logger.error("ChannelData MissingBlocketteDataException", e);
-        	return null;
+        	throw new MissingBlocketteDataException();
         }
-        Calendar timestamp = BlocketteTimestamp.parseTimestamp(timestampString);
-        comments.put(timestamp, blockette);
-        return timestamp;
+        try {
+        	Calendar timestamp = BlocketteTimestamp.parseTimestamp(timestampString);
+        	comments.put(timestamp, blockette);
+        	return timestamp;
+        } catch(TimestampFormatException e) {
+        	throw e;
+        }
     }
 
     public boolean hasComment(Calendar timestamp)
@@ -101,22 +101,22 @@ public class ChannelData
            WrongBlocketteException
     {
         if (blockette.getNumber() != CHANNEL_EPOCH_INFO_BLOCKETTE_NUMBER) {
-        	WrongBlocketteException e = new WrongBlocketteException();
-        	logger.error("ChannelData WrongBlocketteException", e);
-            return null;
+        	throw new WrongBlocketteException();
         }
         //Epoch epochNew = new Epoch(blockette);
         String timestampString = blockette.getFieldValue(22, 0);
 
         if (timestampString == null) {
-        	MissingBlocketteDataException e = new MissingBlocketteDataException();
-        	logger.error("ChannelData MissingBlocketteDataException", e);
-            return null;
+        	throw new MissingBlocketteDataException();
         }
-        Calendar timestamp = BlocketteTimestamp.parseTimestamp(timestampString);
-        EpochData data = new EpochData(blockette);
-        epochs.put(timestamp, data);
-        return timestamp;
+        try {
+        	Calendar timestamp = BlocketteTimestamp.parseTimestamp(timestampString);
+        	EpochData data = new EpochData(blockette);
+        	epochs.put(timestamp, data);
+        	return timestamp;
+        } catch (TimestampFormatException e) {
+        	throw e;
+        }
     }
 
     public boolean hasEpoch(Calendar timestamp)

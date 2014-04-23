@@ -61,11 +61,9 @@ public class MetaServer
         logger.info("urlString="+urlString);
         try {
             meta = (MetaInterface)Naming.lookup(urlString);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             //System.out.format("== MetaServer: Error=%s\n", e.getMessage() );
             logger.error("MetaServer Exception:", e);
-            return;
         }
         useRemoteMeta = true;
     }
@@ -78,20 +76,16 @@ public class MetaServer
             metaGen = MetaGenerator.getInstance();
             //metaGen.loadDataless("/Users/mth/mth/ASLData/dcc/metadata/dataless");
             metaGen.loadDataless(datalessDir, networkSubset);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
         	logger.error("MetaServer Exception:", e);
-        	return;
         }
     }
 
     public void quit(){
         try { // Failure to do this may result in a hung application that doesn't quit
             UnicastRemoteObject.unexportObject(metaGen, true);
-        }
-        catch(RemoteException e) {
+        } catch(RemoteException e) {
             logger.error("MetaServer RemoteException:", e);
-            return;
         }
     }
 
@@ -105,10 +99,10 @@ public class MetaServer
             else {
                 stnMeta = metaGen.getStationMeta(station, timestamp);
             }
-        }
-        catch (Exception e) {
-            logger.error("MetaServer Exception:", e);
-            return null;
+        } catch (RemoteException e) {
+            logger.error("MetaServer RemoteException:", e);
+        } catch (RuntimeException e) {
+        	logger.error("MetaServer RuntimeException:", e);
         }
         logger.debug("getStationMeta Done");
         return stnMeta;
@@ -123,10 +117,8 @@ public class MetaServer
             else {
                 stations = metaGen.getStationList();
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             logger.error("MetaServer Exception:", e);
-            return null;
         }
         return stations;
     }

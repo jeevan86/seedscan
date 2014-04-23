@@ -80,6 +80,10 @@ extends TaskThread<MetricResult>
 	public void inject(MetricResult results)
 	throws InterruptedException
 	{
-		addTask("INJECT", results);
+		try {
+			addTask("INJECT", results);
+		} catch (InterruptedException e) {
+			throw e;
+		}
 	}
 }

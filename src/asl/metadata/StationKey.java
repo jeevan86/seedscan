@@ -37,6 +37,7 @@ implements Comparable<StationKey>
         network = blockette.getFieldValue(16,0);
         name = blockette.getFieldValue(3,0);
     }
+    
     // MTH:
     public StationKey(Station station)
     {

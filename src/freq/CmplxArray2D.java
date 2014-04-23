@@ -10,32 +10,25 @@ import org.slf4j.LoggerFactory;
  */
 public class CmplxArray2D {
 	private static final Logger logger = LoggerFactory.getLogger(freq.CmplxArray2D.class);
-    public CmplxArray2D(int x, int y) {
+	
+    public CmplxArray2D(int x, int y) 
+    throws IllegalArgumentException
+    {
         this(new float[x][y], new float[x][y]);   
     }
 
-    public CmplxArray2D(float[][] real, float[][] imag) {
+    public CmplxArray2D(float[][] real, float[][] imag) 
+    throws IllegalArgumentException
+    {
         if (real.length != imag.length) {
-            //throw new IllegalArgumentException("real and imag arrays must have same length: "+real.length+" "+imag.length);
-        	String message = String.format("real and imag arrays must have same length: "+real.length+" "+imag.length);
-        	IllegalArgumentException e = new IllegalArgumentException(message);
-        	logger.error("CmplxArray2D IllegalArgumentException:", e);
-        	return;
+            throw new IllegalArgumentException("real and imag arrays must have same length: "+real.length+" "+imag.length);
         }
         for(int i = 0; i < real.length; i++) {
             if (real[0].length != real[i].length) {
-                //throw new IllegalArgumentException("real array must be square: "+i+"  "+real[0].length+" "+real[i].length);
-            	String message = String.format("real array must be square: "+i+"  "+real[0].length+" "+real[i].length);
-            	IllegalArgumentException e = new IllegalArgumentException(message);
-            	logger.error("CmplxArray2D IllegalArgumentException:", e);
-            	return;
+                throw new IllegalArgumentException("real array must be square: "+i+"  "+real[0].length+" "+real[i].length);
             }
             if (real[i].length != imag[i].length) {
-                //throw new IllegalArgumentException("real[i] and imag[i] arrays must have same length: "+i+"  "+real[i].length+" "+imag[i].length);
-            	String message = String.format("real[i] and imag[i] arrays must have same length: "+i+"  "+real[i].length+" "+imag[i].length);
-            	IllegalArgumentException e = new IllegalArgumentException(message);
-            	logger.error("CmplxArray2D IllegalArgumentException:", e);
-            	return;
+                throw new IllegalArgumentException("real[i] and imag[i] arrays must have same length: "+i+"  "+real[i].length+" "+imag[i].length);
             }
         }
         this.real = real;

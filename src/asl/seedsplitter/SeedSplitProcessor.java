@@ -37,7 +37,6 @@ import seed.IllegalSeednameException;
 import seed.MiniSeed;
 import seed.SeedUtil;
 import seed.SteimException;
-
 import asl.concurrent.FallOffQueue;
 
 /**
@@ -291,7 +290,7 @@ implements Runnable
                             interval = DataSet.sampleRateToInterval(sampleRate);
                         } catch (IllegalSampleRateException e) {
                             MiniSeed ms = new MiniSeed(recordBytes);
-                            logger.debug(String.format("Illegal Sample Rate: sequence #%d, rate = %f", ms.getSequence(), sampleRate));
+                            logger.debug(String.format("Illegal Sample Rate: sequence #%d, rate = %f", ms.getSequence(), sampleRate), e);
                             discarded++;
                             break progress;
                         }
@@ -369,40 +368,46 @@ implements Runnable
                                 //throw new SeedRecordOverlapException();
                             }
                         }
-                        if (replaceDataSet) {
-                            if (tempData != null) {
-                                tree.add(tempData);
-                                logger.debug("Adding DataSet to TreeSet.");
-                                logger.debug(String.format("  Range: %s - %s (%d data points {CHECK: %d})",
-                                                           DataSet.timestampToString(tempData.getStartTime()),
-                                                           DataSet.timestampToString(tempData.getEndTime()),
-                                                           ((tempData.getEndTime() - tempData.getStartTime()) / tempData.getInterval() + 1),
-                                                           tempData.getLength()));
-                                tempData = null;
-                                temps.remove(key);
-                            }
-                            logger.debug("Creating new DataSet");
-                            tempData = new DataSet();
-                            tempData.setNetwork(network);
-                            tempData.setStation(station);
-                            tempData.setLocation(location);
-                            tempData.setChannel(channel);
-                            tempData.setStartTime(startTime);
-                            try {
-                                tempData.setSampleRate(sampleRate);
-                            } catch (RuntimeException e) {
-                                MiniSeed ms = new MiniSeed(recordBytes);
-                                logger.debug(String.format("Invalid Start Time: sequence #%d", ms.getSequence()));
-                                tempData = null;
-                                break progress;
-                            } catch (IllegalSampleRateException e) {
-                                MiniSeed ms = new MiniSeed(recordBytes);
-                                logger.debug(String.format("Invalid Sample Rate: sequence #%d, rate = %f", ms.getSequence(), ms.getRate()));
-                                tempData = null;
-                                break progress;
-                            }
-                            temps.put(key, tempData);
-                        } // replaceDataSet
+                        try {
+	                        if (replaceDataSet) {
+	                            if (tempData != null) {
+	                                tree.add(tempData);
+	                                logger.debug("Adding DataSet to TreeSet.");
+	                                logger.debug(String.format("  Range: %s - %s (%d data points {CHECK: %d})",
+	                                                           DataSet.timestampToString(tempData.getStartTime()),
+	                                                           DataSet.timestampToString(tempData.getEndTime()),
+	                                                           ((tempData.getEndTime() - tempData.getStartTime()) / tempData.getInterval() + 1),
+	                                                           tempData.getLength()));
+	                                tempData = null;
+	                                temps.remove(key);
+	                            }
+	                            logger.debug("Creating new DataSet");
+	                            tempData = new DataSet();
+	                            tempData.setNetwork(network);
+	                            tempData.setStation(station);
+	                            tempData.setLocation(location);
+	                            tempData.setChannel(channel);
+	                            tempData.setStartTime(startTime);
+	                            try {
+	                                tempData.setSampleRate(sampleRate);
+	                            } catch (RuntimeException e) {
+	                                MiniSeed ms = new MiniSeed(recordBytes);
+	                                logger.debug(String.format("Invalid Start Time: sequence #%d", ms.getSequence()), e);
+	                                tempData = null;
+	                                break progress;
+	                            } catch (IllegalSampleRateException e) {
+	                                MiniSeed ms = new MiniSeed(recordBytes);
+	                                logger.debug(String.format("Invalid Sample Rate: sequence #%d, rate = %f", ms.getSequence(), ms.getRate()), e);
+	                                tempData = null;
+	                                break progress;
+	                            }
+	                            temps.put(key, tempData);
+	                        } // replaceDataSet
+                        } catch (CloneNotSupportedException e) {
+                        	logger.error("SeedSplitProcessor CloneNotSupportedException:", e);
+                        } catch (RuntimeException e) {
+                        	logger.error("SeedSplitProcessor RuntimeException:", e);
+                        }
 
                         record = new MiniSeed(recordBytes);
                         samples = record.decomp();
@@ -553,10 +558,7 @@ implements Runnable
                         currDataSet.mergeInto(lastDataSet);
                         logger.debug("Done.");
                     } catch (SequenceIntervalMismatchException e) {
-                        //throw new RuntimeException("Interval Mismatch. This should never happen!");
-                    	String message = "SeedSplitProcessor RuntimeException: Interval Mismatch. This should never happen!";
-                    	logger.error(message, e);
-                    	return;
+                        throw new RuntimeException("Interval Mismatch. This should never happen!");
                     } catch (SequenceMergeRangeException e) {
                         logger.error("SeedSplitProcessor SequenceMergeRangeException:", e);
                         list.add(lastDataSet);
@@ -569,6 +571,8 @@ implements Runnable
                         lastDataSet = currDataSet;
                         currDataSet = null;
                         //throw new RuntimeException("Timing Error. These sequences cannot be correctly paired!");
+                    } catch (BlockSizeMismatchException e) {
+                    	logger.error("SeedSplitProcessor BlockSizeMismatchException: BlockPool.addBlock() Impossible situation!", e);
                     }
                 }
                 list.add(lastDataSet);

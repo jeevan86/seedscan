@@ -37,46 +37,42 @@ public class Station
 
     public Station(String network, String station)
     {
-        setNetwork(network);
-        setStation(station);
+    	try {
+    		setNetwork(network);
+    		setStation(station);
+    	} catch (StationException e) {
+    		logger.error("Station Exception:", e);
+    	}
     }
 
 // MTH: in the spirit of "fail early", I'm going to make this even more restrictive:
 //      Network must be exactly 2 characters long
 //      Station must be either 3 or 4 characters long
 
-    public void setNetwork(String network) {
+    public void setNetwork(String network) 
+    throws StationException
+    {
         if (network != null) {
             if (!(network.length()==2) ) {
-                //throw new RuntimeException("network name MUST be 2-character string!");
-                RuntimeException e = new RuntimeException("Network name MUST be 2-character string!");
-                logger.error("Station RuntimeException:", e);
-                return;
+                throw new StationException("network name MUST be 2-character string!");
             }
             else {
                 this.network = network;
             }
         }
         else {
-            //throw new RuntimeException("network name CANNOT be null!");
-            RuntimeException e = new RuntimeException("Network name CANNOT be null!");
-            logger.error("Station RuntimException:", e);
-            return;
+            throw new StationException("network name CANNOT be null!");
         }
     }
 
-    public void setStation(String station) {
+    public void setStation(String station) 
+    throws StationException
+    {
         if (station == null) {
-            //throw new RuntimeException("station cannot be null");
-        	RuntimeException e = new RuntimeException("Station cannot be null!");
-        	logger.error("Station RuntimException:", e);
-        	return;
+            throw new StationException("station cannot be null");
         }
         if (station.length() < 3 || station.length() > 5)  {
-            //throw new RuntimeException("Error: Station name MUST be between 3 and 5 characters long");
-        	RuntimeException e = new RuntimeException("Error: Station name MUST be between 3 and 5 characters long");
-        	logger.error("Station RuntimException:", e);
-        	return;
+            throw new StationException("Error: Station name MUST be between 3 and 5 characters long");
         }
         this.station = station;
     }

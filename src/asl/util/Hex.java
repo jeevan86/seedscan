@@ -26,16 +26,25 @@ import org.slf4j.LoggerFactory;
 public class Hex
 {
 	private static final Logger logger = LoggerFactory.getLogger(asl.util.Hex.class);
+	
     public static String byteArrayToHexString(byte[] byteArray)
     throws IllegalArgumentException
     {
-        return byteArrayToHexString(byteArray, false);
+    	try {
+    		return byteArrayToHexString(byteArray, false);
+    	} catch (IllegalArgumentException e) {
+    		throw e;
+    	}
     }
 
     public static String byteBufferToHexString(ByteBuffer byteBuffer, boolean upperCase)
     throws IllegalArgumentException
     {
-        return byteArrayToHexString(byteBuffer.array());
+    	try {
+    		return byteArrayToHexString(byteBuffer.array());
+    	} catch (IllegalArgumentException e) {
+    		throw e;
+    	}
     }
 
     public static String byteArrayToHexString(byte[] byteArray, boolean upperCase)
@@ -43,8 +52,12 @@ public class Hex
     {
         StringBuilder builder = new StringBuilder();
         for (byte b: byteArray) {
-            builder.append((char)((int) valueToHexChar(((b >> 4) & 0x0f), upperCase)));
-            builder.append((char)((int) valueToHexChar((b & 0x0f), upperCase)));
+        	try {
+        		builder.append((char)((int) valueToHexChar(((b >> 4) & 0x0f), upperCase)));
+        		builder.append((char)((int) valueToHexChar((b & 0x0f), upperCase)));
+        	} catch (IllegalArgumentException e) {
+        		throw e;
+        	}
         }
         return builder.toString();
     }
@@ -52,7 +65,11 @@ public class Hex
     public static ByteBuffer hexStringToByteBuffer(String hexString)
     throws IllegalArgumentException
     {
-        return ByteBuffer.wrap(hexStringToByteArray(hexString));
+    	try {
+    		return ByteBuffer.wrap(hexStringToByteArray(hexString));
+    	} catch (IllegalArgumentException e) {
+    		throw e;
+    	}
     }
 
     public static byte[] hexStringToByteArray(String hexString)
@@ -62,7 +79,11 @@ public class Hex
         int byteCount = chars.length / 2 + chars.length % 2;
         byte[] bytes = new byte[byteCount];
         for (int i=0; i < chars.length; i++) {
-            bytes[i/2] |= hexCharToValue(chars[i]) << (4 * ((i+1) % 2)) & 0xff;
+        	try {
+        		bytes[i/2] |= hexCharToValue(chars[i]) << (4 * ((i+1) % 2)) & 0xff;
+        	} catch (IllegalArgumentException e) {
+        		throw e;
+        	}
         }
         return bytes;
     }
@@ -70,7 +91,11 @@ public class Hex
     public static int valueToHexChar(int b)
     throws IllegalArgumentException
     {
-        return valueToHexChar(b, false);
+    	try {
+    		return valueToHexChar(b, false);
+    	} catch (IllegalArgumentException e) {
+    		throw e;
+    	}
     }
 
     public static Integer valueToHexChar(int b, boolean upper)
@@ -94,11 +119,7 @@ public class Hex
             case 13 : result = (upper ? 'D' : 'd'); break;
             case 14 : result = (upper ? 'E' : 'e'); break;
             case 15 : result = (upper ? 'F' : 'f'); break;
-            default : 
-            	//throw new IllegalArgumentException();
-            	IllegalArgumentException e = new IllegalArgumentException();
-            	logger.error("Hex IllegalArgumentException:", e);
-            	return null;
+            default : throw new IllegalArgumentException();
         }
         return (int) result;
     }
@@ -129,11 +150,7 @@ public class Hex
             case 'e' : result = 14; break;
             case 'F' :
             case 'f' : result = 15; break;
-            default  : 
-            	//throw new IllegalArgumentException();
-            	IllegalArgumentException e = new IllegalArgumentException();
-            	logger.error("Hex IllegalArgumentException:", e);
-            	return null;
+            default  : throw new IllegalArgumentException();
         }
         return result;
     }

@@ -74,7 +74,6 @@ public class PassKey
             //throw new RuntimeException("Password hashing algorithm '"+HASH_ALGORITHM+"' not present.");
         	String message = new String("PassKey RuntimeException: Password hashing algorithm '"+HASH_ALGORITHM+"' not present.");
         	logger.error(message, e);
-        	return;
         } catch (InvalidKeySpecException e) {
             //throw new RuntimeException("PBEKeySpec for algorithm '"+HASH_ALGORITHM+"' not present.");
         	String message = new String("PassKey RuntimeException: PBEKeySpec for algorithm '"+HASH_ALGORITHM+"' not present.");

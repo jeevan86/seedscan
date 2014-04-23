@@ -100,10 +100,10 @@ public class Scan
     }
 
     public MetricWrapper getMetric(int index)
-        throws IndexOutOfBoundsException
-        {
-            return metrics.get(index);
-        }
+    throws IndexOutOfBoundsException
+    {
+    	return metrics.get(index);
+    }
 
     public ArrayList<MetricWrapper> getMetrics()
     {
@@ -116,10 +116,10 @@ public class Scan
     }
 
     public MetricWrapper removeMetric(int index)
-        throws IndexOutOfBoundsException
-        {
-            return metrics.remove(index);
-        }
+    throws IndexOutOfBoundsException
+    {
+    	return metrics.remove(index);
+    }
 
     public void clearMetrics()
     {

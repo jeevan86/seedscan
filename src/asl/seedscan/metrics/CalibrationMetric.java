@@ -109,30 +109,36 @@ extends Metric
                 continue;
             }
 
-            CalibrationResult calResult = computeMetric(channel, station, day, metric);
-
-            if (calResult == null) {
-                logger.info("CalResult == NULL for Channel=[{}] + Day=[{}]", channel, getDay());
-                // Do nothing --> skip to next channel
-            }
-            else {
-                logger.info("channel=[{}] day=[{}] CalResult Follows", channel, getDay() );
-                logger.info(calResult.toString());
-                logger.info(calResult.toJSONString());
-
-                // In this special case, we don't care about the (single double) result value 
-                // since everything is packed into a JSON String so we'll just directly call 
-                double dummyValue = -999.;
-/** Temp disable in master branch until James tests the JSON injections
-                metricResult.addResult(calResult.toJSONString(), dummyValue, digest);
-                //MetricResult.createChannel(calResult.toJSONString());
-**/
+            try {
+	            CalibrationResult calResult = computeMetric(channel, station, day, metric);
+	
+	            if (calResult == null) {
+	                logger.info("CalResult == NULL for Channel=[{}] + Day=[{}]", channel, getDay());
+	                // Do nothing --> skip to next channel
+	            }
+	            else {
+	                logger.info("channel=[{}] day=[{}] CalResult Follows", channel, getDay() );
+	                logger.info(calResult.toString());
+	                logger.info(calResult.toJSONString());
+	
+	                // In this special case, we don't care about the (single double) result value 
+	                // since everything is packed into a JSON String so we'll just directly call 
+	                double dummyValue = -999.;
+	/** Temp disable in master branch until James tests the JSON injections
+	                metricResult.addResult(calResult.toJSONString(), dummyValue, digest);
+	                //MetricResult.createChannel(calResult.toJSONString());
+	**/
+	            }
+            } catch (MetricException e) {
+            	logger.error("CalibrationMetric Exception:", e);
             }
 
         }// end foreach channel
     } // end process()
 
-    private CalibrationResult computeMetric(Channel channel, String station, String day, String metric) {
+    private CalibrationResult computeMetric(Channel channel, String station, String day, String metric)
+    throws MetricException
+    {
         if (!metricData.hasChannelData(channel)) {
             return null;
         }
@@ -250,9 +256,7 @@ extends Metric
         else {
             StringBuilder message = new StringBuilder(); 
             message.append(String.format("{} Error: station=[{}] channel[{}] day=[{}]: Unrecognized stage1 type != {'A' || 'B'} --> can't compute!", metric, station, channel.toString(), day));
-            RuntimeException e = new RuntimeException(message.toString());
-            logger.error("CalibrationMetric RuntimeException:", e);
-            return null;
+            throw new MetricException(message.toString());
         }
 
         PSD psdXY        = new PSD(inData, outData, dt);
@@ -481,10 +485,9 @@ extends Metric
             String fileName = null;
             try {
                 fileName = get("instrument-calibration-file");
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 logger.error("CalibrationMetric: Failed attempt to read instrument-calibration-file from config.xml: ", e);
-            }
+            } 
             readSensorTable(fileName);
         }
         //for (String sensorName : sensorTable.keySet() ){

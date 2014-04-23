@@ -47,7 +47,6 @@ public class Utility  {
 		}
 	}
 
-
 	// convert signed bytes to an integer value
 
 	/**
@@ -206,7 +205,6 @@ public class Utility  {
 		returnByteArray[1] = (byte)((a & 0x000000ff));
 		return returnByteArray;
 	}
-
 
 	// miscellaneous utilities
 

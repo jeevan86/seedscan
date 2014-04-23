@@ -59,9 +59,10 @@ public class ButterworthFilter implements FrequencyDomainProcess {
     public ButterworthFilter(SeisGramText localeText, 
                              double lowFreqCorner, 
                              double highFreqCorner, 
-			     int numPoles) {
+                             int numPoles) 
+    {
            this(localeText, lowFreqCorner, highFreqCorner, numPoles, CAUSAL);
-	   }
+    }
 
     public ButterworthFilter(SeisGramText localeText, 
                              double lowFreqCorner, 
@@ -80,12 +81,9 @@ public class ButterworthFilter implements FrequencyDomainProcess {
 	/** Method to set high frequency corner */
 
 	public void setHighFreqCorner(double freqValue) 
-									throws FilterException {
+	throws FilterException {
 		if (freqValue < FREQ_MIN || freqValue > FREQ_MAX) {
-			//throw new FilterException(localeText.invalid_high_frequency_corner);
-			FilterException e = new FilterException(localeText.invalid_high_frequency_corner);
-			logger.error("ButterworthFilter Exception:", e);
-			return;
+			throw new FilterException(localeText.invalid_high_frequency_corner);
 		}
 
 		highFreqCorner = freqValue;
@@ -95,31 +93,33 @@ public class ButterworthFilter implements FrequencyDomainProcess {
 	/** Method to set high frequency corner */
 
 	public void setHighFreqCorner(String str)
-									throws FilterException {
-
+	throws FilterException,
+		   NumberFormatException
+	{
 		double freqValue;
 
 		try {
 			freqValue = Double.valueOf(str).doubleValue();
 		} catch (NumberFormatException e) {
 			//throw new FilterException(localeText.invalid_high_frequency_corner);
-			logger.error("ButterworthFilter NumberFormatException:", e);
-			return;
+			throw e;
 		}
-
-		setHighFreqCorner(freqValue);
+		
+		try {
+			setHighFreqCorner(freqValue);
+		} catch (FilterException e) {
+			throw e;
+		}
 	}
 
 
 	/** Method to set low frequency corner */
 
 	public void setLowFreqCorner(double freqValue)
-									throws FilterException {
+	throws FilterException
+	{
 		if (freqValue < FREQ_MIN || freqValue > FREQ_MAX) {
-			//throw new FilterException(localeText.invalid_low_frequency_corner);
-			FilterException e = new FilterException(localeText.invalid_low_frequency_corner);
-			logger.error("ButterworthFilter Exception:", e);
-			return;
+			throw new FilterException(localeText.invalid_low_frequency_corner);
 		}
 
 		lowFreqCorner = freqValue;
@@ -129,33 +129,33 @@ public class ButterworthFilter implements FrequencyDomainProcess {
 	/** Method to set low frequency corner */
 
 	public void setLowFreqCorner(String str)
-									throws FilterException {
-
+	throws FilterException,
+		   NumberFormatException
+	{
 		double freqValue;
 
 		try {
 			freqValue = Double.valueOf(str).doubleValue();
 		} catch (NumberFormatException e) {
-			//throw new FilterException(localeText.invalid_low_frequency_corner);
-			logger.error("ButterworthFilter NumberFormatException:", e);
-			return;
+			throw e;
 		}
 
-		setLowFreqCorner(freqValue);
+		try {
+			setLowFreqCorner(freqValue);
+		} catch (FilterException e) {
+			throw e;
+		}
 	}
 
 
 	/** Method to set number of poles */
 
 	public void setNumPoles(int nPoles)
-									throws FilterException {
-
+	throws FilterException 
+	{
 		if (nPoles < NUM_POLES_MIN || nPoles > NUM_POLES_MAX
 				|| nPoles % 2 != 0) {
-			//throw new FilterException(localeText.invalid_number_of_poles);
-			FilterException e = new FilterException(localeText.invalid_number_of_poles);
-			logger.error("ButterworthFilter Exception:", e);
-			return;
+			throw new FilterException(localeText.invalid_number_of_poles);
 		}
 
 		numPoles = nPoles;
@@ -165,27 +165,31 @@ public class ButterworthFilter implements FrequencyDomainProcess {
 	/** Method to set number of poles */
 
 	public void setNumPoles(String str)
-									throws FilterException {
-
+	throws FilterException,
+		   NumberFormatException
+	{
 		int nPoles;
 
 		try {
 			nPoles = Integer.parseInt(str);
 		} catch (NumberFormatException e) {
-			//throw new FilterException(localeText.invalid_number_of_poles);
-			logger.error("ButterworthFilter NumberFormatException:", e);
-			return;
+			throw e;
 		}
 
-		setNumPoles(nPoles);
+		try {
+			setNumPoles(nPoles);
+		} catch (FilterException e) {
+			throw e;
+		}
 	}
 
 
 
 	/** Method to check settings */
 
-	void checkSettings() throws FilterException {
-
+	void checkSettings() 
+	throws FilterException 
+	{
 		String errMessage = "";
 		int badSettings = 0;
 
@@ -212,10 +216,7 @@ public class ButterworthFilter implements FrequencyDomainProcess {
 		}
 
 		if (badSettings > 0) {
-			//throw new FilterException(errMessage + ".");
-			FilterException e = new FilterException(errMessage + ".");
-			logger.error("ButterworthFilter Exception:", e);
-			return;
+			throw new FilterException(errMessage + ".");
 		}
 	}
 

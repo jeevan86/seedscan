@@ -39,7 +39,7 @@ extends Metric
         try {
             band = new PowerBand(Double.parseDouble(get("lower-limit")), Double.parseDouble(get("upper-limit")));
         } catch (NoSuchFieldException ex) {
-            ;
+        	logger.error("PowerBandMetric NoSuchFieldException:", ex);
         }
         return band;
     }

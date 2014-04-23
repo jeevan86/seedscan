@@ -685,7 +685,6 @@ public class RawToMiniSeed {
       prta("RTMS: odd rm3="+oob.get(seedname));
       RuntimeException e = new RuntimeException("RTMS: "+seedname+" julian="+julian+" "+SeedUtil.toJulian(year,doy)+"  time not right! yr="+year+" doy="+doy+" sec="+sec+" micros="+micros);
       logger.error("RawToMiniSeed RuntimeException:", e);
-      return;
     }
     
     // If this data is from the next day, cut off the old day

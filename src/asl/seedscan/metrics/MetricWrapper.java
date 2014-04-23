@@ -41,17 +41,28 @@ public class MetricWrapper
     public void add(String name, String value)
     throws NoSuchFieldException
     {
-        // We are actually calling Metric.add(name,value):
-        arguments.add(name, value);
+    	try {
+	        // We are actually calling Metric.add(name,value):
+	        arguments.add(name, value);
+    	} catch (NoSuchFieldException e) {
+    		throw e;
+    	}
     }
 
     public String get(String name)
     throws NoSuchFieldException
     {
-        return arguments.get(name);
+    	try {
+    		return arguments.get(name);
+    	} catch (NoSuchFieldException e) {
+    		throw e;
+    	}
     }
 
     public Metric getNewInstance()
+    throws InstantiationException,
+    	   IllegalAccessException,
+    	   NoSuchFieldException
     {
         try {
             Metric metric = (Metric)metricClass.newInstance();
@@ -66,14 +77,11 @@ public class MetricWrapper
             }
             return metric;
         } catch (InstantiationException ex) {
-        	logger.error("MetricWrapper.getNewInstance() InstantiationException:", ex); 
-        	return null;
+        	throw ex;
         } catch (IllegalAccessException ex) {
-            logger.error("MetricWrapper.getNewInstance() IllegalAccessException:", ex);
-            return null;
+        	throw ex;
         } catch (NoSuchFieldException ex) {
-            logger.error("MetricWrapper.getNewInstance() NoSuchFieldException:", ex);
-            return null;
+        	throw ex;
         }
     }
 }

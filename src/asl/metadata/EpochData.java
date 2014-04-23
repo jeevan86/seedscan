@@ -92,19 +92,15 @@ public class EpochData
         if (!startDateString.equals("(null)") ) {
           try {
             startTimestamp = BlocketteTimestamp.parseTimestamp(startDateString);
-          }
-          catch (TimestampFormatException e) {
+          } catch (TimestampFormatException e) {
         	  logger.error("EpochData TimestampFormatException:", e);
-        	  return;
           }
         }
         if (!endDateString.equals("(null)") ) {
           try {
             endTimestamp   = BlocketteTimestamp.parseTimestamp(endDateString);
-          }
-          catch (TimestampFormatException e) {
+          } catch (TimestampFormatException e) {
         	  logger.error("EpochData TimestampFormatException:", e);
-        	  return;
           }
         }
 

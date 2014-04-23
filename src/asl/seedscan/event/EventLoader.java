@@ -144,6 +144,7 @@ public class EventLoader
                     sac.read(sacFile);
                 }
                 catch (Exception e) {
+                	logger.error("EventLoader Exception:", e);
                 }
                 if (eventSynthetics == null) {
                     eventSynthetics = new Hashtable<String, SacTimeSeries>();

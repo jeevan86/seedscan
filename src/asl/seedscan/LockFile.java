@@ -47,8 +47,8 @@ public class LockFile
     public LockFile (String file)
     {
         this.file = new File(file);
-	this.file.setReadable(true, false);
-	this.file.setWritable(true, false);
+        this.file.setReadable(true, false);
+        this.file.setWritable(true, false);
     }
 
     public boolean acquire() {

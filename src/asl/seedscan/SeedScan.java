@@ -104,7 +104,7 @@ public class SeedScan
             }
         }
 
-// ==== Configuration Read and Parse Actions ====
+        // ==== Configuration Read and Parse Actions ====
         ConfigParser parser = new ConfigParser(schemaFiles);
         ConfigT config = parser.parseConfig(configFile);
 
@@ -344,7 +344,8 @@ public class SeedScan
             }
 	        logger.info("Injector thread halted.");
         } catch (InterruptedException ex) {
-        	logger.warn("The injector thread was interrupted while attempting to complete requests.");
+        	String message = "The injector thread was interrupted while attempting to complete requests.";
+        	logger.warn(message, ex);
         }
         
         try {
@@ -356,15 +357,16 @@ public class SeedScan
             }
 	        logger.info("Reader thread halted.");
         } catch (InterruptedException ex) {
-        	logger.warn("The reader thread was interrupted while attempting to complete requests.");
+        	String message = "The reader thread was interrupted while attempting to complete requests.";
+        	logger.warn(message, ex);
         }
 
         try {
             lock.release();
         } catch (IOException e) {
-            ;
+        	logger.error("SeedScan IOException:", e);
         } finally {
-logger.info("Release seedscan lock and quit metaServer");
+        	logger.info("Release seedscan lock and quit metaServer");
             lock = null;
             metaServer.quit();
         }

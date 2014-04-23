@@ -39,18 +39,13 @@ public class Trace
 
     // constructor(s)
     public Trace(double[] x, double[] y, String name, Color color, Stroke stroke)
+    throws TraceException
     {
         if (x.length <= 0 || y.length <= 0) {
-            //throw new RuntimeException("Trace Error: Either x[] or y[] is empty!");
-        	RuntimeException e = new RuntimeException("Trace Error: Either x[] or y[] is empty!");
-        	logger.error("Trace RuntimeException:", e);
-        	return;
+            throw new TraceException("Trace Error: Either x[] or y[] is empty!");
         }
         if (x.length != y.length) {
-            //throw new RuntimeException("Trace Error: x.lenth != y.length !");
-        	RuntimeException e = new RuntimeException("Trace Error: x.lenth != y.length !");
-        	logger.error("Trace RuntimeException:", e);
-        	return;
+            throw new TraceException("Trace Error: x.lenth != y.length !");
         }
         this.xdata = new double[x.length];
         System.arraycopy(x,0,this.xdata,0,x.length);

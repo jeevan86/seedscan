@@ -46,15 +46,12 @@ public class Blockette
         return number;
     }
 
-    public Boolean addFieldData(String fieldIdentifier, String data)
+    public boolean addFieldData(String fieldIdentifier, String data)
     throws BlocketteFieldIdentifierFormatException
     {
         String[] range = fieldIdentifier.split("-");
         if (range.length < 1) {
-            //throw new BlocketteFieldIdentifierFormatException("Invalid field identifier '" +fieldIdentifier+ "'"); 
-        	BlocketteFieldIdentifierFormatException e = new BlocketteFieldIdentifierFormatException();
-            logger.error("Blockette FieldIdentifierFormatException:", e);
-            return null;
+            throw new BlocketteFieldIdentifierFormatException("Invalid field identifier '" +fieldIdentifier+ "'"); 
         }
 
         int start = Integer.parseInt(range[0]);
@@ -149,9 +146,9 @@ public class Blockette
  // MTH: added this to return the fields hashtable for this blockette
     public Hashtable<Integer, Field> getFields()
     {
-if (fields == null){
-  System.out.println(" fields is null!! ");
-}
+    	if (fields == null){
+    		System.out.println(" fields is null!! ");
+    	}
         return fields;
     }
 }

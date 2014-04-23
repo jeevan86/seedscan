@@ -48,18 +48,14 @@ public class BlocketteTimestamp
             // There should be no more than three parts:
             //   year,day-of-year,time
             if (dateParts.length > 3) {
-            	TimestampFormatException e = new TimestampFormatException();
-                logger.error("BlocketteTimestamp TimestampFormatException:", e);
-                return null;
+            	throw new TimestampFormatException();
             }
             if (dateParts.length > 0) {
                 year = Integer.parseInt(dateParts[0]);
             }
             // An empty date is invalid
             else {
-            	TimestampFormatException e = new TimestampFormatException();
-                logger.error("BlocketteTimestamp TimestampFormatException:", e);
-                return null;
+            	throw new TimestampFormatException();
             }
             if (dateParts.length > 1) {
                 dayOfYear = Integer.parseInt(dateParts[1]);
@@ -72,9 +68,7 @@ public class BlocketteTimestamp
 
                 // There should be no more than three parts:
                 if (timeParts.length > 3) {
-                	TimestampFormatException e = new TimestampFormatException();
-                    logger.error("BlocketteTimestamp TimestampFormatException:", e);
-                    return null;
+                	throw new TimestampFormatException();
                 }
                 if (timeParts.length > 0) {
                     hour = Integer.parseInt(timeParts[0]);
@@ -92,19 +86,14 @@ public class BlocketteTimestamp
                         second = Integer.parseInt(secondParts[0]);
                     }
                     else  { // Something has gone wrong !!!
-                    	StringBuilder message = new StringBuilder();
-                    	message.append(String.format("Dataless.parseTimestamp(): Error parsing Timestamp={}\n", timestampString));
-                        RuntimeException e = new RuntimeException(message.toString());
-                    	logger.error("BlocketteTimestamp RuntimeException:", e);
-                    	return null;
+                    	//throw new RuntimeException("Dataless.parseTimestamp(): Error parsing Timestamp=" + timestamp);
+                    	throw new TimestampFormatException("Dataless.parseTimestamp(): Error parsing Timestamp=" + timestamp);
                     }
                 }
 //System.out.format("== parseTimestamp(%s) hour=%d minute=%d second=%d\n", timestampString, hour, minute, second );
             }
         } catch (NumberFormatException exception) {
-        	TimestampFormatException e = new TimestampFormatException();
-            logger.error("BlocketteTimestamp TimestampFormatException:", e);
-            return null;
+        	throw new TimestampFormatException(exception.getMessage());
         }
 
         timestamp.set(Calendar.YEAR, year);

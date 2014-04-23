@@ -50,12 +50,13 @@ public class DigitalStage extends ResponseStage
  *  Shallow copy - this will work for the primitives, but NOT the ArrayList coeff's
  *                 (it will only copy *references* to the coeffs ...)
  */
-    public DigitalStage clone() {
+    public DigitalStage clone()
+    {
         try {
             return (DigitalStage) super.clone();
         } catch (CloneNotSupportedException e) {
         	logger.error("DigitalStage CloneNotSupported:", e);
-            return null;
+        	return null;
         }
     }
 

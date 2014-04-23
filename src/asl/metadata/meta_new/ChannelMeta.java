@@ -82,9 +82,10 @@ public class ChannelMeta extends MemberDigest
 
     // constructor(s)
     public ChannelMeta(ChannelKey channel, Calendar metaTimestamp, Station station)
+    throws RuntimeException
     {
-   // We need to call the super constructor to start the MessageDigest
-        super();
+    	//We need to call the super constructor to start the MessageDigest
+    	super();
         this.name     = channel.getName();
         this.location = channel.getLocation();
         this.metaTimestamp = (Calendar)metaTimestamp.clone();
@@ -93,26 +94,45 @@ public class ChannelMeta extends MemberDigest
     }
 
     public ChannelMeta(ChannelKey channel, Calendar metaTimestamp)
+    throws RuntimeException
     {
         this (channel, metaTimestamp, null);
     }
 
     public ChannelMeta(String location, String channel, Calendar metaTimestamp)
+    throws RuntimeException
     {
         this(new ChannelKey(location, channel), metaTimestamp);
     }
 
-
-/**
- *  Deep copy method(s)
- */
-    public ChannelMeta copy() {
-        return copy(this.name);
+	/**
+	 *  Deep copy method(s)
+	 */
+    public ChannelMeta copy()
+    throws RuntimeException
+    {
+    	try {
+	    	ChannelMeta copyName = copy(this.name);
+	    	return copyName;
+    	} catch (RuntimeException e) {
+    		throw e;
+    	}
     }
-    public ChannelMeta copy(Channel channel) {
-        return copy(channel.getChannel());
+    
+    public ChannelMeta copy(Channel channel) 
+    throws RuntimeException
+    {
+    	try {
+    		ChannelMeta copyChan = copy(channel.getChannel());
+    		return copyChan;
+    	} catch (RuntimeException e) {
+    		throw e;
+    	}
     }
-    public ChannelMeta copy(String name) {
+    
+    public ChannelMeta copy(String name) 
+    throws RuntimeException
+    {
         String useName = null;
         if (name != null) {
             useName = name;
@@ -120,26 +140,30 @@ public class ChannelMeta extends MemberDigest
         else {
             useName = this.getName();
         }
-        ChannelMeta copyChan = new ChannelMeta(this.getLocation(), useName, this.getTimestamp() );
-        copyChan.sampleRate     = this.sampleRate;
-        copyChan.dip            = this.dip;
-        copyChan.azimuth        = this.azimuth;
-        copyChan.depth          = this.depth;
-        copyChan.dayBreak       = this.dayBreak;
-        copyChan.instrumentType = this.instrumentType;
-        copyChan.channelFlags   = this.channelFlags;
-
-        for (Integer stageID : this.stages.keySet() ){
-            ResponseStage stage = this.getStage(stageID);
-            ResponseStage copyStage = stage.copy();
-            copyChan.addStage(stageID, copyStage);
+        try {
+	        ChannelMeta copyChan = new ChannelMeta(this.getLocation(), useName, this.getTimestamp() );
+	        copyChan.sampleRate     = this.sampleRate;
+	        copyChan.dip            = this.dip;
+	        copyChan.azimuth        = this.azimuth;
+	        copyChan.depth          = this.depth;
+	        copyChan.dayBreak       = this.dayBreak;
+	        copyChan.instrumentType = this.instrumentType;
+	        copyChan.channelFlags   = this.channelFlags;
+	
+	        for (Integer stageID : this.stages.keySet() ){
+	            ResponseStage stage = this.getStage(stageID);
+	            ResponseStage copyStage = stage.copy();
+	            copyChan.addStage(stageID, copyStage);
+	        }
+	        return copyChan;
+        } catch (RuntimeException e) {
+        	throw e;
         }
-        return copyChan;
     }
 
-/**
- *  Add parts of this channelMeta to its digest
- */
+	/**
+	 *  Add parts of this channelMeta to its digest
+	 */
     public void addDigestMembers() {
 
       addToDigest(sampleRate);
@@ -164,7 +188,7 @@ public class ChannelMeta extends MemberDigest
             addToDigest(zeros.get(j).imag());
           }
         }
-     // Add Polynomial Stage to Digest
+        // Add Polynomial Stage to Digest
         else if (stage instanceof PolynomialStage){
           PolynomialStage poly = (PolynomialStage)stage;
           addToDigest(poly.getLowerApproximationBound());
@@ -175,20 +199,16 @@ public class ChannelMeta extends MemberDigest
             addToDigest(coeffs[j]);
           }
         }
-     // Add Digital Stage to Digest
+        // Add Digital Stage to Digest
         else if (stage instanceof DigitalStage){
           DigitalStage dig = (DigitalStage)stage;
           addToDigest(dig.getInputSampleRate());
           addToDigest(dig.getDecimation());
         }
       } //end loop over response stages
-
     } // end addDigestMembers()
-
-
-
+    
     // setter(s)
-
     public void setComment(String comment)
     {
         this.comment = comment;
@@ -223,7 +243,6 @@ public class ChannelMeta extends MemberDigest
     }
 
     // getter(s)
-
     public String getLocation() {
         return location;
     }
@@ -298,7 +317,7 @@ public class ChannelMeta extends MemberDigest
 //  Return true if any errors found in loaded ResponseStages
     public boolean invalidResponse()
     {
-//  If we have a seismic channel we need to ensure a valid response
+    	//  If we have a seismic channel we need to ensure a valid response
 
         boolean isSeismicChannel = false;
         boolean isMassPosition   = false;
@@ -311,15 +330,15 @@ public class ChannelMeta extends MemberDigest
         if (this.getName().substring(1,2).equals("M") ){
             isMassPosition = true;
         }
-/**
-    String excludeCodes = "MDIKRW"; // Channel codes that we DON'T expect to have a stage 0 (e.g., VM?, LD?, LIO, etc.)
-    if (excludeCodes.contains(this.getName().substring(1,2))) {
-        expectChannel0 = false;
-    }
-**/
+        /**
+    	String excludeCodes = "MDIKRW"; // Channel codes that we DON'T expect to have a stage 0 (e.g., VM?, LD?, LIO, etc.)
+    	if (excludeCodes.contains(this.getName().substring(1,2))) {
+        	expectChannel0 = false;
+    	}
+         **/
         if (getNumberOfStages() == 0) {
-            System.out.format("ChannelMeta.invalidResponse(): Error: No stages have been loaded for chan-loc=%s-%s\n"
-                               ,this.getLocation(), this.getName() );
+            //System.out.format("ChannelMeta.invalidResponse(): Error: No stages have been loaded for chan-loc=%s-%s\n"
+            //                   ,this.getLocation(), this.getName() );
             StringBuilder message = new StringBuilder();
             message.append(String.format("ChannelMeta.invalidResponse(): Error: No stages have been loaded for chan-loc=%s-%s\n"
                                ,this.getLocation(), this.getName()));
@@ -329,8 +348,8 @@ public class ChannelMeta extends MemberDigest
 
         if (isSeismicChannel) {
             if (!hasStage(0) || !hasStage(1) || !hasStage(2)){
-                System.out.format("ChannelMeta.invalidResponse(): Error: All Stages[=0,1,2] have NOT been loaded for chan-loc=%s-%s\n"
-                                   ,this.getLocation(), this.getName() );
+                //System.out.format("ChannelMeta.invalidResponse(): Error: All Stages[=0,1,2] have NOT been loaded for chan-loc=%s-%s\n"
+                //                   ,this.getLocation(), this.getName() );
                 StringBuilder message = new StringBuilder();
                 message.append(String.format("ChannelMeta.invalidResponse(): Error: All Stages[=0,1,2] have NOT been loaded for chan-loc=%s-%s\n"
                                    ,this.getLocation(), this.getName()));
@@ -342,8 +361,8 @@ public class ChannelMeta extends MemberDigest
             double stageGain2 = stages.get(2).getStageGain();
 
             if (stageGain0 <= 0 || stageGain1 <=0 || stageGain2 <=0 ) {
-                System.out.format("ChannelMeta.invalidResponse(): Error: Gain =0 for either stages 0, 1 or 2 for chan-loc=%s-%s\n"
-                                   ,this.getLocation(), this.getName() );
+                //System.out.format("ChannelMeta.invalidResponse(): Error: Gain =0 for either stages 0, 1 or 2 for chan-loc=%s-%s\n"
+                //                  ,this.getLocation(), this.getName() );
                 StringBuilder message = new StringBuilder();
                 message.append(String.format("ChannelMeta.invalidResponse(): Error: Gain =0 for either stages 0, 1 or 2 for chan-loc=%s-%s\n"
                                    ,this.getLocation(), this.getName()));
@@ -355,7 +374,7 @@ public class ChannelMeta extends MemberDigest
             diff *= 100;
 // MTH: Adam says that some Q680's have this problem and we should use the Sensitivity (stageGain0) instead:
             if (diff > 10) { // Alert user that difference is > 1% of Sensitivity
-                System.out.format("***Alert: stageGain0=%f VS. stage1=%f * stage2=%f (diff=%f%%)\n", stageGain0, stageGain1, stageGain2, diff);
+                //System.out.format("***Alert: stageGain0=%f VS. stage1=%f * stage2=%f (diff=%f%%)\n", stageGain0, stageGain1, stageGain2, diff);
                 StringBuilder message = new StringBuilder();
                 message.append(String.format("***Alert: stageGain0=%f VS. stage1=%f * stage2=%f (diff=%f%%)\n", stageGain0, stageGain1, stageGain2, diff));
                 logger.warn(message.toString());
@@ -377,7 +396,13 @@ public class ChannelMeta extends MemberDigest
     public Cmplx[] getPoleZeroResponse(double[] freqs){
         PoleZeroStage pz = (PoleZeroStage)this.getStage(1);
         if (pz != null) {
-            return pz.getResponse(freqs);
+        	try {
+        		Cmplx[] pzresp = pz.getResponse(freqs);
+        		return pzresp;
+        	} catch (PoleZeroStageException e) {
+        		logger.error("ChannelMeta PoleZeroStageException:", e);
+        		return null;
+        	}
         }
         else {
             return null;
@@ -387,7 +412,9 @@ public class ChannelMeta extends MemberDigest
 
 //  Return complex response computed at given freqs[0,...length]
 
-    public Cmplx[] getResponse(double[] freqs, ResponseUnits responseOut) {
+    public Cmplx[] getResponse(double[] freqs, ResponseUnits responseOut) 
+    throws ChannelMetaException
+    {
         int outUnits=0;
         switch (responseOut) {
             case DISPLACEMENT:      // return Displacement Response
@@ -405,28 +432,26 @@ public class ChannelMeta extends MemberDigest
         }
 
         if (freqs.length == 0) {
-            RuntimeException e = new RuntimeException("getResponse(): freqs.length = 0!");
-            logger.error("ChannelMeta RuntimeException:", e);
-            return null;
+        	throw new ChannelMetaException("getResponse(): freqs.length = 0!");
         }
         if (invalidResponse()) {
-          RuntimeException e = new RuntimeException("getResponse(): Invalid Response!");
-          logger.error("ChannelMeta RuntimeException:", e);
-          return null;
+        	throw new ChannelMetaException("getResponse(): Invalid Response!");
         }
         Cmplx[] response = null;
 
- // Set response = polezero response (with A0 factored in):
+        // Set response = polezero response (with A0 factored in):
         ResponseStage stage = stages.get(1);
 
         if (!(stage instanceof PoleZeroStage)) {
-            RuntimeException e = new RuntimeException("getResponse(): Stage1 is NOT a PoleZeroStage!");
-            logger.error("ChannelMeta RuntimeException:", e);
-            return null;
+            throw new ChannelMetaException("getResponse(): Stage1 is NOT a PoleZeroStage!");
         }
         else {
             PoleZeroStage pz = (PoleZeroStage)stage;
-            response = pz.getResponse(freqs);
+            try {
+            	response = pz.getResponse(freqs);
+            } catch (PoleZeroStageException e) {
+            	logger.error("ChannelMeta PoleZeroStageException:", e);
+            }
 
             if (outUnits == 0) {  
                 // Default response (in SEED Units) requested --> Don't integrate or differentiate
@@ -436,9 +461,7 @@ public class ChannelMeta extends MemberDigest
                 if (inUnits == 0) {
                     String msg = String.format("getResponse(): [%s] Response requested but PoleZero Stage Input Units = Unknown!",
                                                responseOut);
-                    RuntimeException e = new RuntimeException(msg);
-                    logger.error("ChannelMeta RuntimeException:", e);
-                    return null;
+                    throw new ChannelMetaException(msg);
                 }
                 int n = outUnits - inUnits;
 
@@ -470,11 +493,9 @@ public class ChannelMeta extends MemberDigest
                     s = 1.;
                 }
                 else {
-                    RuntimeException e = new RuntimeException("getResponse(): Unknown PoleZero StageType!");
-                    logger.error("ChannelMeta RuntimeException:", e);
-                    return null;
+                	throw new ChannelMetaException("getResponse(): Unknown PoleZero StageType!");
                 }
-//System.out.format("== Channel=%s inUnits=%d outUnits=%d n=%d s=%f\n", this.getChannel(), inUnits, outUnits, n);
+                //System.out.format("== Channel=%s inUnits=%d outUnits=%d n=%d s=%f\n", this.getChannel(), inUnits, outUnits, n);
 
                 if (n < 0) {                    // INTEGRATION RESPONSE I(w) x (iw)^n
                     for (int i=0; i<freqs.length; i++){
@@ -490,25 +511,24 @@ public class ChannelMeta extends MemberDigest
                         response[i] = Cmplx.mul(iw, response[i]);
                     }
                 }
-
             } // Convert
         } // else
 
 
- // Scale polezero response by stage1Gain * stage2Gain:
- // Unless stage1Gain*stage2Gain is different from stage0Gain (=Sensitivity) by more than 10%,
- //   in which case, use the Sensitivity (Adam says this is a problem with Q680's, e.g., IC_ENH
+        // Scale polezero response by stage1Gain * stage2Gain:
+        // Unless stage1Gain*stage2Gain is different from stage0Gain (=Sensitivity) by more than 10%,
+        //   in which case, use the Sensitivity (Adam says this is a problem with Q680's, e.g., IC_ENH
         double stage0Gain = stages.get(0).getStageGain();
         double stage1Gain = stages.get(1).getStageGain();
         double stage2Gain = stages.get(2).getStageGain();
 
-   // Check stage1Gain * stage2Gain against the mid-level sensitivity (=stage0Gain):
+        // Check stage1Gain * stage2Gain against the mid-level sensitivity (=stage0Gain):
         double diff = 100 * (stage0Gain - (stage1Gain * stage2Gain)) / stage0Gain;
 
         double scale;
         if (diff > 10) { 
-            System.out.println("== ChannelMeta.getResponse(): WARNING: Sensitivity != Stage1Gain * Stage2Gain "
-                            + "--> Use Sensitivity to scale!");
+            //System.out.println("== ChannelMeta.getResponse(): WARNING: Sensitivity != Stage1Gain * Stage2Gain "
+            //                + "--> Use Sensitivity to scale!");
             logger.warn("== ChannelMeta.getResponse(): WARNING: Sensitivity != Stage1Gain * Stage2Gain "
                             + "--> Use Sensitivity to scale!");
             scale = stage0Gain;
@@ -518,7 +538,7 @@ public class ChannelMeta extends MemberDigest
         }
 
         if (scale <= 0.) {
-            System.out.println("== ChannelMeta.getResponse(): WARNING: Channel response scale <= 0 !!");
+            //System.out.println("== ChannelMeta.getResponse(): WARNING: Channel response scale <= 0 !!");
             logger.warn("== ChannelMeta.getResponse(): WARNING: Channel response scale <= 0 !!");
         }
 
@@ -529,8 +549,7 @@ public class ChannelMeta extends MemberDigest
         return response;
     }
 
-
-
+    
 /**
   * processEpochData 
   * Convert EpochData = Hashtable<StageNumber, StageData> for this Channel + Epoch
@@ -549,7 +568,7 @@ public class ChannelMeta extends MemberDigest
                 StageData stage = epochData.getStage(stageNumber);
                 double Gain = 0;
                 double frequencyOfGain = 0;
-             // Process Blockette B058:
+                // Process Blockette B058:
                 if (stage.hasBlockette(58)) {
                     Blockette blockette = stage.getBlockette(58);
                     Gain = Double.parseDouble(blockette.getFieldValue(4, 0));
@@ -561,8 +580,8 @@ public class ChannelMeta extends MemberDigest
                         DigitalStage digitalStage = new DigitalStage(stageNumber, 'D', Gain, frequencyOfGain);
                         this.addStage(stageNumber, digitalStage);
                         if (stageNumber != 0) {
-                            System.out.format("== Warning: MetaGenerator: [%s_%s %s-%s] stage:%d has NO Blockette B054\n", 
-                                               station.getNetwork(), station.getStation(), location, name, stageNumber);
+                            //System.out.format("== Warning: MetaGenerator: [%s_%s %s-%s] stage:%d has NO Blockette B054\n", 
+                            //                   station.getNetwork(), station.getStation(), location, name, stageNumber);
                             StringBuilder message = new StringBuilder();
                             message.append(String.format("== Warning: MetaGenerator: [%s_%s %s-%s] stage:%d has NO Blockette B054\n", 
                                                station.getNetwork(), station.getStation(), location, name, stageNumber));
@@ -704,19 +723,22 @@ public class ChannelMeta extends MemberDigest
         }
 
         PoleZeroStage pz = (PoleZeroStage)this.getStage(1);
-        Cmplx[] instResponse = pz.getResponse(freq);
+        try {
+        	Cmplx[] instResponse = pz.getResponse(freq);
 
-        double[] instRespAmp = new double[nf];
-        double[] instRespPhs = new double[nf];
-        for (int k=0; k<nf; k++) {
-            instRespAmp[k] = instResponse[k].mag();
-            instRespPhs[k] = instResponse[k].phs() * 180./Math.PI;
+	        double[] instRespAmp = new double[nf];
+	        double[] instRespPhs = new double[nf];
+	        for (int k=0; k<nf; k++) {
+	            instRespAmp[k] = instResponse[k].mag();
+	            instRespPhs[k] = instResponse[k].phs() * 180./Math.PI;
+	        }
+	
+	        PlotMaker plotMaker = new PlotMaker(this.getStation(), this.getChannel(), this.getTimestamp());
+	        //plotMaker.plotSpecAmp(freq, instRespAmp, "pzResponse");
+	        plotMaker.plotSpecAmp(freq, instRespAmp, instRespPhs, "pzResponse");
+        } catch (PoleZeroStageException e) {
+        	logger.error("ChannelMeta PoleZeroStageException:", e);
         }
-
-        PlotMaker plotMaker = new PlotMaker(this.getStation(), this.getChannel(), this.getTimestamp());
-        //plotMaker.plotSpecAmp(freq, instRespAmp, "pzResponse");
-        plotMaker.plotSpecAmp(freq, instRespAmp, instRespPhs, "pzResponse");
-
     } // end plotResp
 
     public void print() {

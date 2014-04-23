@@ -209,76 +209,87 @@ public class Scanner
 
             Hashtable<CrossPowerKey, CrossPower> crossPowerMap = null;
 
-            for (MetricWrapper wrapper: scan.getMetrics()) {
-                Metric metric = wrapper.getNewInstance();
-
-                metric.setBaseOutputDir(scan.getPlotsDir());
-
-                if (currentMetricData != null) {
-                    metric.setData(currentMetricData);
-
-                    if (eventCMTs != null) {
-                        metric.setEventTable( eventCMTs );
-                        if (eventSynthetics != null) {
-                            metric.setEventSynthetics( eventSynthetics );
-                        }
-                    }
-
-   // Hand off the crossPowerMap from metric to metric, adding to it each time
-                    if (crossPowerMap != null) {
-                        metric.setCrossPowerMap(crossPowerMap);
-                    }
-                    metric.process();
-   // Save the current crossPowerMap for the next metric:
-                    crossPowerMap = metric.getCrossPowerMap();
-                }
-                else if (metric.getClass().getName().contains("AvailabilityMetric")){
-                    metric.setData( new MetricData(stnMeta) );
-                    metric.process();
-                }
-                else { // No data for this station + day
-                    continue;
-                }
-
-   // This is a little convoluted: calibration.getResult() returns a MetricResult, which may contain many values
-   //   in a Hashtable<String,String> = map.
-   //   MetricResult.getResult(id) returns value = String
-                
-                MetricResult results = metric.getMetricResult();
-                //System.out.format("Results for %s:\n", metric.getClass().getName());
-                if (results == null){
-                }
-                else {
-                    for (String id: results.getIdSortedSet()) {
-                        double value = results.getResult(id);
-                        ByteBuffer digest = results.getDigest(id);
-                        logger.info(String.format("%s [%7s] [%s] %15s:%6.2f [%s]", results.getMetricName(), 
-                            results.getStation(), EpochData.epochToDateString(results.getDate()), id, value, 
-                            Hex.byteArrayToHexString(digest.array()) ));
-
-                        if (Double.isNaN(value)){
-                            logger.warn(String.format("%s [%s] [%s] %s: ERROR: metric value = [ NaN ] !!\n", 
-                              results.getMetricName(), results.getStation(), EpochData.epochToDateString(results.getDate()),
-                              id ));
-                        }
-                        if (Double.isInfinite(value)){
-                            logger.warn(String.format("%s [%s] [%s] %s: ERROR: metric value = [ Infinity ] !!\n", 
-                              results.getMetricName(), results.getStation(), EpochData.epochToDateString(results.getDate()),
-                              id ));
-                        }
-                    }
-                    if (injector.isConnected()) {
-                        try {
-                    	    injector.inject(results);
-                        } catch (InterruptedException ex) {
-                    	    logger.warn(String.format("Interrupted while trying to inject metric [%s]", metric.toString()));
-                        }
-                    }
-                    else {
-                        logger.warn("Injector *IS NOT* connected --> Don't inject");
-                    }
-                }
-            } // end loop over metrics
+            try {	// wrapper.getNewInstance()
+	            for (MetricWrapper wrapper: scan.getMetrics()) {
+	                Metric metric = wrapper.getNewInstance();
+	
+	                metric.setBaseOutputDir(scan.getPlotsDir());
+	
+	                if (currentMetricData != null) {
+	                    metric.setData(currentMetricData);
+	
+	                    if (eventCMTs != null) {
+	                        metric.setEventTable( eventCMTs );
+	                        if (eventSynthetics != null) {
+	                            metric.setEventSynthetics( eventSynthetics );
+	                        }
+	                    }
+	
+	                    // Hand off the crossPowerMap from metric to metric, adding to it each time
+	                    if (crossPowerMap != null) {
+	                        metric.setCrossPowerMap(crossPowerMap);
+	                    }
+	                    metric.process();
+	                    // Save the current crossPowerMap for the next metric:
+	                    crossPowerMap = metric.getCrossPowerMap();
+	                }
+	                else if (metric.getClass().getName().contains("AvailabilityMetric")){
+	                    metric.setData( new MetricData(stnMeta) );
+	                    metric.process();
+	                }
+	                else { // No data for this station + day
+	                    continue;
+	                }
+	
+	                // This is a little convoluted: calibration.getResult() returns a MetricResult, which may contain many values
+	                //   in a Hashtable<String,String> = map.
+	                //   MetricResult.getResult(id) returns value = String
+	                
+	                MetricResult results = metric.getMetricResult();
+	                //System.out.format("Results for %s:\n", metric.getClass().getName());
+	                if (results == null){
+	                }
+	                else {
+	                    for (String id: results.getIdSortedSet()) {
+	                        double value = results.getResult(id);
+	                        ByteBuffer digest = results.getDigest(id);
+	                        logger.info(String.format("%s [%7s] [%s] %15s:%6.2f [%s]", results.getMetricName(), 
+	                            results.getStation(), EpochData.epochToDateString(results.getDate()), id, value, 
+	                            Hex.byteArrayToHexString(digest.array()) ));
+	
+	                        if (Double.isNaN(value)){
+	                            logger.warn(String.format("%s [%s] [%s] %s: ERROR: metric value = [ NaN ] !!\n", 
+	                              results.getMetricName(), results.getStation(), EpochData.epochToDateString(results.getDate()),
+	                              id ));
+	                        }
+	                        if (Double.isInfinite(value)){
+	                            logger.warn(String.format("%s [%s] [%s] %s: ERROR: metric value = [ Infinity ] !!\n", 
+	                              results.getMetricName(), results.getStation(), EpochData.epochToDateString(results.getDate()),
+	                              id ));
+	                        }
+	                    }
+	                    if (injector.isConnected()) {
+	                        try {
+	                    	    injector.inject(results);
+	                        } catch (InterruptedException ex) {
+	                        	String message = String.format("Scanner: InterruptedException injecting metric [%s]", metric.toString());
+	                    	    logger.warn(message, ex);
+	                        }
+	                    }
+	                    else {
+	                        logger.warn("Injector *IS NOT* connected --> Don't inject");
+	                    }
+	                }
+	            } // end loop over metrics
+            } catch (InstantiationException e) {
+            	logger.error("Scanner InstantationException:", e);
+            } catch (IllegalAccessException e) {
+            	logger.error("Scanner IllegalAccessException:", e);
+            } catch (NoSuchFieldException e) {
+            	logger.error("Scanner NoSuchFieldException:", e);
+            } catch (IllegalArgumentException e) {
+            	logger.error("Scanner IllegalArgumentException:", e);
+            }
 
         } // end loop over day to scan
     } // end scan()

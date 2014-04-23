@@ -99,6 +99,7 @@ extends Blockette
      *
      */
     public Blockette2000()
+    throws OpaqueStateException
     {
         super(FIXED_LENGTH);
 
@@ -114,10 +115,7 @@ extends Blockette
         setStrict(false);
         try { setOpaqueState(OpaqueState.RECORD); }
         catch (OpaqueStateException ex) { 
-        	//throw new RuntimeException("This should be impossible!"); 
-        	RuntimeException e = new RuntimeException("This should be impossible!");
-        	logger.error("Blockette2000 RuntimeException:", e);
-        	return;
+        	throw ex;
         }
      }
 
@@ -196,10 +194,7 @@ extends Blockette
             case FILE_MID     : buf[13] |= 0x20; break;
             case FILE_END     : buf[13] |= 0x30; break;
             default   : 
-            	//throw new OpaqueStateException(String.format("State value %s", state));
-            	OpaqueStateException e = new OpaqueStateException(String.format("State value %s", state));
-            	logger.error("Blockette2000 OpaqueStateException:", e);
-            	return;
+            	throw new OpaqueStateException(String.format("State value %s", state));
         }
     }
 
@@ -216,10 +211,7 @@ extends Blockette
             case 0x20 : state = OpaqueState.FILE_MID; break;
             case 0x30 : state = OpaqueState.FILE_END; break;
             default   : 
-            	//throw new OpaqueStateException(String.format("State flags 0x%02x", buf[13] & 0x3d));
-            	OpaqueStateException e = new OpaqueStateException(String.format("State flags 0x%02x", buf[13] & 0x3d));
-            	logger.error("Blockette2000 OpaqueStateException:", e);
-            	return null;
+            	throw new OpaqueStateException(String.format("State flags 0x%02x", buf[13] & 0x3d));
         }
         return state;
     }

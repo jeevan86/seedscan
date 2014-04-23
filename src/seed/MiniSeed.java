@@ -505,20 +505,19 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     tmp.append(" b="+i2);
     return tmp.toString();
   }
+  
   public static boolean swapNeeded(byte [] buf) throws IllegalSeednameException {
     ByteBuffer bb = ByteBuffer.wrap(buf);
     return swapNeeded(buf,bb);
   }
+  
   public static Boolean swapNeeded(byte [] buf, ByteBuffer bb) throws IllegalSeednameException {
     boolean swap=false;
     if( buf[0] <'0' || buf[0] > '9' || buf[1] <'0' ||  buf[1] > '9' ||
         buf[2] <'0' || buf[2] > '9' || buf[3] <'0' ||  buf[3] > '9' ||
         buf[4] <'0' || buf[4] > '9' || buf[5] <'0' ||  buf[5] > '9' ||
         (buf[6] != 'D' && buf[6] != 'R' && buf[6] !='Q') || buf[7] != ' ' ) {
-      //throw new IllegalSeednameException("Bad seq # or [DQR] "+toStringRaw(buf));
-    	IllegalSeednameException e = new IllegalSeednameException("Bad seq # or [DQR] "+toStringRaw(buf));
-    	logger.error("MiniSeed IllegalSeednameException:", e);
-    	return null;
+    	throw new IllegalSeednameException("Bad seq # or [DQR] "+toStringRaw(buf));
     }
     bb.position(39);          // position # of blockettes that follow
     int nblks=bb.get();       // get it
@@ -534,7 +533,6 @@ public class MiniSeed  implements MiniSeedOutputHandler {
           Util.prt("MiniSEED: cannot figure out if this is swapped or not!!! Assume not. offset="+offset+" "+toStringRaw(buf));
           RuntimeException e = new RuntimeException("Cannot figure swap from offset ");
           logger.error("MiniSeed RuntimeException:", e);
-          return null;
         }
         else swap=true;
       }
@@ -567,6 +565,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     }
     return swap;
   }
+  
   public static int crackBlockSize(byte [] buf) throws IllegalSeednameException {
     ByteBuffer bb = ByteBuffer.wrap(buf);
     if(swapNeeded(buf)) bb.order(ByteOrder.LITTLE_ENDIAN);
@@ -890,6 +889,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
       cracked=true;
     }     // end of synchronized on this!
   }
+  
   public boolean deleteBlockette(int type) {
     for(int i=0; i<nblockettes; i++) {
       if(blocketteList[i] == type) {
@@ -914,6 +914,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     }
     return false;
   }
+  
   /** create a basic string from the fixed data header representing this packet.
    *any other data blockettes are added at the end to indicate their presence
    *@return A representative string 
@@ -1113,10 +1114,12 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     System.arraycopy(startTime, 0, b, 0, startTime.length);
     return b;   // return copy of time bytes.
   }
+  
   /** return the time in gregroian calendar millis
    *@return GregorianCalendar millis for start time
    */
   public long getTimeInMillis() {crack(); return time.getTimeInMillis();}
+  
   /** return a GregorianCalendar set to the 1st sample time, it is a copy just so users
    * do not do calculations with it and end up changing the mini-seed record time.  This time is rounded in millis
    * @return The 1st sample time*/
@@ -1126,10 +1129,12 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     e.setTimeInMillis(time.getTimeInMillis());
     return e;
   }
+  
   /** return the time in gregroian calendar millis, this time is truncated
    *@return GregorianCalendar millis for start time
    */
   public long getTimeInMillisTruncated() {crack(); return timeTruncated.getTimeInMillis();}
+  
   /** return a GregorianCalendar set to the 1st sample time, it is a copy just so users
    * do not do calculations with it and end up changing the mini-seed record time.  This time is truncated in millis
    * @return The 1st sample time*/
@@ -1385,8 +1390,13 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     byte [] frames = new byte[getBlockSize()-dataOffset];
     System.arraycopy(buf,dataOffset, frames,0,getBlockSize()-dataOffset); 
     int [] samples=null;
-    if(getEncoding() == 10) samples = Steim1.decode(frames, getNsamp(), swap, rev);
-    if(getEncoding() == 11) samples = Steim2.decode(frames, getNsamp(), swap, rev);
+    
+    try {
+	    if(getEncoding() == 10) samples = Steim1.decode(frames, getNsamp(), swap, rev);
+	    if(getEncoding() == 11) samples = Steim2.decode(frames, getNsamp(), swap, rev);
+    } catch (SteimException e) {
+    	throw e;
+    }
 
     // Would adding this block "as is" cause a reverse constant error (or steim error)?  If so, restore block
     // to state before adding this one, write it out, and make this block the beginning of next output block
@@ -1397,6 +1407,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     }
     return samples;
   }
+  
   public void fixReverseIntegration() {
    try {
       byte [] frames = new byte[getBlockSize()-dataOffset];
@@ -1630,8 +1641,8 @@ public class MiniSeed  implements MiniSeedOutputHandler {
       logger.error("MiniSeed SteimException:", e); 
       return null;
     }
-        
   }
+  
   public void close(){}   // needed to implement a miniseedoutputhandler
   private MiniSeed [] ms512;
   public void putbuf(byte [] b, int size) {
@@ -1826,34 +1837,20 @@ public class MiniSeed  implements MiniSeedOutputHandler {
       ch = name.charAt(i);
       if( !(Character.isLetterOrDigit(ch) || ch == ' ' || ch == '?' || ch == '_' ||
               ch == '-')) {
-        //throw new IllegalSeednameException(
-        //  "A seedname character is not letter, digit, space or [?-] ("+
-        //    Util.toAllPrintable(name)+") at "+i);
-    	IllegalSeednameException e = new IllegalSeednameException(
-    	          "A seedname character is not letter, digit, space or [?-] ("+
-    	                  Util.toAllPrintable(name)+") at "+i);
-    	logger.error("MiniSeed IllegalSeednameException:", e);
-    	return;
+        throw new IllegalSeednameException(
+        		"A seedname character is not letter, digit, space or [?-] ("+
+        				Util.toAllPrintable(name)+") at "+i);
       }
     }
     if(name.charAt(0) == ' ' /*|| name.charAt(1) == ' '*/) {  // GEOS is network 'G' 
-      //throw new IllegalSeednameException(" network code blank ("+name+")");
-    	IllegalSeednameException e = new IllegalSeednameException(" network code blank ("+name+")");
-    	logger.error("MiniSeed IllegalSeednameException:", e);
-    	return;
+    	throw new IllegalSeednameException(" network code blank ("+name+")");
     }
     if(name.charAt(2) == ' ' || name.charAt(3) == ' ' || name.charAt(4) == ' ') {
-      //throw new IllegalSeednameException("Station code too short ("+name+")");
-    	IllegalSeednameException e = new IllegalSeednameException("Station code too short ("+name+")");
-    	logger.error("MiniSeed IllegalSeednameException:", e);
-    	return;
+    	throw new IllegalSeednameException("Station code too short ("+name+")");
     }
     if( !(Character.isLetter(name.charAt(7)) && Character.isLetter(name.charAt(8)) &&
         Character.isLetterOrDigit(name.charAt(9)))) {
-      //throw new IllegalSeednameException("Channel code not Letter, Letter, LetterOrDigit ("+name+")");
-    	IllegalSeednameException e = new IllegalSeednameException("Channel code not Letter, Letter, LetterOrDigit ("+name+")");
-    	logger.error("MiniSeed IllegalSeednameException:", e);
-    	return;
+    	throw new IllegalSeednameException("Channel code not Letter, Letter, LetterOrDigit ("+name+")");
     }
 
 

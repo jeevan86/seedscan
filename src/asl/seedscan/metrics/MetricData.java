@@ -20,15 +20,15 @@ package asl.seedscan.metrics;
 
 import asl.seedscan.database.MetricReader;
 import asl.seedscan.database.MetricValueIdentifier;
-
 import asl.metadata.Channel;
 import asl.metadata.ChannelArray;
+import asl.metadata.ChannelException;
 import asl.metadata.EpochData;
 import asl.metadata.Station;
+import asl.metadata.meta_new.ChannelMetaException;
 import asl.metadata.meta_new.StationMeta;
 import asl.metadata.meta_new.ChannelMeta;
 import asl.metadata.meta_new.ChannelMeta.ResponseUnits;
-
 import asl.security.MemberDigest;
 import asl.seedsplitter.BlockLocator;
 import asl.seedsplitter.ContiguousBlock;
@@ -37,7 +37,6 @@ import asl.seedsplitter.SeedSplitter;
 import asl.seedsplitter.IllegalSampleRateException;
 import asl.seedsplitter.Sequence;
 import asl.seedsplitter.SequenceRangeException;
-
 import timeutils.Timeseries;
 import freq.Cmplx;
 import seed.Blockette320;
@@ -48,6 +47,7 @@ import java.util.List;
 import java.util.Hashtable;
 import java.util.Set;
 import java.util.Calendar;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -285,66 +285,75 @@ public class MetricData
  *         Return null if ANY of the requested channels of data are not found
  */
     public ArrayList<double[]> getZNE(ResponseUnits responseUnits, String location, String band, long windowStartEpoch, long windowEndEpoch, double f1, double f2, double f3, double f4) 
+    throws ChannelMetaException,
+    	   MetricException
     {
         ArrayList<double[]> dispZNE = new ArrayList<double[]>();
 
         Channel vertChannel = new Channel(location, (band + "Z") ); // e.g., "00-LHZ"
         // depending on responseUnits, we can be working with DISP, VEL or ACC below
-        double[] z = getFilteredDisplacement(responseUnits, vertChannel, windowStartEpoch, windowEndEpoch, f1, f2, f3, f4);
-        dispZNE.add(z);
+        try {
+        	double[] z = getFilteredDisplacement(responseUnits, vertChannel, windowStartEpoch, windowEndEpoch, f1, f2, f3, f4);
+        	dispZNE.add(z);
 
-        Channel channel1 = metadata.getChannel(location, band, "1"); // e.g., could be "00-LH1" -or- "00-LHN"
-        Channel channel2 = metadata.getChannel(location, band, "2"); // e.g., could be "00-LH2" -or- "00-LHE"
-
-        if (channel1 == null) {
+	        Channel channel1 = metadata.getChannel(location, band, "1"); // e.g., could be "00-LH1" -or- "00-LHN"
+	        Channel channel2 = metadata.getChannel(location, band, "2"); // e.g., could be "00-LH2" -or- "00-LHE"
+	
+	        if (channel1 == null) {
+	        }
+	        if (channel2 == null) {
+	        }
+	
+	        // Metadata: <channel1, channel2> --> Data: <x, y>  ===> Get displ and rotate <x,y> to <N,E>
+	
+	        double[] x = getFilteredDisplacement(responseUnits, channel1, windowStartEpoch, windowEndEpoch, f1, f2, f3, f4);
+	        double[] y = getFilteredDisplacement(responseUnits, channel2, windowStartEpoch, windowEndEpoch, f1, f2, f3, f4);
+	
+	        if (x == null || y == null || z == null) {
+	            System.out.format("== getZNE: getFilteredDisplacement returned null --> There is probably something wrong with this station\n");
+	            return null;
+	        }
+	
+	        if (x.length != y.length) {
+	        }
+	        int ndata = x.length;
+	
+	        double srate1 = metadata.getChanMeta(channel1).getSampleRate();
+	        double srate2 = metadata.getChanMeta(channel2).getSampleRate();
+	
+	        if (srate1 != srate2) {
+	            StringBuilder message = new StringBuilder();
+	            message.append(String.format("MetricData.createRotatedChannels(): Error: srate1 != srate2!!\n"));
+	            throw new MetricException(message.toString());
+	        }
+	
+	        double[] n = new double[ndata];
+	        double[] e = new double[ndata];
+	
+	        double az1 = (metadata.getChanMeta( channel1 )).getAzimuth(); 
+	        double az2 = (metadata.getChanMeta( channel2 )).getAzimuth(); 
+	
+	        Timeseries.rotate_xy_to_ne(az1, az2, x, y, n, e);
+	
+	        dispZNE.add(n);
+	        dispZNE.add(e);
+	
+	        return dispZNE;
+        } catch (ChannelMetaException e) {
+        	throw e;
+        } catch (MetricException e) {
+        	throw e;
         }
-        if (channel2 == null) {
-        }
-
-    // Metadata: <channel1, channel2> --> Data: <x, y>  ===> Get displ and rotate <x,y> to <N,E>
-
-        double[] x = getFilteredDisplacement(responseUnits, channel1, windowStartEpoch, windowEndEpoch, f1, f2, f3, f4);
-        double[] y = getFilteredDisplacement(responseUnits, channel2, windowStartEpoch, windowEndEpoch, f1, f2, f3, f4);
-
-        if (x == null || y == null || z == null) {
-            System.out.format("== getZNE: getFilteredDisplacement returned null --> There is probably something wrong with this station\n");
-            return null;
-        }
-
-        if (x.length != y.length) {
-        }
-        int ndata = x.length;
-
-        double srate1 = metadata.getChanMeta(channel1).getSampleRate();
-        double srate2 = metadata.getChanMeta(channel2).getSampleRate();
-
-        if (srate1 != srate2) {
-            StringBuilder message = new StringBuilder();
-            message.append(String.format("MetricData.createRotatedChannels(): Error: srate1 != srate2!!\n"));
-            RuntimeException e = new RuntimeException(message.toString());
-            logger.error("MetricData RuntimeException:", e);
-            return null;
-        }
-
-        double[] n = new double[ndata];
-        double[] e = new double[ndata];
-
-        double az1 = (metadata.getChanMeta( channel1 )).getAzimuth(); 
-        double az2 = (metadata.getChanMeta( channel2 )).getAzimuth(); 
-
-        Timeseries.rotate_xy_to_ne(az1, az2, x, y, n, e);
-
-        dispZNE.add(n);
-        dispZNE.add(e);
-
-        return dispZNE;
     }
 
 /**
  *  The name is a little misleading: getFilteredDisplacement will return whatever output units
  *    are requested: DISPLACEMENT, VELOCITY, ACCELERATION
  */
-    public double[] getFilteredDisplacement(ResponseUnits responseUnits, Channel channel, long windowStartEpoch, long windowEndEpoch, double f1, double f2, double f3, double f4) 
+    public double[] getFilteredDisplacement(ResponseUnits responseUnits, Channel channel, long windowStartEpoch, long windowEndEpoch, 
+    										double f1, double f2, double f3, double f4) 
+    throws ChannelMetaException,
+    	   MetricException
     {
         if (!metadata.hasChannel(channel)) {
         	logger.error(String.format("MetricData Error: Metadata NOT found for channel=[%s] --> Can't return Displacement", channel));
@@ -355,9 +364,14 @@ public class MetricData
             logger.error(String.format("MetricData Error: Did not get requested window for channel=[%s] --> Can't return Displacement", channel));
             return null;
         }
-        double filtered[] = removeInstrumentAndFilter(responseUnits, channel, timeseries, f1, f2, f3, f4);
-
-        return filtered;
+        try {
+        	double filtered[] = removeInstrumentAndFilter(responseUnits, channel, timeseries, f1, f2, f3, f4);
+        	return filtered;
+        } catch (ChannelMetaException e) {
+        	throw e;
+        } catch (MetricException e) {
+        	throw e;
+        }
     }
     
     public double bpass(int n,int n1,int n2,int n3,int n4) {
@@ -370,7 +384,10 @@ public class MetricData
     }
 
     public double[] removeInstrumentAndFilter(ResponseUnits responseUnits, Channel channel, double[] timeseries, 
-                                              double f1, double f2, double f3, double f4){
+                                              double f1, double f2, double f3, double f4)
+    throws ChannelMetaException,
+    	   MetricException
+    {
 
         if (!(f1 < f2 && f2 < f3 && f3 < f4)) {
             logger.error(String.format("MetricData: removeInstrumentAndFilter: Error: invalid freq: range: [%f-%f ----- %f-%f]", f1, f2, f3, f4));
@@ -384,9 +401,7 @@ public class MetricData
         if (srate == 0) { 
         	StringBuilder message = new StringBuilder();
         	message.append(String.format("MetricData Error: channel=[{}] Got srate=0\n", channel.toString()));
-        	RuntimeException e = new RuntimeException(message.toString()); 
-        	logger.error("MetricData RuntimeException:", e);
-        	return null;
+        	throw new MetricException(message.toString());
         } 
 
         // Find smallest power of 2 >= ndata:
@@ -412,45 +427,50 @@ public class MetricData
         for(int k = 0; k < nf; k++){
             freq[k] = (double)k * df;
         }
-     // Get the instrument response for requested ResponseUnits
-        Cmplx[]  instrumentResponse = chanMeta.getResponse(freq, responseUnits);
-
-        // fft2 returns just the (nf = nfft/2 + 1) positive frequencies
-        Cmplx[] xfft = Cmplx.fft2(data);
-
-        double fNyq = (double)(nf-1)*df;
-
-        if (f4 > fNyq) {
-            f4 = fNyq;
+        
+        try {
+	        // Get the instrument response for requested ResponseUnits
+	        Cmplx[]  instrumentResponse = chanMeta.getResponse(freq, responseUnits);
+	
+	        // fft2 returns just the (nf = nfft/2 + 1) positive frequencies
+	        Cmplx[] xfft = Cmplx.fft2(data);
+	
+	        double fNyq = (double)(nf-1)*df;
+	
+	        if (f4 > fNyq) {
+	            f4 = fNyq;
+	        }
+	
+	        int k1=(int)(f1/df); int k2=(int)(f2/df);
+	        int k3=(int)(f3/df); int k4=(int)(f4/df);
+	
+	        for(int k = 0; k < nf; k++){
+	            double taper = bpass(k,k1,k2,k3,k4);
+	            // Remove instrument: We use conjg() here since the SEED inst resp FFT convention F(w) ~ e^-iwt    ****
+	            //  while the Numerical Recipes convention is F(w) ~ e^+iwt
+	            xfft[k] = Cmplx.div(xfft[k],instrumentResponse[k].conjg()); // Remove instrument
+	            xfft[k] = Cmplx.mul(xfft[k],taper);                         // Bandpass
+	        }
+	
+	        Cmplx[] cfft = new Cmplx[nfft];
+	        cfft[0]    = new Cmplx(0.0, 0.0);   // DC
+	        cfft[nf-1] = xfft[nf-1];  // Nyq
+	        for(int k = 1; k < nf-1; k++){      // Reflect spec about the Nyquist to get -ve freqs
+	            cfft[k]        = xfft[k];
+	            cfft[2*nf-2-k] = xfft[k].conjg();
+	        }
+	
+	        float[] foo = Cmplx.fftInverse(cfft, ndata);
+	
+	        double[] dfoo=new double[ndata];
+	        for (int i=0; i<foo.length; i++){
+	            //dfoo[i] = (double)foo[i] * 1000000.;  // Convert meters --> micrometers (=microns)
+	            dfoo[i] = (double)foo[i];
+	        }
+	        return dfoo;
+        } catch (ChannelMetaException e) {
+        	throw e;
         }
-
-        int k1=(int)(f1/df); int k2=(int)(f2/df);
-        int k3=(int)(f3/df); int k4=(int)(f4/df);
-
-        for(int k = 0; k < nf; k++){
-            double taper = bpass(k,k1,k2,k3,k4);
-            // Remove instrument: We use conjg() here since the SEED inst resp FFT convention F(w) ~ e^-iwt    ****
-            //  while the Numerical Recipes convention is F(w) ~ e^+iwt
-            xfft[k] = Cmplx.div(xfft[k],instrumentResponse[k].conjg()); // Remove instrument
-            xfft[k] = Cmplx.mul(xfft[k],taper);                         // Bandpass
-        }
-
-        Cmplx[] cfft = new Cmplx[nfft];
-        cfft[0]    = new Cmplx(0.0, 0.0);   // DC
-        cfft[nf-1] = xfft[nf-1];  // Nyq
-        for(int k = 1; k < nf-1; k++){      // Reflect spec about the Nyquist to get -ve freqs
-            cfft[k]        = xfft[k];
-            cfft[2*nf-2-k] = xfft[k].conjg();
-        }
-
-        float[] foo = Cmplx.fftInverse(cfft, ndata);
-
-        double[] dfoo=new double[ndata];
-        for (int i=0; i<foo.length; i++){
-            //dfoo[i] = (double)foo[i] * 1000000.;  // Convert meters --> micrometers (=microns)
-            dfoo[i] = (double)foo[i];
-        }
-        return dfoo;
     }
 
 /** Doesn't appear to be used (?)
@@ -664,6 +684,7 @@ public class MetricData
  *                             or N1,N2 (e.g., LN1,LN2 or HN1,HN2) --> LNND,LNED or HNND,HNED
  */
     public void createRotatedChannelData(String location, String channelPrefix)
+    throws MetricException
     {
         boolean use12 = true; // Use ?H1,?H2 to rotate, else use ?HN,?HE
 
@@ -671,13 +692,18 @@ public class MetricData
         Channel channel1 = new Channel(location, String.format("%s1", channelPrefix) );
         Channel channel2 = new Channel(location, String.format("%s2", channelPrefix) );
 
-    // If we can't find ?H1,?H2 --> try for ?HN,?HE
-        if (hasChannelData(channel1)==false || hasChannelData(channel2)==false){
-            channel1.setChannel(String.format("%sN", channelPrefix));
-            channel2.setChannel(String.format("%sE", channelPrefix));
-            use12 = false;
+        try {
+	        // If we can't find ?H1,?H2 --> try for ?HN,?HE
+	        if (hasChannelData(channel1)==false || hasChannelData(channel2)==false){
+	            channel1.setChannel(String.format("%sN", channelPrefix));
+	            channel2.setChannel(String.format("%sE", channelPrefix));
+	            use12 = false;
+	        }
+        } catch(ChannelException e) {
+        	logger.error("MetricData ChannelException:", e);
         }
-    // If we still can't find 2 horizontals to rotate then give up
+    
+        // If we still can't find 2 horizontals to rotate then give up
         if (hasChannelData(channel1)==false || hasChannelData(channel2)==false){
             logger.warn(String.format("== createRotatedChannelData: Error -- Unable to find data "
             + "for channel1=[%s] and/or channel2=[%s] --> Unable to Rotate!\n",channel1, channel2));
@@ -711,9 +737,7 @@ public class MetricData
         if (srate1 != srate2) {
             StringBuilder message = new StringBuilder();
             message.append(String.format("MetricData.createRotatedChannels(): Error channel1=[%s] and/or channel2=[%s]: srate1 != srate2 !!\n", channel1, channel2));
-            RuntimeException e = new RuntimeException(message.toString()); 
-            logger.error("MetricData RuntimeException:", e); 
-            return;
+            throw new MetricException(message.toString());
         }
 
         double[]   chanNData = new double[ndata];
@@ -770,48 +794,54 @@ public class MetricData
         String station  = ch1Temp.getStation();
         //String location = ch1Temp.getLocation();
 
-        DataSet northDataSet = new DataSet();
-        northDataSet.setNetwork(network);
-        northDataSet.setStation(station);
-        northDataSet.setLocation(location);
-        northDataSet.setChannel(channelN.getChannel());
-        northDataSet.setStartTime(startTime);
         try {
-            northDataSet.setSampleRate(srate1);
-        } catch (IllegalSampleRateException e) {
-            logger.error(String.format("MetricData.createRotatedChannels(): Invalid Sample Rate = %f", srate1));
+	        DataSet northDataSet = new DataSet();
+	        northDataSet.setNetwork(network);
+	        northDataSet.setStation(station);
+	        northDataSet.setLocation(location);
+	        northDataSet.setChannel(channelN.getChannel());
+	        northDataSet.setStartTime(startTime);
+	        try {
+	            northDataSet.setSampleRate(srate1);
+	        } catch (IllegalSampleRateException e) {
+	            logger.error(String.format("MetricData.createRotatedChannels(): Invalid Sample Rate = %f", srate1));
+	        }
+	
+	        int[] intArray = new int[ndata];
+	        for (int i=0; i<ndata; i++){
+	            intArray[i] = (int)chanNData[i];
+	        }
+	        northDataSet.extend(intArray, 0, ndata);
+	
+	        ArrayList<DataSet> dataList = new ArrayList<DataSet>();
+	        dataList.add(northDataSet);
+	        data.put(northKey, dataList);
+	
+	        DataSet eastDataSet = new DataSet();
+	        eastDataSet.setNetwork(network);
+	        eastDataSet.setStation(station);
+	        eastDataSet.setLocation(location);
+	        eastDataSet.setChannel(channelE.getChannel());
+	        eastDataSet.setStartTime(startTime);
+	        try {
+	            eastDataSet.setSampleRate(srate1);
+	        } catch (IllegalSampleRateException e) {
+	            logger.error(String.format("MetricData.createRotatedChannels(): Invalid Sample Rate = %f", srate1));
+	        }
+	
+	        for (int i=0; i<ndata; i++){
+	            intArray[i] = (int)chanEData[i];
+	        }
+	        eastDataSet.extend(intArray, 0, ndata);
+	
+	        dataList = new ArrayList<DataSet>();
+	        dataList.add(eastDataSet);
+	        data.put(eastKey, dataList);
+        } catch (CloneNotSupportedException e) {
+        	logger.error("MetricData CloneNotSupportedException:", e);
+        } catch (RuntimeException e) {
+        	logger.error("MetricData RuntimeException:", e);
         }
-
-        int[] intArray = new int[ndata];
-        for (int i=0; i<ndata; i++){
-            intArray[i] = (int)chanNData[i];
-        }
-        northDataSet.extend(intArray, 0, ndata);
-
-        ArrayList<DataSet> dataList = new ArrayList<DataSet>();
-        dataList.add(northDataSet);
-        data.put(northKey, dataList);
-
-        DataSet eastDataSet = new DataSet();
-        eastDataSet.setNetwork(network);
-        eastDataSet.setStation(station);
-        eastDataSet.setLocation(location);
-        eastDataSet.setChannel(channelE.getChannel());
-        eastDataSet.setStartTime(startTime);
-        try {
-            eastDataSet.setSampleRate(srate1);
-        } catch (IllegalSampleRateException e) {
-            logger.error(String.format("MetricData.createRotatedChannels(): Invalid Sample Rate = %f", srate1));
-        }
-
-        for (int i=0; i<ndata; i++){
-            intArray[i] = (int)chanEData[i];
-        }
-        eastDataSet.extend(intArray, 0, ndata);
-
-        dataList = new ArrayList<DataSet>();
-        dataList.add(eastDataSet);
-        data.put(eastKey, dataList);
 
     } // end createRotatedChannels()
 
@@ -879,6 +909,8 @@ public class MetricData
                     } catch (SequenceRangeException e) {
                         //System.out.println("SequenceRangeException");
                     	logger.error("MetricData SequenceRangeException:", e);	
+                    } catch (IndexOutOfBoundsException e) {
+                    	logger.error("MetricData IndexOutOfBoundsException:", e);
                     }
                     found = true;
                     break;
@@ -1094,8 +1126,12 @@ public class MetricData
             }
         // MTH: Only try to add rotated channel data if we were successful in adding the rotated channel
         //      metadata above since createRotatedChannelData requires it
-            if (!hasChannelData(channel) && metadata.hasChannel(channel) ) { 
-                createRotatedChannelData(channel.getLocation(), channelPrefix);
+            try {
+	            if (!hasChannelData(channel) && metadata.hasChannel(channel) ) { 
+	                createRotatedChannelData(channel.getLocation(), channelPrefix);
+	            }
+            } catch (MetricException e) {
+            	logger.error("MetricData createRotatedChannelData() Exception:", e);
             }
         }
     }

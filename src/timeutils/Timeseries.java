@@ -63,16 +63,14 @@ public class Timeseries
     }
 
     public static void debias(double[] timeseries)
+    throws RuntimeException
     {
         double mean=0;
         for (int i=0; i<timeseries.length; i++){
             mean += timeseries[i];
         }
         if (timeseries.length == 0) {
-            //throw new RuntimeException("Error: debias: timeseries.length=0 --> No data!");
-        	RuntimeException e = new RuntimeException("Error: debias: timeseries.length=0 --> No data!");
-        	logger.error("Timeseries RuntimeException:", e);
-        	return;
+            throw new RuntimeException("Error: debias: timeseries.length=0 --> No data!");
         }
         else {
             mean /= (double)timeseries.length;
@@ -182,7 +180,7 @@ public class Timeseries
            out.format("%f\n", timeseries[i]);
        } 
        catch (IOException e) {
-         System.err.println("Caught IOException: " +  e.getMessage());
+    	   logger.error("TimeSeries IOException:", e);
        } 
        finally {
          if (out != null) out.close();
@@ -307,7 +305,7 @@ public class Timeseries
             hdr = new SacHeader("/Users/mth/mth/Projects/asl/seedscan/resources/sac.file");
         }
         catch (Exception e) {
-            System.out.format("== Timeseries.writeSacFile: Error when attempting to read in default sac hdr [%s]\n", e);
+            //System.out.format("== Timeseries.writeSacFile: Error when attempting to read in default sac hdr [%s]\n", e);
             String message = "== Timeseries.writeSacFile: Error when attempting to read in default sac hdr\n";
             logger.error(message, e);
         }
@@ -328,6 +326,7 @@ public class Timeseries
             sac.write(filename);
         }
         catch (Exception e) {
+        	logger.error("TimeSeries Exception:", e);
         }
     }
 

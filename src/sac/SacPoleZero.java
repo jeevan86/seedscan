@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 public class SacPoleZero {
 
 	private static final Logger logger = LoggerFactory.getLogger(sac.SacPoleZero.class);
+	
     public SacPoleZero(BufferedReader in) throws IOException {
         read(in);
     }
@@ -102,11 +103,8 @@ public class SacPoleZero {
                 constant = Float.parseFloat(sline[1]);
                 line = nextLine(it);
             } else {
-                //throw new IOException("Unknown line in SAC polezero file: "
-                //        + line);
-            	IOException e = new IOException("Unknown line in SAC polezero file:" + line);
-            	logger.error("SacPoleZero IOException:", e);
-            	return;
+                throw new IOException("Unknown line in SAC polezero file: "
+                        + line);
             }
         }
         this.poles = poles;

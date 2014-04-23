@@ -75,18 +75,14 @@ public class PlotMaker2
         this.plotTitle   = title;
     }
 
-    public void addTraceToPanel(Trace trace, int iPanel) {
+    public void addTraceToPanel(Trace trace, int iPanel) 
+    throws PlotMakerException
+    {
         if (panels == null) {
-            //throw new RuntimeException("== PlotMaker.addTraceToPanel: panels == null !!");
-        	RuntimeException e = new RuntimeException("== PlotMaker.addTraceToPanel: panels == null !!");
-        	logger.error("PlotMaker2 RuntimeException:", e);
-        	return;
+            throw new PlotMakerException("== PlotMaker.addTraceToPanel: panels == null !!");
         }
         if (iPanel >= panels.size()) {
-            //throw new RuntimeException("== PlotMaker.addTraceToPanel: Requested iPanel > panels.size() !!");
-        	RuntimeException e = new RuntimeException("== PlotMaker.addTraceToPanel: Requested iPanel > panels.size() !!");
-        	logger.error("PlotMaker2 RuntimeException:", e);
-        	return;
+            throw new PlotMakerException("== PlotMaker.addTraceToPanel: Requested iPanel > panels.size() !!");
         }
         Panel panel = panels.get(iPanel);
         panel.addTrace(trace);
@@ -112,8 +108,8 @@ public class PlotMaker2
 
         // Check that we will be able to output the file without problems and if not --> return
         if (!checkFileOut(outputFile)) {
-            System.out.format("== plotMaker: request to output plot=[%s] but we are unable to create it "
-                              + " --> skip plot\n", fileName );
+            //System.out.format("== plotMaker: request to output plot=[%s] but we are unable to create it "
+            //                  + " --> skip plot\n", fileName );
             logger.warn("== plotMaker: request to output plot=[%s] but we are unable to create it "
                               + " --> skip plot\n", fileName);
             return;

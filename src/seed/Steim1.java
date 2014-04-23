@@ -121,8 +121,12 @@ public class Steim1 {
 	 * @see edu.iris.Fissures.codec.Steim1#decode(byte[],int,boolean,int)
 	 */
 	public static int[] decode(byte[] b, int numSamples, boolean swapBytes) throws SteimException {
-		// zero-bias version of decode
-		return decode(b,numSamples,swapBytes,0);
+		try {
+			// zero-bias version of decode
+			return decode(b,numSamples,swapBytes,0);
+		} catch (SteimException e) {
+			throw e;
+		}
 	}
 
 
@@ -145,21 +149,17 @@ public class Steim1 {
 	* @throws SteimException number of frames is not a positive value
 	* @throws SteimException cannot encode more than 63 frames
 	*/
-	public static SteimFrameBlock encode(int[] samples, int frames, int bias) throws SteimException {
+	public static SteimFrameBlock encode(int[] samples, int frames, int bias) 
+	throws SteimException 
+	{
 		if (samples.length == 0) {
 			throw new SteimException("samples array is zero size");
 		}
 		if (frames <= 0) {
-			//throw new SteimException("number of frames is not a positive value");
-			SteimException e = new SteimException("number of frames is not a positive value");
-			logger.error("Steim1 SteimException:", e);
-			return null;
+			throw new SteimException("number of frames is not a positive value");
 		}
 		if (frames > 63) {
-			//throw new SteimException("cannot encode more than 63 frames, you asked for " + frames);
-			SteimException e = new SteimException("cannot encode more than 63 frames, you asked for " + frames);
-			logger.error("Steim1 SteimException:", e);
-			return null;
+			throw new SteimException("cannot encode more than 63 frames, you asked for " + frames);
 		}
 		// all encoding will be contained within a frame block
 		// Steim encoding 1
@@ -263,8 +263,13 @@ public class Steim1 {
 	 * Abbreviated zero-bias version of encode().
 	 * @see edu.iris.Fissures.codec.Steim1#encode(int[],int,int)
 	 */
-	public static SteimFrameBlock encode(int[] samples, int frames) throws SteimException {
-		return encode(samples,frames,0);   // zero-bias version of encode
+	public static SteimFrameBlock encode(int[] samples, int frames) 
+	throws SteimException {
+		try {
+			return encode(samples,frames,0);   // zero-bias version of encode
+		} catch (SteimException e) {
+			throw e;
+		}
 	}
 
 
@@ -394,6 +399,10 @@ public class Steim1 {
 		b[21] = 1;
 		b[22] = 0;
 		b[23] = 0;
-		temp = Steim1.decode(b, 17, false);
+		try {
+			temp = Steim1.decode(b, 17, false);
+		} catch (SteimException e) {
+			throw e;
+		}
 	}
 }

@@ -86,6 +86,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Hashtable;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -116,15 +117,17 @@ public class Dataless
     }
 // This should be the one we use until station/network masks are implemented
     public void processVolume() 
-    throws CancelledException, DatalessParseException
+    throws CancelledException, 
+    	   DatalessParseException
     {
-      processVolume("now", "is the time");
+    	processVolume("now", "is the time");
     }
 
     public void processVolume(Station station)
-    throws CancelledException, DatalessParseException
+    throws CancelledException, 
+    	   DatalessParseException
     {
-      processVolume(station.getNetwork(), station.getStation());
+    	processVolume(station.getNetwork(), station.getStation());
     }
 
     public void processVolume(String networkMask, String stationMask)
@@ -150,13 +153,12 @@ public class Dataless
         } catch (WrongBlocketteException exception) {
             logger.warn("Wrong blockettte.", exception);
         } catch (CancelledException exception) {
+        	logger.warn("Cancelled exception.", exception);
             failed = false;
         }
 
         if (failed) {
-        	DatalessParseException e = new DatalessParseException();
-        	logger.error("Dataless ParseException:", e);
-            return;
+        	throw new DatalessParseException();
         }
     }
 
@@ -174,9 +176,7 @@ public class Dataless
     throws CancelledException
     {
         if (cancelled()) {
-        	CancelledException e = new CancelledException();
-        	logger.error("Dataless CancelledException:", e);
-            return;
+        	throw new CancelledException();
         }
     }
 
@@ -200,7 +200,11 @@ public class Dataless
         stage = "Parsing Dataless";
 
         for (String line: rawDataless) {
-            checkCancel();
+        	try {
+        		checkCancel();
+        	} catch (CancelledException e) {
+        		throw e;
+        	}
 
             count++;
             percent = Math.floor(count / total * 100.0);
@@ -245,14 +249,18 @@ public class Dataless
             // reported that this should be part of a new blockette, we create
             // a new blockette, and add this data to it instead.
 
-            if ((!blocketteMap.containsKey(blocketteNumber)) ||
-                (!blocketteMap.get(blocketteNumber).addFieldData(fieldIdentifier, lineData)))
-            {
-                blockette = new Blockette(blocketteNumber);
-                blocketteMap.put(blocketteNumber, blockette);
-                blockettes.add(blockette);
-                blockette.addFieldData(fieldIdentifier, lineData);
-//System.out.format("  Dataless.parse(): new blockette number=%d fieldIdentifier=%s\n", blocketteNumber, fieldIdentifier );
+            try {
+	            if ((!blocketteMap.containsKey(blocketteNumber)) ||
+	                (!blocketteMap.get(blocketteNumber).addFieldData(fieldIdentifier, lineData)))
+	            {
+	                blockette = new Blockette(blocketteNumber);
+	                blocketteMap.put(blocketteNumber, blockette);
+	                blockettes.add(blockette);
+	                blockette.addFieldData(fieldIdentifier, lineData);
+	                //System.out.format("  Dataless.parse(): new blockette number=%d fieldIdentifier=%s\n", blocketteNumber, fieldIdentifier );
+	            }
+            } catch (BlocketteFieldIdentifierFormatException e) {
+            	throw e;
             }
         }
     }
@@ -285,7 +293,11 @@ public class Dataless
 
         for (Blockette blockette: blockettes)
         {
-            checkCancel();
+        	try {
+        		checkCancel();
+        	} catch (CancelledException e) {
+        		throw e;
+        	}
 
             count++;
             percent = Math.floor(count / total * 100.0);
@@ -305,60 +317,71 @@ public class Dataless
                 //      SeedVolume and create a new one when we encounter a Blockette B010.
                 //      Then a List<SeedVolume> could be handed back via getVolumes() ...
                     if (volume != null) {
-                    	DuplicateBlocketteException e = new DuplicateBlocketteException();
-                    	logger.error("Dataless DuplicateBlocketteException:", e);
-                        return;
+                    	throw new DuplicateBlocketteException();
                     }
                     volume = new SeedVolume(blockette);
                     break;
                 case 11:
                     if (volume == null) {
-                    	BlocketteOutOfOrderException e = new BlocketteOutOfOrderException();
-                    	logger.error("Dataless BlocketteOutOfOrderException:", e);
-                        return;
+                    	throw new BlocketteOutOfOrderException();
                     }
                     volume.addStationLocator(blockette);
                     break;
                 case 50:
                     if (volume == null) {
-                    	BlocketteOutOfOrderException e = new BlocketteOutOfOrderException();
-                    	logger.error("Dataless BlocketteOutOfOrderException:", e);
-                        return;
+                    	throw new BlocketteOutOfOrderException();
                     }
-                    StationKey stationKey = new StationKey(blockette);
-//System.out.format("  Dataless: blockette 50, stationKey=%s\n",stationKey);
-                    if (!volume.hasStation(stationKey)) {
-//System.out.format("  Dataless: call new StationData(%s,%s)\n",stationKey.getNetwork(), stationKey.getName() );
-                        station = new StationData(stationKey.getNetwork(), stationKey.getName());
-                        volume.addStation(stationKey, station);
-                    } else {
-                        station = volume.getStation(stationKey);
-//System.out.format("  Dataless: getStation, stationKey=%s station name=%s\n",stationKey,station.getName());
+                    try {
+	                    StationKey stationKey = new StationKey(blockette);
+	                
+	                    //System.out.format("  Dataless: blockette 50, stationKey=%s\n",stationKey);
+	                    if (!volume.hasStation(stationKey)) {
+	                    	//System.out.format("  Dataless: call new StationData(%s,%s)\n",stationKey.getNetwork(), stationKey.getName() );
+	                        station = new StationData(stationKey.getNetwork(), stationKey.getName());
+	                        volume.addStation(stationKey, station);
+	                    } else {
+	                        station = volume.getStation(stationKey);
+	                        //System.out.format("  Dataless: getStation, stationKey=%s station name=%s\n",stationKey,station.getName());
+	                    }
+                    } catch(WrongBlocketteException e) {
+                    	throw e;
                     }
-                    station.addEpoch(blockette);
+                    
+                    try {
+                    	station.addEpoch(blockette);
+                    } catch(TimestampFormatException e) {
+                    	throw e;
+                    } catch(WrongBlocketteException e) {
+                    	throw e;
+                    } catch(MissingBlocketteDataException e) {
+                    	throw e;
+                    }
                     break;
                 case 51:
                     if (station == null) {
-                    	BlocketteOutOfOrderException e = new BlocketteOutOfOrderException();
-                    	logger.error("Dataless BlocketteOutOfOrderException:", e);
-                        return;
+                    	throw new BlocketteOutOfOrderException();
                     }
-                    station.addComment(blockette);
+                    try {
+                    	station.addComment(blockette);
+                    } catch (TimestampFormatException e) {
+                    	throw e;
+                    } catch (WrongBlocketteException e) {
+                    	throw e;
+                    } catch (MissingBlocketteDataException e) {
+                    	throw e;
+                    }
                     break;
                 case 52:
                     if (station == null) {
-                    	BlocketteOutOfOrderException e = new BlocketteOutOfOrderException();
-                    	logger.error("Dataless BlocketteOutOfOrderException:", e);
-                        return;
+                    	throw new BlocketteOutOfOrderException();
                     }
                     //ChannelKey channelKey = new ChannelKey(blockette);
                     ChannelKey channelKey = null;
                     try {
                         channelKey = new ChannelKey(blockette);
                     }
-                    catch (Exception e) {
-                        logger.error( String.format("Dataless: caught new ChannelKey Exception:", e) );
-                        return;
+                    catch (WrongBlocketteException e) {
+                    	logger.error(String.format("Dataless: caught new ChannelKey Exception:", e));
                     }
                     if (!station.hasChannel(channelKey)) {
                         //channel = new ChannelData(channelKey.getLocation(), channelKey.getName());
@@ -367,24 +390,36 @@ public class Dataless
                     } else {
                         channel = station.getChannel(channelKey);
                     }
-                    Calendar epochKey = channel.addEpoch(blockette);
-                    epoch = channel.getEpoch(epochKey);
+                    try {
+                    	Calendar epochKey = channel.addEpoch(blockette);
+                    	epoch = channel.getEpoch(epochKey);
+                    } catch (MissingBlocketteDataException e) {
+                    	throw e;
+                    } catch (TimestampFormatException e) {
+                    	throw e;
+                    } catch (WrongBlocketteException e) {
+                    	throw e;
+                    }
                     break;
                 case 30:
                     if (epoch == null) {
-                    	BlocketteOutOfOrderException e = new BlocketteOutOfOrderException();
-                    	logger.error("Dataless BlocketteOutOfOrderException:", e);
-                        return;
+                    	throw new BlocketteOutOfOrderException();
                     }
                     epoch.setFormat(blockette);
                     break;
                 case 59:
                     if (channel == null) {
-                    	BlocketteOutOfOrderException e = new BlocketteOutOfOrderException();
-                    	logger.error("Dataless BlocketteOutOfOrderException", e);
-                        return;
+                    	throw new BlocketteOutOfOrderException();
                     }
-                    channel.addComment(blockette);
+                    try {
+                    	channel.addComment(blockette);
+                    } catch (MissingBlocketteDataException e) {
+                    	throw e;
+                    } catch (TimestampFormatException e) {
+                    	throw e;
+                    } catch (WrongBlocketteException e) {
+                    	throw e;
+                    }
                     break;
                 case 53:
                 case 54:
@@ -395,9 +430,7 @@ public class Dataless
                 case 61:
                 case 62:
                     if (epoch == null) {
-                    	BlocketteOutOfOrderException e = new BlocketteOutOfOrderException();
-                    	logger.error("Dataless BlocketteOutOfOrderException:", e);
-                        return;
+                    	throw new BlocketteOutOfOrderException();
                     }
 /** MTH: I see the following output from rdseed -s:
   *      B053F04	Stage Sequence Number:	1
@@ -424,9 +457,7 @@ public class Dataless
                     break;
                 default:
                     if (epoch == null) {
-                    	BlocketteOutOfOrderException e = new BlocketteOutOfOrderException();
-                    	logger.error("Dataless BlocketteOutOfOrderException:", e);
-                        return;
+                    	throw new BlocketteOutOfOrderException();
                     }
                     epoch.addMiscBlockette(blockette);
                     break;

@@ -40,21 +40,27 @@ public class ChannelKey
     throws WrongBlocketteException
     {
         if (blockette.getNumber() != CHANNEL_EPOCH_BLOCKETTE_NUMBER) {
-        	WrongBlocketteException e = new WrongBlocketteException();
-        	logger.error("ChannelKey WrongBlocketteException", e);
-        	return;
+        	throw new WrongBlocketteException();
         }
         location = blockette.getFieldValue(3,0);
         name     = blockette.getFieldValue(4,0);
 
-        setChannel(name);
-        setLocation(location);
+        try {
+        	setChannel(name);
+        	setLocation(location);
+        } catch (ChannelKeyException e) {
+        	logger.error("ChannelKey Exception:", e);
+        }
     }
 
     public ChannelKey(String location, String name)
     {
-        setChannel(name);
-        setLocation(location);
+    	try {
+    		setChannel(name);
+    		setLocation(location);
+    	} catch (ChannelKeyException e) {
+    		logger.error("ChannelKey Exception:", e);
+    	}
     }
     public ChannelKey(Channel channel)
     {
@@ -62,7 +68,9 @@ public class ChannelKey
     }
 
 
-    private void setLocation(String location) {
+    private void setLocation(String location) 
+    throws ChannelKeyException
+    {
 
         String validCodes = "\"--\", \"00\", \"10\", etc.";
 
@@ -91,11 +99,10 @@ public class ChannelKey
         }
 
         if (location.length() != 2) {
+        	//RuntimeException e = new RuntimeException(message.toString());
         	StringBuilder message = new StringBuilder();
         	message.append(String.format("Error: Location code=[%s] chan=[%s] is NOT a valid 2-char code (e.g., %s)\n", location, name, validCodes));
-        	RuntimeException e = new RuntimeException(message.toString());
-        	logger.error("ChannelKey RuntimeException:", e);
-        	return;
+        	throw new ChannelKeyException(message.toString());
         }
         Pattern pattern  = Pattern.compile("^[0-9][0-9]$");
         Matcher matcher  = pattern.matcher(location);
@@ -106,19 +113,19 @@ public class ChannelKey
         this.location = location;
     }
 
-    private void setChannel(String channel) {
+    private void setChannel(String channel) 
+    throws ChannelKeyException
+    {
         if (channel == null) {
-        	RuntimeException e = new RuntimeException();
-        	logger.error("ChannelKey RuntimeException:", e);
-            return;
+        	//RuntimeException e = new RuntimeException(message.toString());
+        	throw new ChannelKeyException("Channel cannot be null");
         }
     // MTH: For now we'll allow either 3-char ("LHZ") or 4-char ("LHND") channels
         if (channel.length() < 3 || channel.length() > 4) { 
+        	//RuntimeException e = new RuntimeException(message.toString());
         	StringBuilder message = new StringBuilder();
         	message.append(String.format("Error: Channel code=[%s] is NOT valid (must be 3 or 4-chars long)\n", channel));
-        	RuntimeException e = new RuntimeException(message.toString());
-        	logger.error("ChannelKey RuntimeException:", e);
-        	return;
+        	throw new ChannelKeyException(message.toString());
         }
         this.name = channel;
     }
@@ -150,7 +157,5 @@ public class ChannelKey
       String thatCombo = chanKey.getLocation() + chanKey.getName();
       return thisCombo.compareTo(thatCombo);
    }
-
-
 }
 

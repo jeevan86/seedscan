@@ -67,6 +67,7 @@ public class PoleZeroStage extends ResponseStage
         try {
             return (PoleZeroStage) super.clone();
         } catch (CloneNotSupportedException e) {
+        	logger.error("PoleZeroStage CloneNoteSupportedException:", e);
             return null;
         }
     }
@@ -128,34 +129,40 @@ public class PoleZeroStage extends ResponseStage
 **/
     public void printResponse(){
       Cmplx response;
-      for (double x=.01; x<=100; x += .01){ // 100sec -to- 100Hz
-        response = evalResp(x);
-        System.out.format("%12.4f\t%12.4f\n",x, response.mag() );
-      }
+      for (double x=.01; x<=100; x += .01) { // 100sec -to- 100Hz
+    	  try {
+    		  response = evalResp(x);
+    		  System.out.format("%12.4f\t%12.4f\n",x, response.mag() );
+    	  } catch (PoleZeroStageException e) {
+    		  logger.error("PoleZeroStage Exception:", e);
+    	  }
+       }
     }
 
 /*  Return complex response computed at given freqs[0,...length]
  *  Should really check that length > 0
 **/
-    public Cmplx[] getResponse(double[] freqs){
+    public Cmplx[] getResponse(double[] freqs)
+    throws PoleZeroStageException
+    {
       //Some polezero responses (e.g., ANMO.IU.20.BN?) appear to have NO zeros
       //if (poleAdded && zeroAdded && normalizationSet) {
       if (poleAdded && normalizationSet) {
       // Looks like the polezero info has been loaded ... so continue ...
       }
       else {
-        RuntimeException e = new RuntimeException("[ PoleZeroStage-->getResponse Error: PoleZero info does not appear to be loaded! ]");
-        logger.error("PoleZeroStage RuntimeException:", e);
-        return null;
+    	  throw new PoleZeroStageException("[ PoleZeroStage-->getResponse Error: PoleZero info does not appear to be loaded! ]");
       }
       if (!(freqs.length > 0)){
-        RuntimeException e = new RuntimeException("[ PoleZeroStage-->getResponse Error: Input freqs[] has no zero length! ]");
-        logger.error("PoleZeroStage RuntimeException:", e);
-        return null;
+    	  throw new PoleZeroStageException("[ PoleZeroStage-->getResponse Error: Input freqs[] has no zero length! ]");
       }
       Cmplx[] response = new Cmplx[freqs.length];
       for (int i=0; i<freqs.length; i++){
-        response[i] = evalResp(freqs[i]);
+    	  try {
+    		  response[i] = evalResp(freqs[i]);
+    	  } catch (PoleZeroStageException e) {
+    		  logger.error("PoleZeroStage Exception:", e);
+    	  }
       //System.out.format("%12.4f\t%12.4f\n",freqs[i], response[i].mag() );
       }
       return response;
@@ -183,7 +190,9 @@ public class PoleZeroStage extends ResponseStage
  *  Note that the stage sensitivity Sd is *not* included, so that the response from this
  *  stage should be approx. 1 (flat) at the mid range.
 **/
-    private Cmplx evalResp(double f){
+    private Cmplx evalResp(double f)
+    throws PoleZeroStageException
+    {
       Cmplx numerator   = new Cmplx(1,0);
       Cmplx denomenator = new Cmplx(1,0);
       Cmplx s;
@@ -196,9 +205,7 @@ public class PoleZeroStage extends ResponseStage
         s = new Cmplx(0.0, f);
       }
       else {
-        RuntimeException e = new RuntimeException("[ PoleZeroStage-->evalResponse Error: Cannot evalResp a non-PoleZero Stage!]");
-        logger.error("PoleZeroStage RuntimeException:", e);
-        return null;
+    	  throw new PoleZeroStageException("[ PoleZeroStage-->evalResponse Error: Cannot evalResp a non-PoleZero Stage!]");
       }
 
       for (int j=0; j<getNumberOfZeros(); j++){

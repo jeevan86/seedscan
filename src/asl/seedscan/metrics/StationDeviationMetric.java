@@ -26,10 +26,10 @@ import java.nio.ByteBuffer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Calendar;
-
 import java.awt.BasicStroke;
 import java.awt.Color;
 
@@ -39,8 +39,9 @@ import asl.seedscan.ArchivePath;
 import asl.util.Hex;
 import asl.util.PlotMaker;
 import asl.util.PlotMaker2;
+import asl.util.PlotMakerException;
 import asl.util.Trace;
-
+import asl.util.TraceException;
 import timeutils.Timeseries;
 
 public class StationDeviationMetric
@@ -108,20 +109,29 @@ extends PowerBandMetric
                 continue;
             }
 
-            double result = computeMetric(channel);
-            if (result == NO_RESULT) {
-                // Metric computation failed --> do nothing
+            try {	// computeMetric() handle
+	            double result = computeMetric(channel);
+	            if (result == NO_RESULT) {
+	                // Metric computation failed --> do nothing
+	            }
+	            else {
+	                metricResult.addResult(channel, result, digest);
+	            }
+            } catch (MetricException e) {
+            	logger.error("StationDeviation MetricException:", e);
             }
-            else {
-                metricResult.addResult(channel, result, digest);
-            }
-
         }// end foreach channel
 
         if (getMakePlots() && (plotMaker != null) ) {  // If no station model files were found plotMaker still == null
             BasicStroke stroke = new BasicStroke(4.0f);
             for (int iPanel=0; iPanel<3; iPanel++){
-                plotMaker.addTraceToPanel( new Trace(ModelPeriods, ModelPowers, "StnModel", Color.black, stroke), iPanel);
+            	try {
+            		plotMaker.addTraceToPanel( new Trace(ModelPeriods, ModelPowers, "StnModel", Color.black, stroke), iPanel);
+            	} catch (PlotMakerException e) {
+            		logger.error("StationDeviationMetric PlotMakerException:", e);
+            	} catch (TraceException e) {
+            		logger.error("StationDeviationMetric TraceException:", e);
+            	}
             }
             final String pngName   = String.format("%s.%s.png", getOutputDir(), "stn-dev" );
             plotMaker.writePlot(pngName);
@@ -129,14 +139,20 @@ extends PowerBandMetric
     } // end process()
 
 
-    private double computeMetric(Channel channel) {
+    private double computeMetric(Channel channel) 
+    throws MetricException
+    {
 
     // Read in specific noise model for this station+channel          // ../ANMO.00.LH1.90
         String modelFileName = stationMeta.getStation() + "." + channel.getLocation() + "." + channel.getChannel() + ".90";
-        if (!readModel(modelFileName)) {
-            logger.warn(String.format("%s Error: ModelFile=%s not found for requested channel:%s --> Skipping\n"
-                              ,getName(), modelFileName, channel.getChannel()));
-            return NO_RESULT;
+        try {
+	        if (!readModel(modelFileName)) {
+	            logger.warn(String.format("%s Error: ModelFile=%s not found for requested channel:%s --> Skipping\n"
+	                              ,getName(), modelFileName, channel.getChannel()));
+	            return NO_RESULT;
+	        }
+        } catch (MetricException e) {
+        	logger.error("StationDeviationMetric Exception:", e);
         }
 
      // Compute/Get the 1-sided psd[f] using Peterson's algorithm (24 hrs, 13 segments, etc.)
@@ -208,29 +224,36 @@ extends PowerBandMetric
             StringBuilder message = new StringBuilder();
             message.append(String.format("%s %s Error: Requested band [%f - %f] contains NO periods within station model\n"
                 ,getName(), getDay(), lowPeriod, highPeriod) );
-            RuntimeException e = new RuntimeException(message.toString());
-            logger.error("StationDeviation RuntimeException:", e);
-            return NO_RESULT;
+            throw new MetricException(message.toString());
         }
 
         deviation = deviation/(double)nPeriods;
 
         if (getMakePlots()) {  
-            makePlots(channel, ModelPeriods, psdInterp);
+        	try {
+        		makePlots(channel, ModelPeriods, psdInterp);
+        	} catch (MetricException e) {
+        		logger.error("StationDeviationMetric Exception:", e);
+        	} catch (PlotMakerException e) {
+        		logger.error("StationDeviationMetric PlotMakerException:", e);
+        	} catch (TraceException e) {
+        		logger.error("StationDeviationMetric TraceException:", e);
+        	}
         }
 
         return deviation;
-
     } // end computeMetric()
 
-    private void makePlots(Channel channel, double xdata[], double ydata[]) {
+    private void makePlots(Channel channel, double xdata[], double ydata[]) 
+    throws MetricException,
+    	   PlotMakerException,
+    	   TraceException
+    {
         if (xdata.length != ydata.length) {
         	StringBuilder message = new StringBuilder();
         	message.append(String.format("%s %s makePlots() Error: xdata.len=%d != ydata.len=%d", 
         			getName(), getDay(), xdata.length, ydata.length));
-            RuntimeException e = new RuntimeException(message.toString());
-            logger.error("StationDeviation RuntimeException:", e);
-            return;
+        	throw new MetricException(message.toString());
         }
         if (plotMaker == null) {
             String date = String.format("%04d%03d", metricResult.getDate().get(Calendar.YEAR),
@@ -256,9 +279,7 @@ extends PowerBandMetric
         	StringBuilder message = new StringBuilder();
         	message.append(String.format("%s %s makePlots() Don't know how to plot channel=%s", 
                     getName(), getDay(), channel));
-        	RuntimeException e = new RuntimeException(message.toString());
-        	logger.error("StationDeviation RuntimeException:", e);
-        	return;
+        	throw new MetricException(message.toString());
         }
 
         if (channel.getLocation().equals("00")) {
@@ -270,11 +291,19 @@ extends PowerBandMetric
         else { // ??
         }
 
-        plotMaker.addTraceToPanel( new Trace(xdata, ydata, channel.toString(), color, stroke), iPanel);
+        try {
+        	plotMaker.addTraceToPanel( new Trace(xdata, ydata, channel.toString(), color, stroke), iPanel);
+        } catch (PlotMakerException e) {
+        	throw e;
+        } catch (TraceException e) {
+        	throw e;
+        }
     }
 
 
-    private boolean readModel(String fName) {
+    private boolean readModel(String fName) 
+    throws MetricException
+    {
 
    // ../stationmodel/IU_ANMO/ANMO.00.LHZ.90
         String fileName = ModelDir + fName;
@@ -299,9 +328,7 @@ extends PowerBandMetric
 // MTH: This is hard-wired for Adam's station model files which have 7 columns:
                 if (args.length != 7) {
                     String message = "==Error reading Station Model File: got " + args.length + " args on one line!";
-                    RuntimeException e = new RuntimeException(message);
-                    logger.error("StationDeviation RuntimeException:", e);
-                    return false;
+                    throw new MetricException(message.toString());
                 }
                 try {
                 	tmpPers.add( Double.valueOf(args[0].trim()).doubleValue() );
@@ -335,6 +362,5 @@ extends PowerBandMetric
         }
 
         return true;
-
     } // end readModel
 } // end class

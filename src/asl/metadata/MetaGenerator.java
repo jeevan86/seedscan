@@ -30,7 +30,6 @@ import java.util.TreeSet;
 import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.Hashtable;
-import java.io.IOException;
 import java.io.*;
 
 import asl.metadata.meta_new.*;
@@ -153,11 +152,11 @@ public class MetaGenerator
             }
         // Need to catch both IOException and InterruptedException
             catch (IOException e) {
-                System.out.println("Error: IOException Description: " + e.getMessage());
+                //System.out.println("Error: IOException Description: " + e.getMessage());
                 logger.error("MetaGenerator Error: IOException Description:", e);
             }
             catch (InterruptedException e) {
-                System.out.println("Error: InterruptedException Description: " + e.getMessage());
+                //System.out.println("Error: InterruptedException Description: " + e.getMessage());
                 logger.error("MetaGenerator Error: InterruptedException Description:", e);
             }
 
@@ -168,16 +167,16 @@ public class MetaGenerator
                 volume = dataless.getVolume();
             }
             catch (Exception e){
-                System.out.format("== MetaGenerator: Error processing dataless volume for file=[%s]:%s\n", 
-                    fileName, e.getMessage());
+                //System.out.format("== MetaGenerator: Error processing dataless volume for file=[%s]:%s\n", 
+                //    fileName, e.getMessage());
                 StringBuilder message = new StringBuilder();
                 message.append(String.format("== MetaGenerator: Error processing dataless volume for file=[%s]\n", fileName));
                 logger.error(message.toString(), e);
             }
 
             if (volume == null){
-                System.out.format("== MetaGenerator: Error processing dataless volume==null! for file=[%s]\n",
-                    fileName);
+                //System.out.format("== MetaGenerator: Error processing dataless volume==null! for file=[%s]\n",
+                //    fileName);
                 StringBuilder message = new StringBuilder();
                 message.append(String.format("== MetaGenerator: Error processing dataless volume==null! for file=[%s]\n"));
                 logger.error(message.toString());
@@ -196,8 +195,8 @@ public class MetaGenerator
     private void addVolume( SeedVolume volume ) {
         NetworkKey networkKey = volume.getNetworkKey();
         if (volumes.containsKey(networkKey)) {
-            System.out.format("== MetaGenerator Error: Attempting to load volume networkKey=[%s] --> Already loaded!\n",
-                              networkKey);
+            //System.out.format("== MetaGenerator Error: Attempting to load volume networkKey=[%s] --> Already loaded!\n",
+            //                  networkKey);
             StringBuilder message = new StringBuilder();
             message.append(String.format("== MetaGenerator Error: Attempting to load volume networkKey=[%s] --> Already loaded!\n",
                               networkKey));
@@ -253,7 +252,7 @@ public class MetaGenerator
     private StationData getStationData(Station station){
         SeedVolume volume = volumes.get( new NetworkKey(station.getNetwork()) ) ; 
         if (volume == null) {
-            System.out.format("== MetaGenerator.getStationData() - Volume==null for Station=[%s]\n", station);
+            //System.out.format("== MetaGenerator.getStationData() - Volume==null for Station=[%s]\n", station);
         	StringBuilder message = new StringBuilder();
         	message.append(String.format("== MetaGenerator.getStationData() - Volume==null for Station=[%s]\n", station));
         	logger.error(message.toString());
@@ -283,34 +282,33 @@ public class MetaGenerator
  *                                           requested timestamp day.
  */
 
-    public StationMeta getStationMeta(Station station, Calendar timestamp) throws RemoteException {
+    public StationMeta getStationMeta(Station station, Calendar timestamp) 
+    throws RemoteException,
+    	   RuntimeException
+    {
 
         StationData stationData = getStationData(station);
         if (stationData == null) { // This can happen if the file DATALESS.IW_LKWY.seed doesn't match
-            System.out.format("== [UTC %s] MetaGenerator getStationMeta request:\t\t[%s]\t[%s]\tNOT FOUND!\n",            
-              EpochData.epochToDateString(Calendar.getInstance()), station,EpochData.epochToDateString(timestamp));
             StringBuilder message = new StringBuilder();
-            message.append(String.format("== [UTC %s] MetaGenerator getStationMeta request:\t\t[%s]\t[%s]\tNOT FOUND!\n",            
-              EpochData.epochToDateString(Calendar.getInstance()), station,EpochData.epochToDateString(timestamp)));
+            message.append(String.format("== [UTC %s] MetaGenerator getStationMeta request:\t\t[%s]\t[%s]\tNOT FOUND!\n", 
+            		EpochData.epochToDateString(Calendar.getInstance()), station,EpochData.epochToDateString(timestamp)));
             logger.error(message.toString());
             return null;             //   the name INSIDE the dataless (= US_LKWY) ... so the keys don't match
         }
- // Scan stationData for the correct station blockette (050) for this timestamp - return null if it isn't found
-        Blockette blockette     = stationData.getBlockette(timestamp);
+        // Scan stationData for the correct station blockette (050) for this timestamp - return null if it isn't found
+        Blockette blockette = stationData.getBlockette(timestamp);
 
         if (blockette == null){
-            System.out.format("== [UTC %s] MetaGenerator getStationMeta request:\t\t[%s]\t[%s]\tNOT FOUND!\n",            
-              EpochData.epochToDateString(Calendar.getInstance()), station,EpochData.epochToDateString(timestamp));
             StringBuilder message = new StringBuilder();
-            message.append(String.format("== [UTC %s] MetaGenerator getStationMeta request:\t\t[%s]\t[%s]\tNOT FOUND!\n",            
-              EpochData.epochToDateString(Calendar.getInstance()), station,EpochData.epochToDateString(timestamp)));
+            message.append(String.format("== [UTC %s] MetaGenerator getStationMeta request:\t\t[%s]\t[%s]\tNOT FOUND!\n", 
+            		EpochData.epochToDateString(Calendar.getInstance()), station,EpochData.epochToDateString(timestamp)));
             logger.error(message.toString());
             return null;
         }
         else { // Uncomment to print out a Blockette050 each time getStationMeta is called
             //blockette.print();
-            System.out.format("== [UTC %s] MetaGenerator getStationMeta request:\t\t[%s]\t[%s]\n",            
-              EpochData.epochToDateString(Calendar.getInstance()), station,EpochData.epochToDateString(timestamp));
+            System.out.format("== [UTC %s] MetaGenerator getStationMeta request:\t\t[%s]\t[%s]\n", 
+            		EpochData.epochToDateString(Calendar.getInstance()), station,EpochData.epochToDateString(timestamp));
         }
 
         StationMeta stationMeta = null;
@@ -318,49 +316,51 @@ public class MetaGenerator
             stationMeta = new StationMeta(blockette, timestamp);
         }
         catch (WrongBlocketteException e ){
-            System.out.println("ERROR: Could not create new StationMeta(blockette) !!");
             StringBuilder message = new StringBuilder();
             message.append(String.format("ERROR: Could not create new StationMeta(blockette) !!"));
             logger.error(message.toString());
             System.exit(0);
         }
 
-
- // Get this StationData's ChannelKeys and sort:
+        // Get this StationData's ChannelKeys and sort:
         Hashtable<ChannelKey, ChannelData> channels = stationData.getChannels();
         TreeSet<ChannelKey> keys = new TreeSet<ChannelKey>();
         keys.addAll(channels.keySet());
-        for (ChannelKey key : keys){
-            //System.out.println("==Channel:"+key );
-            ChannelData channel = channels.get(key);
-            //ChannelMeta channelMeta = new ChannelMeta(key,timestamp);
-            ChannelMeta channelMeta = new ChannelMeta(key,timestamp,station);
-
-     // See if this channel contains the requested epoch time and if so return the key 
-     //                                                       (=Epoch Start timestamp)
-            //channel.printEpochs();
-            Calendar epochTimestamp = channel.containsEpoch(timestamp);
-            if (epochTimestamp !=null){
-                EpochData epochData = channel.getEpoch(epochTimestamp);
-
-     // If the epoch is closed, check that the end time is at least 24 hours later than the requested time
-                if (epochData.getEndTime() != null ){  
-         // Make sure this epoch end time is > requested time + 24 hours
-                    long epochStart = epochData.getStartTime().getTimeInMillis();
-                    long epochEnd   = epochData.getEndTime().getTimeInMillis();
-                    if ( epochEnd <  (timestamp.getTimeInMillis() + 24 * 3600 * 1000) ) {
-                        channelMeta.setDayBreak(); // set channelMeta.dayBreak = true
-                    }
-                }
-                channelMeta.processEpochData(epochData);
-                stationMeta.addChannel(key, channelMeta);
-            }
-            else { // The channel does NOT contain the epoch time --> reset ChannelMeta to null
-                channelMeta = null;
-            }
+        try {	// try/catch for ChannelMeta(key,timestamp,station)
+	        for (ChannelKey key : keys){
+	            //System.out.println("==Channel:"+key );
+	            ChannelData channel = channels.get(key);
+	            //ChannelMeta channelMeta = new ChannelMeta(key,timestamp);
+	            ChannelMeta channelMeta = new ChannelMeta(key,timestamp,station);
+	
+	            // See if this channel contains the requested epoch time and if so return the key 
+	            //                                                       (=Epoch Start timestamp)
+	            //channel.printEpochs();
+	            Calendar epochTimestamp = channel.containsEpoch(timestamp);
+	            if (epochTimestamp !=null){
+	                EpochData epochData = channel.getEpoch(epochTimestamp);
+	
+	                // If the epoch is closed, check that the end time is at least 24 hours later than the requested time
+	                if (epochData.getEndTime() != null ){  
+	                	// Make sure this epoch end time is > requested time + 24 hours
+	                    long epochStart = epochData.getStartTime().getTimeInMillis();
+	                    long epochEnd   = epochData.getEndTime().getTimeInMillis();
+	                    if ( epochEnd <  (timestamp.getTimeInMillis() + 24 * 3600 * 1000) ) {
+	                        channelMeta.setDayBreak(); // set channelMeta.dayBreak = true
+	                    }
+	                }
+	                channelMeta.processEpochData(epochData);
+	                stationMeta.addChannel(key, channelMeta);
+	            }
+	            else { // The channel does NOT contain the epoch time --> reset ChannelMeta to null
+	                channelMeta = null;
+	            }
+	        }
+	
+	        return stationMeta;
+        } catch (RuntimeException e) {
+        	throw e;
         }
-
-        return stationMeta;
     }
 
     public static void main(String[] args) {
@@ -374,7 +374,7 @@ public class MetaGenerator
             System.out.println("== MetaGen Server is ready");
         }
         catch (Exception e) {
-            System.out.format("== MetaGen Server failed:%s\n", e.getMessage() );
+            //System.out.format("== MetaGen Server failed:%s\n", e.getMessage() );
             logger.error("== MetaGen Server failed:\n", e);
         }
     }

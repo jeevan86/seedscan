@@ -247,14 +247,12 @@ public class Cmplx implements java.io.Serializable {
 
     public static final float[] convolve(float[] fdata,
                                          float[] gdata,
-                                         float delta) {
+                                         float delta) 
+    throws IllegalArgumentException
+    {
         if(fdata.length != gdata.length) {
-            //throw new IllegalArgumentException("fdata and gdata must have same length. "
-            //        + fdata.length + " " + gdata.length);
-        	String message = String.format("fdata and gdata must have same length. " + fdata.length + " " + gdata.length);
-        	IllegalArgumentException e = new IllegalArgumentException(message);
-        	logger.error("Cmplx IllegalArgumentException:", e);
-        	return null;
+            throw new IllegalArgumentException("fdata and gdata must have same length. "
+                    + fdata.length + " " + gdata.length);
         }
         Cmplx[] fTrans = fft(fdata);
         Cmplx[] gTrans = fft(gdata);
@@ -276,14 +274,12 @@ public class Cmplx implements java.io.Serializable {
      * @see http://www.ulib.org/webRoot/Books/Numerical_Recipes/bookcpdf.html
      *      section 13-2
      */
-    public static final float[] correlate(float[] fdata, float[] gdata) {
+    public static final float[] correlate(float[] fdata, float[] gdata) 
+    throws IllegalArgumentException 
+    {
         if(fdata.length != gdata.length) {
-            //throw new IllegalArgumentException("fdata and gdata must have same length. "
-            //        + fdata.length + " " + gdata.length);
-        	String message = String.format("fdata and gdata must have same length. " + fdata.length + " " + gdata.length);
-        	IllegalArgumentException e = new IllegalArgumentException(message);
-        	logger.error("Cmplx IllegalArgumentException:", e);
-        	return null;
+            throw new IllegalArgumentException("fdata and gdata must have same length. "
+                    + fdata.length + " " + gdata.length);
         }
         Cmplx[] fTrans = fft(fdata);
         Cmplx[] gTrans = fft(gdata);

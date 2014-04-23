@@ -64,7 +64,11 @@ implements Runnable
     public void addTask(String command, T data)
     throws InterruptedException
     {
-    	queue.put(new Task<T>(command, data));
+    	try {
+    		queue.put(new Task<T>(command, data));
+    	} catch (InterruptedException e) {
+    		throw e;
+    	}
     }
 
  // implements Runnable's run() method 
@@ -111,7 +115,11 @@ implements Runnable
     public void halt()
     throws InterruptedException
     {
-        halt(false);
+    	try {
+    		halt(false);
+    	} catch (InterruptedException e) {
+    		throw e;
+    	}
     }
 
     public void halt(boolean now)
@@ -120,6 +128,10 @@ implements Runnable
         if (now) {
             running = false;
         }
-        queue.put(new Task<T>("HALT", null));
+        try {
+        	queue.put(new Task<T>("HALT", null));
+        } catch (InterruptedException e) {
+        	throw e;
+        }
     }
 }

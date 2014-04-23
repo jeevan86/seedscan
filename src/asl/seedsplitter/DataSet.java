@@ -40,6 +40,9 @@ public class DataSet
      * Constructor.
      */
     public DataSet()
+    throws RuntimeException,
+    	   CloneNotSupportedException
+    	   
     {
         super();
         m_network = null;

@@ -61,6 +61,7 @@ implements Password
         try {
             passwordString = decrypt();
         } catch (EncryptionException e) {
+        	logger.error("EncryptedPassword EncryptionException:", e);
             passwordString = null;
         }
         return passwordString;

@@ -110,7 +110,7 @@ public class PlotMaker
         }
 
         if (channelData.size() != channels.length) {
-            System.out.format("== plotZNE_3x3: Error: We have [%d channels] but [%d channelData]\n", channels.length, channelData.size() );
+            //System.out.format("== plotZNE_3x3: Error: We have [%d channels] but [%d channelData]\n", channels.length, channelData.size() );
             String message = String.format("== plotZNE_3x3: Error: We have [%d channels] but [%d channelData]\n", channels.length, channelData.size());
             logger.error(message);
             return;
@@ -241,8 +241,8 @@ public class PlotMaker
 
         // Check that we will be able to output the file without problems and if not --> return
         if (!checkFileOut(outputFile)) {
-            System.out.format("== plotPSD: request to output plot=[%s] but we are unable to create it "
-                              + " --> skip plot\n", pngName );
+            //System.out.format("== plotPSD: request to output plot=[%s] but we are unable to create it "
+            //                  + " --> skip plot\n", pngName );
             logger.warn("== plotPSD: request to output plot=[%s] but we are unable to create it "
                               + " --> skip plot\n", pngName);
             return;
@@ -336,8 +336,8 @@ public class PlotMaker
 
         // Check that we will be able to output the file without problems and if not --> return
         if (!checkFileOut(outputFile)) {
-            System.out.format("== plotCoherence: request to output plot=[%s] but we are unable to create it "
-                              + " --> skip plot\n", pngName );
+            //System.out.format("== plotCoherence: request to output plot=[%s] but we are unable to create it "
+            //                  + " --> skip plot\n", pngName );
             logger.warn("== plotCoherence: request to output plot=[%s] but we are unable to create it "
                               + " --> skip plot\n", pngName);
             return;
@@ -527,8 +527,8 @@ public class PlotMaker
 
         // Check that we will be able to output the file without problems and if not --> return
         if (!checkFileOut(outputFile)) {
-            System.out.format("== plotSpecAmp: request to output plot=[%s] but we are unable to create it "
-                              + " --> skip plot\n", pngName );
+            //System.out.format("== plotSpecAmp: request to output plot=[%s] but we are unable to create it "
+            //                  + " --> skip plot\n", pngName );
             logger.warn("== plotSpecAmp: request to output plot=[%s] but we are unable to create it "
                               + " --> skip plot\n", pngName);
             return;

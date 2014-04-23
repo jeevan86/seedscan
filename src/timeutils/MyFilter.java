@@ -42,7 +42,8 @@ public class MyFilter
 
         if (!(f1 < f2 && f2 < f3 && f3 < f4)) {
             String msg = String.format("bandpass: Error: invalid freq: range: [%f-%f ----- %f-%f]", f1, f2, f3, f4);
-            System.out.println(msg);
+            //System.out.println(msg);
+            logger.error(msg);
             return;
         }
         if (delta <= 0) {
@@ -199,7 +200,8 @@ public class MyFilter
         int i, j;
 
         if (npole % 2 != 0) {
-            System.out.println("WARNING - Number of poles not a multiple of 2!");
+            //System.out.println("WARNING - Number of poles not a multiple of 2!");
+        	logger.warn("WARNING - Number of poles not a multiple of 2!");
         }
 
         nop = npole - 2 * (npole / 2);

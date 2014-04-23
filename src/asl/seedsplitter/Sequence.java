@@ -52,24 +52,30 @@ extends MemberDigest
     private double m_sampleRate = 0.0;
     private long m_interval = 0;
 
-
     public Object clone()
+    throws CloneNotSupportedException
     {
-        Sequence sequence     = new Sequence();
-        sequence.m_startTime  = m_startTime;
-        sequence.m_sampleRate = m_sampleRate;
-        sequence.m_interval   = m_interval;
-        for (int[] block: m_blocks) {
-            sequence.extend(block, 0, block.length); }
-        sequence.m_length     = m_length;
-        sequence.m_remainder  = m_remainder;
-        return sequence;
+    	try {
+	        Sequence sequence = new Sequence();
+	        sequence.m_startTime  = m_startTime;
+	        sequence.m_sampleRate = m_sampleRate;
+	        sequence.m_interval   = m_interval;
+	        for (int[] block: m_blocks) {
+	            sequence.extend(block, 0, block.length); }
+	        sequence.m_length     = m_length;
+	        sequence.m_remainder  = m_remainder;
+	        return sequence;
+    	} catch (CloneNotSupportedException e) {
+    		throw e;
+    	}
     }
 
     /**
      * Creates a new instance of this object.
      */
     public Sequence()
+    throws CloneNotSupportedException,
+    	   RuntimeException
     {
         super();
         TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
@@ -138,10 +144,7 @@ extends MemberDigest
             m_interval = sampleRateToInterval(sampleRate);
             m_sampleRate = sampleRate; 
         } catch (IllegalSampleRateException e) {
-            //e.printStackTrace();
-            //throw e;
-        	logger.error("Sequence IllegalSampleRateException:", e);
-        	return;
+        	throw e;
         }
     }
 
@@ -194,7 +197,8 @@ extends MemberDigest
      * @param   startTime   The new starting data point is at or later than this point.
      * @param   endTime     The new ending data point is at or earlier than this point.
      */
-    public void trim(long startTime, long endTime) {
+    public void trim(long startTime, long endTime) 
+    {
         if (startTime > endTime) {
             clear();
         } else if (startTime > this.getEndTime()) {
@@ -208,22 +212,23 @@ extends MemberDigest
             if (endTime > this.getEndTime()) {
                 endTime = this.getEndTime();
             }
-            Sequence newSequence = new Sequence();
-            newSequence.m_startTime = m_startTime;
-            newSequence.m_interval = m_interval;
-            newSequence.m_sampleRate = m_sampleRate;
-
             try {
+	            Sequence newSequence = new Sequence();
+	            newSequence.m_startTime = m_startTime;
+	            newSequence.m_interval = m_interval;
+	            newSequence.m_sampleRate = m_sampleRate;
+
                 int[] series = this.getSeries(startTime, endTime);
                 newSequence.extend(series, 0, series.length);
                 this.swapData(newSequence);
             } catch (SequenceRangeException e) {
-                //throw new RuntimeException("Sequence Range Error in trim(). This should never happen!");
             	String message = "Sequence RangeException: Sequence Range Error in trim(). This should never happen!";
             	logger.error(message, e);
-            	return;
+            } catch (RuntimeException e) {
+            	logger.error("Sequence RuntimeException:", e);
+            } catch (CloneNotSupportedException e) {
+            	logger.error("Sequence CloneNotSupportedException:", e);
             }
-
         }
     }
 
@@ -299,13 +304,11 @@ extends MemberDigest
     public synchronized void mergeInto(Sequence seq) 
     throws SequenceIntervalMismatchException,
            SequenceMergeRangeException,
-           SequenceTimingException
+           SequenceTimingException,
+           BlockSizeMismatchException
     {
         if (m_interval != seq.m_interval) {
-            //throw new SequenceIntervalMismatchException();
-        	SequenceIntervalMismatchException e = new SequenceIntervalMismatchException();
-        	logger.error("Sequence IntervalMismatchException:", e);
-        	return;
+            throw new SequenceIntervalMismatchException();
         }
 
         //if ((Math.abs(m_startTime - seq.m_startTime) % m_interval) != 0) {
@@ -327,10 +330,7 @@ extends MemberDigest
             if (((m_startTime - seq.getEndTime()) < (m_interval - intervalAdjustment)) ||
                 ((m_startTime - seq.getEndTime()) > (m_interval + intervalAdjustment))) {
                 logger.debug("Source is more than 1 data point after target. (difference = " +(m_startTime - seq.getEndTime())+ " ms OR " +((m_startTime - seq.getEndTime())/m_interval)+ " data points)");
-                //throw new SequenceMergeRangeException("Source is more than 1 data point after target.");
-                SequenceMergeRangeException e = new SequenceMergeRangeException("Source is more than 1 data point after target.");
-                logger.error("Sequence MergeRangeException:", e);
-                return;
+                throw new SequenceMergeRangeException("Source is more than 1 data point after target.");
             }
         }
 
@@ -338,12 +338,14 @@ extends MemberDigest
             if (((seq.m_startTime - this.getEndTime()) < (m_interval - intervalAdjustment)) ||
                 ((seq.m_startTime - this.getEndTime()) > (m_interval + intervalAdjustment))) {
                 logger.debug("Target is more than 1 data point after source. (difference = " +(seq.m_startTime - this.getEndTime())+ ")");
-                //throw new SequenceMergeRangeException("Target is more than 1 data point after source.");
-                SequenceMergeRangeException e = new SequenceMergeRangeException("Target is more than 1 data point after source.");
-                return;
+                throw new SequenceMergeRangeException("Target is more than 1 data point after source.");
             } else {
                 logger.debug("Swapping source and target prior to merge.");
-                seq.mergeInto(this);
+                try {
+                	seq.mergeInto(this);
+                } catch (BlockSizeMismatchException e) {
+                	logger.error("Sequence BlockSizeMismatchException:", e);
+                }
                 seq.swapData(this);
                 return;
             }
@@ -365,7 +367,11 @@ extends MemberDigest
 
         if (m_startTime < seq.m_startTime) {
             logger.debug("Swapping source and target prior to merge.");
-            seq.mergeInto(this);
+            try {
+            	seq.mergeInto(this);
+            } catch (BlockSizeMismatchException e) {
+            	logger.error("Sequence BlockSizeMismatchException:", e);
+            }
             seq.swapData(this);
             return ;
         }
@@ -427,11 +433,9 @@ extends MemberDigest
             try {
                 pool.addBlock(block);
             } catch (BlockSizeMismatchException e) {
-                //e.printStackTrace();
                 //throw new RuntimeException("Impossible situation! BlockSizeMismatchException on BlockPool.addBlock()", e); // This should never happen
-            	String message = "Sequence BlockSizeMismatchException: BlockPool.addBlock() Impossible situation!";
-            	logger.error(message, e);
-            	return;
+            	//String message = "Sequence BlockSizeMismatchException: BlockPool.addBlock() Impossible situation!";
+            	throw e;
             }
         }
     }
@@ -551,16 +555,10 @@ extends MemberDigest
            SequenceRangeException
     {
         if (index >= m_length) {
-            //throw new IndexOutOfBoundsException();
-        	IndexOutOfBoundsException e = new IndexOutOfBoundsException();
-        	logger.error("Sequence IndexOBException:", e);
-        	return null;
+            throw new IndexOutOfBoundsException();
         }
         if ((index + count) > m_length) {
-            //throw new SequenceRangeException();
-        	SequenceRangeException e = new SequenceRangeException();
-        	logger.error("Sequence RangeException:", e);
-        	return null;
+            throw new SequenceRangeException();
         }
         if (m_length == 0) {
             return null;
@@ -604,10 +602,8 @@ extends MemberDigest
         try {
             return this.getSeries(0, m_length);
         } catch (IndexOutOfBoundsException e) {
-            //e.printStackTrace();
         	logger.error("Sequence IndexOutOfBoundsException:", e);
         } catch (SequenceRangeException e) {
-            //e.printStackTrace();
         	logger.error("Sequence RangeException:", e);
         }
         return null;
@@ -623,15 +619,13 @@ extends MemberDigest
      * @return Returns a new Array containing all of the data points in this sequence.
      */
     public int[] getSeries(long startTime, int count)
-    throws SequenceRangeException
+    throws SequenceRangeException,
+    	   IndexOutOfBoundsException
     {
         int[] series = null;
         int index = 0;
         if (startTime < m_startTime) {
-            //throw new SequenceRangeException();
-        	SequenceRangeException e = new SequenceRangeException();
-        	logger.error("Sequence RangeException:", e);
-        	return null;
+            throw new SequenceRangeException();
         } else {
             long diff = startTime - m_startTime;
             index = (int)(diff / m_interval + (((diff % m_interval) > 0) ? 1 : 0));
@@ -640,11 +634,7 @@ extends MemberDigest
         try {
             series = this.getSeries(index, count);
         } catch (IndexOutOfBoundsException e) {
-            //e.printStackTrace();
-            //throw new SequenceRangeException();
-        	SequenceRangeException ex = new SequenceRangeException();
-        	logger.error("Sequence IndexOBException:", ex);
-        	return null;
+        	throw e;
         }
         return series;
     }
@@ -660,22 +650,17 @@ extends MemberDigest
      * @throws SequenceRangeException 	If the requested window is not contained within this Sequence.
      */
     public int[] getSeries(long startTime, long endTime)
-    throws SequenceRangeException
+    throws SequenceRangeException,
+    	   IndexOutOfBoundsException
     {
         int[] series = null;
         int index = 0;
         int count = 0;
         if (endTime > this.getEndTime()) {
-            //throw new SequenceRangeException();
-        	SequenceRangeException e = new SequenceRangeException();
-        	logger.error("Sequence RangeException:", e);
-        	return null;
+            throw new SequenceRangeException();
         }
         if (startTime < m_startTime) {
-            //throw new SequenceRangeException();
-        	SequenceRangeException e = new SequenceRangeException();
-        	logger.error("Sequence RangeException:", e);
-        	return null;
+            throw new SequenceRangeException();
         }
         count = (int)((endTime - startTime) / m_interval);
         index = (int)(((startTime - m_startTime) + (m_interval / 2)) / m_interval);
@@ -683,11 +668,7 @@ extends MemberDigest
         try {
             series = this.getSeries(index, count);
         } catch (IndexOutOfBoundsException e) {
-            //e.printStackTrace();
-            //throw new SequenceRangeException();
-        	SequenceRangeException ex = new SequenceRangeException();
-        	logger.error("Sequence IndexOBException:", ex);
-        	return null;
+            throw e;
         }
         return series;
     }
@@ -804,10 +785,7 @@ extends MemberDigest
     throws SequenceIntervalMismatchException 
     {
         if (seq.m_interval != m_interval) {
-            //throw new SequenceIntervalMismatchException();
-        	SequenceIntervalMismatchException e = new SequenceIntervalMismatchException();
-        	logger.error("Sequence IntervalMismatchException:", e);
-        	return null;
+            throw new SequenceIntervalMismatchException();
         }
         return ((m_startTime >= seq.m_startTime) && (this.getEndTime() <= seq.getEndTime()));
     }
@@ -820,7 +798,7 @@ extends MemberDigest
      * @return	A long integer value representing the supplied sample rate as an interval.
      * @throws IllegalSampleRateException if the supplied sample rate is not one of the accpeted values.
      */
-    public static Long sampleRateToInterval(double sampleRate) 
+    public static long sampleRateToInterval(double sampleRate) 
     throws IllegalSampleRateException 
     {
         long interval;
@@ -845,10 +823,7 @@ extends MemberDigest
         else if (sampleRate == 4000.0  ) interval =        250L;
         else if (sampleRate == 5000.0  ) interval =        200L;
         else {
-        	//throw new IllegalSampleRateException("The selected sample rate (" + sampleRate + " Hz) is not supported.");
-        	IllegalSampleRateException e = new IllegalSampleRateException("The selected sample rate (" + sampleRate + " Hz) is not supported.");
-        	logger.error("Sequence IllegalSampleRateException:", e);
-        	return null;
+        	throw new IllegalSampleRateException("The selected sample rate (" + sampleRate + " Hz) is not supported.");
         }
         return interval;
     }
@@ -885,37 +860,46 @@ extends MemberDigest
     public static Sequence collapse(Collection<Sequence> sequences)
     throws SequenceIntervalMismatchException,
            SequenceMergeRangeException,
-           SequenceTimingException
+           SequenceTimingException,
+           CloneNotSupportedException,
+           RuntimeException
     {
         Sequence collapsed = null;
-        for (Sequence sequence: sequences) {
-            if (collapsed == null) {
-                collapsed = (Sequence)sequence.clone();
-            }
-            else if (collapsed.overlaps(sequence)) {
-                ((Sequence)sequence.clone()).mergeInto(collapsed);
-            }
-            else {
-                if (collapsed.getInterval() != sequence.getInterval()) {
-                    //throw new SequenceIntervalMismatchException();
-                	SequenceIntervalMismatchException e = new SequenceIntervalMismatchException();
-                	logger.error("Sequence IntervalMismatchException:", e);
-                	return null;
-                }
-                Sequence source = sequence;
-                if (collapsed.startsAfter(sequence)) {
-                    source = collapsed;
-                    collapsed = (Sequence)sequence.clone();
-                }
-                //append newSeq to collapsed
-                int remaining = source.m_blocks.size();
-                for (int[] block: source.m_blocks) {
-                    int numSamples = (--remaining > 0) ? BLOCK_SIZE : (BLOCK_SIZE - source.m_remainder);
-                    collapsed.extend(block, 0, numSamples);
-                }
-            }
+        try {
+	        for (Sequence sequence: sequences) {
+	            if (collapsed == null) {
+	                collapsed = (Sequence)sequence.clone();
+	            }
+	            else if (collapsed.overlaps(sequence)) {
+	            	try {
+	            		((Sequence)sequence.clone()).mergeInto(collapsed);
+	            	} catch (BlockSizeMismatchException e) {
+	            		logger.error("Sequence BlockSizeMismatchException:", e);
+	            	}
+	            }
+	            else {
+	                if (collapsed.getInterval() != sequence.getInterval()) {
+	                    throw new SequenceIntervalMismatchException();
+	                }
+	                Sequence source = sequence;
+	                if (collapsed.startsAfter(sequence)) {
+	                    source = collapsed;
+	                    collapsed = (Sequence)sequence.clone();
+	                }
+	                //append newSeq to collapsed
+	                int remaining = source.m_blocks.size();
+	                for (int[] block: source.m_blocks) {
+	                    int numSamples = (--remaining > 0) ? BLOCK_SIZE : (BLOCK_SIZE - source.m_remainder);
+	                    collapsed.extend(block, 0, numSamples);
+	                }
+	            }
+	        }
+	        return collapsed;
+        } catch (CloneNotSupportedException e) {
+        	throw e;
+        } catch (RuntimeException e) {
+        	throw e;
         }
-        return collapsed;
     }
 }
 

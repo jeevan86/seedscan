@@ -28,9 +28,9 @@ import java.nio.ByteBuffer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Calendar;
-
 import java.awt.BasicStroke;
 import java.awt.Color;
 
@@ -39,8 +39,9 @@ import asl.metadata.ChannelArray;
 import asl.metadata.Station;
 import asl.util.Hex;
 import asl.util.PlotMaker2;
+import asl.util.PlotMakerException;
 import asl.util.Trace;
-
+import asl.util.TraceException;
 import timeutils.Timeseries;
 
 public class CoherencePBM
@@ -101,12 +102,20 @@ extends PowerBandMetric
                 continue;
             }
 
-            double result = computeMetric(channelX, channelY, station, day, metric);
-            if (result == NO_RESULT) {
-                // Do nothing --> skip to next channel
-            }
-            else {
-                metricResult.addResult(channelX, channelY, result, digest);
+            try {	// computeMetric (MetricException)
+	            double result = computeMetric(channelX, channelY, station, day, metric);
+	            if (result == NO_RESULT) {
+	                // Do nothing --> skip to next channel
+	            }
+	            else {
+	                metricResult.addResult(channelX, channelY, result, digest);
+	            }
+            } catch (MetricException e) {
+            	logger.error("CoherencePBM MetricException:", e);
+            } catch (PlotMakerException e) {
+            	logger.error("CoherencePBM PlotMakerException:", e);
+            } catch (TraceException e) {
+            	logger.error("CoherencePBM TraceException:", e);
             }
 
         }// end foreach channel
@@ -118,9 +127,12 @@ extends PowerBandMetric
     } // end process()
 
 
-    private double computeMetric(Channel channelX, Channel channelY, String station, String day, String metric) {
-
-     // Compute/Get the 1-sided psd[f] using Peterson's algorithm (24 hrs, 13 segments, etc.)
+    private double computeMetric(Channel channelX, Channel channelY, String station, String day, String metric)
+    throws MetricException,
+    	   PlotMakerException,
+    	   TraceException
+    {
+    	// Compute/Get the 1-sided psd[f] using Peterson's algorithm (24 hrs, 13 segments, etc.)
 
         CrossPower crossPower = getCrossPower(channelX, channelX);
         double[] Gxx   = crossPower.getSpectrum();
@@ -136,18 +148,14 @@ extends PowerBandMetric
         if (dfX != dfY) {  // Oops - spectra have different frequency sampling!
             StringBuilder message = new StringBuilder();
             message.append(String.format("CoherencePBM Error: station=[{}] channelX[{}] channelY=[{}] day=[{}] metric=[{}]: dfX != dfY --> Can't continue\n", station, channelX, channelY, day, metric));
-            RuntimeException e = new RuntimeException(message.toString());
-            logger.error("CoherencePBM RuntimeException:", e); 
-            return NO_RESULT;
+            throw new MetricException(message.toString());
         }
         double df = dfX;
 
         if (Gxx.length != Gyy.length || Gxx.length != Gxy.length) {  // Something's wrong ...
             StringBuilder message = new StringBuilder();
             message.append(String.format("CoherencePBM Error: station=[{}] channelX=[{}] channelY=[{}] day=[{}] metric=[{}]: Gxx.length != Gyy.length --> Can't continue\n", station, channelX, channelY, day, metric));
-            RuntimeException e = new RuntimeException(message.toString());
-            logger.error("CoherencePBM RuntimeException:", e);
-            return NO_RESULT;
+            throw new MetricException(message.toString());
         }
      // nf = number of positive frequencies + DC (nf = nfft/2 + 1, [f: 0, df, 2df, ...,nfft/2*df] )
         int nf        = Gxx.length;
@@ -206,18 +214,16 @@ extends PowerBandMetric
         if (nPeriods == 0) {
             StringBuilder message = new StringBuilder();
             message.append(String.format("CoherencePBM Error: station=[{}] channelX=[{}] channelY=[{}] day=[{}] metric[{}]: Requested band [%f - %f] contains NO periods --> divide by zero!\n", station, channelX, channelY, day, metric, lowPeriod, highPeriod) );
-            RuntimeException e = new RuntimeException(message.toString());
-            logger.error("CoherencePBM RuntimeException:", e);
-            return NO_RESULT;
+            throw new MetricException(message.toString());
         }
         averageValue /= (double)nPeriods;
 
-/**
+        /**
         if (getMakePlots()) {   // Output files like 2012160.IU_ANMO.00-LHZ.png = psd
             PlotMaker plotMaker = new PlotMaker(metricResult.getStation(), channelX, channelY, metricResult.getDate());
             plotMaker.plotCoherence(per, gammaPer, "coher");
         }
-**/
+         **/
 
         if (getMakePlots()) {   // Output files like 2012160.IU_ANMO.00-LHZ.png = psd
 
@@ -243,7 +249,13 @@ extends PowerBandMetric
             else { // ??
             }
             String channelLabel = MetricResult.createResultId(channelX, channelY);
-            plotMaker.addTraceToPanel( new Trace(per, gammaPer, channelLabel, color, stroke), iPanel);
+            try {
+            	plotMaker.addTraceToPanel( new Trace(per, gammaPer, channelLabel, color, stroke), iPanel);
+            } catch (PlotMakerException e) {
+            	throw e;
+            } catch (TraceException e) {
+            	throw e;
+            }
         }
 
         return averageValue;

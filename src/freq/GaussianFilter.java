@@ -59,12 +59,10 @@ public class GaussianFilter implements FrequencyDomainProcess {
 	/** Method to set center frequency */
 
 	public void setCentFreq(double freqValue) 
-									throws FilterException {
+	throws FilterException 
+	{
 		if (freqValue < FREQ_MIN || freqValue > FREQ_MAX) {
-			//throw new FilterException(localeText.invalid_center_frequency);
-			FilterException e = new FilterException(localeText.invalid_center_frequency);
-			logger.error("GaussianFilter Exception:", e);
-			return;
+			throw new FilterException(localeText.invalid_center_frequency);
 		}
 
 		centFreq = freqValue;
@@ -74,31 +72,32 @@ public class GaussianFilter implements FrequencyDomainProcess {
 	/** Method to set center frequency */
 
 	public void setCentFreq(String str)
-									throws FilterException {
+	throws FilterException,
+		   NumberFormatException
+	{
 
 		double freqValue;
 
 		try {
 			freqValue = Double.valueOf(str).doubleValue();
 		} catch (NumberFormatException e) {
-			//throw new FilterException(localeText.invalid_center_frequency);
-			logger.error("GaussianFilter NumberFormatException:", e);
-			return;
+			throw e;
 		}
-
-		setCentFreq(freqValue);
+		
+		try {
+			setCentFreq(freqValue);
+		} catch (FilterException e) {
+			logger.error("GaussianFilter Exception:", e);
+		}
 	}
 
 
 	/** Method to set alpha */
 
 	public void setAlpha(double alphaValue)
-									throws FilterException {
+	throws FilterException {
 		if (alphaValue < ALPHA_MIN || alphaValue > ALPHA_MAX) {
-			//throw new FilterException(localeText.invalid_alpha_value);
-			FilterException e = new FilterException(localeText.invalid_alpha_value);
-			logger.error("GaussianFilter Exception:", e);
-			return;
+			throw new FilterException(localeText.invalid_alpha_value);
 		}
 
 		alpha = alphaValue;
@@ -108,26 +107,31 @@ public class GaussianFilter implements FrequencyDomainProcess {
 	/** Method to set alpha */
 
 	public void setAlpha(String str)
-									throws FilterException {
-
+	throws FilterException,
+		   NumberFormatException
+	{
 		double alphaValue;
 
 		try {
 			alphaValue = Double.valueOf(str).doubleValue();
 		} catch (NumberFormatException e) {
-			//throw new FilterException(localeText.invalid_alpha_value);
-			logger.error("GaussianFilter NumberFormatException:", e);
-			return;
+			throw e;
 		}
-
-		setAlpha(alphaValue);
+		
+		try {
+			setAlpha(alphaValue);
+		} catch (FilterException e) {
+			logger.error("GaussianFilter Exception:", e);
+		}
 	}
 
 
 
 	/** Method to check settings */
 
-	public void checkSettings() throws FilterException {
+	public void checkSettings() 
+	throws FilterException 
+	{
 
 		String errMessage = "";
 		int badSettings = 0;
@@ -143,10 +147,7 @@ public class GaussianFilter implements FrequencyDomainProcess {
 		}
 
 		if (badSettings > 0) {
-			//throw new FilterException(errMessage + ".");
-			FilterException e = new FilterException(errMessage + ".");
-			logger.error("GaussianFilter Exception:", e);
-			return;
+			throw new FilterException(errMessage + ".");
 		}
 
 	}

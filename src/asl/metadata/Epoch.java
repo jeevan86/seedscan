@@ -59,16 +59,16 @@ public class Epoch
             endDate   = blockette.getFieldValue(4, 0);
         }
         else {
-        	WrongBlocketteException e = new WrongBlocketteException();
-        	logger.error("Epoch WrongBlocketteException:", e);
-            return;
+        	throw new WrongBlocketteException();
         }
         if (startDate == null) {
-        	MissingBlocketteDataException e = new MissingBlocketteDataException();
-        	logger.error("Epoch MissingBlocketteDataException:", e);
-            return;
+        	throw new MissingBlocketteDataException();
         }
-        this.timestamp = BlocketteTimestamp.parseTimestamp(startDate);
+        try {
+        	this.timestamp = BlocketteTimestamp.parseTimestamp(startDate);
+        } catch (TimestampFormatException e) {
+        	throw e;
+        }
         System.out.format("Epoch(): [%s - %s] [%s:%s]\n",startDate,endDate,String.format("%1$tY", timestamp), String.format("%1$tj", timestamp) );
     }
 

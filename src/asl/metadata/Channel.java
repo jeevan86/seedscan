@@ -36,7 +36,11 @@ public class Channel
     {
         //setStation(station);
         setLocation(location);
-        setChannel(channel);
+        try {
+        	setChannel(channel);
+        } catch (ChannelException e) {
+        	logger.error("Channel Exception:", e);
+        }
     }
 
 /**
@@ -60,6 +64,7 @@ public class Channel
         }
         return true;
     }
+    
     public static boolean validBandCode(String band) {
         if (band.length() != 1) {
             return false;
@@ -71,6 +76,7 @@ public class Channel
         }
         return true;
     }
+    
     public static boolean validInstrumentCode(String instrument) {
         if (instrument.length() != 1) {
             return false;
@@ -110,38 +116,29 @@ public class Channel
         }
     }
 
-    public void setChannel(String channel) {
+    public void setChannel(String channel)
+    throws ChannelException
+    {
         if (channel == null) {
-        	StringBuilder message = new StringBuilder();
-        	message.append("Channel cannot be null\n");
-        	RuntimeException e = new RuntimeException(message.toString());
-            logger.error("Channel RuntimeException:", e);
-            return;
+        	throw new ChannelException("channel cannot be null");
         }
     //  Most channels should be exactly 3-chars long (e.g., LH1), however, derived
     //    channels (e.g., LHND) will be 4-chars and maybe/probably there will be others
     //  e.g., MetricResult.createChannel ( new Channel("00-10" , "LHND-LHND") ) ...
         if (channel.length() < 3) {
-        	StringBuilder message = new StringBuilder();
-        	message.append("Channel name MUST be at least 3-characters long\n");
-        	RuntimeException e = new RuntimeException(message.toString());
-            logger.error("Channel RuntimeException:", e);
-            return;
+        	throw new ChannelException("channel name MUST be at least 3-chars long");
         }
         this.channel = channel;
     }
 
-    private void setStation(Station station) {
+    private void setStation(Station station)
+    throws ChannelException
+    {
         if (station == null) {
-        	StringBuilder message = new StringBuilder();
-        	message.append("Station cannot be null\n");
-        	RuntimeException e = new RuntimeException(message.toString());
-            logger.error("Channel RuntimeException:", e);
-            return;
+        	throw new ChannelException("station cannot be null");
         }
         this.station = station;
     }
-
 
     @Override public String toString() {
       return getLocation() + "-" + getChannel();

@@ -21,18 +21,18 @@ package asl.seedscan.metrics;
 import asl.metadata.Channel;
 import asl.metadata.EpochData;
 import asl.metadata.meta_new.ChannelMeta;
+import asl.metadata.meta_new.ChannelMetaException;
 import asl.metadata.meta_new.StationMeta;
 import asl.metadata.meta_new.ChannelMeta.ResponseUnits;
-
 import asl.seedscan.database.MetricValueIdentifier;
 import asl.seedscan.event.EventCMT;
-
 import freq.Cmplx;
 import timeutils.PSD;
 
 import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.Hashtable;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -120,9 +120,10 @@ public abstract class Metric
             for (int i=0; i<df.length; i++) df[i]=0;
             try {
                 psd = computePSD(channelA, channelB, df);
-            }
-            catch (NullPointerException e) {
-                logger.error("Metric.getCrossPower NullPointerException:", e);
+            } catch (MetricPSDException e) {
+                logger.error("Metric.getCrossPower MetricPSDException:", e);
+            } catch (ChannelMetaException e) {
+            	logger.error("Metric ChannelMetaException:", e);
             }
             crossPower = new CrossPower(psd, df[0]);
             crossPowerMap.put(key, crossPower);
@@ -237,9 +238,7 @@ public abstract class Metric
         if (!arguments.containsKey(name)) {
             StringBuilder message = new StringBuilder();
             message.append(String.format("Argument '" +name+ "' is not recognized.\n"));
-            NoSuchFieldException e = new NoSuchFieldException(message.toString()); 
-            logger.error("Metric.add() NoSuchFieldException:", e); 
-            return;
+            throw new NoSuchFieldException(message.toString());
         }
         arguments.put(name, value);
 
@@ -266,9 +265,7 @@ public abstract class Metric
         if (!arguments.containsKey(name)) {
             StringBuilder message = new StringBuilder();
             message.append(String.format("Argument '" +name+ "' is not recognized.\n"));
-            NoSuchFieldException e = new NoSuchFieldException(message.toString()); 
-            logger.error("Metric.get() NoSuchFieldException:", e);
-            return null;
+            throw new NoSuchFieldException(message.toString());
         }
         String argumentValue = arguments.get(name);
         if ((argumentValue == null) || (argumentValue.equals(""))) {
@@ -296,8 +293,10 @@ public abstract class Metric
  *                  computed for nf = nfft/2 + 1 frequencies (+ve freqs + DC + Nyq)
  * @author Mike Hagerty
 */
-    private final double[] computePSD(Channel channelX, Channel channelY, double[] params) {
-
+    private final double[] computePSD(Channel channelX, Channel channelY, double[] params) 
+    throws ChannelMetaException,
+    	   MetricPSDException
+    {
         int ndata      = 0;
         double srate   = 0;  // srate = sample frequency, e.g., 20Hz
 
@@ -319,18 +318,14 @@ public abstract class Metric
         if (srateX != srateY) {
             StringBuilder message = new StringBuilder(); 
             message.append(String.format("computePSD() ERROR: srateX (=" + srateX + ") != srateY (=" + srateY + ")\n"));
-            RuntimeException e = new RuntimeException(message.toString());
-       	    logger.error("MetricData RuntimeException:", e); 
-       	    return null;
+            throw new MetricPSDException(message.toString());
         }
         srate = srateX;
         ndata = chanXData.length; 
 
-        if (srate == 0) {	
-        	RuntimeException e = new RuntimeException("Error: Got srate=0");
-       	    logger.error("MetricData RuntimeException:", e);
-       	    return null;
-        } 
+        if (srate == 0) 
+        	throw new MetricPSDException("Error: Got srate=0");
+       
         double dt = 1./srate;
 
         PSD psdRaw    = new PSD(chanXData, chanYData, dt);
@@ -342,32 +337,34 @@ public abstract class Metric
         params[0] = df;
 
      // Get the instrument response for Acceleration and remove it from the PSD
-        Cmplx[]  instrumentResponseX = chanMetaX.getResponse(freq, ResponseUnits.ACCELERATION);
-        Cmplx[]  instrumentResponseY = chanMetaY.getResponse(freq, ResponseUnits.ACCELERATION);
+        try {
+        	Cmplx[]  instrumentResponseX = chanMetaX.getResponse(freq, ResponseUnits.ACCELERATION);
+        	Cmplx[]  instrumentResponseY = chanMetaY.getResponse(freq, ResponseUnits.ACCELERATION);
 
-        Cmplx[] responseMagC = new Cmplx[nf];
-
-        double[] psd  = new double[nf]; // Will hold the 1-sided PSD magnitude
-        psd[0]=0; 
-
-     // We're computing the squared magnitude as we did with the FFT above
-     //   Start from k=1 to skip DC (k=0) where the response=0
-
-        for(int k = 1; k < nf; k++){
-            responseMagC[k] = Cmplx.mul(instrumentResponseX[k], instrumentResponseY[k].conjg()) ;
-            if (responseMagC[k].mag() == 0) {
-                StringBuilder message = new StringBuilder();
-                message.append(String.format("NLNMDeviation Error: responseMagC[k]=0 --> divide by zero!\n"));
-                RuntimeException e = new RuntimeException(message.toString());
-                logger.error("Metric RuntimeException:", e);	
-                return null;
-            }
-            else {   // Divide out (squared)instrument response & Convert to dB:
-                spec[k] = Cmplx.div(spec[k], responseMagC[k]);
-                psd[k]  = spec[k].mag();
-            }
+	        Cmplx[] responseMagC = new Cmplx[nf];
+	
+	        double[] psd  = new double[nf]; // Will hold the 1-sided PSD magnitude
+	        psd[0]=0; 
+	
+	        // We're computing the squared magnitude as we did with the FFT above
+	        //   Start from k=1 to skip DC (k=0) where the response=0
+	
+	        for(int k = 1; k < nf; k++){
+	            responseMagC[k] = Cmplx.mul(instrumentResponseX[k], instrumentResponseY[k].conjg()) ;
+	            if (responseMagC[k].mag() == 0) {
+	                StringBuilder message = new StringBuilder();
+	                message.append(String.format("NLNMDeviation Error: responseMagC[k]=0 --> divide by zero!\n"));
+	                throw new MetricPSDException(message.toString());
+	            }
+	            else {   // Divide out (squared)instrument response & Convert to dB:
+	                spec[k] = Cmplx.div(spec[k], responseMagC[k]);
+	                psd[k]  = spec[k].mag();
+	            }
+	        }
+	
+	        return psd;
+        } catch (ChannelMetaException e) {
+        	throw e;
         }
-
-        return psd;
     } // end computePSD
 } // end class

@@ -19,17 +19,16 @@
 package asl.seedscan.metrics;
 
 import java.awt.Color;
-
 import java.io.IOException;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.File;
 import java.nio.ByteBuffer;
-
 import java.awt.BasicStroke;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Calendar;
@@ -39,8 +38,9 @@ import asl.metadata.Station;
 import asl.util.Hex;
 import asl.util.PlotMaker;
 import asl.util.PlotMaker2;
+import asl.util.PlotMakerException;
 import asl.util.Trace;
-
+import asl.util.TraceException;
 import timeutils.Timeseries;
 
 /**
@@ -123,12 +123,16 @@ extends PowerBandMetric
                 continue;
             }
 
-            double result = computeMetric(channel, station, day, metric);
-            if (result == NO_RESULT) {
-                // Do nothing --> skip to next channel
-            }
-            else {
-                metricResult.addResult(channel, result, digest);
+            try {	// computeMetric() MetricException handle
+	            double result = computeMetric(channel, station, day, metric);
+	            if (result == NO_RESULT) {
+	                // Do nothing --> skip to next channel
+	            }
+	            else {
+	                metricResult.addResult(channel, result, digest);
+	            }
+            } catch (MetricException e) {
+            	logger.error("NLNMDeviationMetric Exception:", e);
             }
 
         }// end foreach channel
@@ -138,12 +142,18 @@ extends PowerBandMetric
         if (getMakePlots() && (plotMaker != null) ) {
             BasicStroke stroke = new BasicStroke(4.0f);
             for (int iPanel=0; iPanel<3; iPanel++) {
-                plotMaker.addTraceToPanel( new Trace(getNLNM().getPeriods(), getNLNM().getPowers(),
-                		"NLNM", Color.black, stroke), iPanel);
-                if (getNHNM().isValid()) {
-                    plotMaker.addTraceToPanel( new Trace(getNHNM().getPeriods(), getNHNM().getPowers(),
-                    		"NHNM", Color.black, stroke), iPanel);
-                }
+            	try {
+	                plotMaker.addTraceToPanel( new Trace(getNLNM().getPeriods(), getNLNM().getPowers(),
+	                		"NLNM", Color.black, stroke), iPanel);
+	                if (getNHNM().isValid()) {
+	                    plotMaker.addTraceToPanel( new Trace(getNHNM().getPeriods(), getNHNM().getPowers(),
+	                    		"NHNM", Color.black, stroke), iPanel);
+	                } 
+            	} catch (PlotMakerException e) {
+            		logger.error("NLNMDeviationMetric PlotMakerException:", e);
+            	} catch (TraceException e) {
+            		logger.error("NLNMDeviationMetric TraceException:", e);
+            	}
             }
             // outputs/2012160.IU_ANMO.nlnm-dev.png
             final String pngName   = String.format("%s.%s.png", getOutputDir(), "nlnm-dev" );
@@ -152,7 +162,9 @@ extends PowerBandMetric
     } // end process()
 
 
-    private double computeMetric(Channel channel, String station, String day, String metric) {
+    private double computeMetric(Channel channel, String station, String day, String metric) 
+    throws MetricException
+    {
 
      // Compute/Get the 1-sided psd[f] using Peterson's algorithm (24 hrs, 13 segments, etc.)
 
@@ -222,26 +234,34 @@ extends PowerBandMetric
         if (nPeriods == 0) {
             StringBuilder message = new StringBuilder();
             message.append(String.format("NLNMDeviation Error station=[{}] day=[{}] metric=[{}]: Requested band [%f - %f sec] contains NO periods within NLNM\n", station, day, metric,lowPeriod, highPeriod));
-            RuntimeException e = new RuntimeException(message.toString());
-            logger.error("NLNMDeviation RuntimeException:", e);
-            return NO_RESULT;
+            throw new MetricException(message.toString());
         }
         deviation = deviation/(double)nPeriods;
 
         if (getMakePlots()) { 
-            makePlots(channel, getNLNM().getPeriods(), psdInterp);
+        	try {
+        		makePlots(channel, getNLNM().getPeriods(), psdInterp);
+        	} catch (MetricException e) {
+        		logger.error("NLNMDeviationMetric Exception:", e);
+        	} catch (PlotMakerException e) {
+        		logger.error("NLNMDeviationMetric PlotMakerException:", e);
+        	} catch (TraceException e) {
+        		logger.error("NLNMDeviationMetric TraceException:", e);
+        	}
         }
 
         return deviation;
     } // end computeMetric()
 
-    private void makePlots(Channel channel, double xdata[], double ydata[]) {
+    private void makePlots(Channel channel, double xdata[], double ydata[]) 
+    throws MetricException,
+    	   PlotMakerException,
+    	   TraceException
+    {
         if (xdata.length != ydata.length) {
             StringBuilder message = new StringBuilder();
             message.append(String.format("%s makePlots() Error: xdata.len=%d != ydata.len=%d", getName(), xdata.length, ydata.length));
-            RuntimeException e = new RuntimeException(message.toString()); 
-            logger.error("NLNMDeviation RuntimeException:", e);
-            return;
+            throw new MetricException(message.toString());
         }
         if (plotMaker == null) {
             String date = String.format("%04d%03d", metricResult.getDate().get(Calendar.YEAR),
@@ -266,9 +286,7 @@ extends PowerBandMetric
         else { // ??
             StringBuilder message = new StringBuilder();
             message.append(String.format("%s makePlots() Don't know how to plot channel=%s\n", getName(), channel));
-            RuntimeException e = new RuntimeException(message.toString()); 
-       	    logger.error("NLNMDeviation RuntimeException:", e); 
-       	    return;
+            throw new MetricException(message.toString());
         }
 
         if (channel.getLocation().equals("00")) {
@@ -280,7 +298,13 @@ extends PowerBandMetric
         else { // ??
         }
 
-        plotMaker.addTraceToPanel( new Trace(xdata, ydata, channel.toString(), color, stroke), iPanel);
+        try {
+        	plotMaker.addTraceToPanel( new Trace(xdata, ydata, channel.toString(), color, stroke), iPanel);
+        } catch (PlotMakerException e) {
+        	throw e;
+        } catch (TraceException e) {
+        	throw e;
+        }
     }
     
     private static NoiseModel getNHNM()
@@ -295,7 +319,11 @@ extends PowerBandMetric
     	if (NHNM == null)
     	{
     		NHNM = new NoiseModel();
-    		readNoiseModel(NHNMFile, NHNM);
+    		try {
+    			readNoiseModel(NHNMFile, NHNM);
+    		} catch (MetricException e) {
+    			logger.error("NLNMDeviationMetric Exception:", e);
+    		}
     	}
     }
 
@@ -311,14 +339,20 @@ extends PowerBandMetric
     	if (NLNM == null)
     	{
     		NLNM = new NoiseModel();
+    		try {
     		readNoiseModel(NLNMFile, NLNM);
+    		} catch (MetricException e) {
+    			logger.error("NLNMDeviationMetric Exception:", e);
+    		}
     	}
     }
 
  /** readNoiseModel() - Read in Peterson's NewLow(or High)NoiseModel from file specified in config.xml
   **       e.g., <cfg:argument cfg:name="nlnm-modelfile">/Users/mth/mth/Projects/xs0/NLNM.ascii/</cfg:argument>
   **/
-    private synchronized static void readNoiseModel(String fileName, NoiseModel noiseModel) {
+    private synchronized static void readNoiseModel(String fileName, NoiseModel noiseModel) 
+    throws MetricException
+    {
 
         logger.info("Read in Noise Model from file=[{}]", fileName);
 
@@ -326,8 +360,8 @@ extends PowerBandMetric
         if (!(new File(fileName).exists())) {
             StringBuilder message = new StringBuilder();
             message.append(String.format("Noise Model file={} does NOT exist!\n", fileName));
-            RuntimeException e = new RuntimeException(message.toString()); 
-            logger.error("NLNMDeviation RuntimeException:", e);
+            MetricException e = new MetricException(message.toString()); 
+            logger.error("NLNMDeviation MetricException:", e);
             return;
         }
    // Temp ArrayList(s) to read in unknown number of (x,y) pairs:
@@ -341,9 +375,7 @@ extends PowerBandMetric
                 String[] args = line.trim().split("\\s+") ;
                 if (args.length != 2) {
                     String message = "==Error reading NLNM: got " + args.length + " args on one line!\n";
-                    RuntimeException e = new RuntimeException(message.toString()); 
-                    logger.error("NLNMDeviation RuntimeException:", e); 
-                    return;
+                    throw new MetricException(message.toString());
                 }
                 tmpPers.add( Double.valueOf(args[0].trim()).doubleValue() );
                 tmpPows.add( Double.valueOf(args[1].trim()).doubleValue() );
@@ -393,5 +425,4 @@ extends PowerBandMetric
     		return valid;
     	}
     }
-
 } // end class

@@ -138,10 +138,7 @@ extends SwingWorker<Hashtable<String,ArrayList<DataSet>>, SeedSplitProgress>
         Pattern pVerify = Pattern.compile("^[A-Za-z0-9*?.]+$");
         Matcher mVerify = pVerify.matcher(filter);
         if (!mVerify.matches()) {
-            //throw new InvalidFilterException("Invalid filter text: '" +filter+ "' ");
-        	InvalidFilterException e = new InvalidFilterException("Invalid filter text: '" +filter+ "' ");
-        	logger.error("SeedSplitter InvalidFilterException:", e);
-        	return;
+            throw new InvalidFilterException("Invalid filter text: '" +filter+ "' ");
         }
 
         String pText = filter.replaceAll("[*]",".*");
@@ -150,10 +147,8 @@ extends SwingWorker<Hashtable<String,ArrayList<DataSet>>, SeedSplitProgress>
         try {
             pattern = Pattern.compile(pText); 
         } catch (PatternSyntaxException e) {
-            //throw new InvalidFilterException("Invalid filter text: '" +filter+ "'");
-        	InvalidFilterException ex = new InvalidFilterException("Invalid filter text: '" +filter+ "'");
-        	logger.error("SeedSplitter InvalidFilterException:", ex);
-        	return;
+        	String message = "Invalid filter text: '" +filter+ "'" + e.getMessage();
+            throw new InvalidFilterException(message);
         }
 
         if ((which & NETWORK) > 0) {
@@ -168,7 +163,6 @@ extends SwingWorker<Hashtable<String,ArrayList<DataSet>>, SeedSplitProgress>
         else if ((which & CHANNEL) > 0) {
             m_patternChannel = pattern;
         }
-
     }
 
     /**

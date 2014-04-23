@@ -109,7 +109,8 @@ public static int doy_from_ymd(int yr, String mon,int day)
  * @return an array in yr, mon, day
  *@throws RuntimeException ill formed especially doy being too big.
  */
-public static  int [] ymd_from_doy(int yr, int doy) throws RuntimeException
+public static  int [] ymd_from_doy(int yr, int doy) 
+throws RuntimeException
 {	int j;
 	int sum;
   yr=sanitizeYear(yr);
@@ -137,11 +138,8 @@ public static  int [] ymd_from_doy(int yr, int doy) throws RuntimeException
       sum += daytab[j];
     }
   }
-  System.out.println("ymd_from_doy: impossible drop through!   yr="+yr+" doy="+doy);
-  //throw new RuntimeException("ymd_from_DOY : impossible yr="+yr+" doy="+doy);
-  RuntimeException e = new RuntimeException("ymd_from_DOY : impossible yr="+yr+" doy="+doy);
-  logger.error("SeedUtil RuntimeException:", e);
-  return null;
+  //System.out.println("ymd_from_doy: impossible drop through!   yr="+yr+" doy="+doy);
+  throw new RuntimeException("ymd_from_DOY : impossible yr="+yr+" doy="+doy);
 
 }
 

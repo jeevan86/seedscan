@@ -39,6 +39,8 @@ public class FalconDataSet
      * Constructor.
      */
     public FalconDataSet()
+    throws RuntimeException,
+    	   CloneNotSupportedException
     {
         super();
         m_id = 0;

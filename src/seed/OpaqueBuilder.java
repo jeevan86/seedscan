@@ -94,10 +94,7 @@ public class OpaqueBuilder
            OpaqueStateTransitionException
     {
         if (finished) {
-            //throw new BuilderFinishedException("This OpaqueBuilder's finish() method has already been called.");
-        	BuilderFinishedException e = new BuilderFinishedException("This OpaqueBuilder's finish() method has already been called.");
-        	logger.error("OpaqueBuilder BuilderFinishedException:", e);
-        	return;
+            throw new BuilderFinishedException("This OpaqueBuilder's finish() method has already been called.");
         }
         if (length == 0) {
             return;
@@ -125,25 +122,26 @@ public class OpaqueBuilder
                 case FILE_START   : 
                 case FILE_MID     : state = OpaqueState.FILE_MID; break;
                 default : 
-                	//throw new OpaqueStateTransitionException(String.format("Invalid mid-stream state: %s", lastState));
-                	OpaqueStateTransitionException e = new OpaqueStateTransitionException(String.format("Invalid mid-stream state: %s", lastState));
-                	logger.error("OpaqueBuilder StateTransitionException:", e);
-                	return;
+                	throw new OpaqueStateTransitionException(String.format("Invalid mid-stream state: %s", lastState));
             }
 
-            Blockette2000 blk = new Blockette2000();
-            blk.setByteOrder(blocketteByteOrder);
-            blk.setRecordNumber(recordNumber);
-            blk.setOpaqueByteOrder(opaqueByteOrder);
-            blk.setStrict(strictPackaging);
-            blk.setOpaqueState(state);
-            blk.setTags(tags);
-            blk.setOpaqueData(buffer, 0, buffer.length);
+            try {
+	            Blockette2000 blk = new Blockette2000();
+	            blk.setByteOrder(blocketteByteOrder);
+	            blk.setRecordNumber(recordNumber);
+	            blk.setOpaqueByteOrder(opaqueByteOrder);
+	            blk.setStrict(strictPackaging);
+	            blk.setOpaqueState(state);
+	            blk.setTags(tags);
+	            blk.setOpaqueData(buffer, 0, buffer.length);
 
-            completed.add(blk);
-
-            context.setRecordNumber(recordNumber + 1);
-            context.setState(state);
+	            completed.add(blk);
+	
+	            context.setRecordNumber(recordNumber + 1);
+	            context.setState(state);
+            } catch (OpaqueStateException e) {
+            	throw e;
+            }
         }
 
         if (remaining > 0) {
