@@ -18,31 +18,20 @@
  */
 package asl.seedscan.metrics;
 
-import freq.Cmplx;
-
-import java.io.IOException;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.File;
+import java.awt.BasicStroke;
+import java.awt.Color;
 import java.nio.ByteBuffer;
+import java.util.Calendar;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.awt.BasicStroke;
-import java.awt.Color;
-
 import asl.metadata.Channel;
 import asl.metadata.ChannelArray;
-import asl.metadata.Station;
-import asl.util.Hex;
 import asl.util.PlotMaker2;
 import asl.util.PlotMakerException;
 import asl.util.Trace;
 import asl.util.TraceException;
-import timeutils.Timeseries;
 
 public class CoherencePBM
 extends PowerBandMetric
