@@ -87,10 +87,15 @@ extends PowerBandMetric
         try {
 	        NLNMFile = get("nlnm-modelfile");
 	        NHNMFile = get("nhnm-modelfile");
+	        if(NLNMFile == null)
+	        	throw new Exception(String.format("station=[%s] day=[%s] metric=[%s]: Failed to get nlnm-modelfile from config.xml:\n", station, day, metric));
+	        if(NHNMFile == null)
+	        	throw new Exception(String.format("station=[%s] day=[%s] metric=[%s]: Failed to get nhnm-modelfile from config.xml:\n", station, day, metric));
+	        
         }
         catch(Exception e) {
             StringBuilder message = new StringBuilder();
-            message.append(String.format("station=[{}] day=[{}] metric=[{}]: Failed to get nlnm-modelfile from config.xml:\n", station, day, metric));
+            message.append(String.format("station=[%s] day=[%s] metric=[%s]: Failed to get a noise model file from config.xml:\n", station, day, metric));
             logger.error(message.toString(), e); 
         }
 
@@ -148,7 +153,7 @@ extends PowerBandMetric
 	                if (getNHNM().isValid()) {
 	                    plotMaker.addTraceToPanel( new Trace(getNHNM().getPeriods(), getNHNM().getPowers(),
 	                    		"NHNM", Color.black, stroke), iPanel);
-	                } 
+	                }
             	} catch (PlotMakerException e) {
             		logger.error("NLNMDeviationMetric PlotMakerException:", e);
             	} catch (TraceException e) {
@@ -353,13 +358,14 @@ extends PowerBandMetric
     private synchronized static void readNoiseModel(String fileName, NoiseModel noiseModel) 
     throws MetricException
     {
-
+    	if(fileName == null)
+    		fileName = "";
         logger.info("Read in Noise Model from file=[{}]", fileName);
-
+        
    // First see if the file exists
         if (!(new File(fileName).exists())) {
             StringBuilder message = new StringBuilder();
-            message.append(String.format("Noise Model file={} does NOT exist!\n", fileName));
+            message.append(String.format("Noise Model file={%s} does NOT exist!\n", fileName));
             MetricException e = new MetricException(message.toString()); 
             logger.error("NLNMDeviation MetricException:", e);
             return;
