@@ -18,30 +18,26 @@
  */
 package asl.seedscan.metrics;
 
-import java.awt.Color;
-import java.io.IOException;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.File;
-import java.nio.ByteBuffer;
 import java.awt.BasicStroke;
+import java.awt.Color;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Calendar;
-
+import timeutils.Timeseries;
 import asl.metadata.Channel;
-import asl.metadata.Station;
-import asl.util.Hex;
-import asl.util.PlotMaker;
 import asl.util.PlotMaker2;
 import asl.util.PlotMakerException;
 import asl.util.Trace;
 import asl.util.TraceException;
-import timeutils.Timeseries;
 
 /**
  * NLNMDeviationMetric - Compute Difference (over specified range of periods = powerband) between
