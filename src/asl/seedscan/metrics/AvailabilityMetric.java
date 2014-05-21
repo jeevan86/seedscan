@@ -18,94 +18,96 @@
  */
 package asl.seedscan.metrics;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.nio.ByteBuffer;
 import java.util.List;
 
-import java.nio.ByteBuffer;
-import asl.util.Hex;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import asl.metadata.Channel;
 import asl.metadata.meta_new.ChannelMeta;
 import asl.seedsplitter.DataSet;
 
-public class AvailabilityMetric
-extends Metric
-{
-    private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.metrics.AvailabilityMetric.class);
+public class AvailabilityMetric extends Metric {
+	private static final Logger logger = LoggerFactory
+			.getLogger(asl.seedscan.metrics.AvailabilityMetric.class);
 
-    @Override public long getVersion()
-    {
-        return 1;
-    }
+	@Override
+	public long getVersion() {
+		return 1;
+	}
 
-    @Override public String getName()
-    {
-        return "AvailabilityMetric";
-    }
+	@Override
+	public String getName() {
+		return "AvailabilityMetric";
+	}
 
+	public void process() {
+		logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
 
-    public void process()
-    {
-        logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
+		// Get a sorted list of continuous channels for this stationMeta and
+		// loop over:
 
-    // Get a sorted list of continuous channels for this stationMeta and loop over:
+		List<Channel> channels = stationMeta.getContinuousChannels();
 
-        List<Channel> channels = stationMeta.getContinuousChannels();
+		for (Channel channel : channels) {
 
-        for (Channel channel : channels){
+			ByteBuffer digest = metricData.valueDigestChanged(channel,
+					createIdentifier(channel), getForceUpdate());
 
-            ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel), getForceUpdate());
+			if (digest == null) { // means oldDigest == newDigest and we don't
+				// need to recompute the metric
+				logger.warn(
+						"Digest unchanged station:[{}] channel:[{}] --> Skip metric",
+						getStation(), channel);
+				continue;
+			}
 
-            if (digest == null) { // means oldDigest == newDigest and we don't need to recompute the metric 
-                logger.warn("Digest unchanged station:[{}] channel:[{}] --> Skip metric", getStation(), channel);
-                continue;
-            }
+			double result = computeMetric(channel);
 
-            double result = computeMetric(channel);
+			metricResult.addResult(channel, result, digest);
 
-            metricResult.addResult(channel, result, digest);
+		}// end foreach channel
 
-        }// end foreach channel
+	} // end process()
 
-    } // end process()
+	private double computeMetric(Channel channel) {
 
-    private double computeMetric(Channel channel) {
+		// AvailabilityMetric still returns a result (availability=0) even when
+		// there is NO data for this channel
+		if (!metricData.hasChannelData(channel)) {
+			return 0.;
+		}
 
-     // AvailabilityMetric still returns a result (availability=0) even when there is NO data for this channel
-        if (!metricData.hasChannelData(channel)) {
-            return 0.;
-        }
+		double availability = 0;
 
-        double availability = 0;
+		// The expected (=from metadata) number of samples:
+		ChannelMeta chanMeta = stationMeta.getChanMeta(channel);
+		final int SECONDS_PER_DAY = 86400;
+		int expectedPoints = (int) (chanMeta.getSampleRate() * SECONDS_PER_DAY + 1);
+		// int expectedPoints = (int) (chanMeta.getSampleRate() * 24. * 60. *
+		// 60.);
 
-     // The expected (=from metadata) number of samples:
-        ChannelMeta chanMeta = stationMeta.getChanMeta(channel);
-        final int SECONDS_PER_DAY = 86400;
-        int expectedPoints  = (int) (chanMeta.getSampleRate() * SECONDS_PER_DAY + 1); 
-        //int expectedPoints  = (int) (chanMeta.getSampleRate() * 24. * 60. * 60.); 
+		// The actual (=from data) number of samples:
+		List<DataSet> datasets = metricData.getChannelData(channel);
 
-     // The actual (=from data) number of samples:
-        List<DataSet>datasets = metricData.getChannelData(channel);
+		int ndata = 0;
 
-        int ndata    = 0;
+		for (DataSet dataset : datasets) {
+			ndata += dataset.getLength();
+		} // end for each dataset
 
-        for (DataSet dataset : datasets) {
-            ndata   += dataset.getLength();
-        } // end for each dataset
+		if (expectedPoints > 0) {
+			availability = 100. * (double) ndata / (double) expectedPoints;
+		} else {
+			logger.warn("Expected points for channel={} = 0!", channel);
+			return NO_RESULT;
+		}
+		if (availability >= 101.00) {
+			logger.warn("Availability={} > 100%% for channel={} sRate={}",
+					availability, channel, chanMeta.getSampleRate());
+		}
 
-        if (expectedPoints > 0) {
-            availability = 100. * (double)ndata/(double)expectedPoints;
-        }
-        else {
-            logger.warn("Expected points for channel={} = 0!", channel);
-            return NO_RESULT;
-        }
-        if (availability >= 101.00) {
-            logger.warn("Availability={} > 100%% for channel={} sRate={}", 
-                         availability, channel, chanMeta.getSampleRate());
-        }
-
-        return availability;
-    } // end computeMetric()
+		return availability;
+	} // end computeMetric()
 }
