@@ -23,115 +23,104 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class TaskThread<T>
-implements Runnable
-{
-    private static final Logger logger = LoggerFactory.getLogger(asl.concurrent.TaskThread.class);
+public abstract class TaskThread<T> implements Runnable {
+	private static final Logger logger = LoggerFactory
+			.getLogger(asl.concurrent.TaskThread.class);
 
-    private boolean running = false;
-    private LinkedBlockingQueue<Task<T>> queue;
-    private long timeout = -1;
-    private TimeUnit unit;
+	private boolean running = false;
+	private LinkedBlockingQueue<Task<T>> queue;
+	private long timeout = -1;
+	private TimeUnit unit;
 
- // constructor(s)
-    public TaskThread()
-    {
-        queue = new LinkedBlockingQueue<Task<T>>();
-    }
+	// constructor(s)
+	public TaskThread() {
+		queue = new LinkedBlockingQueue<Task<T>>();
+	}
 
-    public TaskThread(int capacity)
-    {
-        queue = new LinkedBlockingQueue<Task<T>>(capacity);
-    }
+	public TaskThread(int capacity) {
+		queue = new LinkedBlockingQueue<Task<T>>(capacity);
+	}
 
- // timeout
-    public void setTimeout(long timeout, TimeUnit unit)
-    {
-        this.timeout = timeout;
-        this.unit = unit;
-    }
+	// timeout
+	public void setTimeout(long timeout, TimeUnit unit) {
+		this.timeout = timeout;
+		this.unit = unit;
+	}
 
-    public long getTimeout()
-    {
-        return timeout;
-    }
+	public long getTimeout() {
+		return timeout;
+	}
 
-    public TimeUnit getUnit()
-    {
-        return unit;
-    }
-    
-    public void addTask(String command, T data)
-    throws InterruptedException
-    {
-    	try {
-    		queue.put(new Task<T>(command, data));
-    	} catch (InterruptedException e) {
-    		throw e;
-    	}
-    }
+	public TimeUnit getUnit() {
+		return unit;
+	}
 
- // implements Runnable's run() method 
-    public void run()
-    {
-        setup();
-        Task<T> task;
-        running = true;
-        while (running) {
-            try {
-                if (timeout < 0) {
-                	// Wait indefinitely if timeout is not specified
-                    task = queue.take();
-                } else {
-                	// Otherwise wait for the duration specified
-                    task = queue.poll(timeout, unit);
-                }
+	public void addTask(String command, T data) throws InterruptedException {
+		try {
+			queue.put(new Task<T>(command, data));
+		} catch (InterruptedException e) {
+			throw e;
+		}
+	}
 
-                // If we received a halt command, wrap-up the thread
-                if ((task != null) && (task.getCommand() == "HALT")) {
-                    logger.debug("Halt requested.");
-                    running = false;
-                }
-                // Otherwise hand off the task
-                else {
-                    logger.debug(String.format("Performing task %s : %s", task.getCommand(), (task.getData() == null) ? "null" : task.getData()));
-                    performTask(task);
-                }
-            } catch (InterruptedException exception) {
-                logger.warn("Caught InterruptedException:", exception);
-            }
-        }
-        cleanup();
-    }
+	// implements Runnable's run() method
+	public void run() {
+		setup();
+		Task<T> task;
+		running = true;
+		while (running) {
+			try {
+				if (timeout < 0) {
+					// Wait indefinitely if timeout is not specified
+					task = queue.take();
+				} else {
+					// Otherwise wait for the duration specified
+					task = queue.poll(timeout, unit);
+				}
 
- // abstract methods
-    protected abstract void setup();
+				// If we received a halt command, wrap-up the thread
+				if ((task != null) && (task.getCommand() == "HALT")) {
+					logger.debug("Halt requested.");
+					running = false;
+				}
+				// Otherwise hand off the task
+				else {
+					logger.debug(String.format("Performing task %s : %s", task
+							.getCommand(), (task.getData() == null) ? "null"
+									: task.getData()));
+					performTask(task);
+				}
+			} catch (InterruptedException exception) {
+				logger.warn("Caught InterruptedException:", exception);
+			}
+		}
+		cleanup();
+	}
 
-    protected abstract void performTask(Task<T> data);
+	// abstract methods
+	protected abstract void setup();
 
-    protected abstract void cleanup();
+	protected abstract void performTask(Task<T> data);
 
- // halt
-    public void halt()
-    throws InterruptedException
-    {
-    	try {
-    		halt(false);
-    	} catch (InterruptedException e) {
-    		throw e;
-    	}
-    }
+	protected abstract void cleanup();
 
-    public void halt(boolean now)
-    throws InterruptedException
-    {
-        if (now) {
-            running = false;
-        }
-        try {
-        	queue.put(new Task<T>("HALT", null));
-        } catch (InterruptedException e) {
-        	throw e;
-        }
-    }
+	// halt
+	public void halt() throws InterruptedException {
+		try {
+			halt(false);
+		} catch (InterruptedException e) {
+			throw e;
+		}
+	}
+
+	public void halt(boolean now) throws InterruptedException {
+		if (now) {
+			running = false;
+		}
+		try {
+			queue.put(new Task<T>("HALT", null));
+		} catch (InterruptedException e) {
+			throw e;
+		}
+	}
 }
