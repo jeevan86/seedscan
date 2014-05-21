@@ -1,15 +1,13 @@
 package asl.seedscan.database;
 
-public class QueryResult<T>
-{
+public class QueryResult<T> {
 	private T result;
 
 	public QueryResult(T result) {
 		this.result = result;
 	}
-	
-	public T getResult()
-	{
+
+	public T getResult() {
 		return result;
 	}
 }

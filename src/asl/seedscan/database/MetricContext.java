@@ -1,17 +1,14 @@
 package asl.seedscan.database;
 
-public class MetricContext<T>
-extends QueryContext<T>
-{
+public class MetricContext<T> extends QueryContext<T> {
 	private MetricValueIdentifier id;
 
 	public MetricContext(MetricValueIdentifier id) {
 		super();
 		this.id = id;
 	}
-	
-	public MetricValueIdentifier getId()
-	{
+
+	public MetricValueIdentifier getId() {
 		return id;
 	}
 }
