@@ -121,9 +121,11 @@ public class MetaGenerator
         			  return false;
         		  }
         	  } else {
-	              if ( name.endsWith(".dataless") && (name.length() == 11) ) {
+	              if (name.endsWith(".dataless") && (name.length() == 11)) {
 	                  return true;
-	              } else {
+	              } else if (name.endsWith(".dataless") && (name.length() == 10)) { 
+		     	  return true; 
+		      } else {
 	                  return false;
 	              }
         	  }

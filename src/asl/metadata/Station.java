@@ -53,8 +53,8 @@ public class Station
     throws StationException
     {
         if (network != null) {
-            if (!(network.length()==2) ) {
-                throw new StationException("network name MUST be 2-character string!");
+            if (!(network.length()==2) && !(network.length()==1)) {
+                throw new StationException("network name MUST be 1 or 2-character string!");
             }
             else {
                 this.network = network;

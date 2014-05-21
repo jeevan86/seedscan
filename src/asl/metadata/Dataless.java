@@ -445,7 +445,10 @@ public class Dataless
                     if (blocketteNumber == 57 || blocketteNumber == 58){
                         stageKey = Integer.parseInt(blockette.getFieldValue(3, 0));
                     }
-                    else {
+		    else if (blocketteNumber == 61) {
+		        stageKey = Integer.parseInt(blockette.getFieldValue(3, 0));
+		    }
+		    else {
                         stageKey = Integer.parseInt(blockette.getFieldValue(4, 0));
                     }
                     
