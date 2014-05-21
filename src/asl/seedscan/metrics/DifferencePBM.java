@@ -69,6 +69,9 @@ extends PowerBandMetric
         String station = getStation();
         String day = getDay();
         String metric = getName();
+     // completeCompute tracks if all results are computed this affects
+     		// plotting.
+     		boolean completeCompute = true;
 
         if (!weHaveChannels("00", "LH") || !weHaveChannels("10", "LH") ){
             logger.info(String.format("== %s: Day=[%s] Stn=[%s] - metadata + data NOT found for EITHER loc=00 -OR- loc=10 + band=LH --> Skip Metric",
@@ -100,6 +103,7 @@ extends PowerBandMetric
             if (digest == null) { // means oldDigest == newDigest and we don't need to recompute the metric 
                 logger.warn("Digest unchanged station:[{}] channelX=[{}] channelY=[{}]--> Skip metric", 
                            getStation(), channelX, channelY);
+				completeCompute = false;
                 continue;
             }
 
@@ -120,7 +124,7 @@ extends PowerBandMetric
             }
         }// end foreach channel
 
-        if (getMakePlots()) {
+        if (getMakePlots() && completeCompute) {
             final String pngName   = String.format("%s.%s.png", getOutputDir(), "diff" );
             plotMaker.writePlot(pngName);
         }
