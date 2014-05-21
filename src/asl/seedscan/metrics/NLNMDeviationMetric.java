@@ -214,9 +214,7 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 		double Tmin = per[0]; // Should be = 1/fNyq = 2/fs = 0.1 for fs=20Hz
 		double Tmax = per[nf - 2]; // Should be = 1/df = Ndt
 
-		String outFile; // Use for outputting spectra arrays (in testing)
 
-		// outFile = channel.toString() + ".psd.T";
 		// Timeseries.timeoutXY(per, psdPer, outFile);
 
 		// Interpolate the smoothed psd to the periods of the NLNM Model:
