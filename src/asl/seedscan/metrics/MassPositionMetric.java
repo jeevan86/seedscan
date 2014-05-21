@@ -18,9 +18,11 @@
  */
 package asl.seedscan.metrics;
 
+import java.nio.ByteBuffer;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.List;
 
 import asl.metadata.Channel;
 import asl.metadata.meta_new.ChannelMeta;
@@ -28,118 +30,124 @@ import asl.metadata.meta_new.PolynomialStage;
 import asl.metadata.meta_new.ResponseStage;
 import asl.seedsplitter.DataSet;
 
-import java.nio.ByteBuffer;
-import asl.util.Hex;
+public class MassPositionMetric extends Metric {
+	private static final Logger logger = LoggerFactory
+			.getLogger(asl.seedscan.metrics.MassPositionMetric.class);
 
-public class MassPositionMetric
-extends Metric
-{
-    private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.metrics.MassPositionMetric.class);
+	@Override
+	public long getVersion() {
+		return 1;
+	}
 
-    @Override public long getVersion()
-    {
-        return 1;
-    }
+	@Override
+	public String getName() {
+		return "MassPositionMetric";
+	}
 
-    @Override public String getName()
-    {
-        return "MassPositionMetric";
-    }
+	public void process() {
+		logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
 
-    public void process()
-    {
-        logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
+		String station = getStation();
+		String day = getDay();
+		String metric = getName();
 
-        String station = getStation();
-        String day = getDay();
-        String metric = getName();
+		// Get all VM? channels in metadata to use for loop
+		List<Channel> channels = stationMeta.getChannelArray("VM");
 
-        // Get all VM? channels in metadata to use for loop
-        List<Channel> channels = stationMeta.getChannelArray("VM"); 
+		// Loop over channels, get metadata & data for channel and Calculate
+		// Metric
+		for (Channel channel : channels) {
+			if (!metricData.hasChannelData(channel)) {
+				logger.warn("No data found for channel[{}] --> Skip metric",
+						channel);
+				continue;
+			}
 
-        // Loop over channels, get metadata & data for channel and Calculate Metric
-        for (Channel channel : channels) {
-            if (!metricData.hasChannelData(channel)) {
-                logger.warn("No data found for channel[{}] --> Skip metric", channel);
-                continue;
-            }
+			ByteBuffer digest = metricData.valueDigestChanged(channel,
+					createIdentifier(channel), getForceUpdate());
 
-            ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel), getForceUpdate());
+			if (digest == null) { // means oldDigest == newDigest and we don't
+				// need to recompute the metric
+				logger.warn(
+						"Digest unchanged station:[{}] channel:[{}] --> Skip metric",
+						getStation(), channel);
+				continue;
+			}
 
-            if (digest == null) { // means oldDigest == newDigest and we don't need to recompute the metric 
-                logger.warn("Digest unchanged station:[{}] channel:[{}] --> Skip metric", getStation(), channel);
-                continue;
-            }
+			try {
+				double result = computeMetric(channel, station, day, metric);
 
-            try {
-            double result = computeMetric(channel, station, day, metric);
+				metricResult.addResult(channel, result, digest);
+			} catch (MetricException e) {
+				logger.error("MassPositionMetric Exception:", e);
+			}
 
-            metricResult.addResult(channel, result, digest);
-            } catch (MetricException e) {
-            	logger.error("MassPositionMetric Exception:", e);
-            }
+		}// end foreach channel
+	} // end process()
 
-        }// end foreach channel
-    } // end process()
+	private double computeMetric(Channel channel, String station, String day,
+			String metric) throws MetricException {
+		ChannelMeta chanMeta = stationMeta.getChanMeta(channel);
+		List<DataSet> datasets = metricData.getChannelData(channel);
 
+		double a0 = 0;
+		double a1 = 0;
+		double upperBound = 0;
+		double lowerBound = 0;
 
-    private double computeMetric(Channel channel, String station, String day, String metric) 
-    throws MetricException
-    {
-        ChannelMeta chanMeta = stationMeta.getChanMeta(channel);
-        List<DataSet>datasets = metricData.getChannelData(channel);
+		// Get Stage 1, make sure it is a Polynomial Stage (MacLaurin) and get
+		// Coefficients
+		// will add RuntimeException() to logger.error('msg', e)
+		ResponseStage stage = chanMeta.getStage(1);
+		if (!(stage instanceof PolynomialStage)) {
+			StringBuilder message = new StringBuilder();
+			message.append(String
+					.format("{} Error: station=[{}] channel=[{}] day=[{}]: Stage 1 is NOT a PolynomialStage!\n",
+							metric, station, channel.toString(), day));
+			throw new MetricException(message.toString());
+		}
+		PolynomialStage polyStage = (PolynomialStage) stage;
+		double[] coefficients = polyStage.getRealPolynomialCoefficients();
+		lowerBound = polyStage.getLowerApproximationBound();
+		upperBound = polyStage.getUpperApproximationBound();
 
-        double a0 = 0;
-        double a1 = 0;
-        double upperBound = 0;
-        double lowerBound = 0;
+		// We're expecting a MacLaurin Polynomial with 2 coefficients (a0, a1)
+		// to represent mass position
+		if (coefficients.length != 2) {
+			StringBuilder message = new StringBuilder();
+			message.append(String
+					.format("{} Error: station=[{}] channel=[{}] day=[{}]: We're expecting 2 coefficients for this PolynomialStage!\n",
+							metric, station, channel.toString(), day));
+			throw new MetricException(message.toString());
+		} else {
+			a0 = coefficients[0];
+			a1 = coefficients[1];
+		}
+		// Make sure we have enough ingredients to calculate something useful
+		if (a0 == 0 && a1 == 0 || lowerBound == 0 && upperBound == 0) {
+			StringBuilder message = new StringBuilder();
+			message.append(String
+					.format("{} Error: station=[{}] channel=[{}] day=[{}]: We don't have enough information to compute mass position!\n",
+							metric, station, channel.toString(), day));
+			throw new MetricException(message.toString());
+		}
 
-     	// Get Stage 1, make sure it is a Polynomial Stage (MacLaurin) and get Coefficients
-       	// will add RuntimeException() to logger.error('msg', e) 
-        ResponseStage stage = chanMeta.getStage(1);
-        if (!(stage instanceof PolynomialStage)) {
-            StringBuilder message = new StringBuilder();
-            message.append(String.format("{} Error: station=[{}] channel=[{}] day=[{}]: Stage 1 is NOT a PolynomialStage!\n", metric, station, channel.toString(), day));
-            throw new MetricException(message.toString());
-        }
-        PolynomialStage polyStage = (PolynomialStage)stage;
-        double[] coefficients = polyStage.getRealPolynomialCoefficients();
-        lowerBound   = polyStage.getLowerApproximationBound();
-        upperBound   = polyStage.getUpperApproximationBound();
-                  
-     // We're expecting a MacLaurin Polynomial with 2 coefficients (a0, a1) to represent mass position
-        if (coefficients.length != 2) {
-            StringBuilder message = new StringBuilder();
-            message.append(String.format("{} Error: station=[{}] channel=[{}] day=[{}]: We're expecting 2 coefficients for this PolynomialStage!\n", metric, station, channel.toString(), day));
-            throw new MetricException(message.toString());
-        }
-        else {
-            a0 = coefficients[0];
-            a1 = coefficients[1];
-        }
-      // Make sure we have enough ingredients to calculate something useful
-        if (a0 == 0 && a1 == 0 || lowerBound == 0 && upperBound == 0) {
-            StringBuilder message = new StringBuilder();
-            message.append(String.format("{} Error: station=[{}] channel=[{}] day=[{}]: We don't have enough information to compute mass position!\n", metric, station, channel.toString(), day));
-            throw new MetricException(message.toString());
-        }
+		double massPosition = 0;
+		int ndata = 0;
 
-        double massPosition  = 0;
-        int ndata = 0;
+		for (DataSet dataset : datasets) {
+			int intArray[] = dataset.getSeries();
+			for (int j = 0; j < intArray.length; j++) {
+				massPosition += Math.pow((a0 + intArray[j] * a1), 2);
+			}
+			ndata += dataset.getLength();
+		} // end for each dataset
 
-        for (DataSet dataset : datasets) {
-            int intArray[] = dataset.getSeries();
-            for (int j=0; j<intArray.length; j++){
-                massPosition += Math.pow( (a0 + intArray[j] * a1), 2);
-            }
-            ndata += dataset.getLength();
-        } // end for each dataset
+		massPosition = Math.sqrt(massPosition / (double) ndata);
 
-        massPosition = Math.sqrt( massPosition / (double)ndata );
-         
-        double massRange  = (upperBound - lowerBound)/2;
-        double massCenter = lowerBound + massRange;
+		double massRange = (upperBound - lowerBound) / 2;
+		double massCenter = lowerBound + massRange;
 
-        return 100. * Math.abs(massPosition - massCenter) / massRange;
-    }
+		return 100. * Math.abs(massPosition - massCenter) / massRange;
+	}
 } // end class
