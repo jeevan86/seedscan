@@ -23,43 +23,40 @@ import asl.metadata.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CrossPowerKey
-{
-    private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.metrics.CrossPowerKey.class);
+public class CrossPowerKey {
+	private static final Logger logger = LoggerFactory
+			.getLogger(asl.seedscan.metrics.CrossPowerKey.class);
 
-    private String key;
+	private String key;
 
-    public CrossPowerKey(Channel a, Channel b)
-    {
-        String aKey = a.toString();
-        String bKey = b.toString();
-        if (aKey.compareTo(bKey) < 0) {
-            key = aKey + bKey;
-        }
-        else {
-            key = bKey + aKey;
-        }
-    }
+	public CrossPowerKey(Channel a, Channel b) {
+		String aKey = a.toString();
+		String bKey = b.toString();
+		if (aKey.compareTo(bKey) < 0) {
+			key = aKey + bKey;
+		} else {
+			key = bKey + aKey;
+		}
+	}
 
-    public String getKey()
-    {
-        return key;
-    }
+	public String getKey() {
+		return key;
+	}
 
-    @Override public String toString()
-    {
-        return key;
-    }
+	@Override
+	public String toString() {
+		return key;
+	}
 
-    @Override public int hashCode()
-    {
-        return key.hashCode();
-    }
+	@Override
+	public int hashCode() {
+		return key.hashCode();
+	}
 
-    @Override public boolean equals(Object obj)
-    {
-        CrossPowerKey other = (CrossPowerKey)obj;
-        return toString().equals(other.toString()) ;
-        //return key.equals((String)obj);
-    }
+	@Override
+	public boolean equals(Object obj) {
+		CrossPowerKey other = (CrossPowerKey) obj;
+		return toString().equals(other.toString());
+		// return key.equals((String)obj);
+	}
 }
