@@ -320,14 +320,16 @@ public class Sequence extends MemberDigest {
 		// if ((Math.abs(m_startTime - seq.m_startTime) % m_interval) != 0) {
 		// throw new SequenceTimingException();
 		// }
-
-		// Allow for a fudge factor of 1 millisecond if sample
-		// rate is less than 100 Hz.
-		//
-		// Is this a good idea, or would it be better to simply
-		// report a gap so the user is aware of the jump?
-		//
-		long intervalAdjustment = m_interval / 100;
+		/*
+		 Allow for a fudge factor of 1 millisecond if sample
+		 rate is less than 100 Hz.
+		
+		 Is this a good idea, or would it be better to simply
+		 report a gap so the user is aware of the jump?
+		
+			I changed this to have a fudge of 10 millisecond
+		 */
+		long intervalAdjustment = m_interval / 10;
 
 		logger.debug("");
 		logger.debug("    Source DataSet: "
