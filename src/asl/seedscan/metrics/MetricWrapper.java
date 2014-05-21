@@ -19,69 +19,62 @@
 package asl.seedscan.metrics;
 
 import java.util.Enumeration;
-import java.util.Hashtable;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MetricWrapper
-{
-    private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.metrics.MetricWrapper.class);
+public class MetricWrapper {
+	private static final Logger logger = LoggerFactory
+			.getLogger(asl.seedscan.metrics.MetricWrapper.class);
 
-    private Metric arguments;
-    private Class<?> metricClass;
+	private Metric arguments;
+	private Class<?> metricClass;
 
-    public MetricWrapper(Class<?> metricClass)
-    throws  IllegalAccessException,
-            InstantiationException
-    {
-        this.metricClass = metricClass;
-        arguments = (Metric)metricClass.newInstance();
-    }
+	public MetricWrapper(Class<?> metricClass) throws IllegalAccessException,
+	InstantiationException {
+		this.metricClass = metricClass;
+		arguments = (Metric) metricClass.newInstance();
+	}
 
-    public void add(String name, String value)
-    throws NoSuchFieldException
-    {
-    	try {
-	        // We are actually calling Metric.add(name,value):
-	        arguments.add(name, value);
-    	} catch (NoSuchFieldException e) {
-    		throw e;
-    	}
-    }
+	public void add(String name, String value) throws NoSuchFieldException {
+		try {
+			// We are actually calling Metric.add(name,value):
+			arguments.add(name, value);
+		} catch (NoSuchFieldException e) {
+			throw e;
+		}
+	}
 
-    public String get(String name)
-    throws NoSuchFieldException
-    {
-    	try {
-    		return arguments.get(name);
-    	} catch (NoSuchFieldException e) {
-    		throw e;
-    	}
-    }
+	public String get(String name) throws NoSuchFieldException {
+		try {
+			return arguments.get(name);
+		} catch (NoSuchFieldException e) {
+			throw e;
+		}
+	}
 
-    public Metric getNewInstance()
-    throws InstantiationException,
-    	   IllegalAccessException,
-    	   NoSuchFieldException
-    {
-        try {
-            Metric metric = (Metric)metricClass.newInstance();
-            Enumeration<String> names = arguments.names();
-            while (names.hasMoreElements()) {
-                String name = names.nextElement();
-        // MTH: added this condition so that some arguments in config.xml (e.g., <cfg:argument name=forceupdate value=../>
-        //      could be optional and we don't want a NullPointer error when we try to put a null value:
-                if (arguments.get(name) != null) {
-                    metric.add(name, arguments.get(name));
-                }
-            }
-            return metric;
-        } catch (InstantiationException ex) {
-        	throw ex;
-        } catch (IllegalAccessException ex) {
-        	throw ex;
-        } catch (NoSuchFieldException ex) {
-        	throw ex;
-        }
-    }
+	public Metric getNewInstance() throws InstantiationException,
+	IllegalAccessException, NoSuchFieldException {
+		try {
+			Metric metric = (Metric) metricClass.newInstance();
+			Enumeration<String> names = arguments.names();
+			while (names.hasMoreElements()) {
+				String name = names.nextElement();
+				// MTH: added this condition so that some arguments in
+				// config.xml (e.g., <cfg:argument name=forceupdate value=../>
+				// could be optional and we don't want a NullPointer error when
+				// we try to put a null value:
+				if (arguments.get(name) != null) {
+					metric.add(name, arguments.get(name));
+				}
+			}
+			return metric;
+		} catch (InstantiationException ex) {
+			throw ex;
+		} catch (IllegalAccessException ex) {
+			throw ex;
+		} catch (NoSuchFieldException ex) {
+			throw ex;
+		}
+	}
 }
