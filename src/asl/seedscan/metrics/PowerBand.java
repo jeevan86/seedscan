@@ -21,27 +21,23 @@ package asl.seedscan.metrics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PowerBand
-{
-    private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.metrics.CoherencePBM.class);
+public class PowerBand {
+	private static final Logger logger = LoggerFactory
+			.getLogger(asl.seedscan.metrics.CoherencePBM.class);
 
-    private double low;
-    private double high;
+	private double low;
+	private double high;
 
-    public PowerBand(double low, double high)
-    {
-        this.low = low;
-        this.high = high;
-    }
+	public PowerBand(double low, double high) {
+		this.low = low;
+		this.high = high;
+	}
 
-    public double getLow()
-    {
-        return low;
-    }
+	public double getLow() {
+		return low;
+	}
 
-    public double getHigh()
-    {
-        return high;
-    }
+	public double getHigh() {
+		return high;
+	}
 }
-
