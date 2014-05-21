@@ -18,97 +18,97 @@
  */
 package asl.seedscan.metrics;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import java.util.ArrayList;
+import java.nio.ByteBuffer;
 import java.util.List;
 
-import java.nio.ByteBuffer;
-import asl.util.Hex;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import asl.metadata.Channel;
-import asl.metadata.meta_new.ChannelMeta;
-import asl.seedsplitter.DataSet;
 
-public class TimingQualityMetric
-extends Metric
-{
-    private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.metrics.TimingQualityMetric.class);
+public class TimingQualityMetric extends Metric {
+	private static final Logger logger = LoggerFactory
+			.getLogger(asl.seedscan.metrics.TimingQualityMetric.class);
 
-    @Override public long getVersion()
-    {
-        return 1;
-    }
+	@Override
+	public long getVersion() {
+		return 1;
+	}
 
-    @Override public String getName()
-    {
-        return "TimingQualityMetric";
-    }
+	@Override
+	public String getName() {
+		return "TimingQualityMetric";
+	}
 
+	public void process() {
+		logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
 
-    public void process()
-    {
-        logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
+		// Get a sorted list of continuous channels for this stationMeta and
+		// loop over:
+		List<Channel> channels = stationMeta.getContinuousChannels();
 
-    // Get a sorted list of continuous channels for this stationMeta and loop over:
-        List<Channel> channels = stationMeta.getContinuousChannels();
+		for (Channel channel : channels) {
+			if (!metricData.hasChannelData(channel)) {
+				// logger.warn("No data found for channel[{}] --> Skip metric",
+				// channel);
+				continue;
+			}
 
-        for (Channel channel : channels){
-            if (!metricData.hasChannelData(channel)){
-                //logger.warn("No data found for channel[{}] --> Skip metric", channel);
-                continue;
-            }
+			ByteBuffer digest = metricData.valueDigestChanged(channel,
+					createIdentifier(channel), getForceUpdate());
 
-            ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel), getForceUpdate());
+			if (digest == null) { // means oldDigest == newDigest and we don't
+				// need to recompute the metric
+				logger.warn(
+						"Digest unchanged station:[{}] channel:[{}] --> Skip metric",
+						getStation(), channel);
+				continue;
+			}
 
-            if (digest == null) { // means oldDigest == newDigest and we don't need to recompute the metric
-                logger.warn("Digest unchanged station:[{}] channel:[{}] --> Skip metric", getStation(), channel);
-                continue;
-            }
+			double result = computeMetric(channel);
 
-            double result = computeMetric(channel);
+			if (result == NO_RESULT) {
+				// Do nothing --> skip to next channel
+				logger.warn("NO_RESULT for station={} channel={}",
+						getStation(), channel);
+			} else {
+				metricResult.addResult(channel, result, digest);
+			}
+		}// end foreach channel
+	} // end process()
 
-            if (result == NO_RESULT) {
-                // Do nothing --> skip to next channel
-                logger.warn("NO_RESULT for station={} channel={}", getStation(), channel);
-            }
-            else {
-                metricResult.addResult(channel, result, digest);
-            }
-        }// end foreach channel
-    } // end process()
+	private double computeMetric(Channel channel) {
 
-    private double computeMetric(Channel channel) {
+		if (!metricData.hasChannelData(channel)) {
+			return NO_RESULT;
+		}
 
-        if (!metricData.hasChannelData(channel)) {
-            return NO_RESULT;
-        }
+		List<Integer> qualities = metricData.getChannelQualityData(channel);
 
-        List<Integer> qualities = metricData.getChannelQualityData(channel);
+		if (qualities == null) {
+			return NO_RESULT;
+		}
 
-        if (qualities == null) {
-            return NO_RESULT;
-        }
+		int totalQuality = 0;
+		int totalPoints = 0;
 
-        int totalQuality = 0;
-        int totalPoints  = 0;
+		for (int i = 0; i < qualities.size(); i++) {
+			totalQuality += qualities.get(i);
+			totalPoints++;
+		}
 
-        for (int i=0; i<qualities.size(); i++){
-            totalQuality += qualities.get(i);
-            totalPoints++;
-        } 
+		double averageQuality = 0.;
 
-        double averageQuality = 0.;
+		if (totalPoints > 0) {
+			averageQuality = (double) totalQuality / (double) totalPoints;
+		} else {
+			logger.warn(
+					"TimingQualityMetric: We have NO timing quality measurements for channel={}",
+					channel);
+			return NO_RESULT;
+		}
 
-        if (totalPoints > 0) {
-            averageQuality = (double)totalQuality / (double)totalPoints;
-        }
-        else {
-            logger.warn("TimingQualityMetric: We have NO timing quality measurements for channel={}", channel);
-            return NO_RESULT;
-        }
+		return averageQuality;
 
-        return averageQuality;
-
-    } // end computeMetric()
+	} // end computeMetric()
 }
