@@ -22,25 +22,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 
-public class CrossPower
-{
-    private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.metrics.CrossPower.class);
+public class CrossPower {
+	private static final Logger logger = LoggerFactory
+			.getLogger(asl.seedscan.metrics.CrossPower.class);
 
-    private double[] powerSpectrum  = null;
-    private double   spectrumDeltaF = 0.;
+	private double[] powerSpectrum = null;
+	private double spectrumDeltaF = 0.;
 
-    // constructor
-    public CrossPower(double[] powerSpectrum, double df)
-    {
-        this.powerSpectrum  = powerSpectrum;
-        this.spectrumDeltaF = df;
-    }
-    public double[] getSpectrum(){
-        return Arrays.copyOf(powerSpectrum, powerSpectrum.length);
-    }
-    public double getSpectrumDeltaF(){
-        return spectrumDeltaF;
-    }
+	// constructor
+	public CrossPower(double[] powerSpectrum, double df) {
+		this.powerSpectrum = powerSpectrum;
+		this.spectrumDeltaF = df;
+	}
+
+	public double[] getSpectrum() {
+		return Arrays.copyOf(powerSpectrum, powerSpectrum.length);
+	}
+
+	public double getSpectrumDeltaF() {
+		return spectrumDeltaF;
+	}
 
 }
-
