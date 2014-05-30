@@ -123,7 +123,7 @@ public class StationDeviationMetric extends PowerBandMetric {
 					metricResult.addResult(channel, result, digest);
 				}
 			} catch (MetricException e) {
-				logger.error("StationDeviation MetricException:", e);
+				logger.error("MetricException:", e);
 			}
 		}// end foreach channel
 
@@ -138,10 +138,9 @@ public class StationDeviationMetric extends PowerBandMetric {
 							ModelPowers, "StnModel", Color.black, stroke),
 							iPanel);
 				} catch (PlotMakerException e) {
-					logger.error("StationDeviationMetric PlotMakerException:",
-							e);
+					logger.error("PlotMakerException:", e);
 				} catch (TraceException e) {
-					logger.error("StationDeviationMetric TraceException:", e);
+					logger.error("TraceException:", e);
 				}
 			}
 			final String pngName = String.format("%s.%s.png", getOutputDir(),
@@ -159,12 +158,12 @@ public class StationDeviationMetric extends PowerBandMetric {
 		try {
 			if (!readModel(modelFileName)) {
 				logger.warn(String
-						.format("%s Error: ModelFile=%s not found for requested channel:%s --> Skipping\n",
-								getName(), modelFileName, channel.getChannel()));
+						.format("ModelFile=%s not found for requested channel:%s --> Skipping\n",
+								modelFileName, channel.getChannel()));
 				return NO_RESULT;
 			}
 		} catch (MetricException e) {
-			logger.error("StationDeviationMetric Exception:", e);
+			logger.error("MetricException:", e);
 		}
 
 		// Compute/Get the 1-sided psd[f] using Peterson's algorithm (24 hrs, 13
@@ -232,8 +231,8 @@ public class StationDeviationMetric extends PowerBandMetric {
 		if (nPeriods == 0) {
 			StringBuilder message = new StringBuilder();
 			message.append(String
-					.format("%s %s Error: Requested band [%f - %f] contains NO periods within station model\n",
-							getName(), getDay(), lowPeriod, highPeriod));
+					.format("%s: Requested band [%f - %f] contains NO periods within station model\n",
+							getDay(), lowPeriod, highPeriod));
 			throw new MetricException(message.toString());
 		}
 
@@ -243,11 +242,11 @@ public class StationDeviationMetric extends PowerBandMetric {
 			try {
 				makePlots(channel, ModelPeriods, psdInterp);
 			} catch (MetricException e) {
-				logger.error("StationDeviationMetric Exception:", e);
+				logger.error("MetricException:", e);
 			} catch (PlotMakerException e) {
-				logger.error("StationDeviationMetric PlotMakerException:", e);
+				logger.error("PlotMakerException:", e);
 			} catch (TraceException e) {
-				logger.error("StationDeviationMetric TraceException:", e);
+				logger.error("TraceException:", e);
 			}
 		}
 
@@ -259,8 +258,8 @@ public class StationDeviationMetric extends PowerBandMetric {
 		if (xdata.length != ydata.length) {
 			StringBuilder message = new StringBuilder();
 			message.append(String.format(
-					"%s %s makePlots() Error: xdata.len=%d != ydata.len=%d",
-					getName(), getDay(), xdata.length, ydata.length));
+					"makePlots() %s: xdata.len=%d != ydata.len=%d",
+					getDay(), xdata.length, ydata.length));
 			throw new MetricException(message.toString());
 		}
 		if (plotMaker == null) {
@@ -288,8 +287,8 @@ public class StationDeviationMetric extends PowerBandMetric {
 		} else { // ??
 			StringBuilder message = new StringBuilder();
 			message.append(String.format(
-					"%s %s makePlots() Don't know how to plot channel=%s",
-					getName(), getDay(), channel));
+					"makePlots() %s: Don't know how to plot channel=%s",
+					getDay(), channel));
 			throw new MetricException(message.toString());
 		}
 
@@ -322,8 +321,7 @@ public class StationDeviationMetric extends PowerBandMetric {
 			// getName(), fileName);
 			StringBuilder message = new StringBuilder();
 			message.append(String.format(
-					"=== %s: ModelFile=%s does NOT exist!\n", getName(),
-					fileName));
+					"== ModelFile=%s does NOT exist!\n", fileName));
 			logger.warn(message.toString());
 			return false;
 		}
@@ -339,7 +337,7 @@ public class StationDeviationMetric extends PowerBandMetric {
 				// MTH: This is hard-wired for Adam's station model files which
 				// have 7 columns:
 				if (args.length != 7) {
-					String message = "==Error reading Station Model File: got "
+					String message = "== reading Station Model File: got "
 							+ args.length + " args on one line!";
 					throw new MetricException(message.toString());
 				}
@@ -349,20 +347,20 @@ public class StationDeviationMetric extends PowerBandMetric {
 				} catch (NumberFormatException e) {
 					StringBuilder message = new StringBuilder();
 					message.append(String
-							.format("== StationDeviation %s: Error reading modelFile=[%s]: \n",
+							.format("== %s: Error reading modelFile=[%s]: \n",
 									getDay(), fName));
 					logger.error(message.toString(), e);
 					return false;
 				}
 			}
 		} catch (IOException e) {
-			logger.error("StationDeviation IOException:", e);
+			logger.error("IOException:", e);
 		} finally {
 			try {
 				if (br != null)
 					br.close();
 			} catch (IOException ex) {
-				logger.error("StationDeviation IOException:", ex);
+				logger.error("IOException:", ex);
 			}
 		}
 		Double[] tmpPeriods = tmpPers.toArray(new Double[] {});

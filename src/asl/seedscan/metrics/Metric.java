@@ -115,9 +115,9 @@ public abstract class Metric {
 			try {
 				psd = computePSD(channelA, channelB, df);
 			} catch (MetricPSDException e) {
-				logger.error("Metric.getCrossPower MetricPSDException:", e);
+				logger.error("MetricPSDException:", e);
 			} catch (ChannelMetaException e) {
-				logger.error("Metric ChannelMetaException:", e);
+				logger.error("ChannelMetaException:", e);
 			}
 			crossPower = new CrossPower(psd, df[0]);
 			crossPowerMap.put(key, crossPower);
@@ -131,7 +131,7 @@ public abstract class Metric {
 			return eventSynthetics.get(eventIdString);
 		} else {
 			logger.warn(String
-					.format("== Metric.getEventSynthetics - Synthetics not found for eventIdString=[%s]\n",
+					.format("== getEventSynthetics - Synthetics not found for eventIdString=[%s]\n",
 							eventIdString));
 			return null;
 		}
@@ -320,7 +320,7 @@ public abstract class Metric {
 
 		if (srateX != srateY) {
 			StringBuilder message = new StringBuilder();
-			message.append(String.format("computePSD() ERROR: srateX (="
+			message.append(String.format("computePSD(): srateX (="
 					+ srateX + ") != srateY (=" + srateY + ")\n"));
 			throw new MetricPSDException(message.toString());
 		}
@@ -328,7 +328,7 @@ public abstract class Metric {
 		ndata = chanXData.length;
 
 		if (srate == 0)
-			throw new MetricPSDException("Error: Got srate=0");
+			throw new MetricPSDException("Got srate=0");
 
 		double dt = 1. / srate;
 
@@ -364,7 +364,7 @@ public abstract class Metric {
 				if (responseMagC[k].mag() == 0) {
 					StringBuilder message = new StringBuilder();
 					message.append(String
-							.format("NLNMDeviation Error: responseMagC[k]=0 --> divide by zero!\n"));
+							.format("responseMagC[k]=0 --> divide by zero!\n"));
 					throw new MetricPSDException(message.toString());
 				} else { // Divide out (squared)instrument response & Convert to
 					// dB:

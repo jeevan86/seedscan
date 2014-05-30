@@ -105,11 +105,11 @@ public class DifferencePBM extends PowerBandMetric {
 					metricResult.addResult(channelX, channelY, result, digest);
 				}
 			} catch (MetricException e) {
-				logger.error("DifferencePBM Exception:", e);
+				logger.error("Exception:", e);
 			} catch (PlotMakerException e) {
-				logger.error("DifferencePBM Exception:", e);
+				logger.error("Exception:", e);
 			} catch (TraceException e) {
-				logger.error("DifferencePBM Exception:", e);
+				logger.error("Exception:", e);
 			}
 		}// end foreach channel
 
@@ -141,8 +141,8 @@ public class DifferencePBM extends PowerBandMetric {
 		if (dfX != dfY) { // Oops - spectra have different frequency sampling!
 			StringBuilder message = new StringBuilder();
 			message.append(String
-					.format("DifferencePBM Error: station=[{}] channelX[{}] channelY=[{}] day=[{}] metric=[{}]: dfX != dfY --> Can't continue\n",
-							station, channelX, channelY, day, metric));
+					.format("station=[%s] channelX[%s] channelY=[%s] day=[%s]: dfX != dfY --> Can't continue\n",
+							station, channelX, channelY, day));
 			throw new MetricException(message.toString());
 		}
 		double df = dfX;
@@ -151,8 +151,8 @@ public class DifferencePBM extends PowerBandMetric {
 			// wrong ...
 			StringBuilder message = new StringBuilder();
 			message.append(String
-					.format("DifferencePBM Error: station=[{}] channelX[{}] channelY=[{}] day=[{}] metric=[{}]: Gxx.length != Gyy.length --> Can't continue\n",
-							station, channelX, channelY, day, metric));
+					.format("station=[%s] channelX[%s] channelY=[%s] day=[%s]: Gxx.length != Gyy.length --> Can't continue\n",
+							station, channelX, channelY, day));
 			throw new MetricException(message.toString());
 		}
 
@@ -204,9 +204,8 @@ public class DifferencePBM extends PowerBandMetric {
 		if (nPeriods == 0) {
 			StringBuilder message = new StringBuilder();
 			message.append(String
-					.format("DifferencePBM Error: station=[{}] channelX=[{}] channelY=[{}] day=[{}] metric=[{}]: Requested band [%f - %f] contains NO periods --> divide by zero!\n",
-							station, channelX, channelY, day, metric,
-							lowPeriod, highPeriod));
+					.format("station=[%s] channelX=[%s] channelY=[%s] day=[%s]: Requested band [%f - %f] contains NO periods --> divide by zero!\n",
+							station, channelX, channelY, day, lowPeriod, highPeriod));
 			throw new MetricException(message.toString());
 		}
 		averageValue /= (double) nPeriods;

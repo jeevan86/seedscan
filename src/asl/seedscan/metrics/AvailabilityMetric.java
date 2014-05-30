@@ -79,12 +79,16 @@ public class AvailabilityMetric extends Metric {
 			return 0.;
 		}
 
+		// Initialize availability and sample rates
 		double availability = 0;
+		double metaSR = 0.0;
+		double dataSR = 0.0;
 
 		// The expected (=from metadata) number of samples:
 		ChannelMeta chanMeta = stationMeta.getChanMeta(channel);
 		final int SECONDS_PER_DAY = 86400;
-		int expectedPoints = (int) (chanMeta.getSampleRate() * SECONDS_PER_DAY + 1);
+		metaSR = chanMeta.getSampleRate();
+		int expectedPoints = (int) (metaSR * SECONDS_PER_DAY + 1);
 		// int expectedPoints = (int) (chanMeta.getSampleRate() * 24. * 60. *
 		// 60.);
 
@@ -94,6 +98,14 @@ public class AvailabilityMetric extends Metric {
 		int ndata = 0;
 
 		for (DataSet dataset : datasets) {
+			// Check sample rates of metadata and station channel data
+			dataSR = dataset.getSampleRate();
+			if (dataSR != metaSR) {
+				logger.error("SampleRate Mismatch: station:[{}] channel:[{}] "
+						+ "metaSR:[{}] dataSR:[{}]", getStation(), channel,
+						metaSR, dataSR);
+				continue;
+			}
 			ndata += dataset.getLength();
 		} // end for each dataset
 

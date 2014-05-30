@@ -37,7 +37,7 @@ public abstract class PowerBandMetric extends Metric {
 			band = new PowerBand(Double.parseDouble(get("lower-limit")),
 					Double.parseDouble(get("upper-limit")));
 		} catch (NoSuchFieldException ex) {
-			logger.error("PowerBandMetric NoSuchFieldException:", ex);
+			logger.error("NoSuchFieldException:", ex);
 		}
 		return band;
 	}
@@ -82,7 +82,7 @@ public abstract class PowerBandMetric extends Metric {
 		if (lowPeriod >= highPeriod) {
 			StringBuilder message = new StringBuilder();
 			message.append(String
-					.format("PowerBandMetric checkPowerBand Error: Requested band [%f - %f] has lowPeriod >= highPeriod\n",
+					.format("checkPowerBand: Requested band [%f - %f] has lowPeriod >= highPeriod\n",
 							lowPeriod, highPeriod));
 			// throw new RuntimeException(message.toString());
 			logger.warn(message.toString());
@@ -93,7 +93,7 @@ public abstract class PowerBandMetric extends Metric {
 		if (lowPeriod < Tmin || highPeriod > Tmax) {
 			StringBuilder message = new StringBuilder();
 			message.append(String
-					.format("PowerBandMetric checkPowerBand Error: Requested band [%f - %f] lies outside channel's Useable band [%f - %f]\n",
+					.format("checkPowerBand: Requested band [%f - %f] lies outside channel's Useable band [%f - %f]\n",
 							lowPeriod, highPeriod, Tmin, Tmax));
 			// throw new RuntimeException(message.toString());
 			logger.warn(message.toString());

@@ -338,7 +338,7 @@ public class MetricData {
 			if (srate1 != srate2) {
 				StringBuilder message = new StringBuilder();
 				message.append(String
-						.format("MetricData.createRotatedChannels(): Error: srate1 != srate2!!\n"));
+						.format("createRotatedChannels(): srate1 != srate2!!\n"));
 				throw new MetricException(message.toString());
 			}
 
@@ -371,7 +371,7 @@ public class MetricData {
 					throws ChannelMetaException, MetricException {
 		if (!metadata.hasChannel(channel)) {
 			logger.error(String
-					.format("MetricData Error: Metadata NOT found for channel=[%s] --> Can't return Displacement",
+					.format("Metadata NOT found for channel=[%s] --> Can't return Displacement",
 							channel));
 			return null;
 		}
@@ -379,7 +379,7 @@ public class MetricData {
 				windowEndEpoch);
 		if (timeseries == null) {
 			logger.error(String
-					.format("MetricData Error: Did not get requested window for channel=[%s] --> Can't return Displacement",
+					.format("Did not get requested window for channel=[%s] --> Can't return Displacement",
 							channel));
 			return null;
 		}
@@ -414,7 +414,7 @@ public class MetricData {
 
 		if (!(f1 < f2 && f2 < f3 && f3 < f4)) {
 			logger.error(String
-					.format("MetricData: removeInstrumentAndFilter: Error: invalid freq: range: [%f-%f ----- %f-%f]",
+					.format("removeInstrumentAndFilter: invalid freq: range: [%f-%f ----- %f-%f]",
 							f1, f2, f3, f4));
 			return null;
 		}
@@ -426,7 +426,7 @@ public class MetricData {
 		if (srate == 0) {
 			StringBuilder message = new StringBuilder();
 			message.append(String.format(
-					"MetricData Error: channel=[{}] Got srate=0\n",
+					"channel=[%s] Got srate=0\n",
 					channel.toString()));
 			throw new MetricException(message.toString());
 		}
@@ -620,7 +620,7 @@ public class MetricData {
 
 			if (srate2 != srate1) {
 				logger.warn(String
-						.format("== getWindowedData ERROR: Requested window Epoch [%d - %d] extends into "
+						.format("== getWindowedData: Requested window Epoch [%d - %d] extends into "
 								+ "nextData window Epoch [%d - %d] for channel=[%s] but srate1[%f] != srate2[%f]\n",
 								windowStartEpoch, windowEndEpoch,
 								nextDataStartEpoch, nextDataEndEpoch, channel,
@@ -633,7 +633,7 @@ public class MetricData {
 
 			if (windowEndEpoch > nextDataEndEpoch) {
 				logger.warn(String
-						.format("== getWindowedData ERROR: Requested window Epoch [%d - %d] extends BEYOND "
+						.format("== getWindowedData: Requested window Epoch [%d - %d] extends BEYOND "
 								+ "found nextData window Epoch [%d - %d] for channel=[%s]\n",
 								windowStartEpoch, windowEndEpoch,
 								nextDataStartEpoch, nextDataEndEpoch, channel));
@@ -681,7 +681,7 @@ public class MetricData {
 	public double[] getPaddedDayData(Channel channel) {
 		if (!hasChannelData(channel)) {
 			logger.warn(String
-					.format("== MetricData.getPaddedDayData() ERROR: We have NO data for channel=[%s]\n",
+					.format("== getPaddedDayData(): We have NO data for channel=[%s]\n",
 							channel));
 			return null;
 		}
@@ -761,14 +761,14 @@ public class MetricData {
 				use12 = false;
 			}
 		} catch (ChannelException e) {
-			logger.error("MetricData ChannelException:", e);
+			logger.error("ChannelException:", e);
 		}
 
 		// If we still can't find 2 horizontals to rotate then give up
 		if (hasChannelData(channel1) == false
 				|| hasChannelData(channel2) == false) {
 			logger.warn(String
-					.format("== createRotatedChannelData: Error -- Unable to find data "
+					.format("== createRotatedChannelData: -- Unable to find data "
 							+ "for channel1=[%s] and/or channel2=[%s] --> Unable to Rotate!\n",
 							channel1, channel2));
 			return;
@@ -777,7 +777,7 @@ public class MetricData {
 		if (metadata.hasChannel(channel1) == false
 				|| metadata.hasChannel(channel2) == false) {
 			logger.warn(String
-					.format("== createRotatedChannelData: Error -- Unable to find metadata "
+					.format("== createRotatedChannelData: -- Unable to find metadata "
 							+ "for channel1=[%s] and/or channel2=[%s] --> Unable to Rotate!\n",
 							channel1, channel2));
 			return;
@@ -809,7 +809,7 @@ public class MetricData {
 		if (srate1 != srate2) {
 			StringBuilder message = new StringBuilder();
 			message.append(String
-					.format("MetricData.createRotatedChannels(): Error channel1=[%s] and/or channel2=[%s]: srate1 != srate2 !!\n",
+					.format("createRotatedChannels(): channel1=[%s] and/or channel2=[%s]: srate1 != srate2 !!\n",
 							channel1, channel2));
 			throw new MetricException(message.toString());
 		}
@@ -886,7 +886,7 @@ public class MetricData {
 				northDataSet.setSampleRate(srate1);
 			} catch (IllegalSampleRateException e) {
 				logger.error(String
-						.format("MetricData.createRotatedChannels(): Invalid Sample Rate = %f",
+						.format("createRotatedChannels(): Invalid Sample Rate = %f",
 								srate1));
 			}
 
@@ -910,7 +910,7 @@ public class MetricData {
 				eastDataSet.setSampleRate(srate1);
 			} catch (IllegalSampleRateException e) {
 				logger.error(String
-						.format("MetricData.createRotatedChannels(): Invalid Sample Rate = %f",
+						.format("createRotatedChannels(): Invalid Sample Rate = %f",
 								srate1));
 			}
 
@@ -923,9 +923,9 @@ public class MetricData {
 			dataList.add(eastDataSet);
 			data.put(eastKey, dataList);
 		} catch (CloneNotSupportedException e) {
-			logger.error("MetricData CloneNotSupportedException:", e);
+			logger.error("CloneNotSupportedException:", e);
 		} catch (RuntimeException e) {
-			logger.error("MetricData RuntimeException:", e);
+			logger.error("RuntimeException:", e);
 		}
 
 	} // end createRotatedChannels()
@@ -1016,9 +1016,9 @@ public class MetricData {
 						channels[i] = intArrayToDoubleArray(channel);
 					} catch (SequenceRangeException e) {
 						// System.out.println("SequenceRangeException");
-						logger.error("MetricData SequenceRangeException:", e);
+						logger.error("SequenceRangeException:", e);
 					} catch (IndexOutOfBoundsException e) {
-						logger.error("MetricData IndexOutOfBoundsException:", e);
+						logger.error("IndexOutOfBoundsException:", e);
 					}
 					found = true;
 					break;
@@ -1204,7 +1204,7 @@ public class MetricData {
 			ChannelMeta chanMeta = getMetaData().getChanMeta(channel);
 			if (chanMeta == null) {
 				logger.warn(String
-						.format("MetricData.getHash() Error: metadata not found for requested channel:%s\n",
+						.format("getHash(): metadata not found for requested channel:%s\n",
 								channel));
 				return null;
 			} else {
@@ -1219,7 +1219,7 @@ public class MetricData {
 				ArrayList<DataSet> datasets = getChannelData(channel);
 				if (datasets == null) {
 					logger.warn(String
-							.format("MetricData.getHash() Error: Data not found for requested channel:%s\n",
+							.format("getHash(): Data not found for requested channel:%s\n",
 									channel));
 					return null;
 				} else {
@@ -1276,7 +1276,7 @@ public class MetricData {
 				}
 			} catch (MetricException e) {
 				logger.error(
-						"MetricData createRotatedChannelData() Exception:", e);
+						"createRotatedChannelData() Exception:", e);
 			}
 		}
 	}

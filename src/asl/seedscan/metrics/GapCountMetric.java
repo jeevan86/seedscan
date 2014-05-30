@@ -88,8 +88,8 @@ public class GapCountMetric extends Metric {
 		List<DataSet> datasets = metricData.getChannelData(channel);
 		if (datasets == null) { // No data --> Skip this channel
 			logger.error(
-					"{} Error: No datasets found for station=[{}] channel=[{}] day=[{}] --> Skip Metric",
-					metric, station, channel, day);
+					"No datasets found for station=[{}] channel=[{}] day=[{}] --> Skip Metric",
+					station, channel, day);
 			return NO_RESULT;
 		}
 

@@ -146,6 +146,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
   private byte nframes;         // in compressed data (Steim method only)
 
   private static boolean dbg=false;
+  
   /** If this mini-seed block is a duplicate of the one passed, return true
    * @param ms The mini-seed block for comparison
    * @return true if the blocks have the same time, data rate, number of samples, and compression payload
@@ -163,6 +164,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     }
     return false;
   }
+  
   public void clear() {
     cracked=false;
     for(int i=0; i<buf.length; i++) buf[i]=0;
@@ -170,15 +172,19 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     
     cleared=true;
   }
+  
   public Collection<Blockette2000> getBlk2000s(){return b2000s;}
   public boolean hasBlk1000() {crack(); return hasBlk1000;}
+  
   /** if true, this MiniSeed object is cleared and presumably available for reuse
    */
   public boolean isClear() {return cleared;}
+  
   /** set the debug output flag
    *@param t True for lots of output
    */
   public static  void setDebug(boolean t) {dbg=t;}
+  
   /** set time to given GregorianCalendar
    *@param g The time to set
    *@param hund The hundreds of microseconds to set (adds to Millisecons in Gregorian Calendar)
@@ -201,6 +207,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     ms.position(20);
     ms.get(startTime);
   }
+  
   /** ms set the number of samples.  Normally used to truncate a time series say
    * to make it just long enough to fill the day!
    *@param ns The number of samples
@@ -210,10 +217,12 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     ms.position(30);
     ms.putShort(nsamp);
   }
+  
   public void fixLocationCode() {
     if(seed[5] != ' ' && !Character.isUpperCase(seed[5]) && !Character.isDigit(seed[5])) seed[5] = ' ';
     if(seed[6] != ' ' && !Character.isUpperCase(seed[6]) && !Character.isDigit(seed[6])) seed[6] = ' ';
   }
+  
   public void fixHusecondsQ330() {
     if( husec % 10 == 0) 
       if( (husec/10) % 10 == 4 || (husec/10) %10 == 9) {
@@ -230,9 +239,11 @@ public class MiniSeed  implements MiniSeedOutputHandler {
       }
     if(husec == 9 && sec == 0 && minute == 0 && hour == 0) husec = 0;
   }
+  
   public void prt(String s) { Util.prt(s);}
   public void prta(String s) { Util.prta(s); }
   public int getRecordNumber() {return recordNumber;}
+  
   /** Creates a new instance of MiniSeed 
    * @param inbuf An array of binary miniseed data
    *@throws IllegalSeednameException if the name does not pass muster
@@ -247,6 +258,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     init();   // init will set swapping of ms
     recordNumber = recordCount++;
   }
+  
   /** Creates a new instance of MiniSeed 
    * @param inbuf An array of binary miniseed data
    * @param off the offset into inbuf to start
@@ -263,6 +275,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     init();   // init will set swapping of ms
     recordNumber = recordCount++;
   }
+  
   public void load(byte [] inbuf) throws IllegalSeednameException {
     if(inbuf.length != buf.length) {
       Util.prt("MiniSeed.load() change buffer length from "+buf.length+" to "+inbuf.length);
@@ -272,6 +285,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     System.arraycopy(inbuf, 0, buf, 0, inbuf.length);
     init();
   }
+  
   public void load(byte [] inbuf, int off, int len) throws IllegalSeednameException {
     if(buf.length != len) {
       Util.prt("MiniSeed.load : change buffer length from "+buf.length+" to "+len);
@@ -281,6 +295,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     System.arraycopy(inbuf, off, buf, 0, len);
     init();
   }
+  
   private void init() throws IllegalSeednameException {
     length=buf.length;
     cracked=false;
@@ -299,7 +314,6 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     if(isHeartBeat()) return;
     swap = swapNeeded(buf, ms);
     if(swap) ms.order(ByteOrder.LITTLE_ENDIAN);
-    
     
     // crack the seed name so we can check its legality
     ms.clear();
@@ -321,12 +335,14 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     fixLocationCode();
     if(swap && dbg) Util.prt("   *************Swap is needed! ************* "+ getSeedName());
   }
+  
   public static boolean crackIsHeartBeat(byte [] buf) {
     boolean is = true;
     for(int i=0; i<6; i++) if(buf[i] != 48 || buf[i+6] != 32 || buf[i+12] != 32) 
       {is = false; break;}
     return is;
   }
+  
   /** Is this mini-seed a heart beat.  These packets have all zero sequence # and
    * all spaces in the net/station/location/channel
    *@return true if sequences is all zero and first 12 chars are blanks
@@ -362,6 +378,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     //husec=bb.getShort();
     return SeedUtil.toJulian(year,day);
   }
+  
   /** This returns the time data as a 4 element array with hour,minute, sec, and hsec
    * from a raw miniseed buffer in buf.
    * This routine would be used to extract a bit of data from a raw buffer without
@@ -384,6 +401,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     time[3] =bb.getShort() & 0x0000ffff;
     return time;
   }
+  
   /** Return the year from an uncracked miniseedbuf
    *
    * @param buf Buffer with miniseed header
@@ -396,6 +414,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     bb.position(20);
     return (int) bb.getShort();
   }
+  
   /** Return the day of year from an uncracked miniseedbuf
    *
    * @param buf Buffer with miniseed header
@@ -409,6 +428,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     bb.position(22);
     return (int) bb.getShort();
   }
+  
   /** This returns the number of samples of data from a raw miniseed buffer in buf.
    * This routine would be used to extract a bit of data from a raw buffer without
    *going to the full effort of creating a MiniSeed object from it.
@@ -422,6 +442,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     bb.position(30);
     return (int) bb.getShort();
   }
+  
   /** This returns the digitizing rate from a raw miniseed buffer in buf.
    * This routine would be used to extract a bit of data from a raw buffer without
    *going to the full effort of creating a MiniSeed object from it.
@@ -449,6 +470,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     }
     return rate;
   }
+  
   /** This returns the seedname in NSCL order from a raw miniseed buffer in buf.
    * This routine would be used to extract a bit of data from a raw buffer without
    *going to the full effort of creating a MiniSeed object from it.
@@ -463,10 +485,12 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     String s = new String(seed);
     return s.substring(10,12)+s.substring(0,5)+s.substring(7,10)+s.substring(5,7);
   }
+  
   public static String safeLetter(byte b) {
     char c = (char) b;
     return Character.isLetterOrDigit(c) || c == ' ' ? ""+c : Util.toHex((byte) c);
   }
+  
   public static String toStringRaw(byte [] buf) {
     ByteBuffer bb = ByteBuffer.wrap(buf);
     StringBuilder tmp = new StringBuilder(100);
@@ -991,6 +1015,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     else
       return 0;
   }
+  
   /** return number of used data frames.  We figure this by looking for all zero frames
    * from the end!
    *@return Number of used frames based on examining for zeroed out frames rather than b1001
@@ -1003,48 +1028,60 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     }
     return  (i -dataOffset+64) / 64;      // This is the data frame # used
   }
+  
   /** return state of swap as required by the Steim decompression routines and our internal convention.  We both assume
    *  bytes are in BIG_ENDIAN order and swap bytes if the records is not.  Stated another way, we swap whenever
    * the compressed data indicates it is is little endian order.
    *@return True if bytes need to be swapped */
   public boolean isSwapBytes() {return swap;}
+  
   /**
    * return the blocksize or record length of this mini-seed
    * @return the blocksize of record length 
    */
   public int getBlockSize() {crack(); return recLength;}
+  
   /** retun number of samples in packet 
    * @return # of samples */
   public int getNsamp() { return (int) nsamp;}
+  
   /** return number of data blockettes 
    * @return # of data blockettes */
   public int getNBlockettes() { return (int) nblockettes;}
+  
   /** return the offset  of the ith blockette
    *@param i The index of the block (should be less than return of getNBlockettes
    *@return The offset of the ith blockette or -1 if i is out or range */
   public int getBlocketteOffset(int i) {crack(); if(i < blocketteList.length) return blocketteOffsets[i]; return -1;}
+  
   /** return the type of the ith blockette
    *@param i The index of the block (should be less than return of getNBlockettes
    *@return The type of the ith blockette or -1 if i is out or range */
   public int getBlocketteType(int i) {crack(); if(i < blocketteList.length) return (int) blocketteList[i]; return -1;}
+  
   /** return the seed name of this component in nnssssscccll order 
    * @return the nnssssscccll*/
   public String getSeedName() {
     String s = new String(seed);
     return s.substring(10,12)+s.substring(0,5)+s.substring(7,10)+s.substring(5,7);
   }
+  
   /** return the two char data block type, normally "D ", "Q ", etc 
    * @return the indicator*/
   public String getIndicator(){ return new String(indicator);}
+  
   /** return the encoding 
    * @return the encoding */
   public boolean isBigEndian(){ return (order != 0);}
+  
   /** return the encoding 
    * @return the encoding */
   public int getEncoding(){ crack(); return encoding;}
+  
   /** return year from the first sample time 
    * @return the year */
   public int getYear() {crack(); return year;}
+  
   /** return the day-of-year from the first sample time 
    * @return the day-of-year of first sample */
   public int getDay() {crack(); return day;}
@@ -1052,21 +1089,27 @@ public class MiniSeed  implements MiniSeedOutputHandler {
   /** return the day-of-year from the first sample time 
    * @return the day-of-year of first sample */
   public int getDoy() {crack(); return day;}
+  
   /** return the hours 
    * @return the hours of first sample */
   public int getHour() {crack(); return hour;}
+  
   /** return the minutes 
    * @return the minutes of first sample */
   public int getMinute() {crack(); return minute;}
+  
   /** return the seconds 
    * @return the seconds of first sample */
   public int getSeconds() {crack(); return sec;}
+  
   /** return the 100s of uSeconds 
    * @return 100s of uSeconds of first sample */
   public int getHuseconds() {crack(); return husec;}
+  
   /** return Julian day (a big integer) of the first sample's year and day
    * @return The 1st sample time*/
   public int getJulian() { crack(); return julian;}
+  
   /** return the activity flags from field 12 of the SEED fixed header
    * <p> 
    * Bit   Description
@@ -1081,6 +1124,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
    *@return The activity flags
    */  
   public byte getActivityFlags() {crack();return activityFlags;}
+  
   /** return the data qualit flags from field 13 of the Seed fixed header
    *<p> bit   Description
    *<p>  0    Amplifier staturation detected
@@ -1094,6 +1138,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
    *@return The data quality flags
    */
   public byte getDataQualityFlags(){crack();return dataQualityFlags;}
+  
   /** Return the IO and clock flags from field 13 of fixed header
    *<p>Bit Description
    *<p> 0  Station volume parity error possibly present
@@ -1105,6 +1150,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
    *@return The IO and clock flags
    */
   public byte getIOClockFlags() {crack();return ioClockFlags;}
+  
   /** return the raw time bytes in an array
    *@return The raw time bytes in byte array 
    */
@@ -1144,6 +1190,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     e.setTimeInMillis(timeTruncated.getTimeInMillis());
     return e;
   }
+  
   /** give a standard time string for the 1st sample time 
    * @return the time string yyyy ddd:hh:mm:ss.hhhh */
   public String getTimeString() {
@@ -1153,16 +1200,19 @@ public class MiniSeed  implements MiniSeedOutputHandler {
         ":"+int5.format(minute).substring(3,5)+":"+int5.format(sec).substring(3,5)+"."+
         int5.format(husec).substring(1,5);
   }
+  
   public GregorianCalendar getEndTime() {
     crack();
     GregorianCalendar end = new GregorianCalendar();
     end.setTimeInMillis(time.getTimeInMillis() + (long) ((nsamp-1)/getRate()*1000.+0.5)); 
     return end;
   }
+  
   public long getNextExpectedTimeInMillis() {
     crack();
     return time.getTimeInMillis() + (long) ((nsamp)/getRate()*1000.+0.5); 
   }
+  
   public String getEndTimeString() {
     crack();
     GregorianCalendar end = new GregorianCalendar();
@@ -1179,10 +1229,12 @@ public class MiniSeed  implements MiniSeedOutputHandler {
         ":"+int5.format(min).substring(3,5)+":"+int5.format(sc).substring(3,5)+"."+
         int5.format(msec).substring(2,5);
   }
+  
   /** return the rate factor from the seed header
    * @return The factor
    */
   public short getRateFactor() {return rateFactor;}
+  
   /** return the rate multiplier from the seed header
    * 
    * @return The multiplier
@@ -1228,84 +1280,104 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     ms.get(tmp); 
     return tmp;
   }
+  
   /** get the raw buffer representing this Miniseed-record. Beware you are getting
    *the actual buffer so changing it will change the underlying data of this MiniSeed
    * object.  If this is done after crack, some of the internals will not reflect it.
    *@return the raw data byte buffer */
   public byte [] getBuf() {return buf;}
+  
   /** return the record length from the blockette 1000.  Note the length might also
    * be determined by getBuf().length as to how this mini-seed was created (buf is a
    * copy of the input buffer).
    *@return the length if blockette 1000 present, zero if it is not
    */
   public int getRecLength() {crack();return recLength;}
+  
   /** return a blockette 100
    *@return the blockette or null if this blockette is not in mini-seed record
    */
   public byte [] getBlockette100() {crack();return buf100;}             // These getBlockettennn contain data from the various
+  
   /** return a blockette 200
    *@return the blockette or null if this blockette is not in mini-seed record
    */
   public byte [] getBlockette200() {crack();return buf200;}             // possible "data blockettes" found. They are
+  
   /** return a blockette 201
    *@return the blockette or null if this blockette is not in mini-seed record
    */
   public byte [] getBlockette201() {crack();return buf201;}             // never all defined.
+  
   /** return a blockette 300
    *@return the blockette or null if this blockette is not in mini-seed record
    */
   public byte [] getBlockette300() {crack();return buf300;}
+  
   /** return a blockette 310
    *@return the blockette or null if this blockette is not in mini-seed record
    */
   public byte [] getBlockette310() {crack();return buf310;}
+  
   /** return a blockette 320
    *@return the blockette or null if this blockette is not in mini-seed record
    */
   public byte [] getBlockette320() {crack();return buf320;}
+  
   /** return a blockette 390
    *@return the blockette or null if this blockette is not in mini-seed record
    */
   public byte [] getBlockette390() {crack();return buf390;}
+  
   /** return a blockette 395
    *@return the blockette or null if this blockette is not in mini-seed record
    */
   public byte [] getBlockette395() {crack();return buf395;}
+  
   /** return a blockette 400
    *@return the blockette or null if this blockette is not in mini-seed record
    */
   public byte [] getBlockette400() {crack();return buf400;}
+  
   /** return a blockette 405
    *@return the blockette or null if this blockette is not in mini-seed record
    */
   public byte [] getBlockette405() {crack();return buf405;}
+ 
   /** return a blockette 500
    *@return the blockette or null if this blockette is not in mini-seed record
    */
   public byte [] getBlockette500() {crack();return buf500;}
+  
   /** return a blockette 1000
    *@return the blockette or null if this blockette is not in mini-seed record
    */
   public byte [] getBlockette1000() {crack();return buf1000;}
+  
   /** return a blockette 1001
    *@return the blockette or null if this blockette is not in mini-seed record
    */
   public byte [] getBlockette1001() {crack();return buf1001;}
+  
   /** return the forward integration constant
    *@return the forward integration constant*/
   public int getForward() {crack();return forward;}
+  
   /** return the offset to the data
    *@return the offset to the data in bytes */
   public int getDataOffset() {return (int) dataOffset;}
+  
   /** return reverse integration constant
    *@return The reverse integration constant*/
   public int getReverse() {crack();return reverse;}
+  
   /** get the sequence number as an int!
    *@return the sequence number */
   public int getSequence() {
     crack();
     return Integer.parseInt(new String(seq));
   }
+  
   /** return the timing quality byte from blockette 1000
    *@return the timing quality byte from blockette 1001 or -1 if it does not exist
    */
@@ -1314,6 +1386,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     if(b1001 == null) return -1;
     return b1001.getTimingQuality();
   }
+  
   /** return the number of used frames from from blockette 1000
    *@return the # used frames from blockette 1001 or -1 if it does not exist
    */
@@ -1322,6 +1395,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     if(b1001 == null) return -1;
     return b1001.getFrameCount();
   }
+  
   /** return the number of used frames from from blockette 1000
    *@return the # used frames from blockette 1001 or -1 if it does not exist
    */
@@ -1355,6 +1429,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     }
     return;
   }
+  
   public void setB1001FrameCount(int n) {
     // Change #frames in framce count in B1ockette 1001 and store in buf1001 and data buffer
     crack();
@@ -1370,6 +1445,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
       cracked=false;
     }
   }
+  
   public void setB1001Usec(int n) {
     // Change #frames in framce count in B1ockette 1001 and store in buf1001 and data buffer
     crack();
@@ -1385,15 +1461,28 @@ public class MiniSeed  implements MiniSeedOutputHandler {
       cracked=false;
     }
   }
-  public int [] decomp() throws SteimException {
-    int rev=0;
-    byte [] frames = new byte[getBlockSize()-dataOffset];
-    System.arraycopy(buf,dataOffset, frames,0,getBlockSize()-dataOffset); 
+  
+  public int [] decomp() throws SteimException, BlockSizeException {
+  	int rev=0;
     int [] samples=null;
     
     try {
-	    if(getEncoding() == 10) samples = Steim1.decode(frames, getNsamp(), swap, rev);
-	    if(getEncoding() == 11) samples = Steim2.decode(frames, getNsamp(), swap, rev);
+    	if (getBlockSize() > dataOffset) {
+    		int framelen = getBlockSize() - dataOffset;
+    		byte [] frames = new byte[framelen];
+    		System.arraycopy(buf,  dataOffset, frames, 0, framelen);
+    		
+    		if (getEncoding() == 10)
+    			samples = Steim1.decode(frames, getNsamp(), swap, rev);
+    		if (getEncoding() == 11)
+    			samples = Steim2.decode(frames, getNsamp(), swap, rev);
+    		
+    	} else {
+    		StringBuilder message = new StringBuilder();
+    		message.append(String.format("BlockSizeException: (blockSize:[{}]) > (dataOffset:[{}])\n",
+    				getBlockSize(), dataOffset));
+    		throw new BlockSizeException(message.toString());
+    	}
     } catch (SteimException e) {
     	throw e;
     }
@@ -1410,33 +1499,47 @@ public class MiniSeed  implements MiniSeedOutputHandler {
   
   public void fixReverseIntegration() {
    try {
-      byte [] frames = new byte[getBlockSize()-dataOffset];
-      System.arraycopy(buf,dataOffset, frames,0,getBlockSize()-dataOffset); 
-      int [] samples=null;
-      int rev=0;
-      if(getEncoding() == 10) samples = Steim1.decode(frames, getNsamp(), swap, rev);
-      if(getEncoding() == 11) samples = Steim2.decode(frames, getNsamp(), swap, rev);
-
-      // Would adding this block "as is" cause a reverse constant error (or steim error)?  If so, set reverse
-      // integration constant from the decompressed dta.
-      if(Steim2.hadReverseError()) {
-
-        ms.position(dataOffset+4);            // position forward integration constant
-        //Util.prt("FixReverseIntegration: fwd="+forward+" "+samples[0]+" rev="+reverse+" "+samples[samples.length-1]);
-        if(reverse != samples[samples.length-1]) {
-          ms.position(dataOffset+8);
-          ms.putInt(samples[samples.length-1]);
-          reverse = samples[samples.length-1];      // set new reverse in data section
-          samples = decomp();
-          if(samples == null) Util.prt("MS.fixReverseIntegration() failed decomp returned null");
-          //else Util.prt("FixReverseIntegration: new rev="+samples[samples.length-1]);
-        } 
-      }
-    }
-    catch(SteimException e) {
+	   if (getBlockSize() > dataOffset) {
+		   int framelen = getBlockSize() - dataOffset;
+		   byte [] frames = new byte[framelen];
+		   System.arraycopy(buf, dataOffset, frames, 0, framelen);
+		   
+		   int [] samples=null;
+		   int rev=0;
+		   if (getEncoding() == 10)
+			   samples = Steim1.decode(frames, getNsamp(), swap, rev);
+		   if (getEncoding() == 11)
+			   samples = Steim2.decode(frames, getNsamp(), swap, rev);
+		   
+		   // Would adding this block "as is" cause a reverse constant error (or steim error)? If so, set reverse
+		   // integration constant from the decompressed data
+		   if (Steim2.hadReverseError()) {
+			   ms.position(dataOffset+4);	// position forward integration constant
+			   //Util.prt("FixReverseIntegration: fwd="+forward+" "+samples[0]+" rev="+reverse+" "+samples[samples.length-1]);
+			   if (reverse != samples[samples.length-1]) {
+				   ms.position(dataOffset+8);
+				   ms.putInt(samples[samples.length-1]);
+				   reverse = samples[samples.length-1];
+				   samples = decomp();
+				   if (samples == null)
+					   Util.prt("MS.fixReverseIntegration() failed decomp returned null");
+				   //else Util.prt("FixReverseIntegration: new rev="+samples[samples.length-1]);
+			   }
+		   }
+		   
+	   } else {
+		   StringBuilder message = new StringBuilder();
+		   message.append(String.format("BlockSizeException: (blockSize:[{}] > (dataOffset:[{}])\n",
+				   getBlockSize(), dataOffset));
+		   throw new BlockSizeException(message.toString());
+	   }
+    } catch (SteimException e) {
     	logger.error("MiniSeed SteimException:", e); 
+    } catch (BlockSizeException e) {
+    	logger.error("MiniSeed BlockSizeException:", e);
     }
   }
+  
   /** this routine splits a bigger miniseed block into multiple 512.  It has two algorithms
    * depending on whether the input block is a agreegate of 512s or not.  If it is, the blocks
    * are just disaggregated.  If not, the block is decompressed and recompressed into a series of
@@ -1662,6 +1765,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     }
 
   }
+  
   public static int getNsampFromBuf(byte [] bf, int encoding) throws IllegalSeednameException {
     ByteBuffer bb = ByteBuffer.wrap(bf);
     bb.position(30);
@@ -1805,6 +1909,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
       }      
     }
   }
+  
   public static boolean isQ680Header(byte [] buf) {
     // Some Q680 "mini-seed" have a header.  From 31-75 this is a time-span in ascii, look for this and skip it if found
 

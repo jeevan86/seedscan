@@ -294,13 +294,13 @@ public class EventCompareStrongMotion extends Metric {
 				}
 			}
 		} catch (ChannelMetaException e) {
-			logger.error("EventCompareStrongMotion ChannelMetaException:", e);
+			logger.error("ChannelMetaException:", e);
 		} catch (MetricException e) {
-			logger.error("EventCompareStrongMotion MetricException:", e);
+			logger.error("MetricException:", e);
 		} catch (PlotMakerException e) {
-			logger.error("EventCompareStrongMotion PlotMakerException:", e);
+			logger.error("PlotMakerException:", e);
 		} catch (TraceException e) {
-			logger.error("EventCompareStrongMotion TraceException:", e);
+			logger.error("TraceException:", e);
 		}
 	} // end process()
 
@@ -340,7 +340,7 @@ public class EventCompareStrongMotion extends Metric {
 			timeTool.depthCorrect(evdep);
 			timeTool.calculate(gcarc);
 		} catch (Exception e) {
-			logger.error("EventCompareStrongMotion Exception:", e);
+			logger.error("Exception:", e);
 		}
 
 		List<Arrival> arrivals = timeTool.getArrivals();
@@ -357,7 +357,7 @@ public class EventCompareStrongMotion extends Metric {
 		if (arrivals.size() != 2) { // Either we don't have both P & S or we
 									// don't have just P & S
 			logger.warn(String
-					.format("Error: Expected P and/or S arrival times not found [gcarc=%8.4f]",
+					.format("Expected P and/or S arrival times not found [gcarc=%8.4f]",
 							gcarc));
 			return null;
 		}
@@ -367,14 +367,14 @@ public class EventCompareStrongMotion extends Metric {
 			arrivalTimeP = arrivals.get(0).getTime();
 		} else {
 			logger.warn(String
-					.format("Error: Expected P arrival time not found"));
+					.format("Expected P arrival time not found"));
 		}
 		double arrivalTimeS = 0.;
 		if (arrivals.get(1).getName().equals("S")) {
 			arrivalTimeS = arrivals.get(1).getTime();
 		} else {
 			logger.warn(String
-					.format("Error: Expected S arrival time not found"));
+					.format("Expected S arrival time not found"));
 		}
 
 		logger.info(String

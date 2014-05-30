@@ -37,6 +37,7 @@ import seed.IllegalSeednameException;
 import seed.MiniSeed;
 import seed.SeedUtil;
 import seed.SteimException;
+import seed.BlockSizeException;
 import asl.concurrent.FallOffQueue;
 
 /**
@@ -474,7 +475,10 @@ implements Runnable
 
                 } catch (SteimException e) {
                     logger.warn("SeedSplitProcessor SteimException:", e);
-                } catch (InterruptedException e) {
+                } catch (BlockSizeException e) {
+                	logger.warn("SeedSplitProcessor BlockSizeException:", e);
+                }
+                catch (InterruptedException e) {
                     logger.warn("SeedSplitProcessor InterruptedException:", e);
                 } catch (IllegalSeednameException e) {
                     logger.warn("SeedSplitProcessor IllegalSeednameException:", e);
@@ -493,6 +497,20 @@ implements Runnable
             }
             if ((tempData != null) && (tree != null)) {
                 tree.add(tempData);
+                tree.size();
+                /*
+                try {
+                    Iterator<DataSet> itr = tree.iterator();
+                	DataSet tmpval = new DataSet();
+                	double SR = 0.0;
+                    while(itr.hasNext()) {
+                    	tmpval = itr.next();
+                    	SR = tmpval.getSampleRate();
+                    	System.out.format("Key: %s SampleRate: %s\n", tempKey, SR);
+                    }
+                } catch (CloneNotSupportedException e) {
+                	logger.warn("Test Exception: ", e);
+                }*/
                 logger.debug("Adding DataSet to TreeSet.");
                 logger.debug(String.format("  Range: %s - %s (%d data points {CHECK: %d})",
                                            DataSet.timestampToString(tempData.getStartTime()),
@@ -581,6 +599,15 @@ implements Runnable
                 logger.debug("Empty tree for '" +chanKey+ "'");
             }
         }
+        /*
+        for (String tableKey : m_table.keySet()) {
+        	ArrayList<DataSet> tmpList = m_table.get(tableKey);
+        	for (int i = 0; i < tmpList.size(); i++) {
+        		DataSet dset = tmpList.get(i);
+        		double SR = dset.getSampleRate();
+        		//System.out.format("m_table[%s] SampleRate = %f\n", tableKey, SR);
+        	}
+        }*/
         logger.debug("<SeedSplitProcessor Thread> Yeah, we're done.");
         logger.debug("Kept " +kept+ " records");
         logger.debug("Discarded " +discarded+ " records");

@@ -155,11 +155,10 @@ public class MetaGenerator
         // Need to catch both IOException and InterruptedException
             catch (IOException e) {
                 //System.out.println("Error: IOException Description: " + e.getMessage());
-                logger.error("MetaGenerator Error: IOException Description:", e);
-            }
-            catch (InterruptedException e) {
+                logger.error("IOException Description:", e);
+            } catch (InterruptedException e) {
                 //System.out.println("Error: InterruptedException Description: " + e.getMessage());
-                logger.error("MetaGenerator Error: InterruptedException Description:", e);
+                logger.error("InterruptedException Description:", e);
             }
 
             Dataless dataless = new Dataless( strings ) ;
@@ -172,7 +171,7 @@ public class MetaGenerator
                 //System.out.format("== MetaGenerator: Error processing dataless volume for file=[%s]:%s\n", 
                 //    fileName, e.getMessage());
                 StringBuilder message = new StringBuilder();
-                message.append(String.format("== MetaGenerator: Error processing dataless volume for file=[%s]\n", fileName));
+                message.append(String.format("== processing dataless volume for file=[%s]\n", fileName));
                 logger.error(message.toString(), e);
             }
 
@@ -180,7 +179,7 @@ public class MetaGenerator
                 //System.out.format("== MetaGenerator: Error processing dataless volume==null! for file=[%s]\n",
                 //    fileName);
                 StringBuilder message = new StringBuilder();
-                message.append(String.format("== MetaGenerator: Error processing dataless volume==null! for file=[%s]\n"));
+                message.append(String.format("== processing dataless volume==null! for file=[%s]\n"));
                 logger.error(message.toString());
                 System.exit(0);
             }
@@ -200,7 +199,7 @@ public class MetaGenerator
             //System.out.format("== MetaGenerator Error: Attempting to load volume networkKey=[%s] --> Already loaded!\n",
             //                  networkKey);
             StringBuilder message = new StringBuilder();
-            message.append(String.format("== MetaGenerator Error: Attempting to load volume networkKey=[%s] --> Already loaded!\n",
+            message.append(String.format("== Attempting to load volume networkKey=[%s] --> Already loaded!\n",
                               networkKey));
             logger.error(message.toString());
         }
@@ -256,7 +255,7 @@ public class MetaGenerator
         if (volume == null) {
             //System.out.format("== MetaGenerator.getStationData() - Volume==null for Station=[%s]\n", station);
         	StringBuilder message = new StringBuilder();
-        	message.append(String.format("== MetaGenerator.getStationData() - Volume==null for Station=[%s]\n", station));
+        	message.append(String.format("== getStationData() - Volume==null for Station=[%s]\n", station));
         	logger.error(message.toString());
             System.exit(0);
         }
@@ -292,7 +291,7 @@ public class MetaGenerator
         StationData stationData = getStationData(station);
         if (stationData == null) { // This can happen if the file DATALESS.IW_LKWY.seed doesn't match
             StringBuilder message = new StringBuilder();
-            message.append(String.format("== [UTC %s] MetaGenerator getStationMeta request:\t\t[%s]\t[%s]\tNOT FOUND!\n", 
+            message.append(String.format("== [UTC %s] getStationMeta request:\t\t[%s]\t[%s]\tNOT FOUND!\n", 
             		EpochData.epochToDateString(Calendar.getInstance()), station,EpochData.epochToDateString(timestamp)));
             logger.error(message.toString());
             return null;             //   the name INSIDE the dataless (= US_LKWY) ... so the keys don't match
@@ -302,7 +301,7 @@ public class MetaGenerator
 
         if (blockette == null){
             StringBuilder message = new StringBuilder();
-            message.append(String.format("== [UTC %s] MetaGenerator getStationMeta request:\t\t[%s]\t[%s]\tNOT FOUND!\n", 
+            message.append(String.format("== [UTC %s] getStationMeta request:\t\t[%s]\t[%s]\tNOT FOUND!\n", 
             		EpochData.epochToDateString(Calendar.getInstance()), station,EpochData.epochToDateString(timestamp)));
             logger.error(message.toString());
             return null;

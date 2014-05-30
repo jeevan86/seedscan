@@ -202,7 +202,7 @@ public class EventCompareSynthetic extends Metric {
 						MyFilter.bandpass(sacSynthetics[i], f1, f2, f3, f4);
 					} else {
 						logger.warn(String
-								.format("Error: Did not find sac synthetic=[%s] in Hashtable",
+								.format("Did not find sac synthetic=[%s] in Hashtable",
 										fileKey));
 						return;
 					}
@@ -316,13 +316,13 @@ public class EventCompareSynthetic extends Metric {
 				}
 			}
 		} catch (ChannelMetaException e) {
-			logger.error("EventCompareSynthetic ChannelMetaException:", e);
+			logger.error("ChannelMetaException:", e);
 		} catch (MetricException e) {
-			logger.error("EventCompareSynthetic MetricException:", e);
+			logger.error("MetricException:", e);
 		} catch (PlotMakerException e) {
-			logger.error("EventCompareSynthetic PlotMakerException:", e);
+			logger.error("PlotMakerException:", e);
 		} catch (TraceException e) {
-			logger.error("EventCompareSynthetic TraceException:", e);
+			logger.error("TraceException:", e);
 		}
 	} // end process()
 
@@ -346,7 +346,7 @@ public class EventCompareSynthetic extends Metric {
 		try {
 			sac.write(filename);
 		} catch (Exception e) {
-			logger.warn("EventCompareSynthetic Exception:", e);
+			logger.warn("Exception:", e);
 		}
 	}
 
@@ -388,8 +388,8 @@ public class EventCompareSynthetic extends Metric {
 		}
 		if (n2 >= data1.length || n2 >= data2.length) {
 			logger.error(String
-					.format("{} Error: station=[{}] day=[{}]: calcDiff: n2=[%d] > data1.length=[%d] and/or data2.length=[%d] --> Bad window",
-							getName(), getStation(), getDay(), n2,
+					.format("station=[%s] day=[%s]: calcDiff: n2=[%d] > data1.length=[%d] and/or data2.length=[%d] --> Bad window",
+							getStation(), getDay(), n2,
 							data1.length, data2.length));
 			return NO_RESULT;
 		}
@@ -408,8 +408,8 @@ public class EventCompareSynthetic extends Metric {
 
 		if (denomenator == 0.) {
 			logger.error(
-					"{} Error: station=[{}] day=[{}]: calcDiff: denomenator==0 --> Divide by 0 --> Expect result = Infinity!",
-					getName(), getStation(), getDay());
+					"station=[{}] day=[{}]: calcDiff: denomenator==0 --> Divide by 0 --> Expect result = Infinity!",
+					getStation(), getDay());
 		}
 		double result = numerator / denomenator;
 
