@@ -136,7 +136,7 @@ public class CalibrationMetric extends Metric {
 					 **/
 				}
 			} catch (MetricException e) {
-				logger.error("CalibrationMetric Exception:", e);
+				logger.error("Exception:", e);
 			}
 
 		}// end foreach channel
@@ -158,8 +158,8 @@ public class CalibrationMetric extends Metric {
 
 		if (calBlocks.size() > 1) {
 			logger.error(
-					"{} Error: Found more than 1 calibration blockette (station=[{}] channel=[{}] day=[{}])! --> What to do ?",
-					metric, station, channel.toString(), day);
+					"Found more than 1 calibration blockette (station=[{}] channel=[{}] day=[{}])! --> What to do ?",
+					station, channel.toString(), day);
 		}
 
 		Blockette320 blockette320 = calBlocks.get(0);
@@ -263,14 +263,14 @@ public class CalibrationMetric extends Metric {
 
 		if (inData == null || inData.length <= 0) {
 			logger.error(
-					"{} Error: We have no data for reported cal input channel=[{}] for station=[{}] day=[{}] --> Skip metric",
-					metric, channelExtension, station, day);
+					"No data for reported cal input channel=[{}] for station=[{}] day=[{}] --> Skip metric",
+					channelExtension, station, day);
 			return null;
 		}
 		if (outData == null || outData.length <= 0) {
 			logger.error(
-					"{} Error: We have no data for reported cal output channel=[{}] for station=[{}] day=[{}] --> Skip metric",
-					metric, channel.toString(), station, day);
+					"No data for reported cal output channel=[{}] for station=[{}] day=[{}] --> Skip metric",
+					channel.toString(), station, day);
 			return null;
 		}
 
@@ -303,8 +303,8 @@ public class CalibrationMetric extends Metric {
 		} else {
 			StringBuilder message = new StringBuilder();
 			message.append(String
-					.format("{} Error: station=[{}] channel[{}] day=[{}]: Unrecognized stage1 type != {'A' || 'B'} --> can't compute!",
-							metric, station, channel.toString(), day));
+					.format("station=[%s] channel[%s] day=[%s]: Unrecognized stage1 type != {'A' || 'B'} --> can't compute!",
+							station, channel.toString(), day));
 			throw new MetricException(message.toString());
 		}
 
@@ -351,8 +351,8 @@ public class CalibrationMetric extends Metric {
 		SensorInfo sensorInfo = getSensorInfo(sensorType);
 		if (sensorInfo == null) {
 			logger.error(
-					"{} Error: Couldn't find instrument calibration info for sensorType=[{}] for station=[{}] day=[{}]",
-					metric, sensorType, station, day);
+					"Couldn't find instrument calibration info for sensorType=[{}] for station=[{}] day=[{}]",
+					sensorType, station, day);
 			logger.warn("Use default Tmin, Tmax, Tnorm");
 			Tmin = 60;
 			Tmax = 400;
@@ -519,7 +519,7 @@ public class CalibrationMetric extends Metric {
 						Tmax = Double.parseDouble(args[2]);
 						Tnorm = Double.parseDouble(args[3]);
 					} catch (Exception e) {
-						logger.error("CalibrationMetric Exception:", e);
+						logger.error("Exception:", e);
 					}
 					SensorInfo sensorInfo = new SensorInfo(sensorName, Tmin,
 							Tmax, Tnorm);
@@ -531,14 +531,14 @@ public class CalibrationMetric extends Metric {
 			}
 		} catch (IOException e) {
 			// e.printStackTrace();
-			logger.error("CalibrationMetric IOException:", e);
+			logger.error("EOException:", e);
 		} finally {
 			try {
 				if (br != null)
 					br.close();
 			} catch (IOException ex) {
 				// ex.printStackTrace();
-				logger.error("CalibrationMetric IOException:", ex);
+				logger.error("EOException:", ex);
 			}
 		}
 		return true;
@@ -551,7 +551,7 @@ public class CalibrationMetric extends Metric {
 				fileName = get("instrument-calibration-file");
 			} catch (Exception e) {
 				logger.error(
-						"CalibrationMetric: Failed attempt to read instrument-calibration-file from config.xml: ",
+						"Failed attempt to read instrument-calibration-file from config.xml: ",
 						e);
 			}
 			readSensorTable(fileName);

@@ -233,7 +233,8 @@ public class Scanner
 	                    // Save the current crossPowerMap for the next metric:
 	                    crossPowerMap = metric.getCrossPowerMap();
 	                }
-	                else if (metric.getClass().getName().contains("AvailabilityMetric")){
+	                else if ((currentMetricData == null) && 
+	                		(metric.getClass().getName().contains("AvailabilityMetric"))){
 	                    metric.setData( new MetricData(stnMeta) );
 	                    metric.process();
 	                }

@@ -12,15 +12,14 @@ import asl.seedscan.metrics.MetricResult;
 
 /**
  * @author Joel D. Edwards <jdedwards@usgs.gov>
- *
+ * 
  */
-public class MetricInjector
-extends TaskThread<MetricResult>
-{
-    private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.database.MetricInjector.class);
-    
+public class MetricInjector extends TaskThread<MetricResult> {
+	private static final Logger logger = LoggerFactory
+			.getLogger(asl.seedscan.database.MetricInjector.class);
+
 	MetricDatabase metricDB;
-	
+
 	/**
 	 * 
 	 */
@@ -37,13 +36,15 @@ extends TaskThread<MetricResult>
 		this.metricDB = metricDB;
 	}
 
-    public boolean isConnected() {
-        //System.out.println("== MetricInjector.isConnected() = " + metricDB.isConnected() );
-        return metricDB.isConnected();
-    }
+	public boolean isConnected() {
+		// System.out.println("== MetricInjector.isConnected() = " +
+		// metricDB.isConnected() );
+		return metricDB.isConnected();
+	}
 
-
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see asl.concurrent.TaskThread#setup()
 	 */
 	@Override
@@ -51,25 +52,29 @@ extends TaskThread<MetricResult>
 		// Pre-run logic goes here
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see asl.concurrent.TaskThread#performTask(asl.concurrent.Task)
 	 */
 	@Override
 	protected void performTask(Task<MetricResult> task) {
 		String command = task.getCommand();
 		MetricResult results = task.getData();
-		
+
 		logger.info("performTask: command=" + command + " results=" + results);
-		
+
 		if (command.equals("INJECT")) {
 			int i = metricDB.insertMetricData(results);
-            if (i != 0) {
-                logger.error("metricDB.insertMetricData FAILED!");
-            }
+			if (i != 0) {
+				logger.error("metricDB.insertMetricData FAILED!");
+			}
 		}
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see asl.concurrent.TaskThread#cleanup()
 	 */
 	@Override
@@ -77,9 +82,7 @@ extends TaskThread<MetricResult>
 		// Post-run logic goes here
 	}
 
-	public void inject(MetricResult results)
-	throws InterruptedException
-	{
+	public void inject(MetricResult results) throws InterruptedException {
 		try {
 			addTask("INJECT", results);
 		} catch (InterruptedException e) {

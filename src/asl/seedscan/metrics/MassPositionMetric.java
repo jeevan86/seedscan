@@ -79,7 +79,7 @@ public class MassPositionMetric extends Metric {
 
 				metricResult.addResult(channel, result, digest);
 			} catch (MetricException e) {
-				logger.error("MassPositionMetric Exception:", e);
+				logger.error("Exception:", e);
 			}
 
 		}// end foreach channel
@@ -102,8 +102,8 @@ public class MassPositionMetric extends Metric {
 		if (!(stage instanceof PolynomialStage)) {
 			StringBuilder message = new StringBuilder();
 			message.append(String
-					.format("{} Error: station=[{}] channel=[{}] day=[{}]: Stage 1 is NOT a PolynomialStage!\n",
-							metric, station, channel.toString(), day));
+					.format("station=[%s] channel=[%s] day=[%s]: Stage 1 is NOT a PolynomialStage!\n",
+							station, channel.toString(), day));
 			throw new MetricException(message.toString());
 		}
 		PolynomialStage polyStage = (PolynomialStage) stage;
@@ -116,8 +116,8 @@ public class MassPositionMetric extends Metric {
 		if (coefficients.length != 2) {
 			StringBuilder message = new StringBuilder();
 			message.append(String
-					.format("{} Error: station=[{}] channel=[{}] day=[{}]: We're expecting 2 coefficients for this PolynomialStage!\n",
-							metric, station, channel.toString(), day));
+					.format("station=[%s] channel=[%s] day=[%s]: We're expecting 2 coefficients for this PolynomialStage!\n",
+							station, channel.toString(), day));
 			throw new MetricException(message.toString());
 		} else {
 			a0 = coefficients[0];
@@ -127,8 +127,8 @@ public class MassPositionMetric extends Metric {
 		if (a0 == 0 && a1 == 0 || lowerBound == 0 && upperBound == 0) {
 			StringBuilder message = new StringBuilder();
 			message.append(String
-					.format("{} Error: station=[{}] channel=[{}] day=[{}]: We don't have enough information to compute mass position!\n",
-							metric, station, channel.toString(), day));
+					.format("station=[%s] channel=[%s] day=[%s]: We don't have enough information to compute mass position!\n",
+							station, channel.toString(), day));
 			throw new MetricException(message.toString());
 		}
 

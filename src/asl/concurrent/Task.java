@@ -18,24 +18,20 @@
  */
 package asl.concurrent;
 
-public class Task<T>
-{
-    private String command;
-    private T data;
+public class Task<T> {
+	private String command;
+	private T data;
 
-    public Task(String command, T data)
-    {
-    	this.command = command;
-        this.data = data;
-    }
+	public Task(String command, T data) {
+		this.command = command;
+		this.data = data;
+	}
 
-    public String getCommand()
-    {
-        return command;
-    }
+	public String getCommand() {
+		return command;
+	}
 
-    public T getData()
-    {
-        return data;
-    }
+	public T getData() {
+		return data;
+	}
 }

@@ -104,11 +104,11 @@ public class CoherencePBM extends PowerBandMetric {
 					metricResult.addResult(channelX, channelY, result, digest);
 				}
 			} catch (MetricException e) {
-				logger.error("CoherencePBM MetricException:", e);
+				logger.error("MetricException:", e);
 			} catch (PlotMakerException e) {
-				logger.error("CoherencePBM PlotMakerException:", e);
+				logger.error("PlotMakerException:", e);
 			} catch (TraceException e) {
-				logger.error("CoherencePBM TraceException:", e);
+				logger.error("TraceException:", e);
 			}
 
 		}// end foreach channel
@@ -140,8 +140,8 @@ public class CoherencePBM extends PowerBandMetric {
 		if (dfX != dfY) { // Oops - spectra have different frequency sampling!
 			StringBuilder message = new StringBuilder();
 			message.append(String
-					.format("CoherencePBM Error: station=[{}] channelX[{}] channelY=[{}] day=[{}] metric=[{}]: dfX != dfY --> Can't continue\n",
-							station, channelX, channelY, day, metric));
+					.format("station=[%s] channelX[%s] channelY=[%s] day=[%s]: dfX != dfY --> Can't continue\n",
+							station, channelX, channelY, day));
 			throw new MetricException(message.toString());
 		}
 		double df = dfX;
@@ -150,8 +150,8 @@ public class CoherencePBM extends PowerBandMetric {
 			// wrong ...
 			StringBuilder message = new StringBuilder();
 			message.append(String
-					.format("CoherencePBM Error: station=[{}] channelX=[{}] channelY=[{}] day=[{}] metric=[{}]: Gxx.length != Gyy.length --> Can't continue\n",
-							station, channelX, channelY, day, metric));
+					.format("station=[%s] channelX=[%s] channelY=[%s] day=[%s]: Gxx.length != Gyy.length --> Can't continue\n",
+							station, channelX, channelY, day));
 			throw new MetricException(message.toString());
 		}
 		// nf = number of positive frequencies + DC (nf = nfft/2 + 1, [f: 0, df,
@@ -213,9 +213,8 @@ public class CoherencePBM extends PowerBandMetric {
 		if (nPeriods == 0) {
 			StringBuilder message = new StringBuilder();
 			message.append(String
-					.format("CoherencePBM Error: station=[{}] channelX=[{}] channelY=[{}] day=[{}] metric[{}]: Requested band [%f - %f] contains NO periods --> divide by zero!\n",
-							station, channelX, channelY, day, metric,
-							lowPeriod, highPeriod));
+					.format("station=[%s] channelX=[%s] channelY=[%s] day=[%s]: Requested band [%f - %f] contains NO periods --> divide by zero!\n",
+							station, channelX, channelY, day, lowPeriod, highPeriod));
 			throw new MetricException(message.toString());
 		}
 		averageValue /= (double) nPeriods;

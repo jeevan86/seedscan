@@ -18,9 +18,6 @@
  */
 package asl.security;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
@@ -29,65 +26,70 @@ import java.util.Arrays;
 
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.SecretKeySpec;
 import javax.crypto.spec.PBEKeySpec;
 
-public class PassKey
-{
-    private static final Logger logger = LoggerFactory.getLogger(asl.security.Encrypted.class);
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class PassKey {
+	private static final Logger logger = LoggerFactory
+			.getLogger(asl.security.Encrypted.class);
 
 	private static final String HASH_ALGORITHM = "PBKDF2WithHmacSHA1";
 
 	private int keySize = 16;
 
-    private byte[] key;
-    private byte[] salt;
+	private byte[] key;
+	private byte[] salt;
 
- // constructor(s)
-    // generate a random salt (for setting new passwords)
-    public PassKey(String password, int keySize)
-    {
-        this.salt = new byte[8];
-        SecureRandom srand = new SecureRandom();
-        srand.nextBytes(this.salt);
-        _init(password, keySize);
-    }
+	// constructor(s)
+	// generate a random salt (for setting new passwords)
+	public PassKey(String password, int keySize) {
+		this.salt = new byte[8];
+		SecureRandom srand = new SecureRandom();
+		srand.nextBytes(this.salt);
+		_init(password, keySize);
+	}
 
-    // use an existing salt (for working with existing passwords)
-    public PassKey(String password, int keySize, byte[] salt)
-    {
-        this.salt = salt;
-        _init(password, keySize);
-    }
+	// use an existing salt (for working with existing passwords)
+	public PassKey(String password, int keySize, byte[] salt) {
+		this.salt = salt;
+		_init(password, keySize);
+	}
 
-    private void _init(String password, int keySize)
-    {
-        this.keySize = keySize;
+	private void _init(String password, int keySize) {
+		this.keySize = keySize;
 
-        // Derive the key from the password and salt
-        try {
-            SecretKeyFactory factory = SecretKeyFactory.getInstance(HASH_ALGORITHM);
-            KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 8192, keySize*8);
-            SecretKey tmp = factory.generateSecret(spec);
-            key = tmp.getEncoded();
-        } catch (NoSuchAlgorithmException e) {
-            //throw new RuntimeException("Password hashing algorithm '"+HASH_ALGORITHM+"' not present.");
-        	String message = new String("PassKey RuntimeException: Password hashing algorithm '"+HASH_ALGORITHM+"' not present.");
-        	logger.error(message, e);
-        } catch (InvalidKeySpecException e) {
-            //throw new RuntimeException("PBEKeySpec for algorithm '"+HASH_ALGORITHM+"' not present.");
-        	String message = new String("PassKey RuntimeException: PBEKeySpec for algorithm '"+HASH_ALGORITHM+"' not present.");
-        	logger.error(message, e);
-        }
-    }
+		// Derive the key from the password and salt
+		try {
+			SecretKeyFactory factory = SecretKeyFactory
+					.getInstance(HASH_ALGORITHM);
+			KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 8192,
+					keySize * 8);
+			SecretKey tmp = factory.generateSecret(spec);
+			key = tmp.getEncoded();
+		} catch (NoSuchAlgorithmException e) {
+			// throw new
+			// RuntimeException("Password hashing algorithm '"+HASH_ALGORITHM+"' not present.");
+			String message = new String(
+					"PassKey RuntimeException: Password hashing algorithm '"
+							+ HASH_ALGORITHM + "' not present.");
+			logger.error(message, e);
+		} catch (InvalidKeySpecException e) {
+			// throw new
+			// RuntimeException("PBEKeySpec for algorithm '"+HASH_ALGORITHM+"' not present.");
+			String message = new String(
+					"PassKey RuntimeException: PBEKeySpec for algorithm '"
+							+ HASH_ALGORITHM + "' not present.");
+			logger.error(message, e);
+		}
+	}
 
-    public byte[] getKey()
-    {
-        return Arrays.copyOf(key, key.length);
-    }
+	public byte[] getKey() {
+		return Arrays.copyOf(key, key.length);
+	}
 
-    public byte[] getSalt()
-    {
-        return Arrays.copyOf(salt, salt.length);
-    }
+	public byte[] getSalt() {
+		return Arrays.copyOf(salt, salt.length);
+	}
 }
