@@ -155,10 +155,10 @@ public class MetaGenerator
         // Need to catch both IOException and InterruptedException
             catch (IOException e) {
                 //System.out.println("Error: IOException Description: " + e.getMessage());
-                logger.error("IOException Description:", e);
+                logger.error("IOException:", e);
             } catch (InterruptedException e) {
                 //System.out.println("Error: InterruptedException Description: " + e.getMessage());
-                logger.error("InterruptedException Description:", e);
+                logger.error("InterruptedException:", e);
             }
 
             Dataless dataless = new Dataless( strings ) ;

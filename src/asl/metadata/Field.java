@@ -87,7 +87,7 @@ public class Field
     public void print()
     {
         for (String value : values) {
-            System.out.format("Field:%02d Description:%s Value:%s\n",fieldID, description, value );
+            System.out.format("Field:%02d Description:%s Value:%s\n", fieldID, description, value );
         }
     }
 

@@ -88,7 +88,7 @@ public class SeedScan
         try {
             cmdLine = optParser.parse(options, args, true);
         } catch (org.apache.commons.cli.ParseException e) {
-            logger.error("SeedScan: Error while parsing command-line arguments:", e);
+            logger.error("Error while parsing command-line arguments:", e);
             System.exit(1);
         }
 
@@ -145,7 +145,7 @@ public class SeedScan
 
             // This should really be handled by jaxb by setting it up in schemas/SeedScanConfig.xsd
                 if(scanCfg.getStartDay() == null && scanCfg.getStartDate() == null) {
-                    logger.error("== SeedScan Error: Must set EITHER cfg:start_day -OR- cfg:start_date in config.xml to start Scan!");
+                    logger.error("== Must set EITHER cfg:start_day -OR- cfg:start_date in config.xml to start Scan!");
                     System.exit(1);
                 }
 
@@ -209,7 +209,7 @@ public class SeedScan
                         }
                         scan.addMetric(wrapper);
                     } catch (ClassNotFoundException ex) {
-                    	String message = "SeedScan: No such metric class '" +met.getClassName()+ "'";
+                    	String message = "No such metric class '" +met.getClassName()+ "'";
                         logger.error(message, ex);
                         System.exit(1);
                     } catch (InstantiationException ex) {
@@ -273,7 +273,7 @@ public class SeedScan
                     metaServer = new MetaServer( new URI(remoteServer) );
                 }
                 catch (Exception e) {
-                    logger.error("SeedScan: Caught URI exception:", e);
+                    logger.error("Caught URI exception:", e);
                 }
             }
             else {
@@ -307,12 +307,12 @@ public class SeedScan
                 }
             }
             else {
-                logger.error("Error: No valid stations read from config.xml");
+                logger.error("No valid stations read from config.xml");
             }
         }
 
         if (stations == null) {
-            logger.error("Found NO stations to scan --> EXITTING SeedScan");
+            logger.error("NO stations to scan --> EXITING SeedScan");
             System.exit(1);
         }
 
@@ -364,7 +364,7 @@ public class SeedScan
         try {
             lock.release();
         } catch (IOException e) {
-        	logger.error("SeedScan IOException:", e);
+        	logger.error("IOException:", e);
         } finally {
         	logger.info("Release seedscan lock and quit metaServer");
             lock = null;

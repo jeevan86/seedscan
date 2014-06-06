@@ -54,6 +54,7 @@ public class StationMeta
     private double elevation;
     private Hashtable<ChannelKey,ChannelMeta> channels;
     private Calendar metaTimestamp = null;
+    private String metaDate = null;
 
     private Blockette blockette50 = null;
 
@@ -72,6 +73,7 @@ public class StationMeta
         this.elevation= Double.parseDouble(blockette.getFieldValue(6,0));
         channels = new Hashtable<ChannelKey,ChannelMeta>();
         this.metaTimestamp = (Calendar)timestamp.clone();
+        this.metaDate = (EpochData.epochToDateString(this.metaTimestamp));
         this.blockette50= blockette;
     }
 
@@ -79,7 +81,7 @@ public class StationMeta
     throws StationMetaException
     {
         if (! (latitude <= 90. && latitude >= -90) ) {
-           throw new StationMetaException("Error: station latitude must be: -90 <= val <= 90");
+           throw new StationMetaException(String.format("Error (date:%s): station latitude must be: -90 <= val <= 90", this.metaDate));
         }
         this.latitude = latitude;
     }
@@ -88,7 +90,7 @@ public class StationMeta
     throws StationMetaException
     {
         if (! (longitude <= 180. && longitude >= -180) ) {
-           throw new StationMetaException("Error: station longitude must be: -180 <= val <= 180");
+           throw new StationMetaException(String.format("Error (date:%s): station longitude must be: -180 <= val <= 180", this.metaDate));
         }
         this.longitude = longitude;
     }
@@ -99,7 +101,7 @@ public class StationMeta
     		this.setLatitude(latitude);
     		this.setLongitude(longitude);
     	} catch (StationMetaException e) {
-    		logger.error("StationMeta Exception:", e);
+    		logger.error("Exception:", e);
     	}
     }
     public void setElevation(double elevation)
@@ -136,6 +138,9 @@ public class StationMeta
     }
     public Calendar getTimestamp() {
         return (Calendar)metaTimestamp.clone();
+    }
+    public String getDate() {
+    	return metaDate;
     }
 
 /**  
@@ -195,8 +200,8 @@ public class StationMeta
                     channelArrayList.add( new Channel(location[i], chan[j+3]) );
                 }
                 else {
-                    logger.error( String.format("Error: CAN'T find Channel=[%s-%s] OR Channel=[%s-%s] in metadata",
-                                                  location[i], chan[j], location[i], chan[j+3]) );
+                    logger.error( String.format("Error: CAN'T find Channel=[%s-%s] OR Channel=[%s-%s] for date=[%s] in metadata",
+                                                  location[i], chan[j], location[i], chan[j+3], this.getDate()));
                 }
             }
         }
@@ -271,7 +276,7 @@ public class StationMeta
 
         }
         else {
-            System.out.format("== StationMeta.getChannel: Channel=[%d-%d%d] NOT FOUND\n",location, band, comp);
+            System.out.format("== getChannel: Channel=[%d-%d%d] date=[%s] NOT FOUND\n",location, band, comp, this.getDate());
             return null;
         }
     }
@@ -429,15 +434,15 @@ public class StationMeta
         }
         else {
             //System.out.format("== addRotatedChannel: Error -- Don't know how to make channel=[%s]\n", derivedChannelName);
-            logger.error(String.format("== addRotatedChannel: Error -- Don't know how to make channel=[%s]\n", derivedChannelName));
+            logger.error(String.format("== addRotatedChannel: -- Don't know how to make channel=[%s] date=[%s]\n", derivedChannelName, this.getDate()));
             return;
         }
 
         if (!found) {
             //System.out.format("== addRotatedChannel: Error -- StationMeta doesn't contain horizontal channels "
             //                + "needed to make channel=[%s]\n", derivedChannelName);
-            logger.error(String.format("== addRotatedChannel: Error -- StationMeta doesn't contain horizontal channels "
-                            + "needed to make channel=[%s]\n", derivedChannelName));
+            logger.error(String.format("== addRotatedChannel: -- StationMeta doesn't contain horizontal channels "
+                            + "needed to make channel=[%s] date=[%s]\n", derivedChannelName, this.getDate()));
             return;
         }
 
@@ -450,7 +455,7 @@ public class StationMeta
 	        derivedChannelMeta.setAzimuth(azimuth);
 	        this.addChannel( new ChannelKey(derivedChannel), derivedChannelMeta);
         } catch (RuntimeException e) {
-        	logger.error("StationMeta RuntimeException:", e);
+        	logger.error("RuntimeException:", e);
         }
     }
 

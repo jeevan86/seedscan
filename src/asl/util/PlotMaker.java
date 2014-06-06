@@ -19,6 +19,7 @@
 
 package asl.util;
 
+import asl.metadata.EpochData;
 import asl.metadata.Station;
 import asl.metadata.Channel;
 
@@ -61,6 +62,7 @@ public class PlotMaker
     private Channel channel, channelX, channelY;
     private Channel[] channels;
     private Calendar date;
+    private String datestr;
     private final String outputDir = "outputs";
 
     // constructor(s)
@@ -69,6 +71,7 @@ public class PlotMaker
         this.station = station;
         this.channel = channel;
         this.date    = date;
+        this.datestr = EpochData.epochToDateString(this.date);
     }
     public PlotMaker(Station station, Channel channelX, Channel channelY, Calendar date)
     {
@@ -76,12 +79,14 @@ public class PlotMaker
         this.channelX = channelX;
         this.channelY = channelY;
         this.date     = date;
+        this.datestr  = EpochData.epochToDateString(this.date);
     }
     public PlotMaker(Station station, Channel[] channels, Calendar date)
     {
         this.station = station;
         this.channels= channels;
         this.date    = date;
+        this.datestr = EpochData.epochToDateString(this.date);
     }
 
     public void plotZNE_3x3(ArrayList<double[]> channelData, double[] xsecs, int nstart, int nend, String eventString, String plotString) {
@@ -104,14 +109,14 @@ public class PlotMaker
 
         // Check that we will be able to output the file without problems and if not --> return
         if (!checkFileOut(outputFile)) {
-            System.out.format("== plotZNE_3x3: request to output plot=[%s] but we are unable to create it "
-                              + " --> skip plot\n", pngName );
+            System.out.format("== plotZNE_3x3: request to output plot=[%s] date=[%s] but we are unable to create it "
+                              + " --> skip plot\n", pngName, datestr);
             return;
         }
 
         if (channelData.size() != channels.length) {
             //System.out.format("== plotZNE_3x3: Error: We have [%d channels] but [%d channelData]\n", channels.length, channelData.size() );
-            String message = String.format("== plotZNE_3x3: Error: We have [%d channels] but [%d channelData]\n", channels.length, channelData.size());
+            String message = String.format("== plotZNE_3x3: Error: We have [%d channels] but [%d channelData] for date=[%s]\n", channels.length, channelData.size(), datestr);
             logger.error(message);
             return;
         }
@@ -220,7 +225,7 @@ public class PlotMaker
             ChartUtilities.saveChartAsPNG(outputFile, chart, 1400, 800);
         } catch (IOException e) {
             //System.err.println("Problem occurred creating chart.");
-        	logger.error("PlotMaker IOException:", e);
+        	logger.error("IOException:", e);
         }
 
     }
@@ -243,8 +248,8 @@ public class PlotMaker
         if (!checkFileOut(outputFile)) {
             //System.out.format("== plotPSD: request to output plot=[%s] but we are unable to create it "
             //                  + " --> skip plot\n", pngName );
-            logger.warn("== plotPSD: request to output plot=[%s] but we are unable to create it "
-                              + " --> skip plot\n", pngName);
+            logger.warn("== plotPSD: request to output plot=[%s] date=[%s] but we are unable to create it "
+                              + " --> skip plot\n", pngName, datestr);
             return;
         }
 
@@ -320,7 +325,7 @@ public class PlotMaker
             ChartUtilities.saveChartAsPNG(outputFile, chart, 500, 300);
         } catch (IOException e) { 
             //System.err.println("Problem occurred creating chart.");
-        	logger.error("PlotMaker IOException:", e);
+        	logger.error("IOException:", e);
         }
     } // end plotPSD
 
@@ -338,8 +343,8 @@ public class PlotMaker
         if (!checkFileOut(outputFile)) {
             //System.out.format("== plotCoherence: request to output plot=[%s] but we are unable to create it "
             //                  + " --> skip plot\n", pngName );
-            logger.warn("== plotCoherence: request to output plot=[%s] but we are unable to create it "
-                              + " --> skip plot\n", pngName);
+            logger.warn("== plotCoherence: request to output plot=[%s] date=[%s] but we are unable to create it "
+                              + " --> skip plot\n", pngName, datestr);
             return;
         }
 
@@ -384,7 +389,7 @@ public class PlotMaker
             ChartUtilities.saveChartAsPNG(outputFile, chart, 500, 300);
         } catch (IOException e) { 
             //System.err.println("Problem occurred creating chart.");
-        	logger.error("PlotMaker IOException:", e);
+        	logger.error("IOException:", e);
         }
     } // end plotCoherence
 
@@ -401,8 +406,8 @@ public class PlotMaker
 
         // Check that we will be able to output the file without problems and if not --> return
         if (!checkFileOut(outputFile)) {
-            System.out.format("== plotSpecAmp: request to output plot=[%s] but we are unable to create it "
-                              + " --> skip plot\n", pngName );
+            System.out.format("== plotSpecAmp: request to output plot=[%s] date=[%s] but we are unable to create it "
+                              + " --> skip plot\n", pngName, datestr);
             return;
         }
     // Plot x-axis (frequency) range
@@ -509,7 +514,7 @@ public class PlotMaker
             ChartUtilities.saveChartAsPNG(outputFile, chart, 1000, 800);
         } catch (IOException e) { 
             //System.err.println("Problem occurred creating chart.");
-        	logger.error("PlotMaker IOException:", e);
+        	logger.error("IOException:", e);
         }
     } // end plotResp
 
@@ -529,8 +534,8 @@ public class PlotMaker
         if (!checkFileOut(outputFile)) {
             //System.out.format("== plotSpecAmp: request to output plot=[%s] but we are unable to create it "
             //                  + " --> skip plot\n", pngName );
-            logger.warn("== plotSpecAmp: request to output plot=[%s] but we are unable to create it "
-                              + " --> skip plot\n", pngName);
+            logger.warn("== plotSpecAmp: request to output plot=[%s] date=[%s] but we are unable to create it "
+                              + " --> skip plot\n", pngName, datestr);
             return;
         }
 
@@ -623,7 +628,7 @@ public class PlotMaker
             ChartUtilities.saveChartAsPNG(outputFile, chart, 1000, 800);
         } catch (IOException e) { 
             //System.err.println("Problem occurred creating chart.");
-        	logger.error("PlotMaker IOException:", e);
+        	logger.error("IOException:", e);
         }
     } // end plotResp
 

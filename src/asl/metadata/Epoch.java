@@ -69,7 +69,7 @@ public class Epoch
         } catch (TimestampFormatException e) {
         	throw e;
         }
-        System.out.format("Epoch(): [%s - %s] [%s:%s]\n",startDate,endDate,String.format("%1$tY", timestamp), String.format("%1$tj", timestamp) );
+        System.out.format("Epoch(): [%s - %s] [%s:%s]\n", startDate, endDate, String.format("%1$tY", timestamp), String.format("%1$tj", timestamp) );
     }
 
 }

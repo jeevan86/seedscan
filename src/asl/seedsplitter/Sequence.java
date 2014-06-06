@@ -224,12 +224,12 @@ public class Sequence extends MemberDigest {
 				newSequence.extend(series, 0, series.length);
 				this.swapData(newSequence);
 			} catch (SequenceRangeException e) {
-				String message = "Sequence RangeException: Sequence Range Error in trim(). This should never happen!";
+				String message = "SequenceRangeException: Sequence Range Error in trim(). This should never happen!";
 				logger.error(message, e);
 			} catch (RuntimeException e) {
-				logger.error("Sequence RuntimeException:", e);
+				logger.error("RuntimeException:", e);
 			} catch (CloneNotSupportedException e) {
-				logger.error("Sequence CloneNotSupportedException:", e);
+				logger.error("CloneNotSupportedException:", e);
 			}
 		}
 	}
@@ -365,7 +365,7 @@ public class Sequence extends MemberDigest {
 				try {
 					seq.mergeInto(this);
 				} catch (BlockSizeMismatchException e) {
-					logger.error("Sequence BlockSizeMismatchException:", e);
+					logger.error("BlockSizeMismatchException:", e);
 				}
 				seq.swapData(this);
 				return;
@@ -394,7 +394,7 @@ public class Sequence extends MemberDigest {
 			try {
 				seq.mergeInto(this);
 			} catch (BlockSizeMismatchException e) {
-				logger.error("Sequence BlockSizeMismatchException:", e);
+				logger.error("BlockSizeMismatchException:", e);
 			}
 			seq.swapData(this);
 			return;
@@ -632,9 +632,9 @@ public class Sequence extends MemberDigest {
 		try {
 			return this.getSeries(0, m_length);
 		} catch (IndexOutOfBoundsException e) {
-			logger.error("Sequence IndexOutOfBoundsException:", e);
+			logger.error("IndexOutOfBoundsException:", e);
 		} catch (SequenceRangeException e) {
-			logger.error("Sequence RangeException:", e);
+			logger.error("RangeException:", e);
 		}
 		return null;
 	}
@@ -945,7 +945,7 @@ public class Sequence extends MemberDigest {
 					try {
 						((Sequence) sequence.clone()).mergeInto(collapsed);
 					} catch (BlockSizeMismatchException e) {
-						logger.error("Sequence BlockSizeMismatchException:", e);
+						logger.error("BlockSizeMismatchException:", e);
 					}
 				} else {
 					if (collapsed.getInterval() != sequence.getInterval()) {

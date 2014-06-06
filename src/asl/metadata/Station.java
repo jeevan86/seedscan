@@ -41,7 +41,7 @@ public class Station
     		setNetwork(network);
     		setStation(station);
     	} catch (StationException e) {
-    		logger.error("Station Exception:", e);
+    		logger.error("StationException:", e);
     	}
     }
 
@@ -72,7 +72,7 @@ public class Station
             throw new StationException("station cannot be null");
         }
         if (station.length() < 3 || station.length() > 5)  {
-            throw new StationException("Error: Station name MUST be between 3 and 5 characters long");
+            throw new StationException("Station name MUST be between 3 and 5 characters long");
         }
         this.station = station;
     }

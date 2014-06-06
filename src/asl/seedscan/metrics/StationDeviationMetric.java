@@ -76,7 +76,7 @@ public class StationDeviationMetric extends PowerBandMetric {
 		try {
 			pathPattern = get("modelpath");
 		} catch (NoSuchFieldException ex) {
-			logger.warn("Error: Station Model Path ('modelpath') was not specified!");
+			logger.warn("Station Model Path ('modelpath') was not specified!");
 			return; // Without the modelpath we can't compute the metric -->
 			// return
 		}
@@ -89,8 +89,8 @@ public class StationDeviationMetric extends PowerBandMetric {
 
 		if (channels == null || channels.size() == 0) {
 			System.out.format(
-					"== %s: No LH? channels found for station=[%s]\n",
-					getName(), getStation());
+					"== %s: No LH? channels found for station=[%s] day=[%s]\n",
+					getName(), getStation(), getDay());
 			return;
 		}
 
@@ -110,8 +110,8 @@ public class StationDeviationMetric extends PowerBandMetric {
 			if (digest == null) { // means oldDigest == newDigest and we don't
 				// need to recompute the metric
 				logger.warn(
-						"Digest unchanged station:[{}] channel:[{}] --> Skip metric",
-						getStation(), channel);
+						"Digest unchanged station:[{}] channel:[{}] day:[{}] --> Skip metric",
+						getStation(), channel, getDay());
 				continue;
 			}
 
@@ -158,8 +158,8 @@ public class StationDeviationMetric extends PowerBandMetric {
 		try {
 			if (!readModel(modelFileName)) {
 				logger.warn(String
-						.format("ModelFile=%s not found for requested channel:%s --> Skipping\n",
-								modelFileName, channel.getChannel()));
+						.format("ModelFile=%s not found for requested channel:%s day:%s --> Skipping\n",
+								modelFileName, channel.getChannel(), getDay()));
 				return NO_RESULT;
 			}
 		} catch (MetricException e) {
@@ -208,9 +208,8 @@ public class StationDeviationMetric extends PowerBandMetric {
 		double highPeriod = band.getHigh();
 
 		if (!checkPowerBand(lowPeriod, highPeriod, Tmin, Tmax)) {
-			logger.warn(String.format(
-					"%s powerBand Error: Skipping channel:%s\n", getName(),
-					channel));
+			logger.warn(String.format("powerBand Error: Skipping channel:%s day:%s\n",
+					channel, getDay()));
 			return NO_RESULT;
 		}
 

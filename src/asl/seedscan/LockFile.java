@@ -64,9 +64,9 @@ public class LockFile
                 channel.write(ByteBuffer.wrap((pid + newLine).getBytes()));
             }
         } catch (FileNotFoundException e) {
-        	logger.error("LockFile FileNotFoundException:", e);
+        	logger.error("FileNotFoundException:", e);
         } catch (IOException e) {
-        	logger.error("LockFile IOException:", e);
+        	logger.error("IOException:", e);
         }
         return success;
     }

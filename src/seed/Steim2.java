@@ -103,7 +103,7 @@ public class Steim2 {
 	 */	public static int[] decode(byte[] b, int numSamples, boolean swapBytes, int bias) 
 		throws SteimException {
 			if (b.length % 64 != 0) {
-				throw new SteimException("encoded data length is not multiple of 64 bytes (" + b.length + ")"); 
+				throw new SteimException("Encoded data length is not multiple of 64 bytes (" + b.length + ")"); 
 			}
 			
 		    dbg=false;
@@ -163,22 +163,22 @@ public class Steim2 {
 				}  // end for each frame...
 		    if(current <= 0) {
 		      //System.out.println("Steim2 illegal # current");
-		      throw new SteimException("Steim2 found no samples in block");
+		      throw new SteimException("Found no samples in block");
 		    }
 		    if(samples[current-1] != end && (end != 0 || strictRIC)) {       // if end is zero, presume it was never set and hence is not an error
-		      reverseError="Steim2 reverse integration error is="+samples[current-1]+"!="+end+" expected at "+(current-1);
+		      reverseError="Reverse integration error is="+samples[current-1]+"!="+end+" expected at "+(current-1);
 		      //System.out.println("Steim2 reverse integration error is="+samples[current-1]+"!="+end+" rev constant");
 		      if(traceBackErrors) {
-		        RuntimeException e = new RuntimeException("Steim2 rev int err (non-fatal) is="+samples[current-1]+"!="+end+" rev constant");
-		        logger.error("Steim2 RuntimeException:", e);
+		        RuntimeException e = new RuntimeException("Reverse integ err (non-fatal) is="+samples[current-1]+"!="+end+" rev constant");
+		        logger.error("RuntimeException:", e);
 		      }
 		    }
 		    if(current != numSamples) {
 		      sampleCountError="Steim2 sample count error got "+current+" expected "+numSamples;
 		      //System.out.println(sampleCountError);
 		      if(traceBackErrors) {
-		        RuntimeException e = new RuntimeException("Steim2 sample Count err (non-fatal) is="+current+" expected"+numSamples);
-		        logger.error("Steim2 RuntimeException:", e);
+		        RuntimeException e = new RuntimeException("Sample Count err (non-fatal) is="+current+" expected"+numSamples);
+		        logger.error("RuntimeException:", e);
 		      }
 		    }
 		return samples;

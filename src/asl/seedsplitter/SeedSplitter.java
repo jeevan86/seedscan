@@ -279,13 +279,13 @@ extends SwingWorker<Hashtable<String,ArrayList<DataSet>>, SeedSplitProgress>
                             }
                         }
                     } catch (InterruptedException e) {
-                    	logger.error("SeedSplitter InterruptedException:", e);
+                    	logger.error("InterruptedException:", e);
                     }
                 }
                 m_digests[i] = stream.getDigestString();
             } catch (FileNotFoundException e) {
                 //logger.debug("File '" +file.getName()+ "' not found\n");
-                String message = "SeedSplitter FileNotFoundException: File '" +file.getName()+ "' not found\n";
+                String message = "FileNotFoundException: File '" +file.getName()+ "' not found\n";
                 logger.error(message, e);
                 // Should we do something more? Throw an exception?
             }
@@ -306,14 +306,14 @@ extends SwingWorker<Hashtable<String,ArrayList<DataSet>>, SeedSplitProgress>
                 try {
                     inputThread.join();
                 } catch (InterruptedException e) {
-                	logger.error("SeedSplitter InterruptedEx:", e);
+                	logger.error("InterruptedEx:", e);
                 }
             }
             if ((processorThread != null) && (progress.isComplete())) {
                 try {
                     processorThread.join();
                 } catch (InterruptedException e) {
-                	logger.error("SeedSplitter InterruptedException:", e);
+                	logger.error("InterruptedException:", e);
                 }
             }
             logger.debug("Finished processing file " + file.getName() + "  " + progressPercent + "% complete");

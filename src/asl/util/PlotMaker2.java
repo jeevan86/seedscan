@@ -79,10 +79,10 @@ public class PlotMaker2
     throws PlotMakerException
     {
         if (panels == null) {
-            throw new PlotMakerException("== PlotMaker.addTraceToPanel: panels == null !!");
+            throw new PlotMakerException("== addTraceToPanel: panels == null !!");
         }
         if (iPanel >= panels.size()) {
-            throw new PlotMakerException("== PlotMaker.addTraceToPanel: Requested iPanel > panels.size() !!");
+            throw new PlotMakerException("== addTraceToPanel: Requested iPanel > panels.size() !!");
         }
         Panel panel = panels.get(iPanel);
         panel.addTrace(trace);
@@ -110,7 +110,7 @@ public class PlotMaker2
         if (!checkFileOut(outputFile)) {
             //System.out.format("== plotMaker: request to output plot=[%s] but we are unable to create it "
             //                  + " --> skip plot\n", fileName );
-            logger.warn("== plotMaker: request to output plot=[%s] but we are unable to create it "
+            logger.warn("== Request to output plot=[%s] but we are unable to create it "
                               + " --> skip plot\n", fileName);
             return;
         }
@@ -251,7 +251,7 @@ public class PlotMaker2
             ChartUtilities.saveChartAsPNG(outputFile, chart, 1400, 1400);
         } catch (IOException e) {
             //System.err.println("Problem occurred creating chart.");
-        	logger.error("PlotMaker2 IOException:", e);
+        	logger.error("IOException:", e);
         }
 
     } // writePlot()

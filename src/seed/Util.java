@@ -100,7 +100,7 @@ public class Util extends Object {
         }
       } catch (IOException e) {
         //Util.IOErrorPrint(e,"Getting console input");
-    	  logger.error("Util IOException:", e);
+    	  logger.error("IOException:", e);
       }
     }
 
@@ -226,7 +226,7 @@ public class Util extends Object {
       }
     } catch (SQLException e) {
      //Util.SQLErrorPrint(e,"MetaData access failed");
-    	logger.error("Util SQLException:", e);
+    	logger.error("SQLException:", e);
     }
   }
   
@@ -291,7 +291,7 @@ public class Util extends Object {
       }
     } catch (SQLException e) {
      //Util.SQLErrorPrint(e,"MetaData access failed");
-    	logger.error("Util SQLException:", e);
+    	logger.error("SQLException:", e);
     }
   }
      
@@ -414,7 +414,7 @@ public class Util extends Object {
   /** sleep the give number of milliseconds
    *@param ms THe number of millis to sleep */
   public static void sleep(int ms) {
-    try {Thread.sleep(Math.max(1,ms));} catch(InterruptedException e) {logger.error("Util InterruptedException:", e);}
+    try {Thread.sleep(Math.max(1,ms));} catch(InterruptedException e) {logger.error("InterruptedException:", e);}
   }
   /**
    * Escape a string for use in an SQL query. The string is returned enclosed in
@@ -844,7 +844,7 @@ public class Util extends Object {
       im=Integer.parseInt(mn);
     } catch(NumberFormatException e) {
       Util.prt("Time: not a integers "+hr+":"+mn+ " string="+s);
-      logger.warn("Util NumberFormatException:", e);
+      logger.warn("NumberFormatException:", e);
       return new Time((long) 0);
     }
     if(tk.hasMoreTokens()) {
@@ -1188,7 +1188,7 @@ public class Util extends Object {
       y = Integer.parseInt(yr);
     } catch( NumberFormatException e) {
       Util.prt("dateToString() Month or day not a int mon="+mon+ " day="+day);
-      logger.warn("Util NumberFormatException:", e);
+      logger.warn("NumberFormatException:", e);
       return Util.date(Util.year(),1,1);
     }
     if(m <= 0 || m >12) {
@@ -1320,7 +1320,7 @@ throws RuntimeException
       if(frac.length() == 6) ms = ms/1000;
     } catch( NumberFormatException e) {
       Util.prt("dateToString2() fail to decode ints s="+s);
-      logger.warn("Util NumberFormatException:", e);
+      logger.warn("NumberFormatException:", e);
       return Util.date(1970,1,1,0,0,0);
     }
     if(m <= 0 || m >12) {

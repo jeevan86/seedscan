@@ -156,8 +156,8 @@ public class EventCompareSynthetic extends Metric {
 
 		if (!compute00 && !compute10) {
 			logger.info(String
-					.format("== %s: Day=[%s] Stn=[%s] - digest==null (or missing)for BOTH 00-LH and 10-LH chans --> Skip Metric",
-							getName(), getDay(), getStation()));
+					.format("== Day=[%s] Stn=[%s] - digest==null (or missing)for BOTH 00-LH and 10-LH chans --> Skip Metric",
+							getDay(), getStation()));
 			return;
 		}
 
@@ -247,8 +247,8 @@ public class EventCompareSynthetic extends Metric {
 				ArrayList<double[]> dataDisp3 = sacArrayToDouble(sacSynthetics);
 				if (dataDisp3 == null) {
 					System.out
-					.format("== %s: Error loading sac synthetics for stn=[%s] --> skip\n",
-							getName(), getStation());
+					.format("== %s: Error loading sac synthetics for stn=[%s] day=[%s] --> skip\n",
+							getName(), getStation(), getDay());
 					continue;
 				} else {
 					dataDisp.addAll(dataDisp3);
@@ -382,8 +382,8 @@ public class EventCompareSynthetic extends Metric {
 	private double calcDiff(double[] data1, double[] data2, int n1, int n2) {
 		if (n2 < n1) {
 			logger.error(
-					"{} Error: station=[{}] day=[{}]: calcDiff: n2 < n1 --> Bad window",
-					getName(), getStation(), getDay());
+					"station=[{}] day=[{}]: calcDiff: n2 < n1 --> Bad window",
+					getStation(), getDay());
 			return NO_RESULT;
 		}
 		if (n2 >= data1.length || n2 >= data2.length) {

@@ -76,7 +76,7 @@ implements Runnable
             try {
                 m_digest = MessageDigest.getInstance(m_digest_algorithm);
             } catch (NoSuchAlgorithmException e) {
-            	logger.warn("SeedInputStream NoSuchAlgorithmException:", e);
+            	logger.warn("NoSuchAlgorithmException:", e);
             }
         }
     }
@@ -114,7 +114,7 @@ implements Runnable
                 result = ((MessageDigest)m_digest.clone()).digest();
             }
             catch (CloneNotSupportedException ex) {
-            	logger.warn("SeedInputStream CloneNotSupportedException:", ex);
+            	logger.warn("CloneNotSupportedException:", ex);
             }
         }
         return result;
@@ -131,9 +131,9 @@ implements Runnable
             try {
                 result = Hex.byteArrayToHexString(((MessageDigest)m_digest.clone()).digest());
             } catch (CloneNotSupportedException ex) {
-            	logger.error("SeedInputStream CloneNotSupportedException:", ex);
+            	logger.error("CloneNotSupportedException:", ex);
             } catch (IllegalArgumentException ex) {
-            	logger.error("SeedInputStream IllegalArgumentException:", ex);
+            	logger.error("IllegalArgumentException:", ex);
             }
         }
         return result;
@@ -226,9 +226,9 @@ implements Runnable
                     }
                 }
             } catch (IOException e) {
-                logger.error("SeedInputStream IOException:", e);
+                logger.error("IOException:", e);
             } catch (InterruptedException e) {
-                logger.error("SeedInputStream InterruptedException:", e);
+                logger.error("InterruptedException:", e);
             }
         }
     }

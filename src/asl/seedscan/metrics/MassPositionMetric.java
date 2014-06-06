@@ -58,8 +58,8 @@ public class MassPositionMetric extends Metric {
 		// Metric
 		for (Channel channel : channels) {
 			if (!metricData.hasChannelData(channel)) {
-				logger.warn("No data found for channel[{}] --> Skip metric",
-						channel);
+				logger.warn("No data found for channel:[{}] day:[{}] --> Skip metric",
+						channel, day);
 				continue;
 			}
 
@@ -69,8 +69,8 @@ public class MassPositionMetric extends Metric {
 			if (digest == null) { // means oldDigest == newDigest and we don't
 				// need to recompute the metric
 				logger.warn(
-						"Digest unchanged station:[{}] channel:[{}] --> Skip metric",
-						getStation(), channel);
+						"Digest unchanged station:[{}] channel:[{}] day:[{}] --> Skip metric",
+						getStation(), channel, day);
 				continue;
 			}
 

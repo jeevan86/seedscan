@@ -49,7 +49,7 @@ public class ChannelKey
         	setChannel(name);
         	setLocation(location);
         } catch (ChannelKeyException e) {
-        	logger.error("ChannelKey Exception:", e);
+        	logger.error("Exception:", e);
         }
     }
 
@@ -59,14 +59,13 @@ public class ChannelKey
     		setChannel(name);
     		setLocation(location);
     	} catch (ChannelKeyException e) {
-    		logger.error("ChannelKey Exception:", e);
+    		logger.error("Exception:", e);
     	}
     }
     public ChannelKey(Channel channel)
     {
         this(channel.getLocation(), channel.getChannel());
     }
-
 
     private void setLocation(String location) 
     throws ChannelKeyException
@@ -90,18 +89,18 @@ public class ChannelKey
 
      // Set Default location codes:
         if (location.equals("--") || location.equals("") || location == null ) {
-            logger.debug("metadata name=[{}] location=[{}] was changed to [00]", name,location);
+            logger.debug("metadata name=[{}] location=[{}] was changed to [00]", name, location);
             location = "00";
         }
         if (location.equals("HR")) {
-            logger.debug("metadata name=[{}] location=[{}] was changed to [10]", name,location);
+            logger.debug("metadata name=[{}] location=[{}] was changed to [10]", name, location);
             location = "10";
         }
 
         if (location.length() != 2) {
         	//RuntimeException e = new RuntimeException(message.toString());
         	StringBuilder message = new StringBuilder();
-        	message.append(String.format("Error: Location code=[%s] chan=[%s] is NOT a valid 2-char code (e.g., %s)\n", location, name, validCodes));
+        	message.append(String.format("Location code=[%s] chan=[%s] is NOT a valid 2-char code (e.g., %s)\n", location, name, validCodes));
         	throw new ChannelKeyException(message.toString());
         }
         Pattern pattern  = Pattern.compile("^[0-9][0-9]$");
@@ -124,7 +123,7 @@ public class ChannelKey
         if (channel.length() < 3 || channel.length() > 4) { 
         	//RuntimeException e = new RuntimeException(message.toString());
         	StringBuilder message = new StringBuilder();
-        	message.append(String.format("Error: Channel code=[%s] is NOT valid (must be 3 or 4-chars long)\n", channel));
+        	message.append(String.format("Channel code=[%s] is NOT valid (must be 3 or 4-chars long)\n", channel));
         	throw new ChannelKeyException(message.toString());
         }
         this.name = channel;

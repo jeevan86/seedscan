@@ -49,7 +49,7 @@ implements Password
         try {
             result = encrypt(password);
         } catch (EncryptionException e) {
-        	logger.error("EncryptedPassword EncryptionException:", e);
+        	logger.error("EncryptionException:", e);
             result = false;
         }
         return result;
@@ -61,7 +61,7 @@ implements Password
         try {
             passwordString = decrypt();
         } catch (EncryptionException e) {
-        	logger.error("EncryptedPassword EncryptionException:", e);
+        	logger.error("EncryptionException:", e);
             passwordString = null;
         }
         return passwordString;

@@ -381,7 +381,7 @@ public class Dataless
                         channelKey = new ChannelKey(blockette);
                     }
                     catch (WrongBlocketteException e) {
-                    	logger.error(String.format("Dataless: caught new ChannelKey Exception:", e));
+                    	logger.error(String.format("WrongBlocketteException:", e));
                     }
                     if (!station.hasChannel(channelKey)) {
                         //channel = new ChannelData(channelKey.getLocation(), channelKey.getName());

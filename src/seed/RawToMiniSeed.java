@@ -577,7 +577,7 @@ public class RawToMiniSeed {
       prta("RuntimeException special catch in RTMS: seed="+name+" yr="+year+" doy="+doy+
           " sec="+sec);
       //e.printStackTrace();
-      logger.error("RawToMiniSeed RuntimeException:", e);
+      logger.error("RuntimeException:", e);
       julian=SeedUtil.toJulian(1972,1);   // give it some Julian day just in case
     }
     ndata=0;
@@ -684,7 +684,7 @@ public class RawToMiniSeed {
       prta("RTMS: odd rm2="+secondChans.get(seedname));
       prta("RTMS: odd rm3="+oob.get(seedname));
       RuntimeException e = new RuntimeException("RTMS: "+seedname+" julian="+julian+" "+SeedUtil.toJulian(year,doy)+"  time not right! yr="+year+" doy="+doy+" sec="+sec+" micros="+micros);
-      logger.error("RawToMiniSeed RuntimeException:", e);
+      logger.error("RuntimeException:", e);
     }
     
     // If this data is from the next day, cut off the old day
@@ -1004,7 +1004,7 @@ public class RawToMiniSeed {
     }
     catch (IllegalSeednameException e) {
       prt("Putbuf: illegal seedname="+e.getMessage());
-      logger.error("RawToMiniSeed IllegalSeednameException:", e);
+      logger.error("IllegalSeednameException:", e);
     }
 
   }
@@ -1082,7 +1082,7 @@ public class RawToMiniSeed {
         prt(seedname+" ns="+ns+" curWord="+currentWord+" curFrm="+currentFrame+" nextdiff="+nextDiff);
         for(int i=0; i<ndata; i++) prt("d["+i+"]="+d[i]+" data["+i+"]="+data[i]);
         RuntimeException e = new RuntimeException("force out does not work");
-        logger.error("RawToMiniSeed RuntimeException:", e);
+        logger.error("RuntimeException:", e);
         //System.exit(0);     // extreme action!
       }
 

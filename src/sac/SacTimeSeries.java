@@ -231,7 +231,7 @@ public class SacTimeSeries {
             }
             readData(dis);
         } catch (Exception e) {
-        	logger.error("SacTimeSeries Exception:", e);
+        	logger.error("Exception:", e);
         } finally {
             dis.close();
         }
@@ -360,7 +360,7 @@ public class SacTimeSeries {
                 }
             }
         } catch (Exception e) {
-        	logger.error("SacTimeSeries Exception:", e);
+        	logger.error("Exception:", e);
         } finally {
             raFile.close();
         }
@@ -395,11 +395,11 @@ public class SacTimeSeries {
             System.out.println("Done writing");
         } catch(FileNotFoundException e) {
             //System.out.println("File " + args[0] + " doesn't exist.");
-        	logger.error("SacTimeSeries FileNotFoundException:", e);
+        	logger.error("FileNotFoundException:", e);
         } catch(IOException e) {
             //System.out.println("IOException: " + e.getMessage());
             //e.printStackTrace();
-        	logger.error("SacTimeSeries IOException:", e);
+        	logger.error("IOException:", e);
         }
     }
 }

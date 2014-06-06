@@ -67,7 +67,7 @@ public class PoleZeroStage extends ResponseStage
         try {
             return (PoleZeroStage) super.clone();
         } catch (CloneNotSupportedException e) {
-        	logger.error("PoleZeroStage CloneNoteSupportedException:", e);
+        	logger.error("CloneNoteSupportedException:", e);
             return null;
         }
     }
@@ -134,7 +134,7 @@ public class PoleZeroStage extends ResponseStage
     		  response = evalResp(x);
     		  System.out.format("%12.4f\t%12.4f\n",x, response.mag() );
     	  } catch (PoleZeroStageException e) {
-    		  logger.error("PoleZeroStage Exception:", e);
+    		  logger.error("PoleZeroStageException:", e);
     	  }
        }
     }
@@ -161,7 +161,7 @@ public class PoleZeroStage extends ResponseStage
     	  try {
     		  response[i] = evalResp(freqs[i]);
     	  } catch (PoleZeroStageException e) {
-    		  logger.error("PoleZeroStage Exception:", e);
+    		  logger.error("PoleZeroStageException:", e);
     	  }
       //System.out.format("%12.4f\t%12.4f\n",freqs[i], response[i].mag() );
       }

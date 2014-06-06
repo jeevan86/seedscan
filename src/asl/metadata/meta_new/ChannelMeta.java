@@ -65,6 +65,7 @@ public class ChannelMeta extends MemberDigest
     private String comment = null;
     private String instrumentType = null;
     private String channelFlags = null; 
+    private String metaDate = null;		// This will be the readable date for metaTimestamp
 
     private double sampleRate;
     private double dip;
@@ -89,6 +90,7 @@ public class ChannelMeta extends MemberDigest
         this.name     = channel.getName();
         this.location = channel.getLocation();
         this.metaTimestamp = (Calendar)metaTimestamp.clone();
+        this.metaDate = (EpochData.epochToDateString(this.metaTimestamp));
         this.station = station;
         stages = new Hashtable<Integer, ResponseStage>();
     }
@@ -283,6 +285,9 @@ public class ChannelMeta extends MemberDigest
     public Calendar getTimestamp() {
         return (Calendar)metaTimestamp.clone();
     }
+    public String getDate() {
+    	return metaDate;
+    }
 
    // Stages
     public void addStage(Integer stageID, ResponseStage responseStage)
@@ -340,8 +345,8 @@ public class ChannelMeta extends MemberDigest
             //System.out.format("ChannelMeta.invalidResponse(): Error: No stages have been loaded for chan-loc=%s-%s\n"
             //                   ,this.getLocation(), this.getName() );
             StringBuilder message = new StringBuilder();
-            message.append(String.format("ChannelMeta.invalidResponse(): Error: No stages have been loaded for chan-loc=%s-%s\n"
-                               ,this.getLocation(), this.getName()));
+            message.append(String.format("invalidResponse: No stages have been loaded for chan-loc=%s-%s date=%s\n"
+                               ,this.getLocation(), this.getName(), this.getDate()));
             logger.error(message.toString());
             return true;
         }
@@ -351,8 +356,8 @@ public class ChannelMeta extends MemberDigest
                 //System.out.format("ChannelMeta.invalidResponse(): Error: All Stages[=0,1,2] have NOT been loaded for chan-loc=%s-%s\n"
                 //                   ,this.getLocation(), this.getName() );
                 StringBuilder message = new StringBuilder();
-                message.append(String.format("ChannelMeta.invalidResponse(): Error: All Stages[=0,1,2] have NOT been loaded for chan-loc=%s-%s\n"
-                                   ,this.getLocation(), this.getName()));
+                message.append(String.format("invalidResponse: All Stages[=0,1,2] have NOT been loaded for chan-loc=%s-%s date=%s\n"
+                                   ,this.getLocation(), this.getName(), this.getDate()));
                 logger.error(message.toString());
                 return true;
             }
@@ -364,8 +369,8 @@ public class ChannelMeta extends MemberDigest
                 //System.out.format("ChannelMeta.invalidResponse(): Error: Gain =0 for either stages 0, 1 or 2 for chan-loc=%s-%s\n"
                 //                  ,this.getLocation(), this.getName() );
                 StringBuilder message = new StringBuilder();
-                message.append(String.format("ChannelMeta.invalidResponse(): Error: Gain =0 for either stages 0, 1 or 2 for chan-loc=%s-%s\n"
-                                   ,this.getLocation(), this.getName()));
+                message.append(String.format("invalidResponse: Gain =0 for either stages 0, 1 or 2 for chan-loc=%s-%s date=%s\n"
+                                   ,this.getLocation(), this.getName(), this.getDate()));
                 logger.error(message.toString());
                 return true;
             }
@@ -376,7 +381,7 @@ public class ChannelMeta extends MemberDigest
             if (diff > 10) { // Alert user that difference is > 1% of Sensitivity
                 //System.out.format("***Alert: stageGain0=%f VS. stage1=%f * stage2=%f (diff=%f%%)\n", stageGain0, stageGain1, stageGain2, diff);
                 StringBuilder message = new StringBuilder();
-                message.append(String.format("***Alert: stageGain0=%f VS. stage1=%f * stage2=%f (diff=%f%%)\n", stageGain0, stageGain1, stageGain2, diff));
+                message.append(String.format("***Alert: stageGain0=%f VS. stage1=%f * stage2=%f (diff=%f%%) date=%s\n", stageGain0, stageGain1, stageGain2, diff, this.getDate()));
                 logger.warn(message.toString());
             }
 
@@ -400,7 +405,7 @@ public class ChannelMeta extends MemberDigest
         		Cmplx[] pzresp = pz.getResponse(freqs);
         		return pzresp;
         	} catch (PoleZeroStageException e) {
-        		logger.error("ChannelMeta PoleZeroStageException:", e);
+        		logger.error("PoleZeroStageException:", e);
         		return null;
         	}
         }
@@ -432,10 +437,10 @@ public class ChannelMeta extends MemberDigest
         }
 
         if (freqs.length == 0) {
-        	throw new ChannelMetaException("getResponse(): freqs.length = 0!");
+        	throw new ChannelMetaException("getResponse: freqs.length = 0!");
         }
         if (invalidResponse()) {
-        	throw new ChannelMetaException("getResponse(): Invalid Response!");
+        	throw new ChannelMetaException("getResponse: Invalid Response!");
         }
         Cmplx[] response = null;
 
@@ -443,14 +448,14 @@ public class ChannelMeta extends MemberDigest
         ResponseStage stage = stages.get(1);
 
         if (!(stage instanceof PoleZeroStage)) {
-            throw new ChannelMetaException("getResponse(): Stage1 is NOT a PoleZeroStage!");
+            throw new ChannelMetaException("getResponse: Stage1 is NOT a PoleZeroStage!");
         }
         else {
             PoleZeroStage pz = (PoleZeroStage)stage;
             try {
             	response = pz.getResponse(freqs);
             } catch (PoleZeroStageException e) {
-            	logger.error("ChannelMeta PoleZeroStageException:", e);
+            	logger.error("PoleZeroStageException:", e);
             }
 
             if (outUnits == 0) {  
@@ -459,8 +464,8 @@ public class ChannelMeta extends MemberDigest
             else { // Convert response to desired responseOut Units
                 int inUnits = stage.getInputUnits(); // e.g., 0=Unknown ; 1=Disp(m) ; 2=Vel(m/s^2) ; 3=Acc ; ...
                 if (inUnits == 0) {
-                    String msg = String.format("getResponse(): [%s] Response requested but PoleZero Stage Input Units = Unknown!",
-                                               responseOut);
+                    String msg = String.format("getResponse:[%s] date:[%s] Response requested but PoleZero Stage Input Units = Unknown!",
+                                               responseOut, this.getDate());
                     throw new ChannelMetaException(msg);
                 }
                 int n = outUnits - inUnits;
@@ -523,7 +528,7 @@ public class ChannelMeta extends MemberDigest
         if (diff > 10) { 
             //System.out.println("== ChannelMeta.getResponse(): WARNING: Sensitivity != Stage1Gain * Stage2Gain "
             //                + "--> Use Sensitivity to scale!");
-            logger.warn("== ChannelMeta.getResponse(): WARNING: Sensitivity != Stage1Gain * Stage2Gain "
+            logger.warn("== getResponse WARNING: Sensitivity != Stage1Gain * Stage2Gain "
                             + "--> Use Sensitivity to scale!");
             scale = stage0Gain;
         }
@@ -533,7 +538,7 @@ public class ChannelMeta extends MemberDigest
 
         if (scale <= 0.) {
             //System.out.println("== ChannelMeta.getResponse(): WARNING: Channel response scale <= 0 !!");
-            logger.warn("== ChannelMeta.getResponse(): WARNING: Channel response scale <= 0 !!");
+            logger.warn("== getResponse WARNING: Channel response scale <= 0 !!");
         }
 
         for (int i=0; i<freqs.length; i++){
@@ -577,8 +582,8 @@ public class ChannelMeta extends MemberDigest
                             //System.out.format("== Warning: MetaGenerator: [%s_%s %s-%s] stage:%d has NO Blockette B054\n", 
                             //                   station.getNetwork(), station.getStation(), location, name, stageNumber);
                             StringBuilder message = new StringBuilder();
-                            message.append(String.format("== Warning: MetaGenerator: [%s_%s %s-%s] stage:%d has NO Blockette B054\n", 
-                                               station.getNetwork(), station.getStation(), location, name, stageNumber));
+                            message.append(String.format("== Warning: MetaGenerator: [%s_%s %s-%s] date:%s stage:%d has NO Blockette B054\n", 
+                                               station.getNetwork(), station.getStation(), location, name, this.getDate(), stageNumber));
                             logger.warn(message.toString());
                         }
                     }
@@ -731,7 +736,7 @@ public class ChannelMeta extends MemberDigest
 	        //plotMaker.plotSpecAmp(freq, instRespAmp, "pzResponse");
 	        plotMaker.plotSpecAmp(freq, instRespAmp, instRespPhs, "pzResponse");
         } catch (PoleZeroStageException e) {
-        	logger.error("ChannelMeta PoleZeroStageException:", e);
+        	logger.error("PoleZeroStageException:", e);
         }
     } // end plotResp
 

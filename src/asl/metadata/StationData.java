@@ -226,7 +226,7 @@ Epoch index
           }
           catch (TimestampFormatException e) {
             StringBuilder message = new StringBuilder();
-            message.append(String.format("StationData.printEpochs() Error converting timestampString=%s", timestampString));
+            message.append(String.format("printEpochs: Error converting timestampString=%s", timestampString));
             logger.error(message.toString(), e);
           }
         }

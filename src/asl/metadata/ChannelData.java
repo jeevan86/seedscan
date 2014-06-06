@@ -231,7 +231,7 @@ Epoch index
         String startDateString  = EpochData.epochToDateString(startTimeStamp);
         String endDateString    = EpochData.epochToDateString(endTimeStamp);
 
-        System.out.format("----ChannelData Epoch: %s - %s\n",startDateString,endDateString);
+        System.out.format("----ChannelData Epoch: %s - %s\n", startDateString, endDateString);
         //blockette.print();
       }
     }

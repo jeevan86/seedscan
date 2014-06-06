@@ -25,10 +25,10 @@ public class PSD
     throws RuntimeException
     {
         if (dataX.length != dataY.length) {
-            throw new RuntimeException("== PSD Error: ndataX != ndataY --> Can't create new PSD");
+            throw new RuntimeException("== ndataX != ndataY --> Can't create new PSD");
         }
         if (dt <= 0.) {
-            throw new RuntimeException("== PSD Error: Invalid dt --> Can't create new PSD");
+            throw new RuntimeException("== Invalid dt --> Can't create new PSD");
         }
         this.dataX = dataX;
         this.dataY = dataY;

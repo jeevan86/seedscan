@@ -87,7 +87,7 @@ public class GaussianFilter implements FrequencyDomainProcess {
 		try {
 			setCentFreq(freqValue);
 		} catch (FilterException e) {
-			logger.error("GaussianFilter Exception:", e);
+			logger.error("FilterException:", e);
 		}
 	}
 
@@ -121,7 +121,7 @@ public class GaussianFilter implements FrequencyDomainProcess {
 		try {
 			setAlpha(alphaValue);
 		} catch (FilterException e) {
-			logger.error("GaussianFilter Exception:", e);
+			logger.error("FilterException:", e);
 		}
 	}
 

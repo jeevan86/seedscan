@@ -90,8 +90,8 @@ public abstract class TaskThread<T> implements Runnable {
 									: task.getData()));
 					performTask(task);
 				}
-			} catch (InterruptedException exception) {
-				logger.warn("Caught InterruptedException:", exception);
+			} catch (InterruptedException e) {
+				logger.warn("Caught InterruptedException:", e);
 			}
 		}
 		cleanup();

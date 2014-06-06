@@ -55,7 +55,7 @@ public class DigitalStage extends ResponseStage
         try {
             return (DigitalStage) super.clone();
         } catch (CloneNotSupportedException e) {
-        	logger.error("DigitalStage CloneNotSupported:", e);
+        	logger.error("CloneNotSupported:", e);
         	return null;
         }
     }

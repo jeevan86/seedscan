@@ -87,7 +87,7 @@ public class BlocketteTimestamp
                     }
                     else  { // Something has gone wrong !!!
                     	//throw new RuntimeException("Dataless.parseTimestamp(): Error parsing Timestamp=" + timestamp);
-                    	throw new TimestampFormatException("Dataless.parseTimestamp(): Error parsing Timestamp=" + timestamp);
+                    	throw new TimestampFormatException("parseTimestamp: Error parsing Timestamp=" + timestamp);
                     }
                 }
 //System.out.format("== parseTimestamp(%s) hour=%d minute=%d second=%d\n", timestampString, hour, minute, second );

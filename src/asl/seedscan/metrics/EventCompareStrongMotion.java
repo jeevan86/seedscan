@@ -93,8 +93,8 @@ public class EventCompareStrongMotion extends Metric {
 		// compute this metric:
 		if (!weHaveChannels("20", "LN")) {
 			logger.info(String
-					.format("== %s: Day=[%s] Stn=[%s] - metadata + data NOT found for loc=20 band=LN --> Skip Metric",
-							getName(), getDay(), getStation()));
+					.format("== Day=[%s] Stn=[%s] - metadata + data NOT found for loc=20 band=LN --> Skip Metric",
+							getDay(), getStation()));
 			return;
 		}
 
@@ -162,8 +162,8 @@ public class EventCompareStrongMotion extends Metric {
 
 		if (!compute00 && !compute10) {
 			logger.info(String
-					.format("== %s: Day=[%s] Stn=[%s] - digest==null (or missing)for BOTH 00-LH and 10-LH chans --> Skip Metric",
-							getName(), getDay(), getStation()));
+					.format("== Day=[%s] Stn=[%s] - digest==null (or missing)for BOTH 00-LH and 10-LH chans --> Skip Metric",
+							getDay(), getStation()));
 			return;
 		}
 
@@ -195,8 +195,8 @@ public class EventCompareStrongMotion extends Metric {
 				double[] arrivalTimes = getEventArrivalTimes(eventCMT);
 				if (arrivalTimes == null) {
 					System.out
-							.format("== %s: arrivalTimes==null for stn=[%s]: Distance to stn probably > 97-deg --> Don't compute metric\n",
-									getName(), getStation());
+							.format("== %s: arrivalTimes==null for stn=[%s] day=[%s]: Distance to stn probably > 97-deg --> Don't compute metric\n",
+									getName(), getStation(), getDay());
 					continue;
 				}
 
@@ -241,8 +241,8 @@ public class EventCompareStrongMotion extends Metric {
 				if ((dataDisp00 == null && dataDisp10 == null)
 						|| dataDisp20 == null) {
 					System.out
-							.format("== %s: getZNE returned null data --> skip this event\n",
-									getName());
+							.format("== %s: day=[{}] getZNE returned null data --> skip this event\n",
+									getName(), getDay());
 					continue;
 				}
 

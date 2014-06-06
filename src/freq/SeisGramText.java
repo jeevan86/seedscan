@@ -430,7 +430,7 @@ public class SeisGramText {
             loc.setDefault(
                 new Locale(LANGUAGE_DEFAULT, COUNTRY_DEFAULT));
         } catch (Exception e) {
-        	logger.error("SeisGramText Exception:", e);
+        	logger.error("Exception:", e);
         }
 
         return(loc);

@@ -60,8 +60,8 @@ public class TimingQualityMetric extends Metric {
 			if (digest == null) { // means oldDigest == newDigest and we don't
 				// need to recompute the metric
 				logger.warn(
-						"Digest unchanged station:[{}] channel:[{}] --> Skip metric",
-						getStation(), channel);
+						"Digest unchanged station:[{}] channel:[{}] day:[{}] --> Skip metric",
+						getStation(), channel, getDay());
 				continue;
 			}
 
@@ -69,8 +69,8 @@ public class TimingQualityMetric extends Metric {
 
 			if (result == NO_RESULT) {
 				// Do nothing --> skip to next channel
-				logger.warn("NO_RESULT for station={} channel={}",
-						getStation(), channel);
+				logger.warn("NO_RESULT for station={} channel={} day={}",
+						getStation(), channel, getDay());
 			} else {
 				metricResult.addResult(channel, result, digest);
 			}
@@ -103,8 +103,8 @@ public class TimingQualityMetric extends Metric {
 			averageQuality = (double) totalQuality / (double) totalPoints;
 		} else {
 			logger.warn(
-					"TimingQualityMetric: We have NO timing quality measurements for channel={}",
-					channel);
+					"TimingQualityMetric: We have NO timing quality measurements for channel={} day={}",
+					channel, getDay());
 			return NO_RESULT;
 		}
 

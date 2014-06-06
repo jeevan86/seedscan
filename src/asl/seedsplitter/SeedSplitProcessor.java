@@ -405,9 +405,9 @@ implements Runnable
 	                            temps.put(key, tempData);
 	                        } // replaceDataSet
                         } catch (CloneNotSupportedException e) {
-                        	logger.error("SeedSplitProcessor CloneNotSupportedException:", e);
+                        	logger.error("CloneNotSupportedException:", e);
                         } catch (RuntimeException e) {
-                        	logger.error("SeedSplitProcessor RuntimeException:", e);
+                        	logger.error("RuntimeException:", e);
                         }
 
                         record = new MiniSeed(recordBytes);
@@ -415,7 +415,7 @@ implements Runnable
 
                     // MTH: decomp() will return null in the event of Steim2 Exception, etc.
                         if (samples == null) {
-                            logger.warn("SeedSplitProcessor: Caught SteimException --> Skip this block");
+                            logger.warn("Caught SteimException --> Skip this block");
                         }
                         else {  // samples != null
 
@@ -474,14 +474,14 @@ implements Runnable
                     } // end else MTH
 
                 } catch (SteimException e) {
-                    logger.warn("SeedSplitProcessor SteimException:", e);
+                    logger.warn("SteimException:", e);
                 } catch (BlockSizeException e) {
-                	logger.warn("SeedSplitProcessor BlockSizeException:", e);
+                	logger.warn("BlockSizeException:", e);
                 }
                 catch (InterruptedException e) {
-                    logger.warn("SeedSplitProcessor InterruptedException:", e);
+                    logger.warn("InterruptedException:", e);
                 } catch (IllegalSeednameException e) {
-                    logger.warn("SeedSplitProcessor IllegalSeednameException:", e);
+                    logger.warn("IllegalSeednameException:", e);
                 } // end try
             }
             m_progressQueue.put(progress);
@@ -578,19 +578,19 @@ implements Runnable
                     } catch (SequenceIntervalMismatchException e) {
                         throw new RuntimeException("Interval Mismatch. This should never happen!");
                     } catch (SequenceMergeRangeException e) {
-                        logger.error("SeedSplitProcessor SequenceMergeRangeException:", e);
+                        logger.error("SequenceMergeRangeException:", e);
                         list.add(lastDataSet);
                         lastDataSet = currDataSet;
                         currDataSet = null;
                     } catch (SequenceTimingException e) {
-                        logger.error("SeedSplitProcessor SequenceTimingException: Sequences could not be correctly paired!", e);
+                        logger.error("SequenceTimingException: Sequences could not be correctly paired!", e);
                         list.add(lastDataSet);
                         currDataSet.trimStart(lastDataSet.getStartTime());
                         lastDataSet = currDataSet;
                         currDataSet = null;
                         //throw new RuntimeException("Timing Error. These sequences cannot be correctly paired!");
                     } catch (BlockSizeMismatchException e) {
-                    	logger.error("SeedSplitProcessor BlockSizeMismatchException: BlockPool.addBlock() Impossible situation!", e);
+                    	logger.error("BlockSizeMismatchException: BlockPool.addBlock() Impossible situation!", e);
                     }
                 }
                 list.add(lastDataSet);

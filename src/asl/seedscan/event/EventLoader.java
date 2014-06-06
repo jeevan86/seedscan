@@ -131,7 +131,7 @@ public class EventLoader
             File eventDir = new File(yearDir + "/" + idString);
 
             if (!eventDir.exists()) {
-                logger.warn(String.format("EventLoader.getDaySynthetics: eventDir=[%s] does NOT EXIST!", eventDir) );
+                logger.warn(String.format("getDaySynthetics: eventDir=[%s] does NOT EXIST!", eventDir) );
             }
 
             File[] sacFiles = eventDir.listFiles(sacFilter);
@@ -144,7 +144,7 @@ public class EventLoader
                     sac.read(sacFile);
                 }
                 catch (Exception e) {
-                	logger.error("EventLoader Exception:", e);
+                	logger.error("Exception:", e);
                 }
                 if (eventSynthetics == null) {
                     eventSynthetics = new Hashtable<String, SacTimeSeries>();
@@ -171,10 +171,10 @@ public class EventLoader
 
         final String key = makeKey(timestamp);
 
-        logger.debug("EventLoader.getDayEvents(): Request events for key=[{}]", key);
+        logger.debug("getDayEvents: Request events for key=[{}]", key);
 
         if (!eventsDirectoryValid) {
-            logger.error("EventLoader.getDayEvents(): eventsDirectory is NOT valid --> return null");
+            logger.error("getDayEvents: eventsDirectory is NOT valid --> return null");
             return null;
         }
 
@@ -317,7 +317,7 @@ public class EventLoader
                             if (br != null)br.close();
                         }
                         catch (IOException ex) {
-                            logger.error("EventLoader IOException:", ex);
+                            logger.error("IOException:", ex);
                         }
                     }
 

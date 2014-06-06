@@ -41,13 +41,13 @@ public class MyFilter
     public static void bandpass(double[] timeseries, double delta, double f1, double f2, double f3, double f4) {
 
         if (!(f1 < f2 && f2 < f3 && f3 < f4)) {
-            String msg = String.format("bandpass: Error: invalid freq: range: [%f-%f ----- %f-%f]", f1, f2, f3, f4);
+            String msg = String.format("bandpass: invalid freq: range: [%f-%f ----- %f-%f]", f1, f2, f3, f4);
             //System.out.println(msg);
             logger.error(msg);
             return;
         }
         if (delta <= 0) {
-            String msg = String.format("MyFilter bandpass: Error: invalid delta dt: [%f]", delta);
+            String msg = String.format("bandpass: invalid delta dt: [%f]", delta);
             //System.out.println(msg);
             logger.error(msg);
             return;
@@ -263,7 +263,5 @@ public class MyFilter
 
         return(cx);
     }
-
-
 }
 

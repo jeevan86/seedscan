@@ -556,7 +556,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
         if(offset > 200 || offset < 0) {
           Util.prt("MiniSEED: cannot figure out if this is swapped or not!!! Assume not. offset="+offset+" "+toStringRaw(buf));
           RuntimeException e = new RuntimeException("Cannot figure swap from offset ");
-          logger.error("MiniSeed RuntimeException:", e);
+          logger.error("RuntimeException:", e);
         }
         else swap=true;
       }
@@ -1479,7 +1479,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     		
     	} else {
     		StringBuilder message = new StringBuilder();
-    		message.append(String.format("BlockSizeException: (blockSize:[{}]) > (dataOffset:[{}])\n",
+    		message.append(String.format("BlockSizeException: (blockSize:[{%s}]) > (dataOffset:[{%s}])\n",
     				getBlockSize(), dataOffset));
     		throw new BlockSizeException(message.toString());
     	}
@@ -1529,14 +1529,14 @@ public class MiniSeed  implements MiniSeedOutputHandler {
 		   
 	   } else {
 		   StringBuilder message = new StringBuilder();
-		   message.append(String.format("BlockSizeException: (blockSize:[{}] > (dataOffset:[{}])\n",
+		   message.append(String.format("BlockSizeException: (blockSize:[{%s}] > (dataOffset:[{%s}])\n",
 				   getBlockSize(), dataOffset));
 		   throw new BlockSizeException(message.toString());
 	   }
     } catch (SteimException e) {
-    	logger.error("MiniSeed SteimException:", e); 
+    	logger.error("SteimException:", e); 
     } catch (BlockSizeException e) {
-    	logger.error("MiniSeed BlockSizeException:", e);
+    	logger.error("BlockSizeException:", e);
     }
   }
   
@@ -1741,7 +1741,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     }
     catch (SteimException e) {
       Util.prt("**** block gave steim decode error. "+e.getMessage());
-      logger.error("MiniSeed SteimException:", e); 
+      logger.error("SteimException:", e); 
       return null;
     }
   }
@@ -1761,7 +1761,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     }
     catch(IllegalSeednameException e ) {
       Util.prt("putbuf building ms512 has IllegalSeednameException "+e.getMessage());
-      logger.error("MiniSeed IllegalSeednameException:", e); 
+      logger.error("IllegalSeednameException:", e); 
     }
 
   }

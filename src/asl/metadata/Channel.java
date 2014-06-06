@@ -39,7 +39,7 @@ public class Channel
         try {
         	setChannel(channel);
         } catch (ChannelException e) {
-        	logger.error("Channel Exception:", e);
+        	logger.error("ChannelException:", e);
         }
     }
 

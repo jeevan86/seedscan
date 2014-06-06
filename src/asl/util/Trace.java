@@ -42,10 +42,10 @@ public class Trace
     throws TraceException
     {
         if (x.length <= 0 || y.length <= 0) {
-            throw new TraceException("Trace Error: Either x[] or y[] is empty!");
+            throw new TraceException("Either x[] or y[] is empty!");
         }
         if (x.length != y.length) {
-            throw new TraceException("Trace Error: x.lenth != y.length !");
+            throw new TraceException("x.lenth != y.length !");
         }
         this.xdata = new double[x.length];
         System.arraycopy(x,0,this.xdata,0,x.length);

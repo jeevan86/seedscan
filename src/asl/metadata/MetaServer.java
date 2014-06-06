@@ -63,7 +63,7 @@ public class MetaServer
             meta = (MetaInterface)Naming.lookup(urlString);
         } catch (Exception e) {
             //System.out.format("== MetaServer: Error=%s\n", e.getMessage() );
-            logger.error("MetaServer Exception:", e);
+            logger.error("Exception:", e);
         }
         useRemoteMeta = true;
     }
@@ -77,7 +77,7 @@ public class MetaServer
             //metaGen.loadDataless("/Users/mth/mth/ASLData/dcc/metadata/dataless");
             metaGen.loadDataless(datalessDir, networkSubset);
         } catch (Exception e) {
-        	logger.error("MetaServer Exception:", e);
+        	logger.error("Exception:", e);
         }
     }
 
@@ -85,7 +85,7 @@ public class MetaServer
         try { // Failure to do this may result in a hung application that doesn't quit
             UnicastRemoteObject.unexportObject(metaGen, true);
         } catch(RemoteException e) {
-            logger.error("MetaServer RemoteException:", e);
+            logger.error("RemoteException:", e);
         }
     }
 
@@ -100,9 +100,9 @@ public class MetaServer
                 stnMeta = metaGen.getStationMeta(station, timestamp);
             }
         } catch (RemoteException e) {
-            logger.error("MetaServer RemoteException:", e);
+            logger.error("RemoteException:", e);
         } catch (RuntimeException e) {
-        	logger.error("MetaServer RuntimeException:", e);
+        	logger.error("RuntimeException:", e);
         }
         logger.debug("getStationMeta Done");
         return stnMeta;
@@ -118,7 +118,7 @@ public class MetaServer
                 stations = metaGen.getStationList();
             }
         } catch (Exception e) {
-            logger.error("MetaServer Exception:", e);
+            logger.error("Exception:", e);
         }
         return stations;
     }

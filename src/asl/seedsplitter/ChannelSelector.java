@@ -513,7 +513,7 @@ implements ActionListener,
                     splitter.setFilter(filterNetworkField.getText(), SeedSplitter.NETWORK);
                 } catch (InvalidFilterException e) {
                     statusField.setText("Invalid network filter!");
-                    logger.error("ChannelSelector InvalidFilterException:", e);
+                    logger.error("InvalidFilterException:", e);
                     reading = false;
                     updateGui();
                     return;
@@ -524,7 +524,7 @@ implements ActionListener,
                     splitter.setFilter(filterStationField.getText(), SeedSplitter.STATION);
                 } catch (InvalidFilterException e) {
                     statusField.setText("Invalid station filter!");
-                    logger.error("ChannelSelector InvalidFilterException:", e);
+                    logger.error("InvalidFilterException:", e);
                     reading = false;
                     updateGui();
                     return;
@@ -535,7 +535,7 @@ implements ActionListener,
                     splitter.setFilter(filterLocationField.getText(), SeedSplitter.LOCATION);
                 } catch (InvalidFilterException e) {
                     statusField.setText("Invalid location filter!");
-                    logger.error("ChannelSelector InvalidFilterException:", e);
+                    logger.error("InvalidFilterException:", e);
                     reading = false;
                     updateGui();
                     return;
@@ -546,7 +546,7 @@ implements ActionListener,
                     splitter.setFilter(filterChannelField.getText(), SeedSplitter.CHANNEL);
                 } catch (InvalidFilterException e) {
                     statusField.setText("Invalid channel filter!");
-                    logger.error("ChannelSelector InvalidFilterException:", e);
+                    logger.error("InvalidFilterException:", e);
                     reading = false;
                     updateGui();
                     return;

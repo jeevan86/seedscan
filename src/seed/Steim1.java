@@ -364,7 +364,7 @@ public class Steim1 {
 
 		byte[] b = new byte[64];
 		@SuppressWarnings("unused")
-    int[] temp;
+		int[] temp;
 
 		for (int i=0; i< 64 ; i++) {
 			b[i] = 0x00;

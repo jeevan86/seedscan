@@ -44,7 +44,7 @@ public class AvailabilityMetric extends Metric {
 
 	public void process() {
 		logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
-
+		
 		// Get a sorted list of continuous channels for this stationMeta and
 		// loop over:
 
@@ -58,8 +58,8 @@ public class AvailabilityMetric extends Metric {
 			if (digest == null) { // means oldDigest == newDigest and we don't
 				// need to recompute the metric
 				logger.warn(
-						"Digest unchanged station:[{}] channel:[{}] --> Skip metric",
-						getStation(), channel);
+						"Digest unchanged station:[{}] channel:[{}] day:[{}] --> Skip metric",
+						getStation(), channel, getDay());
 				continue;
 			}
 
@@ -101,8 +101,8 @@ public class AvailabilityMetric extends Metric {
 			// Check sample rates of metadata and station channel data
 			dataSR = dataset.getSampleRate();
 			if (dataSR != metaSR) {
-				logger.error("SampleRate Mismatch: station:[{}] channel:[{}] "
-						+ "metaSR:[{}] dataSR:[{}]", getStation(), channel,
+				logger.error("SampleRate Mismatch: station:[{}] channel:[{}] day:[{}] "
+						+ "metaSR:[{}] dataSR:[{}]", getStation(), channel, getDay(),
 						metaSR, dataSR);
 				continue;
 			}
@@ -116,8 +116,8 @@ public class AvailabilityMetric extends Metric {
 			return NO_RESULT;
 		}
 		if (availability >= 101.00) {
-			logger.warn("Availability={} > 100%% for channel={} sRate={}",
-					availability, channel, chanMeta.getSampleRate());
+			logger.warn("Availability={} > 100%% for channel={} sRate={} day={}",
+					availability, channel, chanMeta.getSampleRate(), getDay());
 		}
 
 		return availability;

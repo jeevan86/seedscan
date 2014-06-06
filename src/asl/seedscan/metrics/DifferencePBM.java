@@ -90,8 +90,8 @@ public class DifferencePBM extends PowerBandMetric {
 			if (digest == null) { // means oldDigest == newDigest and we don't
 				// need to recompute the metric
 				logger.warn(
-						"Digest unchanged station:[{}] channelX=[{}] channelY=[{}]--> Skip metric",
-						getStation(), channelX, channelY);
+						"Digest unchanged station:[{}] day:[{}] channelX=[{}] channelY=[{}]--> Skip metric",
+						getStation(), getDay(), channelX, channelY);
 				completeCompute = false;
 				continue;
 			}
@@ -184,8 +184,8 @@ public class DifferencePBM extends PowerBandMetric {
 		double highPeriod = band.getHigh();
 
 		if (!checkPowerBand(lowPeriod, highPeriod, Tmin, Tmax)) {
-			System.out.format("%s powerBand Error: Skipping channel:%s\n",
-					getName(), channelX);
+			System.out.format("%s powerBand Error: Skipping channel:%s day:%s\n",
+					getName(), channelX, getDay());
 			return NO_RESULT;
 		}
 

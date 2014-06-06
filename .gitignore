@@ -16,6 +16,7 @@ SeedScan.jar
 seedscan.lock
 .settings
 src/asl/seedscan/config
+src/log4j.properties
 *.swp
 *.txt
 output

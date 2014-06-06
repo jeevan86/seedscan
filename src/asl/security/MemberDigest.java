@@ -72,7 +72,7 @@ public abstract class MemberDigest
         try {
         	str = Hex.byteArrayToHexString(raw.array());
         } catch (IllegalArgumentException e) {
-        	logger.error("MemberDigest IllegalArgumentException:", e);
+        	logger.error("IllegalArgumentException:", e);
         }
     }
 
