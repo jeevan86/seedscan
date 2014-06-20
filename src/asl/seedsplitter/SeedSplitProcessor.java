@@ -19,6 +19,7 @@
 package asl.seedsplitter;
 
 import org.slf4j.Logger;
+//import org.apache.log4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.InterruptedException;
@@ -53,8 +54,10 @@ import asl.concurrent.FallOffQueue;
 public class SeedSplitProcessor
 implements Runnable
 {
-    private static final Logger logger = LoggerFactory.getLogger(asl.seedsplitter.SeedSplitProcessor.class);
-
+    //private static final Logger logger = LoggerFactory.getLogger(asl.seedsplitter.SeedSplitProcessor.class);
+	private static final Logger datalogger = LoggerFactory.getLogger("DataLog");
+	private static final Logger logger = LoggerFactory.getLogger(asl.seedsplitter.SeedSplitProcessor.class);
+	
     private LinkedBlockingQueue<ByteBlock> m_queue;
     private FallOffQueue<SeedSplitProgress> m_progressQueue;
     private boolean m_running;
@@ -184,7 +187,7 @@ implements Runnable
      */
     @Override
     public void run() {
-
+    	
         ByteBlock block = null;
         MiniSeed  record = null;
         DataSet   tempData = null;
@@ -278,11 +281,11 @@ implements Runnable
 
                      // Set the default location codes
                         if (location.equals("--") || location.equals("") || location == null ) {
-                            logger.debug("miniseed channel=[{}] location=[{}] was changed to [00]", channel,location);
+                            logger.debug(String.format("miniseed channel=[%s] location=[%s] was changed to [00]", channel, location));
                             location = "00";
                         }
                         if (location.equals("HR")) {
-                            logger.debug("miniseed channel=[{}] location=[{}] was changed to [10]", channel,location);
+                            logger.debug(String.format("miniseed channel=[%s] location=[%s] was changed to [10]", channel, location));
                             location = "10";
                         }
 
@@ -291,7 +294,9 @@ implements Runnable
                             interval = DataSet.sampleRateToInterval(sampleRate);
                         } catch (IllegalSampleRateException e) {
                             MiniSeed ms = new MiniSeed(recordBytes);
-                            logger.debug(String.format("Illegal Sample Rate: sequence #%d, rate = %f", ms.getSequence(), sampleRate), e);
+                            logger.debug(String.format("Illegal Sample Rate: sequence #%d, rate = %f", ms.getSequence(), sampleRate, e));
+                            datalogger.error(String.format("Illegal Sample Rate: sequence #%d, rate = %f", ms.getSequence(), sampleRate, e));
+                            //logger.fatal("This is a fatal error");
                             discarded++;
                             break progress;
                         }
@@ -363,8 +368,13 @@ implements Runnable
                                                  DataSet.timestampToString(tempData.getEndTime()),
                                                  DataSet.timestampToString(startTime),
                                                  ms.getSequence()));
+                                datalogger.error(String.format("Found data overlap <%s] - [%s> sequence #%d.!\n",
+                                				 DataSet.timestampToString(tempData.getEndTime()),
+                                				 DataSet.timestampToString(startTime),
+                                				 ms.getSequence()));
                                 if (ms.getSequence() <= lastSequenceNumber) {
                                     logger.debug(String.format("Out of sequence last=%d current=%d", lastSequenceNumber, ms.getSequence()));
+                                    datalogger.error(String.format("Out of sequence last=%d current=%d", lastSequenceNumber, ms.getSequence()));
                                 }
                                 //throw new SeedRecordOverlapException();
                             }
@@ -393,21 +403,23 @@ implements Runnable
 	                                tempData.setSampleRate(sampleRate);
 	                            } catch (RuntimeException e) {
 	                                MiniSeed ms = new MiniSeed(recordBytes);
-	                                logger.debug(String.format("Invalid Start Time: sequence #%d", ms.getSequence()), e);
+	                                logger.debug(String.format("Invalid Start Time: sequence #%d", ms.getSequence(), e));
+	                                datalogger.error(String.format("Invalid Start Time: sequence #%d", ms.getSequence(), e));
 	                                tempData = null;
 	                                break progress;
 	                            } catch (IllegalSampleRateException e) {
 	                                MiniSeed ms = new MiniSeed(recordBytes);
-	                                logger.debug(String.format("Invalid Sample Rate: sequence #%d, rate = %f", ms.getSequence(), ms.getRate()), e);
+	                                logger.debug(String.format("Invalid Sample Rate: sequence #%d, rate = %f", ms.getSequence(), ms.getRate(), e));
+	                                datalogger.error(String.format("Invalid Sample Rate: sequence #%d, rate = %f", ms.getSequence(), ms.getRate(), e));
 	                                tempData = null;
 	                                break progress;
 	                            }
 	                            temps.put(key, tempData);
 	                        } // replaceDataSet
                         } catch (CloneNotSupportedException e) {
-                        	logger.error("CloneNotSupportedException:", e);
+                        	datalogger.error("CloneNotSupportedException:", e);
                         } catch (RuntimeException e) {
-                        	logger.error("RuntimeException:", e);
+                        	datalogger.error("RuntimeException:", e);
                         }
 
                         record = new MiniSeed(recordBytes);
@@ -415,7 +427,7 @@ implements Runnable
 
                     // MTH: decomp() will return null in the event of Steim2 Exception, etc.
                         if (samples == null) {
-                            logger.warn("Caught SteimException --> Skip this block");
+                            datalogger.error("Caught SteimException --> Skip this block");
                         }
                         else {  // samples != null
 
@@ -474,14 +486,17 @@ implements Runnable
                     } // end else MTH
 
                 } catch (SteimException e) {
-                    logger.warn("SteimException:", e);
+                    //logger.warn("SteimException:", e);
+                	datalogger.error("SteimException:", e);
                 } catch (BlockSizeException e) {
-                	logger.warn("BlockSizeException:", e);
-                }
-                catch (InterruptedException e) {
-                    logger.warn("InterruptedException:", e);
+                	//logger.warn("BlockSizeException:", e);
+                	datalogger.error("BlockSizeException:", e);
+                } catch (InterruptedException e) {
+                    //logger.warn("InterruptedException:", e);
+                	datalogger.error("InterruptedException:", e);
                 } catch (IllegalSeednameException e) {
-                    logger.warn("IllegalSeednameException:", e);
+                    //logger.warn("IllegalSeednameException:", e);
+                	datalogger.error("IllegalSeednameException:", e);
                 } // end try
             }
             m_progressQueue.put(progress);
@@ -578,19 +593,19 @@ implements Runnable
                     } catch (SequenceIntervalMismatchException e) {
                         throw new RuntimeException("Interval Mismatch. This should never happen!");
                     } catch (SequenceMergeRangeException e) {
-                        logger.error("SequenceMergeRangeException:", e);
+                        datalogger.error("SequenceMergeRangeException:", e);
                         list.add(lastDataSet);
                         lastDataSet = currDataSet;
                         currDataSet = null;
                     } catch (SequenceTimingException e) {
-                        logger.error("SequenceTimingException: Sequences could not be correctly paired!", e);
+                        datalogger.error("SequenceTimingException: Sequences could not be correctly paired!", e);
                         list.add(lastDataSet);
                         currDataSet.trimStart(lastDataSet.getStartTime());
                         lastDataSet = currDataSet;
                         currDataSet = null;
                         //throw new RuntimeException("Timing Error. These sequences cannot be correctly paired!");
                     } catch (BlockSizeMismatchException e) {
-                    	logger.error("BlockSizeMismatchException: BlockPool.addBlock() Impossible situation!", e);
+                    	datalogger.error("BlockSizeMismatchException: BlockPool.addBlock() Impossible situation!", e);
                     }
                 }
                 list.add(lastDataSet);

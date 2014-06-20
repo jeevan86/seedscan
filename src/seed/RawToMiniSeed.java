@@ -66,6 +66,7 @@ import org.slf4j.LoggerFactory;
 public class RawToMiniSeed {
   // Static variables
 	private static final Logger logger = LoggerFactory.getLogger(seed.RawToMiniSeed.class);
+	
   static private DecimalFormat df6; 
   static private final Map<String, RawToMiniSeed> chans = (Map<String,RawToMiniSeed>)
       Collections.synchronizedMap(new TreeMap<String, RawToMiniSeed>());     // The list of known channels

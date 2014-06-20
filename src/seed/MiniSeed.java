@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import org.slf4j.Logger;
+//import org.apache.log4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** This class represents a mini-seed packet.  It can translate binary data in
@@ -44,7 +45,10 @@ import org.slf4j.LoggerFactory;
  * @author davidketchum
  */
 public class MiniSeed  implements MiniSeedOutputHandler {
+	//private static final Logger logger = LoggerFactory.getLogger(seed.MiniSeed.class);
+	private static final Logger datalogger = LoggerFactory.getLogger("DataLog");
 	private static final Logger logger = LoggerFactory.getLogger(seed.MiniSeed.class);
+	
   public final static int ACTIVITY_CAL_ON=1;
   public final static int ACTIVITY_TIME_CORRECTION_APPLIED=2;
   public final static int ACTIVITY_BEGIN_EVENT=4;
@@ -556,7 +560,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
         if(offset > 200 || offset < 0) {
           Util.prt("MiniSEED: cannot figure out if this is swapped or not!!! Assume not. offset="+offset+" "+toStringRaw(buf));
           RuntimeException e = new RuntimeException("Cannot figure swap from offset ");
-          logger.error("RuntimeException:", e);
+          datalogger.error("RuntimeException:", e);
         }
         else swap=true;
       }
@@ -1534,9 +1538,9 @@ public class MiniSeed  implements MiniSeedOutputHandler {
 		   throw new BlockSizeException(message.toString());
 	   }
     } catch (SteimException e) {
-    	logger.error("SteimException:", e); 
+    	datalogger.error("SteimException:", e); 
     } catch (BlockSizeException e) {
-    	logger.error("BlockSizeException:", e);
+    	datalogger.error("BlockSizeException:", e);
     }
   }
   
@@ -1741,7 +1745,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     }
     catch (SteimException e) {
       Util.prt("**** block gave steim decode error. "+e.getMessage());
-      logger.error("SteimException:", e); 
+      datalogger.error("SteimException:", e); 
       return null;
     }
   }
@@ -1761,7 +1765,7 @@ public class MiniSeed  implements MiniSeedOutputHandler {
     }
     catch(IllegalSeednameException e ) {
       Util.prt("putbuf building ms512 has IllegalSeednameException "+e.getMessage());
-      logger.error("IllegalSeednameException:", e); 
+      datalogger.error("IllegalSeednameException:", e); 
     }
 
   }

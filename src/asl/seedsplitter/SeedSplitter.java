@@ -51,8 +51,10 @@ import asl.concurrent.FallOffQueue;
 public class SeedSplitter 
 extends SwingWorker<Hashtable<String,ArrayList<DataSet>>, SeedSplitProgress> 
 {
-    private static final Logger logger = LoggerFactory.getLogger(asl.seedsplitter.SeedSplitter.class);
+	private static final Logger datalogger = LoggerFactory.getLogger("DataLog");
+	private static final Logger logger = LoggerFactory.getLogger(asl.seedsplitter.SeedSplitter.class);
 
+	
     public static final int NETWORK  = 1;
     public static final int STATION  = 2;
     public static final int LOCATION = 4;
@@ -223,6 +225,15 @@ extends SwingWorker<Hashtable<String,ArrayList<DataSet>>, SeedSplitProgress>
         for (File file: m_files) {
             totalBytes += file.length();
         }
+        
+        // Initialize new logging for data errors
+        /*
+    	String errorLogFile = appender.getFile();
+    	String[] logsplit = errorLogFile.split("ERROR");
+    	String dataLogFile = logsplit[0] + "DATA" + logsplit[1];
+    	appender.setFile(dataLogFile);
+    	appender.activateOptions();
+        */
 
         SeedSplitProcessor processor = new SeedSplitProcessor(m_recordQueue, m_progressQueue);
         processor.setNetworkPattern(m_patternNetwork);
@@ -279,14 +290,14 @@ extends SwingWorker<Hashtable<String,ArrayList<DataSet>>, SeedSplitProgress>
                             }
                         }
                     } catch (InterruptedException e) {
-                    	logger.error("InterruptedException:", e);
+                    	datalogger.error("InterruptedException:", e);
                     }
                 }
                 m_digests[i] = stream.getDigestString();
             } catch (FileNotFoundException e) {
                 //logger.debug("File '" +file.getName()+ "' not found\n");
                 String message = "FileNotFoundException: File '" +file.getName()+ "' not found\n";
-                logger.error(message, e);
+                datalogger.error(message, e);
                 // Should we do something more? Throw an exception?
             }
             m_table = processor.getTable();
@@ -306,14 +317,14 @@ extends SwingWorker<Hashtable<String,ArrayList<DataSet>>, SeedSplitProgress>
                 try {
                     inputThread.join();
                 } catch (InterruptedException e) {
-                	logger.error("InterruptedEx:", e);
+                	datalogger.error("InterruptedException:", e);
                 }
             }
             if ((processorThread != null) && (progress.isComplete())) {
                 try {
                     processorThread.join();
                 } catch (InterruptedException e) {
-                	logger.error("InterruptedException:", e);
+                	datalogger.error("InterruptedException:", e);
                 }
             }
             logger.debug("Finished processing file " + file.getName() + "  " + progressPercent + "% complete");

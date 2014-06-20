@@ -90,7 +90,7 @@ public class ConfigParser
             InputStream stream = new BufferedInputStream(
                                  new DataInputStream(
                                  new FileInputStream(configFile)));
-            JAXBElement<ConfigT> cfgRoot = (JAXBElement<ConfigT>)unmarshaller.unmarshal(stream);
+            JAXBElement<ConfigT> cfgRoot = (JAXBElement<ConfigT>) unmarshaller.unmarshal(stream);
             cfg = cfgRoot.getValue();
         } catch (FileNotFoundException ex) {
             String message = "FileNotFoundException: Could not locate config file:";
