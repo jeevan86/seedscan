@@ -54,7 +54,8 @@ public class GapCountMetric extends Metric {
 
 		for (Channel channel : channels) {
 			if (!metricData.hasChannelData(channel)) {
-				logger.warn("No data found for station:[{}] channel:[{}] day:[{}] --> Skip metric",
+				logger.warn(
+						"No data found for station:[{}] channel:[{}] day:[{}] --> Skip metric",
 						getStation(), channel, getDay());
 				continue;
 			}

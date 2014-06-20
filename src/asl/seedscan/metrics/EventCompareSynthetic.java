@@ -184,8 +184,8 @@ public class EventCompareSynthetic extends Metric {
 				Hashtable<String, SacTimeSeries> synthetics = getEventSynthetics(key);
 				if (synthetics == null) {
 					System.out
-					.format("== %s: No synthetics found for key=[%s] for this station\n",
-							getName(), key);
+							.format("== %s: No synthetics found for key=[%s] for this station\n",
+									getName(), key);
 					continue;
 				}
 				// We do have synthetics for this station for this event -->
@@ -201,9 +201,9 @@ public class EventCompareSynthetic extends Metric {
 						sacSynthetics[i] = synthetics.get(fileKey);
 						MyFilter.bandpass(sacSynthetics[i], f1, f2, f3, f4);
 					} else {
-						logger.warn(String
-								.format("Did not find sac synthetic=[%s] in Hashtable",
-										fileKey));
+						logger.warn(String.format(
+								"Did not find sac synthetic=[%s] in Hashtable",
+								fileKey));
 						return;
 					}
 				}
@@ -247,8 +247,8 @@ public class EventCompareSynthetic extends Metric {
 				ArrayList<double[]> dataDisp3 = sacArrayToDouble(sacSynthetics);
 				if (dataDisp3 == null) {
 					System.out
-					.format("== %s: Error loading sac synthetics for stn=[%s] day=[%s] --> skip\n",
-							getName(), getStation(), getDay());
+							.format("== %s: Error loading sac synthetics for stn=[%s] day=[%s] --> skip\n",
+									getName(), getStation(), getDay());
 					continue;
 				} else {
 					dataDisp.addAll(dataDisp3);
@@ -256,8 +256,8 @@ public class EventCompareSynthetic extends Metric {
 
 				if (dataDisp00 == null && dataDisp10 == null) {
 					System.out
-					.format("== %s: getZNE returned null data --> skip this event\n",
-							getName());
+							.format("== %s: getZNE returned null data --> skip this event\n",
+									getName());
 					continue;
 				}
 
@@ -389,8 +389,8 @@ public class EventCompareSynthetic extends Metric {
 		if (n2 >= data1.length || n2 >= data2.length) {
 			logger.error(String
 					.format("station=[%s] day=[%s]: calcDiff: n2=[%d] > data1.length=[%d] and/or data2.length=[%d] --> Bad window",
-							getStation(), getDay(), n2,
-							data1.length, data2.length));
+							getStation(), getDay(), n2, data1.length,
+							data2.length));
 			return NO_RESULT;
 		}
 		double rms = 0.;

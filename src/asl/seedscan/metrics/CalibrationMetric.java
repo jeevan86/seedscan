@@ -81,14 +81,15 @@ public class CalibrationMetric extends Metric {
 		for (Channel channel : channels) {
 
 			if (!metricData.hasChannelData(channel)) {
-				logger.warn("No data found for channel:[{}] day:[{}] --> Skip metric",
+				logger.warn(
+						"No data found for channel:[{}] day:[{}] --> Skip metric",
 						channel, getDay());
 				continue;
 			}
 
 			if (!(channel.getChannel().equals("BHZ"))
 					&& stationMeta.getChanMeta(channel).getInstrumentType()
-					.contains("STS-2")) {
+							.contains("STS-2")) {
 				// Skip STS-2/STS-2.5 Horizontal Channels
 				logger.info(
 						"InstrumentType = STS-2/2.5 --> Skip horizontal channel={} day={}",
@@ -215,7 +216,8 @@ public class CalibrationMetric extends Metric {
 					channel);
 
 			if (calBlocks == null) {
-				logger.warn("No DAY 2 cal blocks found for channel=[{}] day=[{}]",
+				logger.warn(
+						"No DAY 2 cal blocks found for channel=[{}] day=[{}]",
 						channel, day);
 			} else {
 				logger.info(
@@ -461,7 +463,7 @@ public class CalibrationMetric extends Metric {
 		if (getMakePlots()) {
 			String date = String.format("%04d%03d",
 					metricResult.getDate().get(Calendar.YEAR), metricResult
-					.getDate().get(Calendar.DAY_OF_YEAR));
+							.getDate().get(Calendar.DAY_OF_YEAR));
 			final String plotTitle = String.format(
 					"[ Date: %s ] [ Station: %s ] [ Channel: %s ] Calibration",
 					date, getStation(), channel);

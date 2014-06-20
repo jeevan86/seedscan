@@ -208,8 +208,9 @@ public class StationDeviationMetric extends PowerBandMetric {
 		double highPeriod = band.getHigh();
 
 		if (!checkPowerBand(lowPeriod, highPeriod, Tmin, Tmax)) {
-			logger.warn(String.format("powerBand Error: Skipping channel:%s day:%s\n",
-					channel, getDay()));
+			logger.warn(String.format(
+					"powerBand Error: Skipping channel:%s day:%s\n", channel,
+					getDay()));
 			return NO_RESULT;
 		}
 
@@ -257,14 +258,14 @@ public class StationDeviationMetric extends PowerBandMetric {
 		if (xdata.length != ydata.length) {
 			StringBuilder message = new StringBuilder();
 			message.append(String.format(
-					"makePlots() %s: xdata.len=%d != ydata.len=%d",
-					getDay(), xdata.length, ydata.length));
+					"makePlots() %s: xdata.len=%d != ydata.len=%d", getDay(),
+					xdata.length, ydata.length));
 			throw new MetricException(message.toString());
 		}
 		if (plotMaker == null) {
 			String date = String.format("%04d%03d",
 					metricResult.getDate().get(Calendar.YEAR), metricResult
-					.getDate().get(Calendar.DAY_OF_YEAR));
+							.getDate().get(Calendar.DAY_OF_YEAR));
 			final String plotTitle = String.format(
 					"[ Date: %s ] [ Station: %s ] Station-Deviation", date,
 					getStation());
@@ -319,8 +320,8 @@ public class StationDeviationMetric extends PowerBandMetric {
 			// System.out.format("=== %s: ModelFile=%s does NOT exist!\n",
 			// getName(), fileName);
 			StringBuilder message = new StringBuilder();
-			message.append(String.format(
-					"== ModelFile=%s does NOT exist!\n", fileName));
+			message.append(String.format("== ModelFile=%s does NOT exist!\n",
+					fileName));
 			logger.warn(message.toString());
 			return false;
 		}
@@ -345,9 +346,9 @@ public class StationDeviationMetric extends PowerBandMetric {
 					tmpPows.add(Double.valueOf(args[2].trim()).doubleValue());
 				} catch (NumberFormatException e) {
 					StringBuilder message = new StringBuilder();
-					message.append(String
-							.format("== %s: Error reading modelFile=[%s]: \n",
-									getDay(), fName));
+					message.append(String.format(
+							"== %s: Error reading modelFile=[%s]: \n",
+							getDay(), fName));
 					logger.error(message.toString(), e);
 					return false;
 				}

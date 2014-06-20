@@ -18,10 +18,6 @@
  */
 package asl.seedscan.metrics;
 
-import asl.metadata.Channel;
-import asl.metadata.Station;
-import asl.metadata.meta_new.StationMeta;
-
 import java.nio.ByteBuffer;
 import java.util.Calendar;
 import java.util.Enumeration;
@@ -29,8 +25,13 @@ import java.util.Hashtable;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import asl.metadata.Channel;
+import asl.metadata.Station;
+import asl.metadata.meta_new.StationMeta;
 
 public class MetricResult {
 	private static final Logger logger = LoggerFactory

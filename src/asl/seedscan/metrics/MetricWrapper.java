@@ -31,7 +31,7 @@ public class MetricWrapper {
 	private Class<?> metricClass;
 
 	public MetricWrapper(Class<?> metricClass) throws IllegalAccessException,
-	InstantiationException {
+			InstantiationException {
 		this.metricClass = metricClass;
 		arguments = (Metric) metricClass.newInstance();
 	}
@@ -54,7 +54,7 @@ public class MetricWrapper {
 	}
 
 	public Metric getNewInstance() throws InstantiationException,
-	IllegalAccessException, NoSuchFieldException {
+			IllegalAccessException, NoSuchFieldException {
 		try {
 			Metric metric = (Metric) metricClass.newInstance();
 			Enumeration<String> names = arguments.names();

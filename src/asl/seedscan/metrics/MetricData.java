@@ -284,7 +284,7 @@ public class MetricData {
 	public ArrayList<double[]> getZNE(ResponseUnits responseUnits,
 			String location, String band, long windowStartEpoch,
 			long windowEndEpoch, double f1, double f2, double f3, double f4)
-					throws ChannelMetaException, MetricException {
+			throws ChannelMetaException, MetricException {
 		ArrayList<double[]> dispZNE = new ArrayList<double[]>();
 		String date = metadata.getDate();
 
@@ -325,7 +325,8 @@ public class MetricData {
 
 			if (x == null || y == null || z == null) {
 				System.out
-				.format("== getZNE (date:[%s]): getFilteredDisplacement returned null --> There is probably something wrong with this station\n", metadata.getDate());
+						.format("== getZNE (date:[%s]): getFilteredDisplacement returned null --> There is probably something wrong with this station\n",
+								metadata.getDate());
 				return null;
 			}
 
@@ -369,7 +370,7 @@ public class MetricData {
 	public double[] getFilteredDisplacement(ResponseUnits responseUnits,
 			Channel channel, long windowStartEpoch, long windowEndEpoch,
 			double f1, double f2, double f3, double f4)
-					throws ChannelMetaException, MetricException {
+			throws ChannelMetaException, MetricException {
 		if (!metadata.hasChannel(channel)) {
 			logger.error(String
 					.format("Metadata NOT found for channel=[%s] date=[%s] --> Can't return Displacement",
@@ -427,8 +428,8 @@ public class MetricData {
 		if (srate == 0) {
 			StringBuilder message = new StringBuilder();
 			message.append(String.format(
-					"channel=[%s] date=[%s] Got srate=0\n",
-					channel.toString(), metadata.getDate()));
+					"channel=[%s] date=[%s] Got srate=0\n", channel.toString(),
+					metadata.getDate()));
 			throw new MetricException(message.toString());
 		}
 
@@ -541,7 +542,8 @@ public class MetricData {
 		}
 
 		if (!hasChannelData(channel)) {
-			logger.error("We have NO data for channel=[{}] date=[{}]", channel, metadata.getDate());
+			logger.error("We have NO data for channel=[{}] date=[{}]", channel,
+					metadata.getDate());
 			return null;
 		}
 		ArrayList<DataSet> datasets = getChannelData(channel);
@@ -562,8 +564,9 @@ public class MetricData {
 
 		if (!windowFound) {
 			logger.error("Requested window Epoch [{} - {}] was NOT FOUND "
-					+ "within DataSet for channel=[{}] date=[{}]", windowStartEpoch,
-					windowEndEpoch, channel, metadata.getDate());
+					+ "within DataSet for channel=[{}] date=[{}]",
+					windowStartEpoch, windowEndEpoch, channel,
+					metadata.getDate());
 			return null;
 		} else {
 			// System.out.format("== getWindowedData: Requested window Epoch [%d - %d] WAS FOUND "
@@ -585,8 +588,8 @@ public class MetricData {
 			logger.error(
 					"Requested window Epoch [{} - {}] does NOT START "
 							+ "in current day data window Epoch [{} - {}] for channel=[{}] date=[{}]",
-							windowStartEpoch, windowEndEpoch, dataStartEpoch,
-							dataEndEpoch, channel, metadata.getDate());
+					windowStartEpoch, windowEndEpoch, dataStartEpoch,
+					dataEndEpoch, channel, metadata.getDate());
 			return null;
 		}
 
@@ -599,13 +602,15 @@ public class MetricData {
 				logger.warn(String
 						.format("== getWindowedData: Requested Epoch window[%d-%d] spans into next day, but we have NO data "
 								+ "for channel=[%s] date=[%s] for next day\n",
-								windowStartEpoch, windowEndEpoch, channel, metadata.getDate()));
+								windowStartEpoch, windowEndEpoch, channel,
+								metadata.getDate()));
 				return null;
 			}
 			if (!nextMetricData.hasChannelData(channel)) {
 				logger.error(
 						"Requested Epoch window spans into next day, but we have NO data "
-								+ "for channel=[{}] date=[{}] for next day", channel, metadata.getDate());
+								+ "for channel=[{}] date=[{}] for next day",
+						channel, metadata.getDate());
 				return null;
 			}
 
@@ -637,7 +642,8 @@ public class MetricData {
 						.format("== getWindowedData: Requested window Epoch [%d - %d] extends BEYOND "
 								+ "found nextData window Epoch [%d - %d] for channel=[%s] date=[%s]\n",
 								windowStartEpoch, windowEndEpoch,
-								nextDataStartEpoch, nextDataEndEpoch, channel, metadata.getDate()));
+								nextDataStartEpoch, nextDataEndEpoch, channel,
+								metadata.getDate()));
 				return null;
 			}
 
@@ -982,9 +988,9 @@ public class MetricData {
 			}
 			if (lastBlock != null) {
 				System.out
-				.println("    Gap: "
-						+ ((block.getStartTime() - lastBlock
-								.getEndTime()) / block.getInterval())
+						.println("    Gap: "
+								+ ((block.getStartTime() - lastBlock
+										.getEndTime()) / block.getInterval())
 								+ " data points ("
 								+ (block.getStartTime() - lastBlock
 										.getEndTime()) + " microseconds)");
@@ -1031,7 +1037,9 @@ public class MetricData {
 		// return:
 		if (channels[0].length == 0 || channels[1].length == 0
 				|| channels[0].length != channels[1].length) {
-			logger.warn("== getChannelOverlap: WARNING date=[{}] --> Something has gone wrong!", metadata.getDate());
+			logger.warn(
+					"== getChannelOverlap: WARNING date=[{}] --> Something has gone wrong!",
+					metadata.getDate());
 		}
 
 		// MTH: hack to return the startTime of the overlapping length of data
@@ -1112,8 +1120,9 @@ public class MetricData {
 		// Check again for metadata. If we still don't have it (e.g., we weren't
 		// able to rotate) --> return null digest
 		if (!metadata.hasChannels(channelArray)) {
-			logger.warn("valueDigestChanged (date=[{}]): We don't have metadata to compute the digest for this channelArray "
-					+ " --> return null digest\n", strdate);
+			logger.warn(
+					"valueDigestChanged (date=[{}]): We don't have metadata to compute the digest for this channelArray "
+							+ " --> return null digest\n", strdate);
 			return null;
 		}
 
@@ -1168,8 +1177,8 @@ public class MetricData {
 				logger.warn("Digests are Equal !!");
 				if (forceUpdate) { // Don't do anything --> return the digest to
 					// force the metric computation
-					String msg = String.format(
-							"== valueDigestChanged: metricName=%s date=%s Digests are Equal BUT forceUpdate=[%s]"
+					String msg = String
+							.format("== valueDigestChanged: metricName=%s date=%s Digests are Equal BUT forceUpdate=[%s]"
 									+ " so compute the metric anyway!\n",
 									metricName, strdate, forceUpdate);
 					logger.warn(msg);
@@ -1179,8 +1188,7 @@ public class MetricData {
 			}
 			logger.warn(String
 					.format("valueDigestChanged() --> oldDigest = getMetricValueDigest(%s, %s, %s, %s)",
-							strdate, metricName,
-							station, channelId));
+							strdate, metricName, station, channelId));
 		} else {
 			// System.out.println("=== MetricData.metricReader *IS NOT* connected");
 		}

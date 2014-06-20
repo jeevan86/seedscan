@@ -18,10 +18,10 @@
  */
 package asl.seedscan.metrics;
 
-import asl.metadata.Channel;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import asl.metadata.Channel;
 
 public class CrossPowerKey {
 	private static final Logger logger = LoggerFactory

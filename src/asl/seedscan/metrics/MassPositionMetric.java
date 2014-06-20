@@ -58,7 +58,8 @@ public class MassPositionMetric extends Metric {
 		// Metric
 		for (Channel channel : channels) {
 			if (!metricData.hasChannelData(channel)) {
-				logger.warn("No data found for channel:[{}] day:[{}] --> Skip metric",
+				logger.warn(
+						"No data found for channel:[{}] day:[{}] --> Skip metric",
 						channel, day);
 				continue;
 			}

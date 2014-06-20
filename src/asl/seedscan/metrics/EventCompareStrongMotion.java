@@ -281,7 +281,9 @@ public class EventCompareStrongMotion extends Metric {
 					Channel channelY = channels[i + 6];
 					double result = results[i] / (double) nEvents;
 					ByteBuffer digest = digestArray[i];
-					if(digest == null) continue;  //We don't want to try to inject a null digest if that channel is not updated
+					if (digest == null)
+						continue; // We don't want to try to inject a null
+									// digest if that channel is not updated
 					metricResult.addResult(channelX, channelY, result, digest);
 				}
 			}
@@ -291,7 +293,9 @@ public class EventCompareStrongMotion extends Metric {
 					Channel channelY = channels[i + 3];
 					double result = results[i] / (double) nEvents;
 					ByteBuffer digest = digestArray[i];
-					if(digest == null) continue;  //We don't want to try to inject a null digest if that channel is not updated
+					if (digest == null)
+						continue; // We don't want to try to inject a null
+									// digest if that channel is not updated
 					metricResult.addResult(channelX, channelY, result, digest);
 				}
 			}
@@ -368,15 +372,13 @@ public class EventCompareStrongMotion extends Metric {
 		if (arrivals.get(0).getName().equals("P")) {
 			arrivalTimeP = arrivals.get(0).getTime();
 		} else {
-			logger.warn(String
-					.format("Expected P arrival time not found"));
+			logger.warn(String.format("Expected P arrival time not found"));
 		}
 		double arrivalTimeS = 0.;
 		if (arrivals.get(1).getName().equals("S")) {
 			arrivalTimeS = arrivals.get(1).getTime();
 		} else {
-			logger.warn(String
-					.format("Expected S arrival time not found"));
+			logger.warn(String.format("Expected S arrival time not found"));
 		}
 
 		logger.info(String

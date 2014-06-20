@@ -104,7 +104,9 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 		// Low noise model (NLNM) MUST exist or we can't compute the metric
 		// (NHNM is optional)
 		if (!getNLNM().isValid()) {
-			logger.warn("Low Noise Model (NLNM) does NOT exist day=[{}] --> Skip Metric", day);
+			logger.warn(
+					"Low Noise Model (NLNM) does NOT exist day=[{}] --> Skip Metric",
+					day);
 			return;
 		}
 
@@ -112,7 +114,8 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 		List<Channel> channels = stationMeta.getChannelArray("LH");
 
 		if (channels == null || channels.size() == 0) {
-			logger.warn("No LH? channels found for station={} day={}", getStation(), day);
+			logger.warn("No LH? channels found for station={} day={}",
+					getStation(), day);
 			return;
 		}
 
@@ -121,7 +124,8 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 
 		for (Channel channel : channels) {
 			if (!metricData.hasChannelData(channel)) {
-				logger.warn("No data found for channel:[{}] day:[{}] --> Skip metric",
+				logger.warn(
+						"No data found for channel:[{}] day:[{}] --> Skip metric",
 						channel, day);
 				continue;
 			}
@@ -214,7 +218,6 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 		double Tmin = per[0]; // Should be = 1/fNyq = 2/fs = 0.1 for fs=20Hz
 		double Tmax = per[nf - 2]; // Should be = 1/df = Ndt
 
-
 		// Timeseries.timeoutXY(per, psdPer, outFile);
 
 		// Interpolate the smoothed psd to the periods of the NLNM Model:
@@ -273,13 +276,14 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 		return deviation;
 	} // end computeMetric()
 
-	private void makePlots(Channel channel, String day, double xdata[], double ydata[])
-			throws MetricException, PlotMakerException, TraceException {
+	private void makePlots(Channel channel, String day, double xdata[],
+			double ydata[]) throws MetricException, PlotMakerException,
+			TraceException {
 		if (xdata.length != ydata.length) {
 			StringBuilder message = new StringBuilder();
 			message.append(String.format(
-					"day=%s makePlots(): xdata.len=%d != ydata.len=%d",
-					day, xdata.length, ydata.length));
+					"day=%s makePlots(): xdata.len=%d != ydata.len=%d", day,
+					xdata.length, ydata.length));
 			throw new MetricException(message.toString());
 		}
 		if (plotMaker == null) {
