@@ -1097,8 +1097,6 @@ public class RawToMiniSeed {
 				frames[0].put(x[nextDiff], 1); // forward integration constant
 				if (dbg && sb == null)
 					prt("RTMS: null sb and dbg is on " + seedname);
-				if (dbg && x == null)
-					prt("RTMS: null x and dbg is on " + seedname);
 				if (dbg)
 					sb.append("Word 1 is hdr "
 							+ Integer.toHexString(x[nextDiff]) + "\n");
