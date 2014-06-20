@@ -18,19 +18,14 @@
  */
 package seed;
 
-public class OpaqueSegmentOutOfOrderException
-extends Exception
-{
-    private static final long serialVersionUID = 1L;
+public class OpaqueSegmentOutOfOrderException extends Exception {
+	private static final long serialVersionUID = 1L;
 
-    public OpaqueSegmentOutOfOrderException()
-    {
-        super();
-    }
+	public OpaqueSegmentOutOfOrderException() {
+		super();
+	}
 
-    public OpaqueSegmentOutOfOrderException(String message)
-    {
-        super(message);
-    }
+	public OpaqueSegmentOutOfOrderException(String message) {
+		super(message);
+	}
 }
-

@@ -18,19 +18,14 @@
  */
 package seed;
 
-public class OpaqueStateTransitionException
-extends Exception
-{
-    private static final long serialVersionUID = 1L;
+public class OpaqueStateTransitionException extends Exception {
+	private static final long serialVersionUID = 1L;
 
-    public OpaqueStateTransitionException()
-    {
-        super();
-    }
+	public OpaqueStateTransitionException() {
+		super();
+	}
 
-    public OpaqueStateTransitionException(String message)
-    {
-        super(message);
-    }
+	public OpaqueStateTransitionException(String message) {
+		super(message);
+	}
 }
-

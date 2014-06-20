@@ -18,19 +18,14 @@
  */
 package seed;
 
-public class BuilderFinishedException
-extends Exception
-{
-    private static final long serialVersionUID = 1L;
+public class BuilderFinishedException extends Exception {
+	private static final long serialVersionUID = 1L;
 
-    public BuilderFinishedException()
-    {
-        super();
-    }
+	public BuilderFinishedException() {
+		super();
+	}
 
-    public BuilderFinishedException(String message)
-    {
-        super(message);
-    }
+	public BuilderFinishedException(String message) {
+		super(message);
+	}
 }
-

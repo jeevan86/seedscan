@@ -23,71 +23,61 @@ import java.io.ByteArrayOutputStream;
 
 /**
  * OpaqueContext
- *
+ * 
  * Created on October 4, 2012 @ 06:06 MDT
- *
+ * 
  * @author Joel D. Edwards <jdedwards@usgs.gov>
  */
-class OpaqueContext
-{
-    private String tagString = "";
-    private int recordNumber = -1;
-    private OpaqueState state = OpaqueState.INIT;
-    private ByteArrayOutputStream byteStream;
+class OpaqueContext {
+	private String tagString = "";
+	private int recordNumber = -1;
+	private OpaqueState state = OpaqueState.INIT;
+	private ByteArrayOutputStream byteStream;
 
-    public OpaqueContext(String tagString)
-    {
-        this.tagString = tagString;
-        byteStream = new ByteArrayOutputStream();
-    }
+	public OpaqueContext(String tagString) {
+		this.tagString = tagString;
+		byteStream = new ByteArrayOutputStream();
+	}
 
-    public String getTagString()
-    {
-        return tagString;
-    }
+	public String getTagString() {
+		return tagString;
+	}
 
-    public void setRecordNumber(int recordNumber)
-    {
-        this.recordNumber = recordNumber;
-    }
+	public void setRecordNumber(int recordNumber) {
+		this.recordNumber = recordNumber;
+	}
 
-    public int getRecordNumber()
-    {
-        return recordNumber;
-    }
+	public int getRecordNumber() {
+		return recordNumber;
+	}
 
-    public void setState(OpaqueState state)
-    {
-        this.state = state;
-    }
+	public void setState(OpaqueState state) {
+		this.state = state;
+	}
 
-    public OpaqueState getState()
-    {
-        return state;
-    }
+	public OpaqueState getState() {
+		return state;
+	}
 
-    public boolean isComplete()
-    {
-        boolean complete = false;
-        switch (state) {
-            case RECORD:
-            case STREAM_END:
-            case FILE_END:
-                complete = true;
+	public boolean isComplete() {
+		boolean complete = false;
+		switch (state) {
+		case RECORD:
+		case STREAM_END:
+		case FILE_END:
+			complete = true;
 		default:
 			break;
 
-        }
-        return complete;
-    }
+		}
+		return complete;
+	}
 
-    public void update(byte[] data, int offset, int length)
-    {
-        byteStream.write(data, offset, length);
-    }
+	public void update(byte[] data, int offset, int length) {
+		byteStream.write(data, offset, length);
+	}
 
-    public byte[] getData()
-    {
-        return byteStream.toByteArray();
-    }
+	public byte[] getData() {
+		return byteStream.toByteArray();
+	}
 }
