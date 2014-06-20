@@ -22,31 +22,26 @@ package asl.security;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TextPassword
-implements Password
-{
-    private static final Logger logger = LoggerFactory.getLogger(asl.security.TextPassword.class);
+public class TextPassword implements Password {
+	private static final Logger logger = LoggerFactory
+			.getLogger(asl.security.TextPassword.class);
 
-    private String password = null;
+	private String password = null;
 
-    public TextPassword(String password)
-    {
-        this.password = password;
-    }
+	public TextPassword(String password) {
+		this.password = password;
+	}
 
-    public boolean setPassword(String password)
-    {
-        this.password = password;
-        return (password == null) ? false : true;
-    }
+	public boolean setPassword(String password) {
+		this.password = password;
+		return (password == null) ? false : true;
+	}
 
-    public String getPassword()
-    {
-        return password;
-    }
+	public String getPassword() {
+		return password;
+	}
 
-    public String toString()
-    {
-        return new String("TextPassword: *** [" +password.length()+ "]");
-    }
+	public String toString() {
+		return new String("TextPassword: *** [" + password.length() + "]");
+	}
 }
