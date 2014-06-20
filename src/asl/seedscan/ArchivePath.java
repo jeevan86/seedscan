@@ -19,80 +19,79 @@
 
 package asl.seedscan;
 
-import java.io.File;
-import java.util.Formatter;
 import java.util.GregorianCalendar;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import asl.metadata.*;
+import asl.metadata.Channel;
+import asl.metadata.Station;
 
 /**
  * 
  */
-public class ArchivePath
-{
-    private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.ArchivePath.class);
+public class ArchivePath {
+	private static final Logger logger = LoggerFactory
+			.getLogger(asl.seedscan.ArchivePath.class);
 
-    private GregorianCalendar timestamp;
-    private Station station = null;
-    private Channel channel = null;
+	private GregorianCalendar timestamp;
+	private Station station = null;
+	private Channel channel = null;
 
-    public ArchivePath(Station station)
-    {
-        this.station = station;
-    }
+	public ArchivePath(Station station) {
+		this.station = station;
+	}
 
-    public ArchivePath(GregorianCalendar timestamp, Station station)
-    {
-        this.timestamp = timestamp;
-        this.station = station;
-    }
+	public ArchivePath(GregorianCalendar timestamp, Station station) {
+		this.timestamp = timestamp;
+		this.station = station;
+	}
 
-    public ArchivePath(GregorianCalendar timestamp, Channel channel)
-    {
-        this.timestamp = timestamp;
-        this.station = channel.getStation();
-        this.channel = channel;
-    }
+	public ArchivePath(GregorianCalendar timestamp, Channel channel) {
+		this.timestamp = timestamp;
+		this.station = channel.getStation();
+		this.channel = channel;
+	}
 
-    public void setTimestamp(GregorianCalendar timestamp) {
-        this.timestamp = timestamp;
-    }
+	public void setTimestamp(GregorianCalendar timestamp) {
+		this.timestamp = timestamp;
+	}
 
-    public void setStation(Station station) {
-        this.station = station;
-    }
+	public void setStation(Station station) {
+		this.station = station;
+	}
 
-    public void setChannel(Channel channel) {
-        this.station = channel.getStation();
-        this.channel = channel;
-    }
+	public void setChannel(Channel channel) {
+		this.station = channel.getStation();
+		this.channel = channel;
+	}
 
-    public String makePath(String pattern)
-    {
-        int startIndex = 0;
-        int  lastIndex = 0;
-        if (station != null) {
-            if (station.getNetwork() != null) {
-                pattern = pattern.replace("${NETWORK}", station.getNetwork());
-            }
-            pattern = pattern.replace("${STATION}", station.getStation());
-        }
-        if (channel != null) {
-            if (channel.getLocation() != null) {
-                pattern = pattern.replace("${LOCATION}", channel.getLocation());
-            }
-            pattern = pattern.replace("${CHANNEL}", channel.getChannel());
-        }
-        pattern = pattern.replace("${YEAR}",   String.format("%1$tY", timestamp));
-        pattern = pattern.replace("${MONTH}",  String.format("%1$tm", timestamp));
-        pattern = pattern.replace("${DAY}",    String.format("%1$td", timestamp));
-        pattern = pattern.replace("${JDAY}",   String.format("%1$tj", timestamp));
-        pattern = pattern.replace("${HOUR}",   String.format("%1$tH", timestamp));
-        pattern = pattern.replace("${MINUTE}", String.format("%1$tM", timestamp));
-        pattern = pattern.replace("${SECOND}", String.format("%1$tS", timestamp));
+	public String makePath(String pattern) {
+		int startIndex = 0;
+		int lastIndex = 0;
+		if (station != null) {
+			if (station.getNetwork() != null) {
+				pattern = pattern.replace("${NETWORK}", station.getNetwork());
+			}
+			pattern = pattern.replace("${STATION}", station.getStation());
+		}
+		if (channel != null) {
+			if (channel.getLocation() != null) {
+				pattern = pattern.replace("${LOCATION}", channel.getLocation());
+			}
+			pattern = pattern.replace("${CHANNEL}", channel.getChannel());
+		}
+		pattern = pattern.replace("${YEAR}", String.format("%1$tY", timestamp));
+		pattern = pattern
+				.replace("${MONTH}", String.format("%1$tm", timestamp));
+		pattern = pattern.replace("${DAY}", String.format("%1$td", timestamp));
+		pattern = pattern.replace("${JDAY}", String.format("%1$tj", timestamp));
+		pattern = pattern.replace("${HOUR}", String.format("%1$tH", timestamp));
+		pattern = pattern.replace("${MINUTE}",
+				String.format("%1$tM", timestamp));
+		pattern = pattern.replace("${SECOND}",
+				String.format("%1$tS", timestamp));
 
-        return pattern;
-    }
+		return pattern;
+	}
 }

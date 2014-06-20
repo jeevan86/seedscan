@@ -18,73 +18,80 @@
  */
 package asl.seedscan;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import asl.metadata.Station;
-import asl.metadata.MetaServer;
-import asl.seedscan.database.*;
-
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.List;
-
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class ScanManager
-{
-    private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.ScanManager.class);
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-    private Scan scan = null;
-    private ConcurrentLinkedQueue<Runnable> taskQueue = null;
-    private boolean running = true;
+import asl.metadata.MetaServer;
+import asl.metadata.Station;
+import asl.seedscan.database.MetricInjector;
+import asl.seedscan.database.MetricReader;
 
-    public ScanManager(MetricReader reader, MetricInjector injector, List<Station> stationList, Scan scan, MetaServer metaServer)
+public class ScanManager {
+	private static final Logger logger = LoggerFactory
+			.getLogger(asl.seedscan.ScanManager.class);
 
-    {
-        this.scan = scan;
+	private Scan scan = null;
+	private ConcurrentLinkedQueue<Runnable> taskQueue = null;
+	private boolean running = true;
 
-        int threadCount = Runtime.getRuntime().availableProcessors();
-        //We don't want to overload the computer. There are also injector threads and the main thread.
-        if (threadCount > 20){
-            threadCount = 20;
-            //threadCount = 1;
-        }
+	public ScanManager(MetricReader reader, MetricInjector injector,
+			List<Station> stationList, Scan scan, MetaServer metaServer)
 
-        logger.info("Number of Threads to Use = [{}]", threadCount);
+	{
+		this.scan = scan;
 
-        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
-        for (Station station : stationList) {
-            if (passesFilter(station)) {
-                logger.debug("Add station={} to the task queue", station);
-                executor.execute( new Scanner(reader, injector, station, scan, metaServer) );
-            }
-            else {
-                logger.debug("station={} Did NOT pass filter for scan={}", station, scan.getName());
-            }
-        }
-        executor.shutdown();
-/**
-    awaitTermination(long timeout, TimeUnit unit) - Blocks until all tasks have completed execution 
-      after a shutdown request, or the timeout occurs, or the current thread is interrupted, whichever happens first.
-**/
-        while (executor.isTerminated() == false) { // Hang out here until all worker threads have finished
-        }
-        logger.info("ALL THREADS HAVE FINISHED");
-    }
+		int threadCount = Runtime.getRuntime().availableProcessors();
+		// We don't want to overload the computer. There are also injector
+		// threads and the main thread.
+		if (threadCount > 20) {
+			threadCount = 20;
+			// threadCount = 1;
+		}
 
-    private boolean passesFilter(Station station) {
-        if (scan.getNetworks() != null){
-            if (!scan.getNetworks().filter(station.getNetwork())) {
-                return false;
-            }
-        }
-        if (scan.getStations() != null){
-            if (!scan.getStations().filter(station.getStation())) {
-                return false;
-            }
-        }
-        return true;
-    }
+		logger.info("Number of Threads to Use = [{}]", threadCount);
+
+		ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+		for (Station station : stationList) {
+			if (passesFilter(station)) {
+				logger.debug("Add station={} to the task queue", station);
+				executor.execute(new Scanner(reader, injector, station, scan,
+						metaServer));
+			} else {
+				logger.debug("station={} Did NOT pass filter for scan={}",
+						station, scan.getName());
+			}
+		}
+		executor.shutdown();
+		/**
+		 * awaitTermination(long timeout, TimeUnit unit) - Blocks until all
+		 * tasks have completed execution after a shutdown request, or the
+		 * timeout occurs, or the current thread is interrupted, whichever
+		 * happens first.
+		 **/
+		while (executor.isTerminated() == false) { // Hang out here until all
+													// worker threads have
+													// finished
+		}
+		logger.info("ALL THREADS HAVE FINISHED");
+	}
+
+	private boolean passesFilter(Station station) {
+		if (scan.getNetworks() != null) {
+			if (!scan.getNetworks().filter(station.getNetwork())) {
+				return false;
+			}
+		}
+		if (scan.getStations() != null) {
+			if (!scan.getStations().filter(station.getStation())) {
+				return false;
+			}
+		}
+		return true;
+	}
 
 }
