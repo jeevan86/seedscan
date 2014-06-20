@@ -281,6 +281,7 @@ public class EventCompareStrongMotion extends Metric {
 					Channel channelY = channels[i + 6];
 					double result = results[i] / (double) nEvents;
 					ByteBuffer digest = digestArray[i];
+					if(digest == null) continue;  //We don't want to try to inject a null digest if that channel is not updated
 					metricResult.addResult(channelX, channelY, result, digest);
 				}
 			}
@@ -290,6 +291,7 @@ public class EventCompareStrongMotion extends Metric {
 					Channel channelY = channels[i + 3];
 					double result = results[i] / (double) nEvents;
 					ByteBuffer digest = digestArray[i];
+					if(digest == null) continue;  //We don't want to try to inject a null digest if that channel is not updated
 					metricResult.addResult(channelX, channelY, result, digest);
 				}
 			}
