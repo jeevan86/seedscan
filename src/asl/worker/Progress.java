@@ -20,14 +20,17 @@ package asl.worker;
 
 /**
  * @author Joel D. Edwards <jdedwards@usgs.gov>
- *
- * Interface for tracking progress of various finite operations.
+ * 
+ *         Interface for tracking progress of various finite operations.
  */
-public interface Progress
-{
-    public boolean isComplete();
-    public boolean errorOccurred();
-    public Enum<?> getErrorType();
-    public String getErrorMessage();
-    public double getProgressPercent();
+public interface Progress {
+	public boolean isComplete();
+
+	public boolean errorOccurred();
+
+	public Enum<?> getErrorType();
+
+	public String getErrorMessage();
+
+	public double getProgressPercent();
 }
