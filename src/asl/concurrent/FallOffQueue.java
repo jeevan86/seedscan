@@ -18,11 +18,11 @@
  */
 package asl.concurrent;
 
-import java.lang.InterruptedException;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.Iterator;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
