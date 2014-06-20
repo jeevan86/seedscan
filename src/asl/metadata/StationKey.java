@@ -18,54 +18,45 @@
  */
 package asl.metadata;
 
-public class StationKey
-extends Key
-implements Comparable<StationKey>
-{
-    public static final int STATION_EPOCH_BLOCKETTE_NUMBER = 50;
+public class StationKey extends Key implements Comparable<StationKey> {
+	public static final int STATION_EPOCH_BLOCKETTE_NUMBER = 50;
 
-    private String network = null;
-    private String name = null;
+	private String network = null;
+	private String name = null;
 
-    // constructor(s)
-    public StationKey(Blockette blockette)
-    throws WrongBlocketteException
-    {
-        if (blockette.getNumber() != STATION_EPOCH_BLOCKETTE_NUMBER) {
-            throw new WrongBlocketteException();
-        }
-        network = blockette.getFieldValue(16,0);
-        name = blockette.getFieldValue(3,0);
-    }
-    
-    // MTH:
-    public StationKey(Station station)
-    {
-        this.network = station.getNetwork();
-        this.name    = station.getStation();
-    }
+	// constructor(s)
+	public StationKey(Blockette blockette) throws WrongBlocketteException {
+		if (blockette.getNumber() != STATION_EPOCH_BLOCKETTE_NUMBER) {
+			throw new WrongBlocketteException();
+		}
+		network = blockette.getFieldValue(16, 0);
+		name = blockette.getFieldValue(3, 0);
+	}
 
-    // identifiers
-    public String getNetwork()
-    {
-        return new String(network);
-    }
+	// MTH:
+	public StationKey(Station station) {
+		this.network = station.getNetwork();
+		this.name = station.getStation();
+	}
 
-    public String getName()
-    {
-        return new String(name);
-    }
+	// identifiers
+	public String getNetwork() {
+		return new String(network);
+	}
 
-    public String toString()
-    {
-        return new String(network+ "_" +name);
-    }
+	public String getName() {
+		return new String(name);
+	}
 
-    @Override public int compareTo( StationKey stnKey ) {
-      String thisCombo = getNetwork() + getName();
-      String thatCombo = stnKey.getNetwork() + stnKey.getName();
-      return thisCombo.compareTo(thatCombo);
-   }
+	public String toString() {
+		return new String(network + "_" + name);
+	}
+
+	@Override
+	public int compareTo(StationKey stnKey) {
+		String thisCombo = getNetwork() + getName();
+		String thatCombo = stnKey.getNetwork() + stnKey.getName();
+		return thisCombo.compareTo(thatCombo);
+	}
 
 }
-

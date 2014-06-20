@@ -18,19 +18,14 @@
  */
 package asl.metadata;
 
-public class BlocketteFieldIdentifierFormatException
-extends Exception
-{
-    private static final long serialVersionUID = 1L;
+public class BlocketteFieldIdentifierFormatException extends Exception {
+	private static final long serialVersionUID = 1L;
 
-    public BlocketteFieldIdentifierFormatException()
-    {
-        super();
-    }
+	public BlocketteFieldIdentifierFormatException() {
+		super();
+	}
 
-    public BlocketteFieldIdentifierFormatException(String message)
-    {
-        super(message);
-    }
+	public BlocketteFieldIdentifierFormatException(String message) {
+		super(message);
+	}
 }
-

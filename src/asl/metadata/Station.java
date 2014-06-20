@@ -26,69 +26,63 @@ import org.slf4j.LoggerFactory;
  * They are the fundamental building blocks of StationKey, ChannelKey and ChannelArray
  */
 
-public class Station
-    implements java.io.Serializable
-{
-    private static final Logger logger = LoggerFactory.getLogger(asl.metadata.Station.class);
-    private static final long serialVersionUID = 1L;
+public class Station implements java.io.Serializable {
+	private static final Logger logger = LoggerFactory
+			.getLogger(asl.metadata.Station.class);
+	private static final long serialVersionUID = 1L;
 
-    private String network = null;
-    private String station = null;
+	private String network = null;
+	private String station = null;
 
-    public Station(String network, String station)
-    {
-    	try {
-    		setNetwork(network);
-    		setStation(station);
-    	} catch (StationException e) {
-    		logger.error("StationException:", e);
-    	}
-    }
+	public Station(String network, String station) {
+		try {
+			setNetwork(network);
+			setStation(station);
+		} catch (StationException e) {
+			logger.error("StationException:", e);
+		}
+	}
 
-// MTH: in the spirit of "fail early", I'm going to make this even more restrictive:
-//      Network must be exactly 2 characters long
-//      Station must be either 3 or 4 characters long
+	// MTH: in the spirit of "fail early", I'm going to make this even more
+	// restrictive:
+	// Network must be exactly 2 characters long
+	// Station must be either 3 or 4 characters long
 
-    public void setNetwork(String network) 
-    throws StationException
-    {
-        if (network != null) {
-            if (!(network.length()==2) && !(network.length()==1)) {
-                throw new StationException("network name MUST be 1 or 2-character string!");
-            }
-            else {
-                this.network = network;
-            }
-        }
-        else {
-            throw new StationException("network name CANNOT be null!");
-        }
-    }
+	public void setNetwork(String network) throws StationException {
+		if (network != null) {
+			if (!(network.length() == 2) && !(network.length() == 1)) {
+				throw new StationException(
+						"network name MUST be 1 or 2-character string!");
+			} else {
+				this.network = network;
+			}
+		} else {
+			throw new StationException("network name CANNOT be null!");
+		}
+	}
 
-    public void setStation(String station) 
-    throws StationException
-    {
-        if (station == null) {
-            throw new StationException("station cannot be null");
-        }
-        if (station.length() < 3 || station.length() > 5)  {
-            throw new StationException("Station name MUST be between 3 and 5 characters long");
-        }
-        this.station = station;
-    }
+	public void setStation(String station) throws StationException {
+		if (station == null) {
+			throw new StationException("station cannot be null");
+		}
+		if (station.length() < 3 || station.length() > 5) {
+			throw new StationException(
+					"Station name MUST be between 3 and 5 characters long");
+		}
+		this.station = station;
+	}
 
+	public String getNetwork() {
+		return network;
+	}
 
-    public String getNetwork() {
-        return network;
-    }
+	public String getStation() {
+		return station;
+	}
 
-    public String getStation() {
-        return station;
-    }
-
-    @Override public String toString() {
-      return this.getNetwork() + "_" + this.getStation();
-    }
+	@Override
+	public String toString() {
+		return this.getNetwork() + "_" + this.getStation();
+	}
 
 }
-

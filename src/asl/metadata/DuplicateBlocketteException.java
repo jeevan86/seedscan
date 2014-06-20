@@ -18,19 +18,14 @@
  */
 package asl.metadata;
 
-public class DuplicateBlocketteException
-extends Exception
-{
-    private static final long serialVersionUID = 1L;
+public class DuplicateBlocketteException extends Exception {
+	private static final long serialVersionUID = 1L;
 
-    public DuplicateBlocketteException()
-    {
-        super();
-    }
+	public DuplicateBlocketteException() {
+		super();
+	}
 
-    public DuplicateBlocketteException(String message)
-    {
-        super(message);
-    }
+	public DuplicateBlocketteException(String message) {
+		super(message);
+	}
 }
-

@@ -18,19 +18,14 @@
  */
 package asl.metadata;
 
-public class TimestampFormatException
-extends Exception
-{
-    private static final long serialVersionUID = 1L;
+public class TimestampFormatException extends Exception {
+	private static final long serialVersionUID = 1L;
 
-    public TimestampFormatException()
-    {
-        super();
-    }
+	public TimestampFormatException() {
+		super();
+	}
 
-    public TimestampFormatException(String message)
-    {
-        super(message);
-    }
+	public TimestampFormatException(String message) {
+		super(message);
+	}
 }
-

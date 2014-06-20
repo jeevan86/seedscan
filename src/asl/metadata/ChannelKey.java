@@ -24,137 +24,141 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ChannelKey
-    extends Key
-    implements Comparable<ChannelKey>, java.io.Serializable
-{
-    private static final long serialVersionUID = 1L;
-    private static final Logger logger = LoggerFactory.getLogger(asl.metadata.ChannelKey.class);
-    private static final int CHANNEL_EPOCH_BLOCKETTE_NUMBER = 52;
+public class ChannelKey extends Key implements Comparable<ChannelKey>,
+		java.io.Serializable {
+	private static final long serialVersionUID = 1L;
+	private static final Logger logger = LoggerFactory
+			.getLogger(asl.metadata.ChannelKey.class);
+	private static final int CHANNEL_EPOCH_BLOCKETTE_NUMBER = 52;
 
-    private String location = null;
-    private String name = null;
+	private String location = null;
+	private String name = null;
 
-    // constructor(s)
-    public ChannelKey(Blockette blockette)
-    throws WrongBlocketteException
-    {
-        if (blockette.getNumber() != CHANNEL_EPOCH_BLOCKETTE_NUMBER) {
-        	throw new WrongBlocketteException();
-        }
-        location = blockette.getFieldValue(3,0);
-        name     = blockette.getFieldValue(4,0);
+	// constructor(s)
+	public ChannelKey(Blockette blockette) throws WrongBlocketteException {
+		if (blockette.getNumber() != CHANNEL_EPOCH_BLOCKETTE_NUMBER) {
+			throw new WrongBlocketteException();
+		}
+		location = blockette.getFieldValue(3, 0);
+		name = blockette.getFieldValue(4, 0);
 
-        try {
-        	setChannel(name);
-        	setLocation(location);
-        } catch (ChannelKeyException e) {
-        	logger.error("Exception:", e);
-        }
-    }
+		try {
+			setChannel(name);
+			setLocation(location);
+		} catch (ChannelKeyException e) {
+			logger.error("Exception:", e);
+		}
+	}
 
-    public ChannelKey(String location, String name)
-    {
-    	try {
-    		setChannel(name);
-    		setLocation(location);
-    	} catch (ChannelKeyException e) {
-    		logger.error("Exception:", e);
-    	}
-    }
-    public ChannelKey(Channel channel)
-    {
-        this(channel.getLocation(), channel.getChannel());
-    }
+	public ChannelKey(String location, String name) {
+		try {
+			setChannel(name);
+			setLocation(location);
+		} catch (ChannelKeyException e) {
+			logger.error("Exception:", e);
+		}
+	}
 
-    private void setLocation(String location) 
-    throws ChannelKeyException
-    {
+	public ChannelKey(Channel channel) {
+		this(channel.getLocation(), channel.getChannel());
+	}
 
-        String validCodes = "\"--\", \"00\", \"10\", etc.";
+	private void setLocation(String location) throws ChannelKeyException {
 
-    // MTH: Known abnormal location codes:
-    //      HR - High res instrument, later replaced by 10  - seen in US seed files
-    //      XX - seen in II seed files
-    //      P1 - Princeton Modes Synthetic - seen in II seed files
-    //      P3 - Princeton  SEM  Synthetic - seen in II seed files
+		String validCodes = "\"--\", \"00\", \"10\", etc.";
 
-/**
-    // Temp fix for station US_WMOK which has some channel blockettes tagged with location="HR"
-        if (location.equals("HR")) {  // Add to this any unruly location code you want to flag ...
-            location = "XX";
-            logger.warn( String.format("ChannelKey.setLocation: Got location code=HR chan=%s--> I'll set it to XX and continue parsing dataless", name) );
-        }
-**/
+		// MTH: Known abnormal location codes:
+		// HR - High res instrument, later replaced by 10 - seen in US seed
+		// files
+		// XX - seen in II seed files
+		// P1 - Princeton Modes Synthetic - seen in II seed files
+		// P3 - Princeton SEM Synthetic - seen in II seed files
 
-     // Set Default location codes:
-        if (location.equals("--") || location.equals("") || location == null ) {
-            logger.debug("metadata name=[{}] location=[{}] was changed to [00]", name, location);
-            location = "00";
-        }
-        if (location.equals("HR")) {
-            logger.debug("metadata name=[{}] location=[{}] was changed to [10]", name, location);
-            location = "10";
-        }
+		/**
+		 * // Temp fix for station US_WMOK which has some channel blockettes
+		 * tagged with location="HR" if (location.equals("HR")) { // Add to this
+		 * any unruly location code you want to flag ... location = "XX";
+		 * logger.warn( String.format(
+		 * "ChannelKey.setLocation: Got location code=HR chan=%s--> I'll set it to XX and continue parsing dataless"
+		 * , name) ); }
+		 **/
 
-        if (location.length() != 2) {
-        	//RuntimeException e = new RuntimeException(message.toString());
-        	StringBuilder message = new StringBuilder();
-        	message.append(String.format("Location code=[%s] chan=[%s] is NOT a valid 2-char code (e.g., %s)\n", location, name, validCodes));
-        	throw new ChannelKeyException(message.toString());
-        }
-        Pattern pattern  = Pattern.compile("^[0-9][0-9]$");
-        Matcher matcher  = pattern.matcher(location);
-        if (!matcher.matches() && !location.equals("--") && !location.equals("XX") ) {
-            //throw new RuntimeException( String.format("Error: Location code=[%s] is NOT valid (e.g., %s)", location, validCodes) );
-        }
+		// Set Default location codes:
+		if (location.equals("--") || location.equals("") || location == null) {
+			logger.debug(
+					"metadata name=[{}] location=[{}] was changed to [00]",
+					name, location);
+			location = "00";
+		}
+		if (location.equals("HR")) {
+			logger.debug(
+					"metadata name=[{}] location=[{}] was changed to [10]",
+					name, location);
+			location = "10";
+		}
 
-        this.location = location;
-    }
+		if (location.length() != 2) {
+			// RuntimeException e = new RuntimeException(message.toString());
+			StringBuilder message = new StringBuilder();
+			message.append(String
+					.format("Location code=[%s] chan=[%s] is NOT a valid 2-char code (e.g., %s)\n",
+							location, name, validCodes));
+			throw new ChannelKeyException(message.toString());
+		}
+		Pattern pattern = Pattern.compile("^[0-9][0-9]$");
+		Matcher matcher = pattern.matcher(location);
+		if (!matcher.matches() && !location.equals("--")
+				&& !location.equals("XX")) {
+			// throw new RuntimeException(
+			// String.format("Error: Location code=[%s] is NOT valid (e.g., %s)",
+			// location, validCodes) );
+		}
 
-    private void setChannel(String channel) 
-    throws ChannelKeyException
-    {
-        if (channel == null) {
-        	//RuntimeException e = new RuntimeException(message.toString());
-        	throw new ChannelKeyException("Channel cannot be null");
-        }
-    // MTH: For now we'll allow either 3-char ("LHZ") or 4-char ("LHND") channels
-        if (channel.length() < 3 || channel.length() > 4) { 
-        	//RuntimeException e = new RuntimeException(message.toString());
-        	StringBuilder message = new StringBuilder();
-        	message.append(String.format("Channel code=[%s] is NOT valid (must be 3 or 4-chars long)\n", channel));
-        	throw new ChannelKeyException(message.toString());
-        }
-        this.name = channel;
-    }
+		this.location = location;
+	}
 
-    public Channel toChannel() {
-        return new Channel( this.getLocation(), this.getName() );
-    }
+	private void setChannel(String channel) throws ChannelKeyException {
+		if (channel == null) {
+			// RuntimeException e = new RuntimeException(message.toString());
+			throw new ChannelKeyException("Channel cannot be null");
+		}
+		// MTH: For now we'll allow either 3-char ("LHZ") or 4-char ("LHND")
+		// channels
+		if (channel.length() < 3 || channel.length() > 4) {
+			// RuntimeException e = new RuntimeException(message.toString());
+			StringBuilder message = new StringBuilder();
+			message.append(String
+					.format("Channel code=[%s] is NOT valid (must be 3 or 4-chars long)\n",
+							channel));
+			throw new ChannelKeyException(message.toString());
+		}
+		this.name = channel;
+	}
 
-    // identifiers
-    public String getLocation()
-    {
-        return new String(location);
-    }
+	public Channel toChannel() {
+		return new Channel(this.getLocation(), this.getName());
+	}
 
-    public String getName()
-    {
-        return new String(name);
-    }
+	// identifiers
+	public String getLocation() {
+		return new String(location);
+	}
 
-    // overrides abstract method from Key class
-    public String toString()
-    {
-        return new String(location+ "-" +name);
-    }
+	public String getName() {
+		return new String(name);
+	}
 
-// Use to Sort ChannelKeys from ---BC0, ---BC1, ..., 10-VHZ, ... 50-LWS, 60-HDF
-    @Override public int compareTo( ChannelKey chanKey ) {
-      String thisCombo = getLocation() + getName();
-      String thatCombo = chanKey.getLocation() + chanKey.getName();
-      return thisCombo.compareTo(thatCombo);
-   }
+	// overrides abstract method from Key class
+	public String toString() {
+		return new String(location + "-" + name);
+	}
+
+	// Use to Sort ChannelKeys from ---BC0, ---BC1, ..., 10-VHZ, ... 50-LWS,
+	// 60-HDF
+	@Override
+	public int compareTo(ChannelKey chanKey) {
+		String thisCombo = getLocation() + getName();
+		String thatCombo = chanKey.getLocation() + chanKey.getName();
+		return thisCombo.compareTo(thatCombo);
+	}
 }
-
