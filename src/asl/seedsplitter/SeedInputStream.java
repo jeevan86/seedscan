@@ -18,21 +18,20 @@
  */
 package asl.seedsplitter;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.lang.InterruptedException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.Formatter;
+import java.util.concurrent.LinkedBlockingQueue;
 
-import asl.util.Hex;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import seed.IllegalSeednameException;
 import seed.MiniSeed;
+import asl.util.Hex;
 
 /**
  * @author Joel D. Edwards <jdedwards@usgs.gov>

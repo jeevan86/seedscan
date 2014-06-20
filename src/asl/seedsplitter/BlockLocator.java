@@ -18,14 +18,14 @@
  */
 package asl.seedsplitter;
 
+import java.util.ArrayList;
+
+import javax.swing.SwingWorker;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import asl.concurrent.FallOffQueue;
-
-import java.util.ArrayList;
-
-import javax.swing.SwingWorker;
 
 /**
  * @author 	Joel D. Edwards <jdedwards@usgs.gov>

@@ -18,15 +18,11 @@
  */
 package asl.seedsplitter;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.DataInputStream;
-import java.io.FileInputStream;
 import java.io.BufferedInputStream;
-import java.io.FileNotFoundException;
+import java.io.DataInputStream;
 import java.io.File;
-import java.lang.Thread;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -34,10 +30,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-import seed.Blockette320;
-
 import javax.swing.SwingWorker;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import seed.Blockette320;
 import asl.concurrent.FallOffQueue;
 
 /**

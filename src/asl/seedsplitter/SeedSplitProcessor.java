@@ -18,27 +18,26 @@
  */
 package asl.seedsplitter;
 
+import java.util.ArrayList;
+import java.util.GregorianCalendar;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.TimeZone;
+import java.util.TreeSet;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.slf4j.Logger;
 //import org.apache.log4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.InterruptedException;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.GregorianCalendar;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.TimeZone;
-import java.util.TreeSet;
-import java.util.ArrayList;
-
+import seed.BlockSizeException;
 import seed.Blockette320;
 import seed.IllegalSeednameException;
 import seed.MiniSeed;
 import seed.SeedUtil;
 import seed.SteimException;
-import seed.BlockSizeException;
 import asl.concurrent.FallOffQueue;
 
 /**
