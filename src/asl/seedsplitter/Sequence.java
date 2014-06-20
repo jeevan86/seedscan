@@ -321,13 +321,13 @@ public class Sequence extends MemberDigest {
 		// throw new SequenceTimingException();
 		// }
 		/*
-		 Allow for a fudge factor of 1 millisecond if sample
-		 rate is less than 100 Hz.
-		
-		 Is this a good idea, or would it be better to simply
-		 report a gap so the user is aware of the jump?
-		
-			I changed this to have a fudge of 10 millisecond
+		 * Allow for a fudge factor of 1 millisecond if sample rate is less than
+		 * 100 Hz.
+		 * 
+		 * Is this a good idea, or would it be better to simply report a gap so
+		 * the user is aware of the jump?
+		 * 
+		 * I changed this to have a fudge of 10 millisecond
 		 */
 		long intervalAdjustment = m_interval / 10;
 
@@ -378,13 +378,13 @@ public class Sequence extends MemberDigest {
 			// seq._reset();
 			DataSet dataSet = (DataSet) this;
 			System.out
-			.format("== Sequence.mergeInto() [%s_%s %s-%s] this=[%s-%s] is a subSequence of seq=[%s-%s] --> this._reset()\n",
-					dataSet.getNetwork(), dataSet.getStation(),
-					dataSet.getLocation(), dataSet.getChannel(),
-					DataSet.timestampToString(this.getStartTime()),
-					DataSet.timestampToString(this.getEndTime()),
-					DataSet.timestampToString(seq.getStartTime()),
-					DataSet.timestampToString(seq.getEndTime()));
+					.format("== Sequence.mergeInto() [%s_%s %s-%s] this=[%s-%s] is a subSequence of seq=[%s-%s] --> this._reset()\n",
+							dataSet.getNetwork(), dataSet.getStation(),
+							dataSet.getLocation(), dataSet.getChannel(),
+							DataSet.timestampToString(this.getStartTime()),
+							DataSet.timestampToString(this.getEndTime()),
+							DataSet.timestampToString(seq.getStartTime()),
+							DataSet.timestampToString(seq.getEndTime()));
 			this._reset();
 			return;
 		}

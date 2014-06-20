@@ -22,47 +22,47 @@ import java.util.Comparator;
 
 /**
  * @author Joel D. Edwards <jdedwards@usgs.gov>
- *
- * A Comparator for Sequence objects for user with ordered collections.
+ * 
+ *         A Comparator for Sequence objects for user with ordered collections.
  */
-public class SequenceComparator 
-implements Comparator<Sequence> 
-{
+public class SequenceComparator implements Comparator<Sequence> {
 	/**
-	 * @param A	 First item to be compared.
-	 * @param B  Second item to be compared.
-	 * @return   An integer value: 0 if Sequences are considered equal; less than 1 if Sequence A comes before Sequence B; greater than 1 if Sequence B comes before Sequence A.
+	 * @param A
+	 *            First item to be compared.
+	 * @param B
+	 *            Second item to be compared.
+	 * @return An integer value: 0 if Sequences are considered equal; less than
+	 *         1 if Sequence A comes before Sequence B; greater than 1 if
+	 *         Sequence B comes before Sequence A.
 	 */
-    public int compare (Sequence A, Sequence B) 
-    {
-        int result = 0;
-        if (A == null) {
-            if (B != null) {
-                result = -1;
-            }
-        } else if (B == null) {
-            result = 1;
-        } else {
-            if (A.startsBefore(B)) {
-                result = -1;
-            } else if (B.startsBefore(A)) {
-                result = 1;
-            } else if (B.endsAfter(A)) {
-                result = -1;
-            } else if (A.endsAfter(B)) {
-                result = 1;
-            }
-        }
-        return result;
-    }
+	public int compare(Sequence A, Sequence B) {
+		int result = 0;
+		if (A == null) {
+			if (B != null) {
+				result = -1;
+			}
+		} else if (B == null) {
+			result = 1;
+		} else {
+			if (A.startsBefore(B)) {
+				result = -1;
+			} else if (B.startsBefore(A)) {
+				result = 1;
+			} else if (B.endsAfter(A)) {
+				result = -1;
+			} else if (A.endsAfter(B)) {
+				result = 1;
+			}
+		}
+		return result;
+	}
 
-    /**
-     * @param obj	Object with which to compare this comparator.
-     * @return 		A boolean value: true if the two are equal, otherwise false.
-     */
-    public boolean equals (Object obj) 
-    {
-        return super.equals(obj);
-    }
+	/**
+	 * @param obj
+	 *            Object with which to compare this comparator.
+	 * @return A boolean value: true if the two are equal, otherwise false.
+	 */
+	public boolean equals(Object obj) {
+		return super.equals(obj);
+	}
 }
-

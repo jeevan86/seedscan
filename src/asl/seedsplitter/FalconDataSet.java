@@ -22,92 +22,84 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @author 	Joel D. Edwards <jdedwards@usgs.gov>
- *
- * A subclass of DataSet which pairs Falcon specific information with the data.
+ * @author Joel D. Edwards <jdedwards@usgs.gov>
+ * 
+ *         A subclass of DataSet which pairs Falcon specific information with
+ *         the data.
  */
-public class FalconDataSet 
-    extends DataSet
-{
-    private static final Logger logger = LoggerFactory.getLogger(asl.seedsplitter.FalconDataSet.class);
+public class FalconDataSet extends DataSet {
+	private static final Logger logger = LoggerFactory
+			.getLogger(asl.seedsplitter.FalconDataSet.class);
 
-    private int     m_id;
-    private int     m_type;
-    private String  m_description;
+	private int m_id;
+	private int m_type;
+	private String m_description;
 
-    /**
-     * Constructor.
-     */
-    public FalconDataSet()
-    throws RuntimeException,
-    	   CloneNotSupportedException
-    {
-        super();
-        m_id = 0;
-        m_type = 0;
-        m_description = null;
-    }
+	/**
+	 * Constructor.
+	 */
+	public FalconDataSet() throws RuntimeException, CloneNotSupportedException {
+		super();
+		m_id = 0;
+		m_type = 0;
+		m_description = null;
+	}
 
-    /**
-     * Sets the source id for this channel.
-     * 
-     * @param   id     the source id for this channel.
-     */
-    public void setId(int id)
-    {
-        m_id = id;
-    }
+	/**
+	 * Sets the source id for this channel.
+	 * 
+	 * @param id
+	 *            the source id for this channel.
+	 */
+	public void setId(int id) {
+		m_id = id;
+	}
 
-    /**
-     * Sets the data type code for this channel.
-     * 
-     * @param   type     the type of data for this channel.
-     */
-    public void setType(int type)
-    {
-        m_type = type;
-    }
+	/**
+	 * Sets the data type code for this channel.
+	 * 
+	 * @param type
+	 *            the type of data for this channel.
+	 */
+	public void setType(int type) {
+		m_type = type;
+	}
 
-    /**
-     * Sets the description of the falcon data channel.
-     * 
-     * @param   description     falcon data channel
-     */
-    public void setDescription(String description)
-    {
-        m_description = new String(description);
-    }
+	/**
+	 * Sets the description of the falcon data channel.
+	 * 
+	 * @param description
+	 *            falcon data channel
+	 */
+	public void setDescription(String description) {
+		m_description = new String(description);
+	}
 
+	/**
+	 * Returns the source id for this channel.
+	 * 
+	 * @return source id for this channel.
+	 */
+	public int getId() {
+		return m_id;
+	}
 
-    /**
-     * Returns the source id for this channel.
-     *
-     * @return  source id for this channel.
-     */
-    public int getId()
-    {
-        return m_id;
-    }
+	/**
+	 * Returns the data type code for this channel.
+	 * 
+	 * @return data type for this channel
+	 */
+	public int getType() {
+		return m_type;
+	}
 
-    /**
-     * Returns the data type code for this channel.
-     *
-     * @return  data type for this channel
-     */
-    public int getType()
-    {
-        return m_type;
-    }
-
-    /**
-     * Returns the description of the falcon data channel.
-     *
-     * @return  falcon data channel description
-     */
-    public String getDescription()
-    {
-        return m_description;
-    }
+	/**
+	 * Returns the description of the falcon data channel.
+	 * 
+	 * @return falcon data channel description
+	 */
+	public String getDescription() {
+		return m_description;
+	}
 
 }
-

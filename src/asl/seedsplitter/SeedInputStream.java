@@ -36,200 +36,229 @@ import asl.util.Hex;
 /**
  * @author Joel D. Edwards <jdedwards@usgs.gov>
  * 
- * Reads MiniSEED records from multiple files, and pushes them into a queue
- * to be processed by a supported class (seed {@link SeedSplitProcessor}).
+ *         Reads MiniSEED records from multiple files, and pushes them into a
+ *         queue to be processed by a supported class (seed
+ *         {@link SeedSplitProcessor}).
  */
-public class SeedInputStream
-implements Runnable
-{
-    private static final Logger logger = LoggerFactory.getLogger(asl.seedsplitter.SeedInputStream.class);
-    private static final Formatter formatter = new Formatter();
+public class SeedInputStream implements Runnable {
+	private static final Logger logger = LoggerFactory
+			.getLogger(asl.seedsplitter.SeedInputStream.class);
+	private static final Formatter formatter = new Formatter();
 
-    public static int MAX_RECORD_SIZE = 16384;
-    public static int BLOCK_SIZE = 256;
+	public static int MAX_RECORD_SIZE = 16384;
+	public static int BLOCK_SIZE = 256;
 
-    private DataInputStream m_inputStream = null;
-    private LinkedBlockingQueue<ByteBlock> m_queue = null;
-    private boolean m_running = false;
-    private byte[] m_buffer = null;
-    private int m_bufferBytes = 0;
-    private int m_skippedBytes = 0;
-    private boolean m_indicateLast = true;
-    private String m_digest_algorithm = "MD5";
-    private MessageDigest m_digest = null;
+	private DataInputStream m_inputStream = null;
+	private LinkedBlockingQueue<ByteBlock> m_queue = null;
+	private boolean m_running = false;
+	private byte[] m_buffer = null;
+	private int m_bufferBytes = 0;
+	private int m_skippedBytes = 0;
+	private boolean m_indicateLast = true;
+	private String m_digest_algorithm = "MD5";
+	private MessageDigest m_digest = null;
 
-    /**
-     * Constructor.
-     * 
-     * @param inStream 		The stream from which to read MiniSEED records.
-     * @param queue			The processing queue into which the MiniSEED records are placed.
-     * @param indicateLast 	An indicator of whether this is the last record for this stream.
-     * @param disableDigest	A flag to disable assembling a digest of this stream's contents.
-     */
-    public SeedInputStream(DataInputStream inStream, LinkedBlockingQueue<ByteBlock> queue, boolean indicateLast, boolean disableDigest) {
-        m_inputStream = inStream;
-        m_queue = queue;
-        m_buffer = new byte[MAX_RECORD_SIZE];
-        m_indicateLast = indicateLast;
-        if (!disableDigest) {
-            try {
-                m_digest = MessageDigest.getInstance(m_digest_algorithm);
-            } catch (NoSuchAlgorithmException e) {
-            	logger.warn("NoSuchAlgorithmException:", e);
-            }
-        }
-    }
+	/**
+	 * Constructor.
+	 * 
+	 * @param inStream
+	 *            The stream from which to read MiniSEED records.
+	 * @param queue
+	 *            The processing queue into which the MiniSEED records are
+	 *            placed.
+	 * @param indicateLast
+	 *            An indicator of whether this is the last record for this
+	 *            stream.
+	 * @param disableDigest
+	 *            A flag to disable assembling a digest of this stream's
+	 *            contents.
+	 */
+	public SeedInputStream(DataInputStream inStream,
+			LinkedBlockingQueue<ByteBlock> queue, boolean indicateLast,
+			boolean disableDigest) {
+		m_inputStream = inStream;
+		m_queue = queue;
+		m_buffer = new byte[MAX_RECORD_SIZE];
+		m_indicateLast = indicateLast;
+		if (!disableDigest) {
+			try {
+				m_digest = MessageDigest.getInstance(m_digest_algorithm);
+			} catch (NoSuchAlgorithmException e) {
+				logger.warn("NoSuchAlgorithmException:", e);
+			}
+		}
+	}
 
-    /**
-     * Constructor.
-     * 
-     * @param inStream 		The stream from which to read MiniSEED records.
-     * @param queue			The processing queue into which the MiniSEED records are placed.
-     * @param indicateLast 	An indicator of whether this is the last record for this stream.
-     */
-    public SeedInputStream(DataInputStream inStream, LinkedBlockingQueue<ByteBlock> queue, boolean indicateLast) {
-        this(inStream, queue, indicateLast, false);
-    }
+	/**
+	 * Constructor.
+	 * 
+	 * @param inStream
+	 *            The stream from which to read MiniSEED records.
+	 * @param queue
+	 *            The processing queue into which the MiniSEED records are
+	 *            placed.
+	 * @param indicateLast
+	 *            An indicator of whether this is the last record for this
+	 *            stream.
+	 */
+	public SeedInputStream(DataInputStream inStream,
+			LinkedBlockingQueue<ByteBlock> queue, boolean indicateLast) {
+		this(inStream, queue, indicateLast, false);
+	}
 
-    /**
-     * Constructor.
-     * 
-     * @param inStream 	The stream from which to read MiniSEED records.
-     * @param queue		The processing queue into which the MiniSEED records are placed.
-     */
-    public SeedInputStream(DataInputStream inStream, LinkedBlockingQueue<ByteBlock> queue) {
-        this(inStream, queue, true, false);
-    }
+	/**
+	 * Constructor.
+	 * 
+	 * @param inStream
+	 *            The stream from which to read MiniSEED records.
+	 * @param queue
+	 *            The processing queue into which the MiniSEED records are
+	 *            placed.
+	 */
+	public SeedInputStream(DataInputStream inStream,
+			LinkedBlockingQueue<ByteBlock> queue) {
+		this(inStream, queue, true, false);
+	}
 
-    /**
-     * Returns this stream's MessageDigest
-     * 
-     * @return the raw digest for this stream.
-     */
-    public byte[] getDigest() {
-        byte[] result = null;
-        if (m_digest != null ) {
-            try {
-                result = ((MessageDigest)m_digest.clone()).digest();
-            }
-            catch (CloneNotSupportedException ex) {
-            	logger.warn("CloneNotSupportedException:", ex);
-            }
-        }
-        return result;
-    }
+	/**
+	 * Returns this stream's MessageDigest
+	 * 
+	 * @return the raw digest for this stream.
+	 */
+	public byte[] getDigest() {
+		byte[] result = null;
+		if (m_digest != null) {
+			try {
+				result = ((MessageDigest) m_digest.clone()).digest();
+			} catch (CloneNotSupportedException ex) {
+				logger.warn("CloneNotSupportedException:", ex);
+			}
+		}
+		return result;
+	}
 
-    /**
-     * Returns a hex version of the digest for this stream.
-     * 
-     * @return a String version of the for this stream.
-     */
-    public String getDigestString() {
-        String result = null;
-        if (m_digest != null ) {
-            try {
-                result = Hex.byteArrayToHexString(((MessageDigest)m_digest.clone()).digest());
-            } catch (CloneNotSupportedException ex) {
-            	logger.error("CloneNotSupportedException:", ex);
-            } catch (IllegalArgumentException ex) {
-            	logger.error("IllegalArgumentException:", ex);
-            }
-        }
-        return result;
-    }
+	/**
+	 * Returns a hex version of the digest for this stream.
+	 * 
+	 * @return a String version of the for this stream.
+	 */
+	public String getDigestString() {
+		String result = null;
+		if (m_digest != null) {
+			try {
+				result = Hex.byteArrayToHexString(((MessageDigest) m_digest
+						.clone()).digest());
+			} catch (CloneNotSupportedException ex) {
+				logger.error("CloneNotSupportedException:", ex);
+			} catch (IllegalArgumentException ex) {
+				logger.error("IllegalArgumentException:", ex);
+			}
+		}
+		return result;
+	}
 
-    /**
-     * Causes this thread to halt gracefully.
-     */
-    public void halt() {
-        m_running = false;
-    }
+	/**
+	 * Causes this thread to halt gracefully.
+	 */
+	public void halt() {
+		m_running = false;
+	}
 
-    /**
-     * Reads data from the input stream, assembles full SEED records and 
-     * pushes them into the queue for processing.
-     */
-    @Override
-    public void run() {
-        /* Read chunks of data in from input stream. 
-           Once a complete record has been assembled,
-           put it into the queue for processing */
-        m_running = true;
-        int recordLength = -1;
-        int bytesRead = 0;
-        int indicator;
-        ByteBlock last = new ByteBlock(null, 0, true, true);
-        ByteBlock end  = new ByteBlock(null, 0, true, false);
-        while (m_running) {
-            try {
-                if (m_bufferBytes < BLOCK_SIZE) {
-                    bytesRead = m_inputStream.read(m_buffer, m_bufferBytes, BLOCK_SIZE - m_bufferBytes);
-                    if (bytesRead < 0) {
-                        logger.debug("SeedInputStream Thread> I think we're done here...");
-                        if (m_indicateLast) {
-                            m_queue.put(last);
-                        } else {
-                            m_queue.put(end);
-                        }
-                        m_running = false;
-                        continue;
-                    }
-                    m_bufferBytes += bytesRead;
+	/**
+	 * Reads data from the input stream, assembles full SEED records and pushes
+	 * them into the queue for processing.
+	 */
+	@Override
+	public void run() {
+		/*
+		 * Read chunks of data in from input stream. Once a complete record has
+		 * been assembled, put it into the queue for processing
+		 */
+		m_running = true;
+		int recordLength = -1;
+		int bytesRead = 0;
+		int indicator;
+		ByteBlock last = new ByteBlock(null, 0, true, true);
+		ByteBlock end = new ByteBlock(null, 0, true, false);
+		while (m_running) {
+			try {
+				if (m_bufferBytes < BLOCK_SIZE) {
+					bytesRead = m_inputStream.read(m_buffer, m_bufferBytes,
+							BLOCK_SIZE - m_bufferBytes);
+					if (bytesRead < 0) {
+						logger.debug("SeedInputStream Thread> I think we're done here...");
+						if (m_indicateLast) {
+							m_queue.put(last);
+						} else {
+							m_queue.put(end);
+						}
+						m_running = false;
+						continue;
+					}
+					m_bufferBytes += bytesRead;
 
-                    // Update the contents of our SHA-1 digest.
-                    if (m_digest != null) {
-                        m_digest.update(Arrays.copyOfRange(m_buffer, m_bufferBytes, bytesRead));
-                    }
+					// Update the contents of our SHA-1 digest.
+					if (m_digest != null) {
+						m_digest.update(Arrays.copyOfRange(m_buffer,
+								m_bufferBytes, bytesRead));
+					}
 
-                    if (m_bufferBytes == BLOCK_SIZE) {
-                        indicator = m_buffer[6] & 0xFF;
-                        // Make sure we find either the SEED standard indicator 'D'
-                        // or the NEIC post processed data indicator 'Q'
-                        // or the one mentioned on the IRIS website 'M'
-                        /*                 'D'                    'M'                    'Q'  */
-                        if ((indicator != 0x44) && (indicator != 0x4D) && (indicator != 0x51)) { 
-                            m_skippedBytes += m_bufferBytes;
-                            m_bufferBytes = 0;
-                            logger.debug(formatter.format("Skipping bad indicator: 0x%x\n", indicator).toString());
-                        }
-                        else {
-                            try {
-                                recordLength = MiniSeed.crackBlockSize(m_buffer);
-                            } catch (IllegalSeednameException e) {
-                                logger.debug("Invalid Format, Skipping Chunk.", e);
-                                m_skippedBytes += m_bufferBytes;
-                                m_bufferBytes = 0;
-                            }
-                            /*
-                            firstBlockette = ((m_buffer[46] & 0xFF) << 8) | (m_buffer[47] & 0xFF);
-                            if (m_bufferBytes <= (firstBlockette + 6)) {
-                                logger.debug("First blockette should be within the first 256 bytes");
-                                m_bufferBytes = 0;
-                            }
-                            else if ((((m_buffer[firstBlockette] & 0xFF) << 8) | (m_buffer[firstBlockette+1] & 0xFF)) != 1000) {
-                                logger.debug("First record should be of type 1000, not type " + (m_buffer[firstBlockette] & 0xFF));
-                                m_bufferBytes = 0;
-                            } 
-                            else {
-                                recordLength = (int)(java.lang.Math.pow(2, m_buffer[firstBlockette + 6]));
-                            }
-                            */
-                        }
-                    }
-                } else {
-                    m_bufferBytes += m_inputStream.read(m_buffer, m_bufferBytes, recordLength - m_bufferBytes);
-                    if (m_bufferBytes == recordLength) {
-                        m_queue.put(new ByteBlock(m_buffer, recordLength, m_skippedBytes));
-                        m_bufferBytes = 0;
-                        m_skippedBytes = 0;
-                    }
-                }
-            } catch (IOException e) {
-                logger.error("IOException:", e);
-            } catch (InterruptedException e) {
-                logger.error("InterruptedException:", e);
-            }
-        }
-    }
+					if (m_bufferBytes == BLOCK_SIZE) {
+						indicator = m_buffer[6] & 0xFF;
+						// Make sure we find either the SEED standard indicator
+						// 'D'
+						// or the NEIC post processed data indicator 'Q'
+						// or the one mentioned on the IRIS website 'M'
+						/* 'D' 'M' 'Q' */
+						if ((indicator != 0x44) && (indicator != 0x4D)
+								&& (indicator != 0x51)) {
+							m_skippedBytes += m_bufferBytes;
+							m_bufferBytes = 0;
+							logger.debug(formatter
+									.format("Skipping bad indicator: 0x%x\n",
+											indicator).toString());
+						} else {
+							try {
+								recordLength = MiniSeed
+										.crackBlockSize(m_buffer);
+							} catch (IllegalSeednameException e) {
+								logger.debug("Invalid Format, Skipping Chunk.",
+										e);
+								m_skippedBytes += m_bufferBytes;
+								m_bufferBytes = 0;
+							}
+							/*
+							 * firstBlockette = ((m_buffer[46] & 0xFF) << 8) |
+							 * (m_buffer[47] & 0xFF); if (m_bufferBytes <=
+							 * (firstBlockette + 6)) { logger.debug(
+							 * "First blockette should be within the first 256 bytes"
+							 * ); m_bufferBytes = 0; } else if
+							 * ((((m_buffer[firstBlockette] & 0xFF) << 8) |
+							 * (m_buffer[firstBlockette+1] & 0xFF)) != 1000) {
+							 * logger.debug(
+							 * "First record should be of type 1000, not type "
+							 * + (m_buffer[firstBlockette] & 0xFF));
+							 * m_bufferBytes = 0; } else { recordLength =
+							 * (int)(java.lang.Math.pow(2,
+							 * m_buffer[firstBlockette + 6])); }
+							 */
+						}
+					}
+				} else {
+					m_bufferBytes += m_inputStream.read(m_buffer,
+							m_bufferBytes, recordLength - m_bufferBytes);
+					if (m_bufferBytes == recordLength) {
+						m_queue.put(new ByteBlock(m_buffer, recordLength,
+								m_skippedBytes));
+						m_bufferBytes = 0;
+						m_skippedBytes = 0;
+					}
+				}
+			} catch (IOException e) {
+				logger.error("IOException:", e);
+			} catch (InterruptedException e) {
+				logger.error("InterruptedException:", e);
+			}
+		}
+	}
 }
-

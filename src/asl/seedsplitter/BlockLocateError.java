@@ -19,11 +19,11 @@
 package asl.seedsplitter;
 
 /**
- * @author 	Joel D. Edwards <jdedwards@usgs.gov>
- *
- * An enumeration describing the possible errors encountered when performing a block location.
+ * @author Joel D. Edwards <jdedwards@usgs.gov>
+ * 
+ *         An enumeration describing the possible errors encountered when
+ *         performing a block location.
  */
 public enum BlockLocateError {
-    NONE, INTERVAL_MISMATCH
+	NONE, INTERVAL_MISMATCH
 }
-

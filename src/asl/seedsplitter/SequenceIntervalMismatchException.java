@@ -20,21 +20,16 @@ package asl.seedsplitter;
 
 /**
  * @author Joel D. Edwards <jdedwards@usgs.gov>
- *
+ * 
  */
-public class SequenceIntervalMismatchException
-extends Exception
-{
-    public static final long serialVersionUID = 1L;
+public class SequenceIntervalMismatchException extends Exception {
+	public static final long serialVersionUID = 1L;
 
-    public SequenceIntervalMismatchException()
-    {
-        super();
-    }
+	public SequenceIntervalMismatchException() {
+		super();
+	}
 
-    public SequenceIntervalMismatchException(String message)
-    {
-        super(message);
-    }
+	public SequenceIntervalMismatchException(String message) {
+		super(message);
+	}
 }
-

@@ -19,20 +19,17 @@
 package asl.seedsplitter;
 
 /**
- * @author  Joel D. Edwards <jdedwards@usgs.gov>
- *
+ * @author Joel D. Edwards <jdedwards@usgs.gov>
+ * 
  */
-public class InvalidFilterException
-extends Exception
-{
-    public static final long serialVersionUID = 1L;
+public class InvalidFilterException extends Exception {
+	public static final long serialVersionUID = 1L;
 
-    public InvalidFilterException() {
-        super();
-    }
+	public InvalidFilterException() {
+		super();
+	}
 
-    public InvalidFilterException(String message) {
-        super(message);
-    }
+	public InvalidFilterException(String message) {
+		super(message);
+	}
 }
-
