@@ -26,13 +26,14 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Calendar;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import asl.metadata.Channel;
 import asl.metadata.Station;
-import asl.seedscan.config.*;
-import asl.seedscan.metrics.*;
+import asl.seedscan.config.DatabaseT;
+import asl.seedscan.metrics.MetricResult;
 
 public class MetricDatabase {
 	public static final Logger logger = LoggerFactory
