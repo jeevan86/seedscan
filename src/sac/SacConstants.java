@@ -1,349 +1,349 @@
 //package edu.sc.seis.seisFile.sac;
 package sac;
 
-
 public class SacConstants {
-    
-    public static boolean isUndef(float f) {
-        return f == FLOAT_UNDEF;
-    }
-    
-    public static boolean isUndef(int i) {
-        return i == INT_UNDEF;
-    }
-    
-    public static boolean isUndef(String s) {
-        return (s.length() == 8 && s.equals(STRING8_UNDEF)) ||
-               (s.length() == 16 && s.equals(STRING16_UNDEF));
-    }
 
-    // undef values for sac
-    public static final float FLOAT_UNDEF = -12345.0f;
+	public static boolean isUndef(float f) {
+		return f == FLOAT_UNDEF;
+	}
 
-    public static final int INT_UNDEF = -12345;
+	public static boolean isUndef(int i) {
+		return i == INT_UNDEF;
+	}
 
-    public static final String STRING8_UNDEF = "-12345  ";
+	public static boolean isUndef(String s) {
+		return (s.length() == 8 && s.equals(STRING8_UNDEF))
+				|| (s.length() == 16 && s.equals(STRING16_UNDEF));
+	}
 
-    public static final String STRING16_UNDEF = "-12345          ";
+	// undef values for sac
+	public static final float FLOAT_UNDEF = -12345.0f;
 
-    public static final int DEFAULT_NVHDR = 6;
+	public static final int INT_UNDEF = -12345;
 
-    /* TRUE and FLASE defined for convenience. */
-    public static final int TRUE = 1;
+	public static final String STRING8_UNDEF = "-12345  ";
 
-    public static final int FALSE = 0;
+	public static final String STRING16_UNDEF = "-12345          ";
 
-    /* Constants used by sac. This corresponds to utils/sac.h in sac 101.4 */
-    /** Undocumented */
-    public static final int IREAL = 0;
+	public static final int DEFAULT_NVHDR = 6;
 
-    /** Time series file */
-    public static final int ITIME = 1;
+	/* TRUE and FLASE defined for convenience. */
+	public static final int TRUE = 1;
 
-    /** Spectral file-real/imag */
-    public static final int IRLIM = 2;
+	public static final int FALSE = 0;
 
-    /** Spectral file-ampl/phase */
-    public static final int IAMPH = 3;
+	/* Constants used by sac. This corresponds to utils/sac.h in sac 101.4 */
+	/** Undocumented */
+	public static final int IREAL = 0;
 
-    /** General x vs y file */
-    public static final int IXY = 4;
+	/** Time series file */
+	public static final int ITIME = 1;
 
-    /** Unknown */
-    public static final int IUNKN = 5;
+	/** Spectral file-real/imag */
+	public static final int IRLIM = 2;
 
-    /** Displacement (NM) */
-    public static final int IDISP = 6;
+	/** Spectral file-ampl/phase */
+	public static final int IAMPH = 3;
 
-    /** Velocity (NM/SEC) */
-    public static final int IVEL = 7;
+	/** General x vs y file */
+	public static final int IXY = 4;
 
-    /** Acceleration (NM/SEC/SEC) */
-    public static final int IACC = 8;
+	/** Unknown */
+	public static final int IUNKN = 5;
 
-    /** Begin time */
-    public static final int IB = 9;
+	/** Displacement (NM) */
+	public static final int IDISP = 6;
 
-    /** GMT day */
-    public static final int IDAY = 10;
+	/** Velocity (NM/SEC) */
+	public static final int IVEL = 7;
 
-    /** Event origin time */
-    public static final int IO = 11;
+	/** Acceleration (NM/SEC/SEC) */
+	public static final int IACC = 8;
 
-    /** First arrival time */
-    public static final int IA = 12;
+	/** Begin time */
+	public static final int IB = 9;
 
-    /** User defined time pick 0 */
-    public static final int IT0 = 13;
+	/** GMT day */
+	public static final int IDAY = 10;
 
-    /** User defined time pick 1 */
-    public static final int IT1 = 14;
+	/** Event origin time */
+	public static final int IO = 11;
 
-    /** User defined time pick 2 */
-    public static final int IT2 = 15;
+	/** First arrival time */
+	public static final int IA = 12;
 
-    /** User defined time pick 3 */
-    public static final int IT3 = 16;
+	/** User defined time pick 0 */
+	public static final int IT0 = 13;
 
-    /** User defined time pick 4 */
-    public static final int IT4 = 17;
+	/** User defined time pick 1 */
+	public static final int IT1 = 14;
 
-    /** User defined time pick 5 */
-    public static final int IT5 = 18;
+	/** User defined time pick 2 */
+	public static final int IT2 = 15;
 
-    /** User defined time pick 6 */
-    public static final int IT6 = 19;
+	/** User defined time pick 3 */
+	public static final int IT3 = 16;
 
-    /** User defined time pick 7 */
-    public static final int IT7 = 20;
+	/** User defined time pick 4 */
+	public static final int IT4 = 17;
 
-    /** User defined time pick 8 */
-    public static final int IT8 = 21;
+	/** User defined time pick 5 */
+	public static final int IT5 = 18;
 
-    /** User defined time pick 9 */
-    public static final int IT9 = 22;
+	/** User defined time pick 6 */
+	public static final int IT6 = 19;
 
-    /** Radial (NTS) */
-    public static final int IRADNV = 23;
+	/** User defined time pick 7 */
+	public static final int IT7 = 20;
 
-    /** Tangential (NTS) */
-    public static final int ITANNV = 24;
+	/** User defined time pick 8 */
+	public static final int IT8 = 21;
 
-    /** Radial (EVENT) */
-    public static final int IRADEV = 25;
+	/** User defined time pick 9 */
+	public static final int IT9 = 22;
 
-    /** Tangential (EVENT) */
-    public static final int ITANEV = 26;
+	/** Radial (NTS) */
+	public static final int IRADNV = 23;
 
-    /** North positive */
-    public static final int INORTH = 27;
+	/** Tangential (NTS) */
+	public static final int ITANNV = 24;
 
-    /** East positive */
-    public static final int IEAST = 28;
+	/** Radial (EVENT) */
+	public static final int IRADEV = 25;
 
-    /** Horizontal (ARB) */
-    public static final int IHORZA = 29;
+	/** Tangential (EVENT) */
+	public static final int ITANEV = 26;
 
-    /** Down positive */
-    public static final int IDOWN = 30;
+	/** North positive */
+	public static final int INORTH = 27;
 
-    /** Up positive */
-    public static final int IUP = 31;
+	/** East positive */
+	public static final int IEAST = 28;
 
-    /** LLL broadband */
-    public static final int ILLLBB = 32;
+	/** Horizontal (ARB) */
+	public static final int IHORZA = 29;
 
-    /** WWSN 15-100 */
-    public static final int IWWSN1 = 33;
+	/** Down positive */
+	public static final int IDOWN = 30;
 
-    /** WWSN 30-100 */
-    public static final int IWWSN2 = 34;
+	/** Up positive */
+	public static final int IUP = 31;
 
-    /** High-gain long-period */
-    public static final int IHGLP = 35;
+	/** LLL broadband */
+	public static final int ILLLBB = 32;
 
-    /** SRO */
-    public static final int ISRO = 36;
+	/** WWSN 15-100 */
+	public static final int IWWSN1 = 33;
 
-    /** Nuclear event */
-    public static final int INUCL = 37;
+	/** WWSN 30-100 */
+	public static final int IWWSN2 = 34;
 
-    /** Nuclear pre-shot event */
-    public static final int IPREN = 38;
+	/** High-gain long-period */
+	public static final int IHGLP = 35;
 
-    /** Nuclear post-shot event */
-    public static final int IPOSTN = 39;
+	/** SRO */
+	public static final int ISRO = 36;
 
-    /** Earthquake */
-    public static final int IQUAKE = 40;
+	/** Nuclear event */
+	public static final int INUCL = 37;
 
-    /** Foreshock */
-    public static final int IPREQ = 41;
+	/** Nuclear pre-shot event */
+	public static final int IPREN = 38;
 
-    /** Aftershock */
-    public static final int IPOSTQ = 42;
+	/** Nuclear post-shot event */
+	public static final int IPOSTN = 39;
 
-    /** Chemical explosion */
-    public static final int ICHEM = 43;
+	/** Earthquake */
+	public static final int IQUAKE = 40;
 
-    /** Other */
-    public static final int IOTHER = 44;
+	/** Foreshock */
+	public static final int IPREQ = 41;
 
-    /** Good */
-    public static final int IGOOD = 45;
+	/** Aftershock */
+	public static final int IPOSTQ = 42;
 
-    /** Gliches */
-    public static final int IGLCH = 46;
+	/** Chemical explosion */
+	public static final int ICHEM = 43;
 
-    /** Dropouts */
-    public static final int IDROP = 47;
+	/** Other */
+	public static final int IOTHER = 44;
 
-    /** Low signal to noise ratio */
-    public static final int ILOWSN = 48;
+	/** Good */
+	public static final int IGOOD = 45;
 
-    /** Real data */
-    public static final int IRLDTA = 49;
+	/** Gliches */
+	public static final int IGLCH = 46;
 
-    /** Velocity (volts) */
-    public static final int IVOLTS = 50;
+	/** Dropouts */
+	public static final int IDROP = 47;
 
-    /** General XYZ (3-D) file */
-    public static final int IXYZ = 51;
+	/** Low signal to noise ratio */
+	public static final int ILOWSN = 48;
 
-    /* These 18 added to describe magnitude type and source maf 970205 */
-    /** Bodywave Magnitude */
-    public static final int IMB = 52;
+	/** Real data */
+	public static final int IRLDTA = 49;
 
-    /** Surface Magnitude */
-    public static final int IMS = 53;
+	/** Velocity (volts) */
+	public static final int IVOLTS = 50;
 
-    /** Local Magnitude */
-    public static final int IML = 54;
+	/** General XYZ (3-D) file */
+	public static final int IXYZ = 51;
 
-    /** Moment Magnitude */
-    public static final int IMW = 55;
+	/* These 18 added to describe magnitude type and source maf 970205 */
+	/** Bodywave Magnitude */
+	public static final int IMB = 52;
 
-    /** Duration Magnitude */
-    public static final int IMD = 56;
+	/** Surface Magnitude */
+	public static final int IMS = 53;
 
-    /** User Defined Magnitude */
-    public static final int IMX = 57;
+	/** Local Magnitude */
+	public static final int IML = 54;
 
-    /** INEIC */
-    public static final int INEIC = 58;
+	/** Moment Magnitude */
+	public static final int IMW = 55;
 
-    /** IPDEQ */
-    public static final int IPDEQ = 59;
+	/** Duration Magnitude */
+	public static final int IMD = 56;
 
-    /** IPDEW */
-    public static final int IPDEW = 60;
+	/** User Defined Magnitude */
+	public static final int IMX = 57;
 
-    /** IPDE */
-    public static final int IPDE = 61;
+	/** INEIC */
+	public static final int INEIC = 58;
 
-    /** IISC */
-    public static final int IISC = 62;
+	/** IPDEQ */
+	public static final int IPDEQ = 59;
 
-    /** IREB */
-    public static final int IREB = 63;
+	/** IPDEW */
+	public static final int IPDEW = 60;
 
-    /** IUSGS */
-    public static final int IUSGS = 64;
+	/** IPDE */
+	public static final int IPDE = 61;
 
-    /** IBRK */
-    public static final int IBRK = 65;
+	/** IISC */
+	public static final int IISC = 62;
 
-    /** ICALTECH */
-    public static final int ICALTECH = 66;
+	/** IREB */
+	public static final int IREB = 63;
 
-    /** ILLNL */
-    public static final int ILLNL = 67;
+	/** IUSGS */
+	public static final int IUSGS = 64;
 
-    /** IEVLOC */
-    public static final int IEVLOC = 68;
+	/** IBRK */
+	public static final int IBRK = 65;
 
-    /** IJSOP */
-    public static final int IJSOP = 69;
+	/** ICALTECH */
+	public static final int ICALTECH = 66;
 
-    /** IUSER */
-    public static final int IUSER = 70;
+	/** ILLNL */
+	public static final int ILLNL = 67;
 
-    /** IUNKNOWN */
-    public static final int IUNKNOWN = 71;
+	/** IEVLOC */
+	public static final int IEVLOC = 68;
 
-    /* These 17 added for ievtyp. maf 970325 */
-    /** Quarry or mine blast confirmed by quarry */
-    public static final int IQB = 72;
+	/** IJSOP */
+	public static final int IJSOP = 69;
 
-    /** Quarry or mine blast with designed shot information-ripple fired */
-    public static final int IQB1 = 73;
+	/** IUSER */
+	public static final int IUSER = 70;
 
-    /** Quarry or mine blast with observed shot information-ripple fired */
-    public static final int IQB2 = 74;
+	/** IUNKNOWN */
+	public static final int IUNKNOWN = 71;
 
-    /** Quarry or mine blast - single shot */
-    public static final int IQBX = 75;
+	/* These 17 added for ievtyp. maf 970325 */
+	/** Quarry or mine blast confirmed by quarry */
+	public static final int IQB = 72;
 
-    /** Quarry or mining-induced events: tremors and rockbursts */
-    public static final int IQMT = 76;
+	/** Quarry or mine blast with designed shot information-ripple fired */
+	public static final int IQB1 = 73;
 
-    /** Earthquake */
-    public static final int IEQ = 77;
+	/** Quarry or mine blast with observed shot information-ripple fired */
+	public static final int IQB2 = 74;
 
-    /** Earthquakes in a swarm or aftershock sequence */
-    public static final int IEQ1 = 78;
+	/** Quarry or mine blast - single shot */
+	public static final int IQBX = 75;
 
-    /** Felt earthquake */
-    public static final int IEQ2 = 79;
+	/** Quarry or mining-induced events: tremors and rockbursts */
+	public static final int IQMT = 76;
 
-    /** Marine explosion */
-    public static final int IME = 80;
+	/** Earthquake */
+	public static final int IEQ = 77;
 
-    /** Other explosion */
-    public static final int IEX = 81;
+	/** Earthquakes in a swarm or aftershock sequence */
+	public static final int IEQ1 = 78;
 
-    /** Nuclear explosion */
-    public static final int INU = 82;
+	/** Felt earthquake */
+	public static final int IEQ2 = 79;
 
-    /** Nuclear cavity collapse */
-    public static final int INC = 83;
+	/** Marine explosion */
+	public static final int IME = 80;
 
-    /** Other source of known origin */
-    public static final int IO_ = 84;
+	/** Other explosion */
+	public static final int IEX = 81;
 
-    /** Local event of unknown origin */
-    public static final int IL = 85;
+	/** Nuclear explosion */
+	public static final int INU = 82;
 
-    /** Regional event of unknown origin */
-    public static final int IR = 86;
+	/** Nuclear cavity collapse */
+	public static final int INC = 83;
 
-    /** Teleseismic event of unknown origin */
-    public static final int IT = 87;
+	/** Other source of known origin */
+	public static final int IO_ = 84;
 
-    /** Undetermined or conflicting information */
-    public static final int IU = 88;
+	/** Local event of unknown origin */
+	public static final int IL = 85;
 
-    /* These 9 added for ievtype to keep up with database. maf 000530 */
-    /** Damaging Earthquake */
-    public static final int IEQ3 = 89;
+	/** Regional event of unknown origin */
+	public static final int IR = 86;
 
-    /** Probable earthquake */
-    public static final int IEQ0 = 90;
+	/** Teleseismic event of unknown origin */
+	public static final int IT = 87;
 
-    /** Probable explosion */
-    public static final int IEX0 = 91;
+	/** Undetermined or conflicting information */
+	public static final int IU = 88;
 
-    /** Mine collapse */
-    public static final int IQC = 92;
+	/* These 9 added for ievtype to keep up with database. maf 000530 */
+	/** Damaging Earthquake */
+	public static final int IEQ3 = 89;
 
-    /** Probable Mine Blast */
-    public static final int IQB0 = 93;
+	/** Probable earthquake */
+	public static final int IEQ0 = 90;
 
-    /** Geyser */
-    public static final int IGEY = 94;
+	/** Probable explosion */
+	public static final int IEX0 = 91;
 
-    /** Light */
-    public static final int ILIT = 95;
+	/** Mine collapse */
+	public static final int IQC = 92;
 
-    /** Meteroic event */
-    public static final int IMET = 96;
+	/** Probable Mine Blast */
+	public static final int IQB0 = 93;
 
-    /** Odors */
-    public static final int IODOR = 97;
+	/** Geyser */
+	public static final int IGEY = 94;
 
-    public static final int data_offset = 632;
+	/** Light */
+	public static final int ILIT = 95;
 
-    public static final int NVHDR_OFFSET = 76 * 4;
+	/** Meteroic event */
+	public static final int IMET = 96;
 
-    public static final int NPTS_OFFSET = 79 * 4;
-    
-    public static final boolean SunByteOrder = true;
+	/** Odors */
+	public static final int IODOR = 97;
 
-    public static final boolean IntelByteOrder = false;
+	public static final int data_offset = 632;
 
-    public static final boolean LITTLE_ENDIAN = IntelByteOrder;
-    
-    public static final boolean BIG_ENDIAN = SunByteOrder;
-    
-    private SacConstants() {}
+	public static final int NVHDR_OFFSET = 76 * 4;
+
+	public static final int NPTS_OFFSET = 79 * 4;
+
+	public static final boolean SunByteOrder = true;
+
+	public static final boolean IntelByteOrder = false;
+
+	public static final boolean LITTLE_ENDIAN = IntelByteOrder;
+
+	public static final boolean BIG_ENDIAN = SunByteOrder;
+
+	private SacConstants() {
+	}
 }
