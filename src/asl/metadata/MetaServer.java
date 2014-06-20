@@ -18,21 +18,18 @@
  */
 package asl.metadata;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import java.net.URI;
+import java.rmi.Naming;
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Set;
-import java.net.URI;
 
-import asl.metadata.MetaGenerator;
-import asl.metadata.Station;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import asl.metadata.meta_new.StationMeta;
-
-import java.rmi.Naming;
-import java.rmi.server.UnicastRemoteObject;
-import java.rmi.RemoteException;
 
 /**
  * MetaServer - Return requested metadata

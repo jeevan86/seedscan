@@ -18,11 +18,10 @@
  */
 package asl.metadata;
 
+import java.util.Hashtable;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.Hashtable;
 
 public class StageData
 {

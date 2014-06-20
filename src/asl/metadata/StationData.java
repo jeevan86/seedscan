@@ -18,16 +18,14 @@
  */
 package asl.metadata;
 
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Hashtable;
+import java.util.TreeSet;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.Hashtable;
-import java.util.ArrayList;
-import java.util.TreeSet;
-import java.util.Collections;
-import java.text.SimpleDateFormat;
 
 public class StationData
 {

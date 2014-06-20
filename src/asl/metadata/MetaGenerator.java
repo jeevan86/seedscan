@@ -18,25 +18,26 @@
  */
 package asl.metadata;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import freq.Cmplx;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.Calendar;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.io.*;
-
-import asl.metadata.meta_new.*;
-
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import asl.metadata.meta_new.ChannelMeta;
+import asl.metadata.meta_new.StationMeta;
 
 /**
  * MetaGenerator - Holds metadata for all networks x stations x channels x epochs

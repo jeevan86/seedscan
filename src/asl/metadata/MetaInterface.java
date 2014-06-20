@@ -2,8 +2,8 @@ package asl.metadata;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
-import java.util.List;
 import java.util.Calendar;
+import java.util.List;
 
 import asl.metadata.meta_new.StationMeta;
 

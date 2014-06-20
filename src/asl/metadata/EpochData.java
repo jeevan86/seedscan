@@ -18,16 +18,14 @@
  */
 package asl.metadata;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Hashtable;
+import java.util.TimeZone;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.Calendar;
-import java.util.Collections;
-import java.text.SimpleDateFormat;
-
-import java.util.TimeZone;
 
 public class EpochData
 {

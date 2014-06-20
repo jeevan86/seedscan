@@ -18,15 +18,13 @@
  */
 package asl.metadata;
 
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Hashtable;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Calendar;
-import java.util.Hashtable;
-import java.util.TreeSet;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Collections;
 
 public class ChannelData
 {

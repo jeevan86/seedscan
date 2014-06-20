@@ -80,8 +80,6 @@ package asl.metadata;
  *
  */
 
-import asl.worker.CancelledException;
-
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -89,6 +87,8 @@ import java.util.Hashtable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import asl.worker.CancelledException;
 
 public class Dataless
 {
