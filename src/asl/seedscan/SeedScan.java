@@ -108,9 +108,6 @@ public class SeedScan {
 		ConfigParser parser = new ConfigParser(schemaFiles);
 		ConfigT config = parser.parseConfig(configFile);
 
-		// Print out configuration file contents
-		Formatter formatter = new Formatter(new StringBuilder(), Locale.US);
-
 		// ===== CONFIG: LOCK FILE =====
 		File lockFile = new File(config.getLockfile());
 		logger.info("SeedScan lock file is '" + lockFile + "'");
