@@ -1,17 +1,13 @@
 package asl.metadata.meta_new;
 
-public class PoleZeroStageException
-extends Exception
-{
+public class PoleZeroStageException extends Exception {
 	private static final long serialVersionUID = 1L;
-	
-	public PoleZeroStageException()
-	{
+
+	public PoleZeroStageException() {
 		super();
 	}
-	
-	public PoleZeroStageException(String message)
-	{
+
+	public PoleZeroStageException(String message) {
 		super(message);
 	}
 }
