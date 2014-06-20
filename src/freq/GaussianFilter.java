@@ -26,12 +26,9 @@ import org.slf4j.LoggerFactory;
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-
-
-
-
 public class GaussianFilter implements FrequencyDomainProcess {
-	private static final Logger logger = LoggerFactory.getLogger(freq.GaussianFilter.class);
+	private static final Logger logger = LoggerFactory
+			.getLogger(freq.GaussianFilter.class);
 	private SeisGramText localeText;
 	public double centFreq;
 	public double alpha;
@@ -44,23 +41,18 @@ public class GaussianFilter implements FrequencyDomainProcess {
 	private static final double ALPHA_MIN = Double.MIN_VALUE;
 	private static final double ALPHA_MAX = Double.MAX_VALUE;
 
-
 	/** constructor */
 
-	public GaussianFilter(SeisGramText localeText, double centFreq, 
-							double alpha) {
+	public GaussianFilter(SeisGramText localeText, double centFreq, double alpha) {
 		this.localeText = localeText;
 		this.centFreq = centFreq;
 		this.alpha = alpha;
 		this.errorMessage = " ";
 	}
 
-
 	/** Method to set center frequency */
 
-	public void setCentFreq(double freqValue) 
-	throws FilterException 
-	{
+	public void setCentFreq(double freqValue) throws FilterException {
 		if (freqValue < FREQ_MIN || freqValue > FREQ_MAX) {
 			throw new FilterException(localeText.invalid_center_frequency);
 		}
@@ -68,13 +60,10 @@ public class GaussianFilter implements FrequencyDomainProcess {
 		centFreq = freqValue;
 	}
 
-
 	/** Method to set center frequency */
 
-	public void setCentFreq(String str)
-	throws FilterException,
-		   NumberFormatException
-	{
+	public void setCentFreq(String str) throws FilterException,
+			NumberFormatException {
 
 		double freqValue;
 
@@ -83,7 +72,7 @@ public class GaussianFilter implements FrequencyDomainProcess {
 		} catch (NumberFormatException e) {
 			throw e;
 		}
-		
+
 		try {
 			setCentFreq(freqValue);
 		} catch (FilterException e) {
@@ -91,11 +80,9 @@ public class GaussianFilter implements FrequencyDomainProcess {
 		}
 	}
 
-
 	/** Method to set alpha */
 
-	public void setAlpha(double alphaValue)
-	throws FilterException {
+	public void setAlpha(double alphaValue) throws FilterException {
 		if (alphaValue < ALPHA_MIN || alphaValue > ALPHA_MAX) {
 			throw new FilterException(localeText.invalid_alpha_value);
 		}
@@ -103,13 +90,10 @@ public class GaussianFilter implements FrequencyDomainProcess {
 		alpha = alphaValue;
 	}
 
-
 	/** Method to set alpha */
 
-	public void setAlpha(String str)
-	throws FilterException,
-		   NumberFormatException
-	{
+	public void setAlpha(String str) throws FilterException,
+			NumberFormatException {
 		double alphaValue;
 
 		try {
@@ -117,7 +101,7 @@ public class GaussianFilter implements FrequencyDomainProcess {
 		} catch (NumberFormatException e) {
 			throw e;
 		}
-		
+
 		try {
 			setAlpha(alphaValue);
 		} catch (FilterException e) {
@@ -125,13 +109,9 @@ public class GaussianFilter implements FrequencyDomainProcess {
 		}
 	}
 
-
-
 	/** Method to check settings */
 
-	public void checkSettings() 
-	throws FilterException 
-	{
+	public void checkSettings() throws FilterException {
 
 		String errMessage = "";
 		int badSettings = 0;
@@ -152,24 +132,23 @@ public class GaussianFilter implements FrequencyDomainProcess {
 
 	}
 
-
-
 	/*** function to do gaussian filter in frequency domain */
- 
+
 	public final Cmplx[] apply(double dtime, Cmplx[] cz) {
 
-	//void gauss_filt(np, dtime, cz, fcent, alpha)
-	//int np;
-	//double dtime;
-	//fcomplex cz[];
-	//double fcent, alpha;
-
+		// void gauss_filt(np, dtime, cz, fcent, alpha)
+		// int np;
+		// double dtime;
+		// fcomplex cz[];
+		// double fcent, alpha;
 
 		double wcent = 2.0 * Math.PI * centFreq;
-//System.out.println("cz.length "+cz.length+"  ((double) cz.length)) "+((double) cz.length));
-		double freq0 = 2.0 * Math.PI / (((double) (cz.length - 1) + 1.0) * dtime);
+		// System.out.println("cz.length "+cz.length+"  ((double) cz.length)) "+((double)
+		// cz.length));
+		double freq0 = 2.0 * Math.PI
+				/ (((double) (cz.length - 1) + 1.0) * dtime);
 		// fix bug with (double) operator in JDK 1.1.8 win32 jit compiler !!!
-		//double freq0 = 2.0 * Math.PI / ((double) cz.length * dtime);
+		// double freq0 = 2.0 * Math.PI / ((double) cz.length * dtime);
 
 		int i1, i2;
 		int np = cz.length;
@@ -185,19 +164,17 @@ public class GaussianFilter implements FrequencyDomainProcess {
 			i1 = i + 1;
 			i2 = np - 1 - i;
 			if (i != np2 - 1) {
-				cz[i1] = Cmplx.mul( cz[i1], ctf );
-				cz[i2] = Cmplx.mul( cz[i2], ctf );
+				cz[i1] = Cmplx.mul(cz[i1], ctf);
+				cz[i2] = Cmplx.mul(cz[i2], ctf);
 			} else {
-				cz[i1] = Cmplx.mul( cz[i1], Cmplx.mul( ctf, chalf ) );
+				cz[i1] = Cmplx.mul(cz[i1], Cmplx.mul(ctf, chalf));
 			}
 		}
 		cz[0] = new Cmplx(0., 0.);
 
-		return(cz);
+		return (cz);
 
 	}
 
-
-}	// End class GaussianFilter
-
+} // End class GaussianFilter
 

@@ -1,4 +1,3 @@
-
 // added by HPC to put in a package
 //package net.alomax.freq;
 // change package
@@ -27,12 +26,9 @@ import org.slf4j.LoggerFactory;
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-
-
-
-
 public class ButterworthFilter implements FrequencyDomainProcess {
-	private static final Logger logger = LoggerFactory.getLogger(freq.ButterworthFilter.class);
+	private static final Logger logger = LoggerFactory
+			.getLogger(freq.ButterworthFilter.class);
 	private SeisGramText localeText;
 	public double highFreqCorner;
 	public double lowFreqCorner;
@@ -50,25 +46,19 @@ public class ButterworthFilter implements FrequencyDomainProcess {
 	private static final double PI = Math.PI;
 	private static final double TWOPI = 2.0 * Math.PI;
 
-        public static final int CAUSAL = 0;
-        public static final int NONCAUSAL = 1;
-        public static final int TWOPASS = 1;
+	public static final int CAUSAL = 0;
+	public static final int NONCAUSAL = 1;
+	public static final int TWOPASS = 1;
 
 	/** constructor */
 
-    public ButterworthFilter(SeisGramText localeText, 
-                             double lowFreqCorner, 
-                             double highFreqCorner, 
-                             int numPoles) 
-    {
-           this(localeText, lowFreqCorner, highFreqCorner, numPoles, CAUSAL);
-    }
+	public ButterworthFilter(SeisGramText localeText, double lowFreqCorner,
+			double highFreqCorner, int numPoles) {
+		this(localeText, lowFreqCorner, highFreqCorner, numPoles, CAUSAL);
+	}
 
-    public ButterworthFilter(SeisGramText localeText, 
-                             double lowFreqCorner, 
-                             double highFreqCorner, 
-			     int numPoles,
-			     int filterType) {
+	public ButterworthFilter(SeisGramText localeText, double lowFreqCorner,
+			double highFreqCorner, int numPoles, int filterType) {
 		this.localeText = localeText;
 		this.highFreqCorner = highFreqCorner;
 		this.lowFreqCorner = lowFreqCorner;
@@ -77,11 +67,9 @@ public class ButterworthFilter implements FrequencyDomainProcess {
 		this.errorMessage = " ";
 	}
 
-
 	/** Method to set high frequency corner */
 
-	public void setHighFreqCorner(double freqValue) 
-	throws FilterException {
+	public void setHighFreqCorner(double freqValue) throws FilterException {
 		if (freqValue < FREQ_MIN || freqValue > FREQ_MAX) {
 			throw new FilterException(localeText.invalid_high_frequency_corner);
 		}
@@ -89,22 +77,20 @@ public class ButterworthFilter implements FrequencyDomainProcess {
 		highFreqCorner = freqValue;
 	}
 
-
 	/** Method to set high frequency corner */
 
-	public void setHighFreqCorner(String str)
-	throws FilterException,
-		   NumberFormatException
-	{
+	public void setHighFreqCorner(String str) throws FilterException,
+			NumberFormatException {
 		double freqValue;
 
 		try {
 			freqValue = Double.valueOf(str).doubleValue();
 		} catch (NumberFormatException e) {
-			//throw new FilterException(localeText.invalid_high_frequency_corner);
+			// throw new
+			// FilterException(localeText.invalid_high_frequency_corner);
 			throw e;
 		}
-		
+
 		try {
 			setHighFreqCorner(freqValue);
 		} catch (FilterException e) {
@@ -112,12 +98,9 @@ public class ButterworthFilter implements FrequencyDomainProcess {
 		}
 	}
 
-
 	/** Method to set low frequency corner */
 
-	public void setLowFreqCorner(double freqValue)
-	throws FilterException
-	{
+	public void setLowFreqCorner(double freqValue) throws FilterException {
 		if (freqValue < FREQ_MIN || freqValue > FREQ_MAX) {
 			throw new FilterException(localeText.invalid_low_frequency_corner);
 		}
@@ -125,13 +108,10 @@ public class ButterworthFilter implements FrequencyDomainProcess {
 		lowFreqCorner = freqValue;
 	}
 
-
 	/** Method to set low frequency corner */
 
-	public void setLowFreqCorner(String str)
-	throws FilterException,
-		   NumberFormatException
-	{
+	public void setLowFreqCorner(String str) throws FilterException,
+			NumberFormatException {
 		double freqValue;
 
 		try {
@@ -147,27 +127,20 @@ public class ButterworthFilter implements FrequencyDomainProcess {
 		}
 	}
 
-
 	/** Method to set number of poles */
 
-	public void setNumPoles(int nPoles)
-	throws FilterException 
-	{
-		if (nPoles < NUM_POLES_MIN || nPoles > NUM_POLES_MAX
-				|| nPoles % 2 != 0) {
+	public void setNumPoles(int nPoles) throws FilterException {
+		if (nPoles < NUM_POLES_MIN || nPoles > NUM_POLES_MAX || nPoles % 2 != 0) {
 			throw new FilterException(localeText.invalid_number_of_poles);
 		}
 
 		numPoles = nPoles;
 	}
 
-
 	/** Method to set number of poles */
 
-	public void setNumPoles(String str)
-	throws FilterException,
-		   NumberFormatException
-	{
+	public void setNumPoles(String str) throws FilterException,
+			NumberFormatException {
 		int nPoles;
 
 		try {
@@ -183,13 +156,9 @@ public class ButterworthFilter implements FrequencyDomainProcess {
 		}
 	}
 
-
-
 	/** Method to check settings */
 
-	void checkSettings() 
-	throws FilterException 
-	{
+	void checkSettings() throws FilterException {
 		String errMessage = "";
 		int badSettings = 0;
 
@@ -204,8 +173,7 @@ public class ButterworthFilter implements FrequencyDomainProcess {
 		}
 
 		if (lowFreqCorner >= highFreqCorner) {
-			errMessage += 
-				": " + localeText.low_corner_greater_than_high_corner;
+			errMessage += ": " + localeText.low_corner_greater_than_high_corner;
 			badSettings++;
 		}
 
@@ -220,26 +188,17 @@ public class ButterworthFilter implements FrequencyDomainProcess {
 		}
 	}
 
-
-	/***  method to do Butterworth band-pass filter in freq domain ***/
+	/*** method to do Butterworth band-pass filter in freq domain ***/
 	/*
-		bandpass filter  (nPBP Butterworth Filter)
- 
-		convolve with nPole Butterworth Bandpass filter
- 
-		where -
-		fl    - low frequency corner in Hz
-		fh    - high frequency corner in Hz
-		npole - number of poles in filter at each corner
-                   (not more than 20)
-		npts  - number of complex fourier spectral coefficients
-		dt    - sampling interval in seconds
-		cx    - complex fourier spectral coefficients
-	*/
- 
-	
+	 * bandpass filter (nPBP Butterworth Filter)
+	 * 
+	 * convolve with nPole Butterworth Bandpass filter
+	 * 
+	 * where - fl - low frequency corner in Hz fh - high frequency corner in Hz
+	 * npole - number of poles in filter at each corner (not more than 20) npts
+	 * - number of complex fourier spectral coefficients dt - sampling interval
+	 * in seconds cx - complex fourier spectral coefficients
+	 */
 
-
-}	// End class ButterworthFilter
-
+} // End class ButterworthFilter
 
