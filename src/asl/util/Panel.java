@@ -21,46 +21,46 @@ package asl.util;
 
 import java.util.ArrayList;
 
-/** 
- * @author Mike Hagerty    <hagertmb@bc.edu>
+/**
+ * @author Mike Hagerty <hagertmb@bc.edu>
  */
-public class Panel 
-{
-    private ArrayList<Trace> traces;
-    private String panelTitle;
+public class Panel {
+	private ArrayList<Trace> traces;
+	private String panelTitle;
 
-    // constructor(s)
-    public Panel(String panelTitle)
-    {
-        this.panelTitle = panelTitle;
-        traces = new ArrayList<Trace>();
-    }
-    public String getTitle(){
-        return panelTitle;
-    }
+	// constructor(s)
+	public Panel(String panelTitle) {
+		this.panelTitle = panelTitle;
+		traces = new ArrayList<Trace>();
+	}
 
-    public void addTrace(Trace trace) {
-        traces.add(trace);
-    }
+	public String getTitle() {
+		return panelTitle;
+	}
 
-    public ArrayList<Trace> getTraces() {
-        return traces;
-    }
+	public void addTrace(Trace trace) {
+		traces.add(trace);
+	}
 
-    public int getNumberOfTraces() {
-        return traces.size();
-    }
+	public ArrayList<Trace> getTraces() {
+		return traces;
+	}
 
-// log v. linear -- enum ?
-    private class axis {
-        private double minRange;
-        private double maxRange;
-        private String axisLabel;
-        public axis(double minRange, double maxRange, String label) {
-            this.minRange = minRange;
-            this.maxRange = maxRange;
-            this.axisLabel= label;
-        }
-    }
+	public int getNumberOfTraces() {
+		return traces.size();
+	}
+
+	// log v. linear -- enum ?
+	private class axis {
+		private double minRange;
+		private double maxRange;
+		private String axisLabel;
+
+		public axis(double minRange, double maxRange, String label) {
+			this.minRange = minRange;
+			this.maxRange = maxRange;
+			this.axisLabel = label;
+		}
+	}
 
 }
