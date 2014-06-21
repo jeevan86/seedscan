@@ -22,11 +22,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Formatter;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 import org.apache.commons.cli.CommandLine;
@@ -60,8 +58,6 @@ public class SeedScan {
 		// Default locations of config and schema files
 		File configFile = new File("config.xml");
 		File schemaFile = new File("schemas/SeedScanConfig.xsd");
-		boolean parseConfig = true;
-
 		ArrayList<File> schemaFiles = new ArrayList<File>();
 		schemaFiles.add(schemaFile);
 
@@ -340,6 +336,7 @@ public class SeedScan {
 					"Scan=[%s] startDay=%d startDate=%d daysToScan=%d\n", key,
 					scan.getStartDay(), scan.getStartDate(),
 					scan.getDaysToScan()));
+			@SuppressWarnings("unused")
 			ScanManager scanManager = new ScanManager(reader, injector,
 					stations, scan, metaServer);
 		}
