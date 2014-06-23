@@ -54,8 +54,9 @@ public class GapCountMetric extends Metric {
 
 		for (Channel channel : channels) {
 			if (!metricData.hasChannelData(channel)) {
-				logger.warn("No data found for channel[{}] --> Skip metric",
-						channel);
+				logger.warn(
+						"No data found for station:[{}] channel:[{}] day:[{}] --> Skip metric",
+						getStation(), channel, getDay());
 				continue;
 			}
 
@@ -65,8 +66,8 @@ public class GapCountMetric extends Metric {
 			if (digest == null) { // means oldDigest == newDigest and we don't
 									// need to recompute the metric
 				logger.warn(
-						"Digest unchanged station:[{}] channel:[{}] --> Skip metric",
-						getStation(), channel);
+						"Digest unchanged station:[{}] channel:[{}] day:[{}] --> Skip metric",
+						getStation(), channel, day);
 				continue;
 			}
 
@@ -74,8 +75,8 @@ public class GapCountMetric extends Metric {
 
 			if (result == NO_RESULT) {
 				// Do nothing --> skip to next channel
-				logger.warn("NO_RESULT for station={} channel={}",
-						getStation(), channel);
+				logger.warn("NO_RESULT for station={} channel={} day={}",
+						getStation(), channel, day);
 			} else {
 				metricResult.addResult(channel, result, digest);
 			}

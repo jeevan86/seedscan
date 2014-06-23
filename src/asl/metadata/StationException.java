@@ -1,17 +1,13 @@
 package asl.metadata;
 
-public class StationException
-extends Exception
-{
+public class StationException extends Exception {
 	private static final long serialVersionUID = 1L;
-	
-	public StationException()
-	{
+
+	public StationException() {
 		super();
 	}
-	
-	public StationException(String message)
-	{
+
+	public StationException(String message) {
 		super(message);
 	}
 }

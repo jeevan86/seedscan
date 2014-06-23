@@ -92,8 +92,8 @@ public class DeadChannelMetric extends PowerBandMetric {
 		List<Channel> channels = stationMeta.getChannelArray("LH");
 
 		if (channels == null || channels.size() == 0) {
-			logger.warn("No LH? channels found for station={}",
-					station.toString());
+			logger.warn("No LH? channels found for station={} day={}",
+					station.toString(), getDay());
 			return;
 		}
 
@@ -101,8 +101,9 @@ public class DeadChannelMetric extends PowerBandMetric {
 		// metric
 		for (Channel channel : channels) {
 			if (!metricData.hasChannelData(channel)) {
-				logger.warn("No data found for channel[{}] --> Skip metric",
-						channel);
+				logger.warn(
+						"No data found for channel:[{}] day:[{}] --> Skip metric",
+						channel, getDay());
 				continue;
 			}
 
@@ -114,8 +115,8 @@ public class DeadChannelMetric extends PowerBandMetric {
 			// => oldDigest == newDigest, no need to recompute metric
 			if (digest == null) {
 				logger.warn(
-						"Digest unchanged station:[{}] channel:[{}] --> Skip metric",
-						station, channel);
+						"Digest unchanged station:[{}] channel:[{}] day:[{}] --> Skip metric",
+						station, channel, getDay());
 				continue;
 			}
 

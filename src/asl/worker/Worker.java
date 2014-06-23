@@ -21,43 +21,46 @@ package asl.worker;
 /**
  * @author Joel D. Edwards <jdedwards@usgs.gov>
  * 
- * Interface intended to be associated with a SwingWorker, providing access
- * to its internal progress methods via implementations of the specified
- * methods.
+ *         Interface intended to be associated with a SwingWorker, providing
+ *         access to its internal progress methods via implementations of the
+ *         specified methods.
  */
-public interface Worker 
-{
+public interface Worker {
 	/**
 	 * Sets the progress percent of this Worker.
 	 * 
-	 * @param progress 	An integer value representing the progress percent of this Worker.
+	 * @param progress
+	 *            An integer value representing the progress percent of this
+	 *            Worker.
 	 */
-    public void setProgressPercent(int progress);
-    
-    /**
-     * Returns the progress percent of this Worker.
-     * 
-     * @return An integer value representing the progress percent of this worker.
-     */
-    public int getProgressPercent();
+	public void setProgressPercent(int progress);
 
-    /**
-     * Tells this Worker to halt its processing operation.
-     */
-    public void cancel();
+	/**
+	 * Returns the progress percent of this Worker.
+	 * 
+	 * @return An integer value representing the progress percent of this
+	 *         worker.
+	 */
+	public int getProgressPercent();
 
-    /**
-     * Reports whether this Worker has been cancelled.
-     * 
-     * @return A boolean value: true if this Worker has been cancelled, otherwise false.
-     */
-    public boolean cancelled();
+	/**
+	 * Tells this Worker to halt its processing operation.
+	 */
+	public void cancel();
 
-    /**
-     * Query to see if the class process was successfully completed
-     * 
-     * @return A boolean value: true if the process completed succesfully, otherwise false.
-     */
-    public boolean getSuccess();
+	/**
+	 * Reports whether this Worker has been cancelled.
+	 * 
+	 * @return A boolean value: true if this Worker has been cancelled,
+	 *         otherwise false.
+	 */
+	public boolean cancelled();
+
+	/**
+	 * Query to see if the class process was successfully completed
+	 * 
+	 * @return A boolean value: true if the process completed succesfully,
+	 *         otherwise false.
+	 */
+	public boolean getSuccess();
 }
-

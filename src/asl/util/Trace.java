@@ -25,51 +25,54 @@ import java.awt.Stroke;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** 
- * @author Mike Hagerty    <hagertmb@bc.edu>
+/**
+ * @author Mike Hagerty <hagertmb@bc.edu>
  */
-public class Trace 
-{
-	private static final Logger logger = LoggerFactory.getLogger(asl.util.Trace.class);
-    private double[] xdata;
-    private double[] ydata;
-    private String   traceName;
-    private Color    traceColor;
-    private Stroke   stroke;
+public class Trace {
+	private static final Logger logger = LoggerFactory
+			.getLogger(asl.util.Trace.class);
+	private double[] xdata;
+	private double[] ydata;
+	private String traceName;
+	private Color traceColor;
+	private Stroke stroke;
 
-    // constructor(s)
-    public Trace(double[] x, double[] y, String name, Color color, Stroke stroke)
-    throws TraceException
-    {
-        if (x.length <= 0 || y.length <= 0) {
-            throw new TraceException("Trace Error: Either x[] or y[] is empty!");
-        }
-        if (x.length != y.length) {
-            throw new TraceException("Trace Error: x.lenth != y.length !");
-        }
-        this.xdata = new double[x.length];
-        System.arraycopy(x,0,this.xdata,0,x.length);
-        this.ydata = new double[y.length];
-        System.arraycopy(y,0,this.ydata,0,y.length);
-        this.traceColor = color;
-        this.traceName  = name;
-        this.stroke     = stroke;
-    }
+	// constructor(s)
+	public Trace(double[] x, double[] y, String name, Color color, Stroke stroke)
+			throws TraceException {
+		if (x.length <= 0 || y.length <= 0) {
+			throw new TraceException("Either x[] or y[] is empty!");
+		}
+		if (x.length != y.length) {
+			throw new TraceException("x.lenth != y.length !");
+		}
+		this.xdata = new double[x.length];
+		System.arraycopy(x, 0, this.xdata, 0, x.length);
+		this.ydata = new double[y.length];
+		System.arraycopy(y, 0, this.ydata, 0, y.length);
+		this.traceColor = color;
+		this.traceName = name;
+		this.stroke = stroke;
+	}
 
-    public String getName() {
-        return traceName;
-    }
-    public Color getColor() {
-        return traceColor;
-    }
-    public Stroke getStroke() {
-        return stroke;
-    }
-    public double[] getxData() {
-        return xdata;
-    }
-    public double[] getyData() {
-        return ydata;
-    }
+	public String getName() {
+		return traceName;
+	}
+
+	public Color getColor() {
+		return traceColor;
+	}
+
+	public Stroke getStroke() {
+		return stroke;
+	}
+
+	public double[] getxData() {
+		return xdata;
+	}
+
+	public double[] getyData() {
+		return ydata;
+	}
 
 }

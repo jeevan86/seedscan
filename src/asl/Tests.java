@@ -87,7 +87,7 @@ public class Tests {
 				System.out.format(" part %d: \"%s\"\n", idx, part);
 			}
 		} catch (RuntimeException e) {
-			logger.error("Tests RuntimeException:", e);
+			logger.error("RuntimeException:", e);
 		}
 	}
 }

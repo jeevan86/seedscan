@@ -81,18 +81,19 @@ public class CalibrationMetric extends Metric {
 		for (Channel channel : channels) {
 
 			if (!metricData.hasChannelData(channel)) {
-				logger.warn("No data found for channel[{}] --> Skip metric",
-						channel);
+				logger.warn(
+						"No data found for channel:[{}] day:[{}] --> Skip metric",
+						channel, getDay());
 				continue;
 			}
 
 			if (!(channel.getChannel().equals("BHZ"))
 					&& stationMeta.getChanMeta(channel).getInstrumentType()
-					.contains("STS-2")) {
+							.contains("STS-2")) {
 				// Skip STS-2/STS-2.5 Horizontal Channels
 				logger.info(
-						"InstrumentType = STS-2/2.5 --> Skip horizontal channel={}",
-						channel);
+						"InstrumentType = STS-2/2.5 --> Skip horizontal channel={} day={}",
+						channel, getDay());
 				continue;
 			}
 
@@ -102,8 +103,8 @@ public class CalibrationMetric extends Metric {
 			if (digest == null) { // means oldDigest == newDigest and we don't
 				// need to recompute the metric
 				logger.warn(
-						"Digest unchanged station:[{}] channel:[{}] --> Skip metric",
-						getStation(), channel);
+						"Digest unchanged station:[{}] channel:[{}] day:[{}] --> Skip metric",
+						getStation(), channel, getDay());
 				continue;
 			}
 
@@ -208,19 +209,20 @@ public class CalibrationMetric extends Metric {
 			// Look for cal to span into next day
 
 			logger.info(
-					"channel=[{}] calEndEpoch > dataEndEpoch --> Cal appears to span day",
-					channel);
+					"channel=[{}] day=[{}] calEndEpoch > dataEndEpoch --> Cal appears to span day",
+					channel, day);
 
 			calBlocks = metricData.getNextMetricData().getChannelCalData(
 					channel);
 
 			if (calBlocks == null) {
-				logger.warn("No DAY 2 cal blocks found for channel=[{}]",
-						channel);
+				logger.warn(
+						"No DAY 2 cal blocks found for channel=[{}] day=[{}]",
+						channel, day);
 			} else {
 				logger.info(
-						"Found matching blockette320 on 2nd day for channel=[{}]",
-						channel);
+						"Found matching blockette320 on 2nd day for channel=[{}] day=[{}]",
+						channel, day);
 				blockette320 = calBlocks.get(0);
 				long nextCalStartEpoch = blockette320.getCalibrationEpoch();
 				long nextCalDuration = blockette320.getCalibrationDuration();
@@ -461,7 +463,7 @@ public class CalibrationMetric extends Metric {
 		if (getMakePlots()) {
 			String date = String.format("%04d%03d",
 					metricResult.getDate().get(Calendar.YEAR), metricResult
-					.getDate().get(Calendar.DAY_OF_YEAR));
+							.getDate().get(Calendar.DAY_OF_YEAR));
 			final String plotTitle = String.format(
 					"[ Date: %s ] [ Station: %s ] [ Channel: %s ] Calibration",
 					date, getStation(), channel);

@@ -26,13 +26,14 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Calendar;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import asl.metadata.Channel;
 import asl.metadata.Station;
-import asl.seedscan.config.*;
-import asl.seedscan.metrics.*;
+import asl.seedscan.config.DatabaseT;
+import asl.seedscan.metrics.MetricResult;
 
 public class MetricDatabase {
 	public static final Logger logger = LoggerFactory
@@ -65,7 +66,7 @@ public class MetricDatabase {
 			connection = DriverManager.getConnection(URI, username, password);
 		} catch (SQLException e) {
 			// System.err.print(e);
-			logger.error("MetricDatabase: Could not open station database.", e);
+			logger.error("Could not open station database.", e);
 			// MTH: For now let's continue
 			// throw new RuntimeException("Could not open station database.");
 		}
@@ -104,7 +105,7 @@ public class MetricDatabase {
 			if (resultSet.next())
 				digest = ByteBuffer.wrap(resultSet.getBytes(1));
 		} catch (SQLException e) {
-			logger.error("MetricDatabase SQLException:", e);
+			logger.error("SQLException:", e);
 		}
 
 		return digest;
@@ -136,7 +137,7 @@ public class MetricDatabase {
 			}
 		} catch (SQLException e) {
 			// System.out.print(e);
-			logger.error("MetricDatabase SQLException:", e);
+			logger.error("SQLException:", e);
 		}
 
 		return digest;
@@ -162,7 +163,7 @@ public class MetricDatabase {
 				value = resultSet.getDouble(1);
 			}
 		} catch (SQLException e) {
-			logger.error("MetricDatabase SQLException:", e);
+			logger.error("SQLException:", e);
 		}
 		if (value == null) {
 			logger.warn(
@@ -209,7 +210,7 @@ public class MetricDatabase {
 				connection.commit();
 				result = 0;
 			} catch (SQLException e) {
-				logger.error("MetricDatabase SQLException:", e);
+				logger.error("SQLException:", e);
 			}
 		}
 
@@ -227,7 +228,7 @@ public class MetricDatabase {
 			callStatement.executeQuery();
 			result = callStatement.getString(3);
 		} catch (SQLException e) {
-			logger.error("MetricDatabase SQLException:", e);
+			logger.error("SQLException:", e);
 		}
 		return result;
 	}

@@ -20,21 +20,16 @@ package asl.seedsplitter;
 
 /**
  * @author Joel D. Edwards <jdedwards@usgs.gov>
- *
+ * 
  */
-public class SequenceTimingException
-extends Exception
-{
-    public static final long serialVersionUID = 1L;
+public class SequenceTimingException extends Exception {
+	public static final long serialVersionUID = 1L;
 
-    public SequenceTimingException()
-    {
-        super();
-    }
+	public SequenceTimingException() {
+		super();
+	}
 
-    public SequenceTimingException(String message)
-    {
-        super(message);
-    }
+	public SequenceTimingException(String message) {
+		super(message);
+	}
 }
-

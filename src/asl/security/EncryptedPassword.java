@@ -24,53 +24,46 @@ import javax.xml.bind.DatatypeConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class EncryptedPassword
-extends Encrypted
-implements Password
-{
-	private static final Logger logger = LoggerFactory.getLogger(asl.security.EncryptedPassword.class);
- // constructor(s)
-    public EncryptedPassword(byte[] key)
-    {
-        super(key);
-    }
+public class EncryptedPassword extends Encrypted implements Password {
+	private static final Logger logger = LoggerFactory
+			.getLogger(asl.security.EncryptedPassword.class);
 
-    public EncryptedPassword(byte[] iv,
-                             byte[] cipherText,
-                             byte[] hmac)
-    {
-        super(iv, cipherText, hmac);
-    }
+	// constructor(s)
+	public EncryptedPassword(byte[] key) {
+		super(key);
+	}
 
- // password (implements methods from interface Password)
-    public boolean setPassword(String password)
-    {
-        boolean result;
-        try {
-            result = encrypt(password);
-        } catch (EncryptionException e) {
-        	logger.error("EncryptedPassword EncryptionException:", e);
-            result = false;
-        }
-        return result;
-    }
+	public EncryptedPassword(byte[] iv, byte[] cipherText, byte[] hmac) {
+		super(iv, cipherText, hmac);
+	}
 
-    public String getPassword()
-    {
-        String passwordString;
-        try {
-            passwordString = decrypt();
-        } catch (EncryptionException e) {
-        	logger.error("EncryptedPassword EncryptionException:", e);
-            passwordString = null;
-        }
-        return passwordString;
-    }
+	// password (implements methods from interface Password)
+	public boolean setPassword(String password) {
+		boolean result;
+		try {
+			result = encrypt(password);
+		} catch (EncryptionException e) {
+			logger.error("EncryptionException:", e);
+			result = false;
+		}
+		return result;
+	}
 
-    public String toString()
-    {
-        byte[] hmac = getHMAC();
-        String hmacHex = (hmac == null) ? "NULL" : DatatypeConverter.printHexBinary(hmac);
-        return new String("EncryptedPassword: hmac["+hmacHex+"]");
-    }
+	public String getPassword() {
+		String passwordString;
+		try {
+			passwordString = decrypt();
+		} catch (EncryptionException e) {
+			logger.error("EncryptionException:", e);
+			passwordString = null;
+		}
+		return passwordString;
+	}
+
+	public String toString() {
+		byte[] hmac = getHMAC();
+		String hmacHex = (hmac == null) ? "NULL" : DatatypeConverter
+				.printHexBinary(hmac);
+		return new String("EncryptedPassword: hmac[" + hmacHex + "]");
+	}
 }

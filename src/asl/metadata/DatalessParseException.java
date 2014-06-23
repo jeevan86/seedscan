@@ -18,19 +18,14 @@
  */
 package asl.metadata;
 
-public class DatalessParseException
-extends Exception
-{
-    private static final long serialVersionUID = 1L;
+public class DatalessParseException extends Exception {
+	private static final long serialVersionUID = 1L;
 
-    public DatalessParseException()
-    {
-        super();
-    }
+	public DatalessParseException() {
+		super();
+	}
 
-    public DatalessParseException(String message)
-    {
-        super(message);
-    }
+	public DatalessParseException(String message) {
+		super(message);
+	}
 }
-

@@ -17,15 +17,8 @@
  *
  */
 
- package seed;
+package seed;
 
- public enum OpaqueState {
-     INIT,
-     RECORD,
-     STREAM_START,
-     STREAM_MID,
-     STREAM_END,
-     FILE_START,
-     FILE_MID,
-     FILE_END
- }
+public enum OpaqueState {
+	INIT, RECORD, STREAM_START, STREAM_MID, STREAM_END, FILE_START, FILE_MID, FILE_END
+}

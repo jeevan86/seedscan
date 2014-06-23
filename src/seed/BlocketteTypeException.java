@@ -18,19 +18,14 @@
  */
 package seed;
 
-public class BlocketteTypeException
-extends Exception
-{
-    private static final long serialVersionUID = 1L;
+public class BlocketteTypeException extends Exception {
+	private static final long serialVersionUID = 1L;
 
-    public BlocketteTypeException()
-    {
-        super();
-    }
+	public BlocketteTypeException() {
+		super();
+	}
 
-    public BlocketteTypeException(String message)
-    {
-        super(message);
-    }
+	public BlocketteTypeException(String message) {
+		super(message);
+	}
 }
-

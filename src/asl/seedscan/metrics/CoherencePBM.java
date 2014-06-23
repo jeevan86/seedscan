@@ -89,8 +89,8 @@ public class CoherencePBM extends PowerBandMetric {
 			if (digest == null) { // means oldDigest == newDigest and we don't
 				// need to recompute the metric
 				logger.warn(
-						"Digest unchanged station:[{}] channelX=[{}] channelY=[{}]--> Skip metric",
-						getStation(), channelX, channelY);
+						"Digest unchanged station:[{}] day:[{}] channelX=[{}] channelY=[{}]--> Skip metric",
+						getStation(), getDay(), channelX, channelY);
 				completeCompute = false;
 				continue;
 			}
@@ -193,8 +193,9 @@ public class CoherencePBM extends PowerBandMetric {
 		double highPeriod = band.getHigh();
 
 		if (!checkPowerBand(lowPeriod, highPeriod, Tmin, Tmax)) {
-			System.out.format("%s powerBand Error: Skipping channel:%s\n",
-					getName(), channelX);
+			System.out.format(
+					"%s powerBand Error: Skipping channel:%s day:%s\n",
+					getName(), channelX, getDay());
 			return NO_RESULT;
 		}
 
@@ -214,7 +215,8 @@ public class CoherencePBM extends PowerBandMetric {
 			StringBuilder message = new StringBuilder();
 			message.append(String
 					.format("station=[%s] channelX=[%s] channelY=[%s] day=[%s]: Requested band [%f - %f] contains NO periods --> divide by zero!\n",
-							station, channelX, channelY, day, lowPeriod, highPeriod));
+							station, channelX, channelY, day, lowPeriod,
+							highPeriod));
 			throw new MetricException(message.toString());
 		}
 		averageValue /= (double) nPeriods;
@@ -232,7 +234,7 @@ public class CoherencePBM extends PowerBandMetric {
 			if (plotMaker == null) {
 				String plotTitle = String.format("%04d%03d [ %s ] Coherence",
 						metricResult.getDate().get(Calendar.YEAR), metricResult
-						.getDate().get(Calendar.DAY_OF_YEAR),
+								.getDate().get(Calendar.DAY_OF_YEAR),
 						metricResult.getStation());
 				plotMaker = new PlotMaker2(plotTitle);
 				plotMaker.initialize3Panels("LHZ", "LHND", "LHED");

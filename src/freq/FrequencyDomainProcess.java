@@ -1,4 +1,3 @@
-
 // added by HPC to put in a package
 //package net.alomax.freq;
 // change package
@@ -24,16 +23,11 @@ package freq;
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+public interface FrequencyDomainProcess {
 
+	/*** method to apply processing in freq domain ***/
 
+	// public Cmplx[] apply(double dt, Cmplx[] cx);
 
-public interface  FrequencyDomainProcess {
-
-	/***  method to apply processing in freq domain ***/
- 
-//	public Cmplx[] apply(double dt, Cmplx[] cx);
-
-
-}	// End interface FrequencyDomainProcess
-
+} // End interface FrequencyDomainProcess
 

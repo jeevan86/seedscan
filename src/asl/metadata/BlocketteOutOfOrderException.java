@@ -18,19 +18,14 @@
  */
 package asl.metadata;
 
-public class BlocketteOutOfOrderException
-extends Exception
-{
-    private static final long serialVersionUID = 1L;
+public class BlocketteOutOfOrderException extends Exception {
+	private static final long serialVersionUID = 1L;
 
-    public BlocketteOutOfOrderException()
-    {
-        super();
-    }
+	public BlocketteOutOfOrderException() {
+		super();
+	}
 
-    public BlocketteOutOfOrderException(String message)
-    {
-        super(message);
-    }
+	public BlocketteOutOfOrderException(String message) {
+		super(message);
+	}
 }
-

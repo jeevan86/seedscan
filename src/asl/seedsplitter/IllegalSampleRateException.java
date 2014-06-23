@@ -19,20 +19,17 @@
 package asl.seedsplitter;
 
 /**
- * @author  Joel D. Edwards <jdedwards@usgs.gov>
- *
+ * @author Joel D. Edwards <jdedwards@usgs.gov>
+ * 
  */
-public class IllegalSampleRateException
-extends Exception
-{
-    public static final long serialVersionUID = 1L;
+public class IllegalSampleRateException extends Exception {
+	public static final long serialVersionUID = 1L;
 
-    public IllegalSampleRateException() {
-        super();
-    }
+	public IllegalSampleRateException() {
+		super();
+	}
 
-    public IllegalSampleRateException(String message) {
-        super(message);
-    }
+	public IllegalSampleRateException(String message) {
+		super(message);
+	}
 }
-

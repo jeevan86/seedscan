@@ -19,37 +19,39 @@
 
 package asl.metadata;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 
-public class ChannelArray
-{
-    private static final Logger logger = LoggerFactory.getLogger(asl.metadata.ChannelArray.class);
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-    private ArrayList<Channel> channels = null;
+public class ChannelArray {
+	private static final Logger logger = LoggerFactory
+			.getLogger(asl.metadata.ChannelArray.class);
 
-    public ChannelArray (String location, String channel1, String channel2, String channel3)
-    {
-        channels = new ArrayList<Channel>();
-        channels.add(new Channel(location,channel1) );
-        channels.add(new Channel(location,channel2) );
-        channels.add(new Channel(location,channel3) );
-    }
-    public ChannelArray (String location, String channel1) // For testing
-    {
-        channels = new ArrayList<Channel>();
-        channels.add(new Channel(location,channel1) );
-    }
-    public ChannelArray (Channel channelA, Channel channelB)
-    {
-        channels = new ArrayList<Channel>();
-        channels.add(channelA);
-        channels.add(channelB);
-    }
+	private ArrayList<Channel> channels = null;
 
-    public ArrayList<Channel> getChannels() {
-        return channels;
-    }
+	public ChannelArray(String location, String channel1, String channel2,
+			String channel3) {
+		channels = new ArrayList<Channel>();
+		channels.add(new Channel(location, channel1));
+		channels.add(new Channel(location, channel2));
+		channels.add(new Channel(location, channel3));
+	}
+
+	public ChannelArray(String location, String channel1) // For testing
+	{
+		channels = new ArrayList<Channel>();
+		channels.add(new Channel(location, channel1));
+	}
+
+	public ChannelArray(Channel channelA, Channel channelB) {
+		channels = new ArrayList<Channel>();
+		channels.add(channelA);
+		channels.add(channelB);
+	}
+
+	public ArrayList<Channel> getChannels() {
+		return channels;
+	}
 
 }

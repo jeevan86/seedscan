@@ -18,19 +18,15 @@
  */
 package asl.metadata;
 
-public abstract class Key
-{
-    public abstract String toString();
+public abstract class Key {
+	public abstract String toString();
 
-    public boolean equals(Object obj)
-    {
-        Key other = (Key)obj;
-        return toString().equals(other.toString()) ;
-    }
+	public boolean equals(Object obj) {
+		Key other = (Key) obj;
+		return toString().equals(other.toString());
+	}
 
-    public int hashCode()
-    {
-        return toString().hashCode();
-    }
+	public int hashCode() {
+		return toString().hashCode();
+	}
 }
-

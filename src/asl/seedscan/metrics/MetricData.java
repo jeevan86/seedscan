@@ -189,7 +189,7 @@ public class MetricData {
 			return metricVal;
 		} else {
 			metricVal = null;
-			logger.warn("Metric Reader is not connected: getMetricValue()");
+			logger.warn("getMetricValue: Metric Reader is not connected");
 			return metricVal;
 		}
 	}
@@ -284,8 +284,9 @@ public class MetricData {
 	public ArrayList<double[]> getZNE(ResponseUnits responseUnits,
 			String location, String band, long windowStartEpoch,
 			long windowEndEpoch, double f1, double f2, double f3, double f4)
-					throws ChannelMetaException, MetricException {
+			throws ChannelMetaException, MetricException {
 		ArrayList<double[]> dispZNE = new ArrayList<double[]>();
+		String date = metadata.getDate();
 
 		Channel vertChannel = new Channel(location, (band + "Z")); // e.g.,
 		// "00-LHZ"
@@ -324,7 +325,8 @@ public class MetricData {
 
 			if (x == null || y == null || z == null) {
 				System.out
-				.format("== getZNE: getFilteredDisplacement returned null --> There is probably something wrong with this station\n");
+						.format("== getZNE (date:[%s]): getFilteredDisplacement returned null --> There is probably something wrong with this station\n",
+								metadata.getDate());
 				return null;
 			}
 
@@ -338,7 +340,7 @@ public class MetricData {
 			if (srate1 != srate2) {
 				StringBuilder message = new StringBuilder();
 				message.append(String
-						.format("createRotatedChannels(): srate1 != srate2!!\n"));
+						.format("createRotatedChannels: srate1 != srate2!!\n"));
 				throw new MetricException(message.toString());
 			}
 
@@ -368,19 +370,19 @@ public class MetricData {
 	public double[] getFilteredDisplacement(ResponseUnits responseUnits,
 			Channel channel, long windowStartEpoch, long windowEndEpoch,
 			double f1, double f2, double f3, double f4)
-					throws ChannelMetaException, MetricException {
+			throws ChannelMetaException, MetricException {
 		if (!metadata.hasChannel(channel)) {
 			logger.error(String
-					.format("Metadata NOT found for channel=[%s] --> Can't return Displacement",
-							channel));
+					.format("Metadata NOT found for channel=[%s] date=[%s] --> Can't return Displacement",
+							channel, metadata.getDate()));
 			return null;
 		}
 		double[] timeseries = getWindowedData(channel, windowStartEpoch,
 				windowEndEpoch);
 		if (timeseries == null) {
 			logger.error(String
-					.format("Did not get requested window for channel=[%s] --> Can't return Displacement",
-							channel));
+					.format("Did not get requested window for channel=[%s] date=[%s] --> Can't return Displacement",
+							channel, metadata.getDate()));
 			return null;
 		}
 		try {
@@ -426,8 +428,8 @@ public class MetricData {
 		if (srate == 0) {
 			StringBuilder message = new StringBuilder();
 			message.append(String.format(
-					"channel=[%s] Got srate=0\n",
-					channel.toString()));
+					"channel=[%s] date=[%s] Got srate=0\n", channel.toString(),
+					metadata.getDate()));
 			throw new MetricException(message.toString());
 		}
 
@@ -540,7 +542,8 @@ public class MetricData {
 		}
 
 		if (!hasChannelData(channel)) {
-			logger.error("We have NO data for channel=[{}]", channel);
+			logger.error("We have NO data for channel=[{}] date=[{}]", channel,
+					metadata.getDate());
 			return null;
 		}
 		ArrayList<DataSet> datasets = getChannelData(channel);
@@ -561,8 +564,9 @@ public class MetricData {
 
 		if (!windowFound) {
 			logger.error("Requested window Epoch [{} - {}] was NOT FOUND "
-					+ "within DataSet for channel=[{}]", windowStartEpoch,
-					windowEndEpoch, channel);
+					+ "within DataSet for channel=[{}] date=[{}]",
+					windowStartEpoch, windowEndEpoch, channel,
+					metadata.getDate());
 			return null;
 		} else {
 			// System.out.format("== getWindowedData: Requested window Epoch [%d - %d] WAS FOUND "
@@ -583,9 +587,9 @@ public class MetricData {
 				|| windowStartEpoch > dataEndEpoch) {
 			logger.error(
 					"Requested window Epoch [{} - {}] does NOT START "
-							+ "in current day data window Epoch [{} - {}] for channel=[{}]",
-							windowStartEpoch, windowEndEpoch, dataStartEpoch,
-							dataEndEpoch, channel);
+							+ "in current day data window Epoch [{} - {}] for channel=[{}] date=[{}]",
+					windowStartEpoch, windowEndEpoch, dataStartEpoch,
+					dataEndEpoch, channel, metadata.getDate());
 			return null;
 		}
 
@@ -597,14 +601,16 @@ public class MetricData {
 			if (nextMetricData == null) {
 				logger.warn(String
 						.format("== getWindowedData: Requested Epoch window[%d-%d] spans into next day, but we have NO data "
-								+ "for channel=[%s] for next day\n",
-								windowStartEpoch, windowEndEpoch, channel));
+								+ "for channel=[%s] date=[%s] for next day\n",
+								windowStartEpoch, windowEndEpoch, channel,
+								metadata.getDate()));
 				return null;
 			}
 			if (!nextMetricData.hasChannelData(channel)) {
 				logger.error(
 						"Requested Epoch window spans into next day, but we have NO data "
-								+ "for channel=[{}] for next day", channel);
+								+ "for channel=[{}] date=[{}] for next day",
+						channel, metadata.getDate());
 				return null;
 			}
 
@@ -621,10 +627,10 @@ public class MetricData {
 			if (srate2 != srate1) {
 				logger.warn(String
 						.format("== getWindowedData: Requested window Epoch [%d - %d] extends into "
-								+ "nextData window Epoch [%d - %d] for channel=[%s] but srate1[%f] != srate2[%f]\n",
+								+ "nextData window Epoch [%d - %d] for channel=[%s] date=[%s] but srate1[%f] != srate2[%f]\n",
 								windowStartEpoch, windowEndEpoch,
 								nextDataStartEpoch, nextDataEndEpoch, channel,
-								srate1, srate2));
+								metadata.getDate(), srate1, srate2));
 				return null;
 			}
 
@@ -634,9 +640,10 @@ public class MetricData {
 			if (windowEndEpoch > nextDataEndEpoch) {
 				logger.warn(String
 						.format("== getWindowedData: Requested window Epoch [%d - %d] extends BEYOND "
-								+ "found nextData window Epoch [%d - %d] for channel=[%s]\n",
+								+ "found nextData window Epoch [%d - %d] for channel=[%s] date=[%s]\n",
 								windowStartEpoch, windowEndEpoch,
-								nextDataStartEpoch, nextDataEndEpoch, channel));
+								nextDataStartEpoch, nextDataEndEpoch, channel,
+								metadata.getDate()));
 				return null;
 			}
 
@@ -681,8 +688,8 @@ public class MetricData {
 	public double[] getPaddedDayData(Channel channel) {
 		if (!hasChannelData(channel)) {
 			logger.warn(String
-					.format("== getPaddedDayData(): We have NO data for channel=[%s]\n",
-							channel));
+					.format("== getPaddedDayData(): We have NO data for channel=[%s] date=[%s]\n",
+							channel, metadata.getDate()));
 			return null;
 		}
 		ArrayList<DataSet> datasets = getChannelData(channel);
@@ -769,8 +776,8 @@ public class MetricData {
 				|| hasChannelData(channel2) == false) {
 			logger.warn(String
 					.format("== createRotatedChannelData: -- Unable to find data "
-							+ "for channel1=[%s] and/or channel2=[%s] --> Unable to Rotate!\n",
-							channel1, channel2));
+							+ "for channel1=[%s] and/or channel2=[%s] date=[%s] --> Unable to Rotate!\n",
+							channel1, channel2, metadata.getDate()));
 			return;
 		}
 
@@ -778,8 +785,8 @@ public class MetricData {
 				|| metadata.hasChannel(channel2) == false) {
 			logger.warn(String
 					.format("== createRotatedChannelData: -- Unable to find metadata "
-							+ "for channel1=[%s] and/or channel2=[%s] --> Unable to Rotate!\n",
-							channel1, channel2));
+							+ "for channel1=[%s] and/or channel2=[%s] date=[%s] --> Unable to Rotate!\n",
+							channel1, channel2, metadata.getDate()));
 			return;
 		}
 
@@ -809,8 +816,8 @@ public class MetricData {
 		if (srate1 != srate2) {
 			StringBuilder message = new StringBuilder();
 			message.append(String
-					.format("createRotatedChannels(): channel1=[%s] and/or channel2=[%s]: srate1 != srate2 !!\n",
-							channel1, channel2));
+					.format("createRotatedChannels: channel1=[%s] and/or channel2=[%s] date=[%s]: srate1 != srate2 !!\n",
+							channel1, channel2, metadata.getDate()));
 			throw new MetricException(message.toString());
 		}
 
@@ -886,8 +893,8 @@ public class MetricData {
 				northDataSet.setSampleRate(srate1);
 			} catch (IllegalSampleRateException e) {
 				logger.error(String
-						.format("createRotatedChannels(): Invalid Sample Rate = %f",
-								srate1));
+						.format("createRotatedChannels: Invalid Sample Rate = %f date=%s",
+								srate1, metadata.getDate()));
 			}
 
 			int[] intArray = new int[ndata];
@@ -910,8 +917,8 @@ public class MetricData {
 				eastDataSet.setSampleRate(srate1);
 			} catch (IllegalSampleRateException e) {
 				logger.error(String
-						.format("createRotatedChannels(): Invalid Sample Rate = %f",
-								srate1));
+						.format("createRotatedChannels: Invalid Sample Rate = %f date=%s",
+								srate1, metadata.getDate()));
 			}
 
 			for (int i = 0; i < ndata; i++) {
@@ -950,13 +957,13 @@ public class MetricData {
 		ArrayList<DataSet> channelYData = getChannelData(channelY);
 		if (channelXData == null) {
 			logger.warn(String
-					.format("== getChannelOverlap: Error --> No DataSets found for Channel=%s\n",
-							channelX));
+					.format("== getChannelOverlap: Error --> No DataSets found for Channel=%s Date=%s\n",
+							channelX, metadata.getDate()));
 		}
 		if (channelYData == null) {
 			logger.warn(String
-					.format("== getChannelOverlap: Error --> No DataSets found for Channel=%s\n",
-							channelY));
+					.format("== getChannelOverlap: Error --> No DataSets found for Channel=%s Date=%s\n",
+							channelY, metadata.getDate()));
 		}
 		dataLists.add(channelXData);
 		dataLists.add(channelYData);
@@ -981,9 +988,9 @@ public class MetricData {
 			}
 			if (lastBlock != null) {
 				System.out
-				.println("    Gap: "
-						+ ((block.getStartTime() - lastBlock
-								.getEndTime()) / block.getInterval())
+						.println("    Gap: "
+								+ ((block.getStartTime() - lastBlock
+										.getEndTime()) / block.getInterval())
 								+ " data points ("
 								+ (block.getStartTime() - lastBlock
 										.getEndTime()) + " microseconds)");
@@ -1030,7 +1037,9 @@ public class MetricData {
 		// return:
 		if (channels[0].length == 0 || channels[1].length == 0
 				|| channels[0].length != channels[1].length) {
-			logger.warn("== getChannelOverlap: WARNING --> Something has gone wrong!");
+			logger.warn(
+					"== getChannelOverlap: WARNING date=[{}] --> Something has gone wrong!",
+					metadata.getDate());
 		}
 
 		// MTH: hack to return the startTime of the overlapping length of data
@@ -1097,6 +1106,7 @@ public class MetricData {
 		String metricName = id.getMetricName();
 		Station station = id.getStation();
 		Calendar date = id.getDate();
+		String strdate = EpochData.epochToDateString(date);
 		String channelId = MetricResult.createResultId(id.getChannel());
 
 		// We need at least metadata to compute a digest. If it doesn't exist,
@@ -1110,8 +1120,9 @@ public class MetricData {
 		// Check again for metadata. If we still don't have it (e.g., we weren't
 		// able to rotate) --> return null digest
 		if (!metadata.hasChannels(channelArray)) {
-			logger.warn("MetricData.valueDigestChanged: We don't have metadata to compute the digest for this channelArray "
-					+ " --> return null digest\n");
+			logger.warn(
+					"valueDigestChanged (date=[{}]): We don't have metadata to compute the digest for this channelArray "
+							+ " --> return null digest\n", strdate);
 			return null;
 		}
 
@@ -1166,10 +1177,10 @@ public class MetricData {
 				logger.warn("Digests are Equal !!");
 				if (forceUpdate) { // Don't do anything --> return the digest to
 					// force the metric computation
-					String msg = String.format(
-							"== valueDigestChanged: metricName=%s Digests are Equal BUT forceUpdate=[%s]"
+					String msg = String
+							.format("== valueDigestChanged: metricName=%s date=%s Digests are Equal BUT forceUpdate=[%s]"
 									+ " so compute the metric anyway!\n",
-									metricName, forceUpdate);
+									metricName, strdate, forceUpdate);
 					logger.warn(msg);
 				} else {
 					newDigest = null;
@@ -1177,8 +1188,7 @@ public class MetricData {
 			}
 			logger.warn(String
 					.format("valueDigestChanged() --> oldDigest = getMetricValueDigest(%s, %s, %s, %s)",
-							EpochData.epochToDateString(date), metricName,
-							station, channelId));
+							strdate, metricName, station, channelId));
 		} else {
 			// System.out.println("=== MetricData.metricReader *IS NOT* connected");
 		}
@@ -1204,8 +1214,8 @@ public class MetricData {
 			ChannelMeta chanMeta = getMetaData().getChanMeta(channel);
 			if (chanMeta == null) {
 				logger.warn(String
-						.format("getHash(): metadata not found for requested channel:%s\n",
-								channel));
+						.format("getHash: metadata not found for requested channel:%s date:%s\n",
+								channel, metadata.getDate()));
 				return null;
 			} else {
 				digests.add(chanMeta.getDigestBytes());
@@ -1219,8 +1229,8 @@ public class MetricData {
 				ArrayList<DataSet> datasets = getChannelData(channel);
 				if (datasets == null) {
 					logger.warn(String
-							.format("getHash(): Data not found for requested channel:%s\n",
-									channel));
+							.format("getHash(): Data not found for requested channel:%s date:%s\n",
+									channel, metadata.getDate()));
 					return null;
 				} else {
 					for (int i = 0; i < datasets.size(); i++) {
@@ -1275,8 +1285,7 @@ public class MetricData {
 							channelPrefix);
 				}
 			} catch (MetricException e) {
-				logger.error(
-						"createRotatedChannelData() Exception:", e);
+				logger.error("MetricException:", e);
 			}
 		}
 	}

@@ -18,78 +18,69 @@
  */
 package asl.metadata;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.Collection;
 
-public class Field
-    implements java.io.Serializable
-{
-    private static final Logger logger = LoggerFactory.getLogger(asl.metadata.Field.class);
-    private static final long serialVersionUID = 1L;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-    private int fieldID;
-    private String description;
-    private ArrayList<String> values;
+public class Field implements java.io.Serializable {
+	private static final Logger logger = LoggerFactory
+			.getLogger(asl.metadata.Field.class);
+	private static final long serialVersionUID = 1L;
 
-    // Constructor(s)
-    public Field(int fieldID, String description)
-    {
-        this.fieldID = fieldID;
-        this.description = description;
-        values = new ArrayList<String>();
-    }
-    public int getID()
-    {
-        return fieldID;
-    }
+	private int fieldID;
+	private String description;
+	private ArrayList<String> values;
 
-    // description
-    public void setDescription(String description)
-    {
-        this.description = description;
-    }
+	// Constructor(s)
+	public Field(int fieldID, String description) {
+		this.fieldID = fieldID;
+		this.description = description;
+		values = new ArrayList<String>();
+	}
 
-    public String getDescription()
-    {
-        return description;
-    }
+	public int getID() {
+		return fieldID;
+	}
 
-    // values
-    public void addValue(String value)
-    {
-        this.values.add(value);
-    }
+	// description
+	public void setDescription(String description) {
+		this.description = description;
+	}
 
-    public void addValues(Collection<String> values)
-    {
-        for (String value: values) {
-            this.values.add(value);
-        }
-    }
+	public String getDescription() {
+		return description;
+	}
 
-    public String getValue(int index)
-    {
-        String value = null;
-        if (values.size() > index) {
-            value = new String(values.get(index));
-        }
-        return value;
-    }
+	// values
+	public void addValue(String value) {
+		this.values.add(value);
+	}
 
-    public ArrayList<String> getValues()
-    {
-        return values;
-    }
+	public void addValues(Collection<String> values) {
+		for (String value : values) {
+			this.values.add(value);
+		}
+	}
 
-    public void print()
-    {
-        for (String value : values) {
-            System.out.format("Field:%02d Description:%s Value:%s\n",fieldID, description, value );
-        }
-    }
+	public String getValue(int index) {
+		String value = null;
+		if (values.size() > index) {
+			value = new String(values.get(index));
+		}
+		return value;
+	}
+
+	public ArrayList<String> getValues() {
+		return values;
+	}
+
+	public void print() {
+		for (String value : values) {
+			System.out.format("Field:%02d Description:%s Value:%s\n", fieldID,
+					description, value);
+		}
+	}
 
 }
-

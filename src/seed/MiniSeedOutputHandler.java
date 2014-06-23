@@ -28,12 +28,14 @@
 
 package seed;
 
-/** This provides the interface that needs to be implemented for a class
- * which can get Mini-Seed output (primarily from the compressor in RawToMiniSeed).
- *
+/**
+ * This provides the interface that needs to be implemented for a class which
+ * can get Mini-Seed output (primarily from the compressor in RawToMiniSeed).
+ * 
  * @author davidketchum
  */
 public interface MiniSeedOutputHandler {
-    public void putbuf(byte [] b, int size);
-    public void close();
+	public void putbuf(byte[] b, int size);
+
+	public void close();
 }

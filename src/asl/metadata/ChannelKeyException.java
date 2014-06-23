@@ -1,17 +1,13 @@
 package asl.metadata;
 
-public class ChannelKeyException
-extends Exception
-{
+public class ChannelKeyException extends Exception {
 	private static final long serialVersionUID = 1L;
-	
-	public ChannelKeyException()
-	{
+
+	public ChannelKeyException() {
 		super();
 	}
-	
-	public ChannelKeyException(String message)
-	{
+
+	public ChannelKeyException(String message) {
 		super(message);
 	}
 }

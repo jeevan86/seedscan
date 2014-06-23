@@ -320,8 +320,8 @@ public abstract class Metric {
 
 		if (srateX != srateY) {
 			StringBuilder message = new StringBuilder();
-			message.append(String.format("computePSD(): srateX (="
-					+ srateX + ") != srateY (=" + srateY + ")\n"));
+			message.append(String.format("computePSD(): srateX (=" + srateX
+					+ ") != srateY (=" + srateY + ")\n"));
 			throw new MetricPSDException(message.toString());
 		}
 		srate = srateX;

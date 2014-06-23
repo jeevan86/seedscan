@@ -21,37 +21,31 @@ package asl.metadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class NetworkKey extends Key
-{
-    private static final Logger logger = LoggerFactory.getLogger(asl.metadata.NetworkKey.class);
+public class NetworkKey extends Key {
+	private static final Logger logger = LoggerFactory
+			.getLogger(asl.metadata.NetworkKey.class);
 
-    public static final int DATALESS_VOLUME_BLOCKETTE_NUMBER = 10;
+	public static final int DATALESS_VOLUME_BLOCKETTE_NUMBER = 10;
 
-    private String network = null;
+	private String network = null;
 
-    // constructor(s)
-    public NetworkKey(Blockette blockette)
-    throws WrongBlocketteException
-    {
-        if (blockette.getNumber() != DATALESS_VOLUME_BLOCKETTE_NUMBER) {
-            throw new WrongBlocketteException();
-        }
-        network = blockette.getFieldValue(9,0);
-    }
+	// constructor(s)
+	public NetworkKey(Blockette blockette) throws WrongBlocketteException {
+		if (blockette.getNumber() != DATALESS_VOLUME_BLOCKETTE_NUMBER) {
+			throw new WrongBlocketteException();
+		}
+		network = blockette.getFieldValue(9, 0);
+	}
 
-    public NetworkKey(String network) {
-        this.network = network;
-    }
+	public NetworkKey(String network) {
+		this.network = network;
+	}
 
+	public String getNetwork() {
+		return network;
+	}
 
-    public String getNetwork()
-    {
-        return network;
-    }
-
-    public String toString()
-    {
-        return network;
-    }
+	public String toString() {
+		return network;
+	}
 }
-

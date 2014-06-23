@@ -76,7 +76,7 @@ public class StationDeviationMetric extends PowerBandMetric {
 		try {
 			pathPattern = get("modelpath");
 		} catch (NoSuchFieldException ex) {
-			logger.warn("Error: Station Model Path ('modelpath') was not specified!");
+			logger.warn("Station Model Path ('modelpath') was not specified!");
 			return; // Without the modelpath we can't compute the metric -->
 			// return
 		}
@@ -89,8 +89,8 @@ public class StationDeviationMetric extends PowerBandMetric {
 
 		if (channels == null || channels.size() == 0) {
 			System.out.format(
-					"== %s: No LH? channels found for station=[%s]\n",
-					getName(), getStation());
+					"== %s: No LH? channels found for station=[%s] day=[%s]\n",
+					getName(), getStation(), getDay());
 			return;
 		}
 
@@ -110,8 +110,8 @@ public class StationDeviationMetric extends PowerBandMetric {
 			if (digest == null) { // means oldDigest == newDigest and we don't
 				// need to recompute the metric
 				logger.warn(
-						"Digest unchanged station:[{}] channel:[{}] --> Skip metric",
-						getStation(), channel);
+						"Digest unchanged station:[{}] channel:[{}] day:[{}] --> Skip metric",
+						getStation(), channel, getDay());
 				continue;
 			}
 
@@ -158,8 +158,8 @@ public class StationDeviationMetric extends PowerBandMetric {
 		try {
 			if (!readModel(modelFileName)) {
 				logger.warn(String
-						.format("ModelFile=%s not found for requested channel:%s --> Skipping\n",
-								modelFileName, channel.getChannel()));
+						.format("ModelFile=%s not found for requested channel:%s day:%s --> Skipping\n",
+								modelFileName, channel.getChannel(), getDay()));
 				return NO_RESULT;
 			}
 		} catch (MetricException e) {
@@ -209,8 +209,8 @@ public class StationDeviationMetric extends PowerBandMetric {
 
 		if (!checkPowerBand(lowPeriod, highPeriod, Tmin, Tmax)) {
 			logger.warn(String.format(
-					"%s powerBand Error: Skipping channel:%s\n", getName(),
-					channel));
+					"powerBand Error: Skipping channel:%s day:%s\n", channel,
+					getDay()));
 			return NO_RESULT;
 		}
 
@@ -258,14 +258,14 @@ public class StationDeviationMetric extends PowerBandMetric {
 		if (xdata.length != ydata.length) {
 			StringBuilder message = new StringBuilder();
 			message.append(String.format(
-					"makePlots() %s: xdata.len=%d != ydata.len=%d",
-					getDay(), xdata.length, ydata.length));
+					"makePlots() %s: xdata.len=%d != ydata.len=%d", getDay(),
+					xdata.length, ydata.length));
 			throw new MetricException(message.toString());
 		}
 		if (plotMaker == null) {
 			String date = String.format("%04d%03d",
 					metricResult.getDate().get(Calendar.YEAR), metricResult
-					.getDate().get(Calendar.DAY_OF_YEAR));
+							.getDate().get(Calendar.DAY_OF_YEAR));
 			final String plotTitle = String.format(
 					"[ Date: %s ] [ Station: %s ] Station-Deviation", date,
 					getStation());
@@ -320,8 +320,8 @@ public class StationDeviationMetric extends PowerBandMetric {
 			// System.out.format("=== %s: ModelFile=%s does NOT exist!\n",
 			// getName(), fileName);
 			StringBuilder message = new StringBuilder();
-			message.append(String.format(
-					"== ModelFile=%s does NOT exist!\n", fileName));
+			message.append(String.format("== ModelFile=%s does NOT exist!\n",
+					fileName));
 			logger.warn(message.toString());
 			return false;
 		}
@@ -346,9 +346,9 @@ public class StationDeviationMetric extends PowerBandMetric {
 					tmpPows.add(Double.valueOf(args[2].trim()).doubleValue());
 				} catch (NumberFormatException e) {
 					StringBuilder message = new StringBuilder();
-					message.append(String
-							.format("== %s: Error reading modelFile=[%s]: \n",
-									getDay(), fName));
+					message.append(String.format(
+							"== %s: Error reading modelFile=[%s]: \n",
+							getDay(), fName));
 					logger.error(message.toString(), e);
 					return false;
 				}

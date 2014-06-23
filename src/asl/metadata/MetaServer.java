@@ -18,118 +18,115 @@
  */
 package asl.metadata;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import java.net.URI;
+import java.rmi.Naming;
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Set;
-import java.net.URI;
 
-import asl.metadata.MetaGenerator;
-import asl.metadata.Station;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import asl.metadata.meta_new.StationMeta;
-
-import java.rmi.Naming;
-import java.rmi.server.UnicastRemoteObject;
-import java.rmi.RemoteException;
 
 /**
  * MetaServer - Return requested metadata
- *
- * @author Mike Hagerty <hagertmb@bc.edu> 
- *
+ * 
+ * @author Mike Hagerty <hagertmb@bc.edu>
+ * 
  */
-public class MetaServer
-{
-    private static final Logger logger = LoggerFactory.getLogger(asl.metadata.MetaServer.class);
+public class MetaServer {
+	private static final Logger logger = LoggerFactory
+			.getLogger(asl.metadata.MetaServer.class);
 
-    private MetaGenerator metaGen = null;
-    private MetaInterface meta;
-    private boolean useRemoteMeta = false;
+	private MetaGenerator metaGen = null;
+	private MetaInterface meta;
+	private boolean useRemoteMeta = false;
 
-    /**
-    * Private constructor to ensure singleton
-    */
+	/**
+	 * Private constructor to ensure singleton
+	 */
 
-    // Use Remote MetaGenerator registered to rmi runnning on ipString with name="MetaGen":
-    public MetaServer(URI remoteURI)
-    {
-        String urlString = remoteURI.toString();
-        //String urlString = "rmi://" + ipString + "/MetaGen";
-        // Should probably try to verify ipString here and exit gracefully if not valid
-        logger.info("urlString="+urlString);
-        try {
-            meta = (MetaInterface)Naming.lookup(urlString);
-        } catch (Exception e) {
-            //System.out.format("== MetaServer: Error=%s\n", e.getMessage() );
-            logger.error("MetaServer Exception:", e);
-        }
-        useRemoteMeta = true;
-    }
+	// Use Remote MetaGenerator registered to rmi runnning on ipString with
+	// name="MetaGen":
+	public MetaServer(URI remoteURI) {
+		String urlString = remoteURI.toString();
+		// String urlString = "rmi://" + ipString + "/MetaGen";
+		// Should probably try to verify ipString here and exit gracefully if
+		// not valid
+		logger.info("urlString=" + urlString);
+		try {
+			meta = (MetaInterface) Naming.lookup(urlString);
+		} catch (Exception e) {
+			// System.out.format("== MetaServer: Error=%s\n", e.getMessage() );
+			logger.error("Exception:", e);
+		}
+		useRemoteMeta = true;
+	}
 
-    // Empty constructor --> Use local MetaGenerator class to load metadata
-    public MetaServer(String datalessDir, Set<String> networkSubset) 
-    {
-        logger.info("use *Local* MetaGenerator: datalessDir=" + datalessDir);
-        try {
-            metaGen = MetaGenerator.getInstance();
-            //metaGen.loadDataless("/Users/mth/mth/ASLData/dcc/metadata/dataless");
-            metaGen.loadDataless(datalessDir, networkSubset);
-        } catch (Exception e) {
-        	logger.error("MetaServer Exception:", e);
-        }
-    }
+	// Empty constructor --> Use local MetaGenerator class to load metadata
+	public MetaServer(String datalessDir, Set<String> networkSubset) {
+		logger.info("use *Local* MetaGenerator: datalessDir=" + datalessDir);
+		try {
+			metaGen = MetaGenerator.getInstance();
+			// metaGen.loadDataless("/Users/mth/mth/ASLData/dcc/metadata/dataless");
+			metaGen.loadDataless(datalessDir, networkSubset);
+		} catch (Exception e) {
+			logger.error("Exception:", e);
+		}
+	}
 
-    public void quit(){
-        try { // Failure to do this may result in a hung application that doesn't quit
-            UnicastRemoteObject.unexportObject(metaGen, true);
-        } catch(RemoteException e) {
-            logger.error("MetaServer RemoteException:", e);
-        }
-    }
+	public void quit() {
+		try { // Failure to do this may result in a hung application that
+				// doesn't quit
+			UnicastRemoteObject.unexportObject(metaGen, true);
+		} catch (RemoteException e) {
+			logger.error("RemoteException:", e);
+		}
+	}
 
-    public StationMeta getStationMeta(Station station, Calendar timestamp){
-        logger.debug("getStationMeta Station=" + station);
-        StationMeta stnMeta = null;
-        try {
-            if (useRemoteMeta) {
-                stnMeta = meta.getStationMeta(station, timestamp);
-            }
-            else {
-                stnMeta = metaGen.getStationMeta(station, timestamp);
-            }
-        } catch (RemoteException e) {
-            logger.error("MetaServer RemoteException:", e);
-        } catch (RuntimeException e) {
-        	logger.error("MetaServer RuntimeException:", e);
-        }
-        logger.debug("getStationMeta Done");
-        return stnMeta;
-    }
+	public StationMeta getStationMeta(Station station, Calendar timestamp) {
+		logger.debug("getStationMeta Station=" + station);
+		StationMeta stnMeta = null;
+		try {
+			if (useRemoteMeta) {
+				stnMeta = meta.getStationMeta(station, timestamp);
+			} else {
+				stnMeta = metaGen.getStationMeta(station, timestamp);
+			}
+		} catch (RemoteException e) {
+			logger.error("RemoteException:", e);
+		} catch (RuntimeException e) {
+			logger.error("RuntimeException:", e);
+		}
+		logger.debug("getStationMeta Done");
+		return stnMeta;
+	}
 
-    public List<Station> getStationList() {
-        List<Station> stations=null;
-        try {
-            if (useRemoteMeta) {
-                stations = meta.getStationList();
-            }
-            else {
-                stations = metaGen.getStationList();
-            }
-        } catch (Exception e) {
-            logger.error("MetaServer Exception:", e);
-        }
-        return stations;
-    }
+	public List<Station> getStationList() {
+		List<Station> stations = null;
+		try {
+			if (useRemoteMeta) {
+				stations = meta.getStationList();
+			} else {
+				stations = metaGen.getStationList();
+			}
+		} catch (Exception e) {
+			logger.error("Exception:", e);
+		}
+		return stations;
+	}
 
-    public void printStationList() {
-        List<Station> stations = getStationList();
-        for (Station station : stations) {
-            System.out.format("     == MetaGen contains Station:[%s]\n", station );
-            logger.info("MetaGen contains Station" + station );
-        }
+	public void printStationList() {
+		List<Station> stations = getStationList();
+		for (Station station : stations) {
+			System.out.format("     == MetaGen contains Station:[%s]\n",
+					station);
+			logger.info("MetaGen contains Station" + station);
+		}
 
-    }
+	}
 
 }

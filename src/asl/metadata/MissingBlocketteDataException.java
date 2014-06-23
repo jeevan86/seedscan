@@ -18,19 +18,14 @@
  */
 package asl.metadata;
 
-public class MissingBlocketteDataException
-extends Exception
-{
-    private static final long serialVersionUID = 1L;
+public class MissingBlocketteDataException extends Exception {
+	private static final long serialVersionUID = 1L;
 
-    public MissingBlocketteDataException()
-    {
-        super();
-    }
+	public MissingBlocketteDataException() {
+		super();
+	}
 
-    public MissingBlocketteDataException(String message)
-    {
-        super(message);
-    }
+	public MissingBlocketteDataException(String message) {
+		super(message);
+	}
 }
-

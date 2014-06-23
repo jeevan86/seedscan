@@ -18,112 +18,126 @@
  */
 package asl.seedscan.event;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.util.Calendar;
 
-public class EventCMT
-{
-    private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.event.EventCMT.class);
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-    private final String eventID;
-    private final double eventLat;
-    private final double eventLon;
-    private final double eventDep;
-    private final double eventMw;
-    private final Calendar eventCal;
+public class EventCMT {
+	private static final Logger logger = LoggerFactory
+			.getLogger(asl.seedscan.event.EventCMT.class);
 
-    public static class Builder {
-        // Required params
-        private final String eventID;
+	private final String eventID;
+	private final double eventLat;
+	private final double eventLon;
+	private final double eventDep;
+	private final double eventMw;
+	private final Calendar eventCal;
 
-        // Optional params
-        private Calendar eventCal;
-        private double eventLat=-999.;
-        private double eventLon=-999.;
-        private double eventDep=-999.;
-        private double eventMw =-999.;
+	public static class Builder {
+		// Required params
+		private final String eventID;
 
-        public Builder(String eventID) {
-            this.eventID  = eventID;
-        } 
-        public Builder calendar(Calendar val) {
-            eventCal = (Calendar)val.clone(); return this;
-        } 
-        public Builder latitude(double val) {
-            eventLat = val; return this;
-        } 
-        public Builder longitude(double val) {
-            eventLon = val; return this;
-        } 
-        public Builder depth(double val) {
-            eventDep = val; return this;
-        } 
-        public Builder mw(double val) {
-            eventMw = val; return this;
-        } 
+		// Optional params
+		private Calendar eventCal;
+		private double eventLat = -999.;
+		private double eventLon = -999.;
+		private double eventDep = -999.;
+		private double eventMw = -999.;
 
-        public EventCMT build() {
-            return new EventCMT(this);
-        }
-    }
+		public Builder(String eventID) {
+			this.eventID = eventID;
+		}
 
+		public Builder calendar(Calendar val) {
+			eventCal = (Calendar) val.clone();
+			return this;
+		}
 
-    // constructor
-    private EventCMT(Builder builder)
-    {
-        eventID  = builder.eventID;
-        eventCal = builder.eventCal;
-        eventLat = builder.eventLat;
-        eventLon = builder.eventLon;
-        eventDep = builder.eventDep;
-        eventMw  = builder.eventMw;
-    }
+		public Builder latitude(double val) {
+			eventLat = val;
+			return this;
+		}
 
-    public String getEventID() {
-        return eventID;
-    }
-    public Calendar getCalendar() {
-        return (Calendar)eventCal.clone();
-    }
-    public long getTimeInMillis() {
-        return eventCal.getTimeInMillis();
-    }
-    public double getLatitude() {
-        return eventLat;
-    }
-    public double getLongitude() {
-        return eventLon;
-    }
-    public double getDepth() {
-        return eventDep;
-    }
+		public Builder longitude(double val) {
+			eventLon = val;
+			return this;
+		}
 
-    public String toString(){
-        return new String (String.format("== EventCMT: eventID=[%s] %d/%02d/%02d (%03d) %02d:%02d:%02d.%03d", 
-                eventID,
-                eventCal.get(Calendar.YEAR),
-                eventCal.get(Calendar.MONTH) + 1,
-                eventCal.get(Calendar.DAY_OF_MONTH),
-                eventCal.get(Calendar.DAY_OF_YEAR),
-                eventCal.get(Calendar.HOUR_OF_DAY),
-                eventCal.get(Calendar.MINUTE),
-                eventCal.get(Calendar.SECOND),
-                eventCal.get(Calendar.MILLISECOND) ) );
-    }
+		public Builder depth(double val) {
+			eventDep = val;
+			return this;
+		}
 
-    public void printCMT() {
-        System.out.format("== EventCMT: eventID=[%s] %d/%02d/%02d (%03d) %02d:%02d:%02d.%03d\n", 
-                eventID,
-                eventCal.get(Calendar.YEAR),
-                eventCal.get(Calendar.MONTH) + 1,
-                eventCal.get(Calendar.DAY_OF_MONTH),
-                eventCal.get(Calendar.DAY_OF_YEAR),
-                eventCal.get(Calendar.HOUR_OF_DAY),
-                eventCal.get(Calendar.MINUTE),
-                eventCal.get(Calendar.SECOND),
-                eventCal.get(Calendar.MILLISECOND) );
-    }
+		public Builder mw(double val) {
+			eventMw = val;
+			return this;
+		}
+
+		public EventCMT build() {
+			return new EventCMT(this);
+		}
+	}
+
+	// constructor
+	private EventCMT(Builder builder) {
+		eventID = builder.eventID;
+		eventCal = builder.eventCal;
+		eventLat = builder.eventLat;
+		eventLon = builder.eventLon;
+		eventDep = builder.eventDep;
+		eventMw = builder.eventMw;
+	}
+
+	public String getEventID() {
+		return eventID;
+	}
+
+	public Calendar getCalendar() {
+		return (Calendar) eventCal.clone();
+	}
+
+	public long getTimeInMillis() {
+		return eventCal.getTimeInMillis();
+	}
+
+	public double getLatitude() {
+		return eventLat;
+	}
+
+	public double getLongitude() {
+		return eventLon;
+	}
+
+	public double getDepth() {
+		return eventDep;
+	}
+
+	public String toString() {
+		return new String(
+				String.format(
+						"== EventCMT: eventID=[%s] %d/%02d/%02d (%03d) %02d:%02d:%02d.%03d",
+						eventID, eventCal.get(Calendar.YEAR),
+						eventCal.get(Calendar.MONTH) + 1,
+						eventCal.get(Calendar.DAY_OF_MONTH),
+						eventCal.get(Calendar.DAY_OF_YEAR),
+						eventCal.get(Calendar.HOUR_OF_DAY),
+						eventCal.get(Calendar.MINUTE),
+						eventCal.get(Calendar.SECOND),
+						eventCal.get(Calendar.MILLISECOND)));
+	}
+
+	public void printCMT() {
+		System.out
+				.format("== EventCMT: eventID=[%s] %d/%02d/%02d (%03d) %02d:%02d:%02d.%03d\n",
+						eventID, eventCal.get(Calendar.YEAR),
+						eventCal.get(Calendar.MONTH) + 1,
+						eventCal.get(Calendar.DAY_OF_MONTH),
+						eventCal.get(Calendar.DAY_OF_YEAR),
+						eventCal.get(Calendar.HOUR_OF_DAY),
+						eventCal.get(Calendar.MINUTE),
+						eventCal.get(Calendar.SECOND),
+						eventCal.get(Calendar.MILLISECOND));
+	}
 
 }
-

@@ -20,10 +20,8 @@ package asl.seedsplitter;
 
 /**
  * @author Joel D. Edwards <jdedwards@usgs.gov>
- *
+ * 
  */
-public enum SeedSplitError
-{
-    NONE, SEED_SIGNATURE_CHANGED, SAMPLE_RATE_CHANGED
+public enum SeedSplitError {
+	NONE, SEED_SIGNATURE_CHANGED, SAMPLE_RATE_CHANGED
 }
-

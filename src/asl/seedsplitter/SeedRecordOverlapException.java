@@ -20,19 +20,16 @@ package asl.seedsplitter;
 
 /**
  * @author Joel D. Edwards <jdedwards@usgs.gov>
- *
+ * 
  */
-public class SeedRecordOverlapException
-extends Exception
-{
-    public static final long serialVersionUID = 1L;
+public class SeedRecordOverlapException extends Exception {
+	public static final long serialVersionUID = 1L;
 
-    public SeedRecordOverlapException() {
-        super();
-    }
+	public SeedRecordOverlapException() {
+		super();
+	}
 
-    public SeedRecordOverlapException(String message) {
-        super(message);
-    }
+	public SeedRecordOverlapException(String message) {
+		super(message);
+	}
 }
-

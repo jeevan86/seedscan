@@ -20,6 +20,7 @@ package asl.concurrent;
 
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,11 +88,11 @@ public abstract class TaskThread<T> implements Runnable {
 				else {
 					logger.debug(String.format("Performing task %s : %s", task
 							.getCommand(), (task.getData() == null) ? "null"
-									: task.getData()));
+							: task.getData()));
 					performTask(task);
 				}
-			} catch (InterruptedException exception) {
-				logger.warn("Caught InterruptedException:", exception);
+			} catch (InterruptedException e) {
+				logger.warn("Caught InterruptedException:", e);
 			}
 		}
 		cleanup();

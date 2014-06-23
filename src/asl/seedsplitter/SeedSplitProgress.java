@@ -25,146 +25,163 @@ import asl.worker.Progress;
 
 /**
  * @author Joel D. Edwards <jdedwards@usgs.gov>
- *
- * Stores progress information about the progress made by {@link SeedSplitter}.
+ * 
+ *         Stores progress information about the progress made by
+ *         {@link SeedSplitter}.
  */
-public class SeedSplitProgress 
-implements Progress
-{
-    private static final Logger logger = LoggerFactory.getLogger(asl.seedsplitter.SeedSplitProgress.class);
+public class SeedSplitProgress implements Progress {
+	private static final Logger logger = LoggerFactory
+			.getLogger(asl.seedsplitter.SeedSplitProgress.class);
 
-    private long m_byteCount;
-    
-    private SeedSplitError m_errorType = SeedSplitError.NONE;
-    private String m_errorMessage;
+	private long m_byteCount;
 
-    private double m_percentComplete;
-    private boolean m_complete;
-    private boolean m_fileDone;
+	private SeedSplitError m_errorType = SeedSplitError.NONE;
+	private String m_errorMessage;
 
-    /**
-     * Constructor.
-     * 
-     * @param byteCount 	The number of bytes that have been read to this point.
-     */
-    public SeedSplitProgress(long byteCount) {
-        _init(byteCount, false, SeedSplitError.NONE, null);
-    }
+	private double m_percentComplete;
+	private boolean m_complete;
+	private boolean m_fileDone;
 
-    /**
-     * Constructor. 
-     * 
-     * @param byteCount 	The number of bytes that have been read to this point.
-     * @param complete		A boolean value set to true if all data has been read.
-     */
-    public SeedSplitProgress(long byteCount, boolean complete) {
-        _init(byteCount, complete, SeedSplitError.NONE, null);
-    }
+	/**
+	 * Constructor.
+	 * 
+	 * @param byteCount
+	 *            The number of bytes that have been read to this point.
+	 */
+	public SeedSplitProgress(long byteCount) {
+		_init(byteCount, false, SeedSplitError.NONE, null);
+	}
 
-    /**
-     * Constructor.
-     * 
-     * @param byteCount 	The number of bytes that have been read to this point.
-     * @param errorType		The type of error that occurred, if any.
-     * @param errorMessage	A message describing the error if one occurred.
-     */
-    public SeedSplitProgress(long byteCount, SeedSplitError errorType, String errorMessage) {
-        _init(byteCount, false, errorType, errorMessage);
-    }
+	/**
+	 * Constructor.
+	 * 
+	 * @param byteCount
+	 *            The number of bytes that have been read to this point.
+	 * @param complete
+	 *            A boolean value set to true if all data has been read.
+	 */
+	public SeedSplitProgress(long byteCount, boolean complete) {
+		_init(byteCount, complete, SeedSplitError.NONE, null);
+	}
 
-    /**
-     * Hidden initialization method called by all constructors.
-     * 
-     * @param byteCount 	The number of bytes that have been read to this point.
-     * @param complete		A boolean value set to true if all data has been read.
-     * @param errorType		The type of error that occurred, if any.
-     * @param errorMessage	A message describing the error if one occurred.
-     */
-    private void _init(long byteCount, boolean complete, SeedSplitError errorType, String errorMessage) {
-        switch (errorType) {
-            case NONE:
-                m_errorMessage = null;
-                break;
-            case SEED_SIGNATURE_CHANGED: 
-            case SAMPLE_RATE_CHANGED:
-                m_errorMessage = errorType + ": " + ((errorMessage == null) ? "No Error Information" : errorMessage);
-                break;
-        }
-        m_errorType = errorType;
-        m_byteCount = byteCount;
-        m_complete = complete;
-    }
+	/**
+	 * Constructor.
+	 * 
+	 * @param byteCount
+	 *            The number of bytes that have been read to this point.
+	 * @param errorType
+	 *            The type of error that occurred, if any.
+	 * @param errorMessage
+	 *            A message describing the error if one occurred.
+	 */
+	public SeedSplitProgress(long byteCount, SeedSplitError errorType,
+			String errorMessage) {
+		_init(byteCount, false, errorType, errorMessage);
+	}
 
-    /**
-     * Sets the completion status of the file read operation.
-     * 
-     * @param done 	Set to true if the file read operation is complete.
-     */
-    public void setFileDone(boolean done) {
-        m_fileDone = done;
-    }
+	/**
+	 * Hidden initialization method called by all constructors.
+	 * 
+	 * @param byteCount
+	 *            The number of bytes that have been read to this point.
+	 * @param complete
+	 *            A boolean value set to true if all data has been read.
+	 * @param errorType
+	 *            The type of error that occurred, if any.
+	 * @param errorMessage
+	 *            A message describing the error if one occurred.
+	 */
+	private void _init(long byteCount, boolean complete,
+			SeedSplitError errorType, String errorMessage) {
+		switch (errorType) {
+		case NONE:
+			m_errorMessage = null;
+			break;
+		case SEED_SIGNATURE_CHANGED:
+		case SAMPLE_RATE_CHANGED:
+			m_errorMessage = errorType
+					+ ": "
+					+ ((errorMessage == null) ? "No Error Information"
+							: errorMessage);
+			break;
+		}
+		m_errorType = errorType;
+		m_byteCount = byteCount;
+		m_complete = complete;
+	}
 
-    /**
-     * Returns the number of bytes that have been read so far.
-     * 
-     * @return The number of bytes that have been read so far.
-     */
-    public long getByteCount() {
-        return m_byteCount;
-    }
+	/**
+	 * Sets the completion status of the file read operation.
+	 * 
+	 * @param done
+	 *            Set to true if the file read operation is complete.
+	 */
+	public void setFileDone(boolean done) {
+		m_fileDone = done;
+	}
 
-    /**
-     * Indicates whether processing is complete.
-     * 
-     * @return True if all processing is complete; otherwise false.
-     */
-    public boolean isComplete() {
-        return m_complete;
-    }
+	/**
+	 * Returns the number of bytes that have been read so far.
+	 * 
+	 * @return The number of bytes that have been read so far.
+	 */
+	public long getByteCount() {
+		return m_byteCount;
+	}
 
-    /**
-     * Indicates whether file input is done. 
-     * 
-     * @return True if file input is complete; otherwise false;
-     */
-    public boolean isFileDone() {
-        return m_fileDone;
-    }
+	/**
+	 * Indicates whether processing is complete.
+	 * 
+	 * @return True if all processing is complete; otherwise false.
+	 */
+	public boolean isComplete() {
+		return m_complete;
+	}
 
-    /**
-     * Indicates whether an error occurred.
-     * 
-     * @return True if an error occurred; otherwise false.
-     */
-    public boolean errorOccurred() {
-        return m_errorType != SeedSplitError.NONE;
-    }
+	/**
+	 * Indicates whether file input is done.
+	 * 
+	 * @return True if file input is complete; otherwise false;
+	 */
+	public boolean isFileDone() {
+		return m_fileDone;
+	}
 
-    /**
-     * Reports the type of error that occurred, if any.
-     * 
-     * @return A SeedSplitError enumerated type indicating the type of erro that occurred, if any.
-     */
-    public SeedSplitError getErrorType() {
-        return m_errorType;
-    }
+	/**
+	 * Indicates whether an error occurred.
+	 * 
+	 * @return True if an error occurred; otherwise false.
+	 */
+	public boolean errorOccurred() {
+		return m_errorType != SeedSplitError.NONE;
+	}
 
-    /**
-     * Reports the error message associated with the error, if one occurred.
-     * 
-     * @return A String with a description of the error, if one occurred.
-     */
-    public String getErrorMessage() {
-        return m_errorMessage;
-    }
+	/**
+	 * Reports the type of error that occurred, if any.
+	 * 
+	 * @return A SeedSplitError enumerated type indicating the type of erro that
+	 *         occurred, if any.
+	 */
+	public SeedSplitError getErrorType() {
+		return m_errorType;
+	}
 
-    /**
-     * Reports the current progress percent.
-     * 
-     * @return A double value between 0.0 and 1.0 indicating the current progress percent.
-     */
-    public double getProgressPercent() {
-        return m_percentComplete;
-    }
+	/**
+	 * Reports the error message associated with the error, if one occurred.
+	 * 
+	 * @return A String with a description of the error, if one occurred.
+	 */
+	public String getErrorMessage() {
+		return m_errorMessage;
+	}
+
+	/**
+	 * Reports the current progress percent.
+	 * 
+	 * @return A double value between 0.0 and 1.0 indicating the current
+	 *         progress percent.
+	 */
+	public double getProgressPercent() {
+		return m_percentComplete;
+	}
 }
-

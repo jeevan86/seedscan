@@ -19,8 +19,8 @@
 
 package asl.security;
 
-public interface Password
-{
-    public boolean setPassword(String password);
-    public String getPassword();
+public interface Password {
+	public boolean setPassword(String password);
+
+	public String getPassword();
 }

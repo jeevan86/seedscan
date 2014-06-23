@@ -18,9 +18,8 @@
  */
 package asl.worker;
 
-public interface Cancellable
-{
-    public void cancel();
-    public boolean cancelled();
-}
+public interface Cancellable {
+	public void cancel();
 
+	public boolean cancelled();
+}

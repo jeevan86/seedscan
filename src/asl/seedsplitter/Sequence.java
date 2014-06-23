@@ -18,14 +18,14 @@
  */
 package asl.seedsplitter;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import asl.security.MemberDigest;
 
@@ -224,12 +224,12 @@ public class Sequence extends MemberDigest {
 				newSequence.extend(series, 0, series.length);
 				this.swapData(newSequence);
 			} catch (SequenceRangeException e) {
-				String message = "Sequence RangeException: Sequence Range Error in trim(). This should never happen!";
+				String message = "SequenceRangeException: Sequence Range Error in trim(). This should never happen!";
 				logger.error(message, e);
 			} catch (RuntimeException e) {
-				logger.error("Sequence RuntimeException:", e);
+				logger.error("RuntimeException:", e);
 			} catch (CloneNotSupportedException e) {
-				logger.error("Sequence CloneNotSupportedException:", e);
+				logger.error("CloneNotSupportedException:", e);
 			}
 		}
 	}
@@ -321,13 +321,13 @@ public class Sequence extends MemberDigest {
 		// throw new SequenceTimingException();
 		// }
 		/*
-		 Allow for a fudge factor of 1 millisecond if sample
-		 rate is less than 100 Hz.
-		
-		 Is this a good idea, or would it be better to simply
-		 report a gap so the user is aware of the jump?
-		
-			I changed this to have a fudge of 10 millisecond
+		 * Allow for a fudge factor of 1 millisecond if sample rate is less than
+		 * 100 Hz.
+		 * 
+		 * Is this a good idea, or would it be better to simply report a gap so
+		 * the user is aware of the jump?
+		 * 
+		 * I changed this to have a fudge of 10 millisecond
 		 */
 		long intervalAdjustment = m_interval / 10;
 
@@ -365,7 +365,7 @@ public class Sequence extends MemberDigest {
 				try {
 					seq.mergeInto(this);
 				} catch (BlockSizeMismatchException e) {
-					logger.error("Sequence BlockSizeMismatchException:", e);
+					logger.error("BlockSizeMismatchException:", e);
 				}
 				seq.swapData(this);
 				return;
@@ -378,13 +378,13 @@ public class Sequence extends MemberDigest {
 			// seq._reset();
 			DataSet dataSet = (DataSet) this;
 			System.out
-			.format("== Sequence.mergeInto() [%s_%s %s-%s] this=[%s-%s] is a subSequence of seq=[%s-%s] --> this._reset()\n",
-					dataSet.getNetwork(), dataSet.getStation(),
-					dataSet.getLocation(), dataSet.getChannel(),
-					DataSet.timestampToString(this.getStartTime()),
-					DataSet.timestampToString(this.getEndTime()),
-					DataSet.timestampToString(seq.getStartTime()),
-					DataSet.timestampToString(seq.getEndTime()));
+					.format("== Sequence.mergeInto() [%s_%s %s-%s] this=[%s-%s] is a subSequence of seq=[%s-%s] --> this._reset()\n",
+							dataSet.getNetwork(), dataSet.getStation(),
+							dataSet.getLocation(), dataSet.getChannel(),
+							DataSet.timestampToString(this.getStartTime()),
+							DataSet.timestampToString(this.getEndTime()),
+							DataSet.timestampToString(seq.getStartTime()),
+							DataSet.timestampToString(seq.getEndTime()));
 			this._reset();
 			return;
 		}
@@ -394,7 +394,7 @@ public class Sequence extends MemberDigest {
 			try {
 				seq.mergeInto(this);
 			} catch (BlockSizeMismatchException e) {
-				logger.error("Sequence BlockSizeMismatchException:", e);
+				logger.error("BlockSizeMismatchException:", e);
 			}
 			seq.swapData(this);
 			return;
@@ -632,9 +632,9 @@ public class Sequence extends MemberDigest {
 		try {
 			return this.getSeries(0, m_length);
 		} catch (IndexOutOfBoundsException e) {
-			logger.error("Sequence IndexOutOfBoundsException:", e);
+			logger.error("IndexOutOfBoundsException:", e);
 		} catch (SequenceRangeException e) {
-			logger.error("Sequence RangeException:", e);
+			logger.error("RangeException:", e);
 		}
 		return null;
 	}
@@ -945,7 +945,7 @@ public class Sequence extends MemberDigest {
 					try {
 						((Sequence) sequence.clone()).mergeInto(collapsed);
 					} catch (BlockSizeMismatchException e) {
-						logger.error("Sequence BlockSizeMismatchException:", e);
+						logger.error("BlockSizeMismatchException:", e);
 					}
 				} else {
 					if (collapsed.getInterval() != sequence.getInterval()) {
