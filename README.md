@@ -30,6 +30,17 @@ SeedScan
     <cfg:station_subset>YLE</cfg:station_subset>  
     <cfg:station_subset>YLE,ANMO,FURI</cfg:station_subset>  
 
+######Database setup  
+    SeedScan connects to a PostgreSQL database. The configuration is at the base level of the config.xml.
+    <cfg:database>
+        <cfg:uri>jdbc:postgresql://hostname.domain.tld:5432/dataq_db</cfg:uri>
+        <cfg:username>username</cfg:username>
+        <cfg:password>
+            <cfg:plain>Password</cfg:plain>
+        </cfg:password>
+    </cfg:database>
+
+
 ###Usage
 
 Basic execution  
