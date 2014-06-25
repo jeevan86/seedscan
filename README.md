@@ -31,7 +31,9 @@ SeedScan
     <cfg:station_subset>YLE,ANMO,FURI</cfg:station_subset>  
 
 ######Database setup  
-    SeedScan connects to a PostgreSQL database. The configuration is at the base level of the config.xml.
+    SeedScan connects to a PostgreSQL database. The configuration is at the base level of the
+    config.xml.
+```xml
     <cfg:database>
         <cfg:uri>jdbc:postgresql://hostname.domain.tld:5432/dataq_db</cfg:uri>
         <cfg:username>username</cfg:username>
@@ -39,7 +41,7 @@ SeedScan
             <cfg:plain>Password</cfg:plain>
         </cfg:password>
     </cfg:database>
-
+```
 
 ###Usage
 
