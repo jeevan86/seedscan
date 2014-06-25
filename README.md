@@ -9,7 +9,7 @@ SeedScan
     The main configuration is found in config.xml file. This file is not under source control, but
     sample files can be found in the samples folder.
 
-    ######Date setup  
+######Date setup  
 
     To have a scan start on a specific date:  
     <cfg:start_date>YYYYDDD</cfg:start_date>  
@@ -21,7 +21,7 @@ SeedScan
     To set the number of days to scan:  
     <cfg:days_to_scan>10</cfg:days_to_scan>  
 
-    ######Network Station Restrictions  
+######Network Station Restrictions  
     To restrict to certain networks:  
     <cfg:network_subset>IU</cfg:network_subset>  
     <cfg:network_subset>IU,NE</cfg:network_subset>  
