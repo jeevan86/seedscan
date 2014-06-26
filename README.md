@@ -54,6 +54,17 @@ SeedScan
     </cfg:database>
 ```
 
+######Data Directory Setup
+    There are three data directories that need setup. Path is where the actual miniSEED data is stored.
+    It needs to be stored in a directory structure like in the example.  
+    The metadata/dataless is stored in dataless_dir. This is usually network dataless files.
+    Metrics that use synthetics require a events_dir directory to be setup. The files here are sac files.
+```xml
+    <cfg:path>/home/asluser/dataloc/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}</cfg:path>
+    <cfg:dataless_dir>/home/asluser/metadata/</cfg:dataless_dir>
+    <cfg:events_dir>/SYNTHETICS/</cfg:events_dir>
+```
+
 ######General Metric Setup  
     Class Name:  
     The class name needs to match the actual name of the class.  
