@@ -42,7 +42,8 @@ SeedScan
 
 ######Database Setup  
     SeedScan connects to a PostgreSQL database. The configuration is at the base level of the
-    config.xml.
+    config.xml. The database drivers are found in the lib directory. If an upgrade is required,
+    simply remove the existing driver and add the new driver.  
 ```xml
     <cfg:database>
         <cfg:uri>jdbc:postgresql://hostname.domain.tld:5432/dataq_db</cfg:uri>
@@ -51,6 +52,24 @@ SeedScan
             <cfg:plain>Password</cfg:plain>
         </cfg:password>
     </cfg:database>
+```
+
+######General Metric Setup  
+    Class Name:  
+    The class name needs to match the actual name of the class.  
+```xml
+    <cfg:class_name>asl.seedscan.metrics.AvailabilityMetric</cfg:class_name>
+```
+######Plot Setup
+    Plots are stored in a directory determined in the config.xml.  If this field is not specified
+    you can find the plots in a directory called "null" in the seedscan directory.
+```xml 
+    <cfg:plots_dir>./outputs</cfg:plots_dir>
+```
+    Metrics that produce plots can have this ability toggled by changing the makeplots argument.
+```xml
+    <cfg:argument cfg:name="makeplots">false</cfg:argument>
+    <cfg:argument cfg:name="makeplots">true</cfg:argument>
 ```
 
 ######PowerBand Metric Setup  
@@ -80,5 +99,11 @@ SeedScan
 
 ###Usage
 
-Basic execution  
-ant seedscan
+######Basic Execution  
+    To simply compile and execute seedscan run "ant seedscan" in the seedscan folder.
+    If you wish to log the output to a file, run "ant seedscan | tee filename". This will both print
+    to the screen and write to the file.
+
+######Creating a JAR
+    The ant build is capable of creating a jar file, but currently the jar has errors when executing.
+    Use "ant jar" to create a jar file.
