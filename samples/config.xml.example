@@ -1,0 +1,202 @@
+<?xml version="1.0"?>
+<cfg:config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="https://aslweb.cr.usgs.gov SeedScanConfig.xsd"
+    xmlns:cfg="config.seedscan.asl">
+
+<cfg:lockfile>seedscan.lock</cfg:lockfile>
+
+<cfg:database>
+        <cfg:uri>jdbc:postgresql://136.177.123.35:5432/dataq_dev</cfg:uri>
+        <cfg:username>devwrite</cfg:username>
+        <cfg:password>
+            <cfg:plain>password</cfg:plain>
+        </cfg:password>
+</cfg:database>
+
+<cfg:scans>
+    <cfg:scan cfg:name="daily">
+        <cfg:path>/home/asluser/dataloc/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}</cfg:path>
+            <cfg:station_subset>YLE</cfg:station_subset>
+            <cfg:network_subset>NE</cfg:network_subset>
+            <cfg:plots_dir>./outputs</cfg:plots_dir>
+            <cfg:dataless_dir>/home/asluser/metadata/</cfg:dataless_dir>
+            <cfg:events_dir>/SYNTHETICS/</cfg:events_dir>
+            <cfg:start_date>2014170</cfg:start_date>
+            <cfg:days_to_scan>7019</cfg:days_to_scan>
+            <cfg:metrics>
+                <cfg:metric>
+                    <cfg:class_name>asl.seedscan.metrics.AvailabilityMetric</cfg:class_name>
+                </cfg:metric>
+                <cfg:metric>
+                    <cfg:class_name>asl.seedscan.metrics.GapCountMetric</cfg:class_name>
+                </cfg:metric>
+                <cfg:metric>
+                    <cfg:class_name>asl.seedscan.metrics.TimingQualityMetric</cfg:class_name>
+                </cfg:metric>
+                <cfg:metric>
+                    <cfg:class_name>asl.seedscan.metrics.MassPositionMetric</cfg:class_name>
+                </cfg:metric>
+
+                <!--<cfg:metric>
+                    <cfg:class_name>asl.seedscan.metrics.CalibrationMetric</cfg:class_name>
+                    <cfg:argument cfg:name="makeplots">true</cfg:argument>
+                </cfg:metric>
+                -->
+                <!-- Event Metrics:  -->
+                <cfg:metric>
+                    <cfg:class_name>asl.seedscan.metrics.EventCompareStrongMotion</cfg:class_name>
+                    <cfg:argument cfg:name="makeplots">true</cfg:argument>
+                </cfg:metric>
+                <cfg:metric>
+                    <cfg:class_name>asl.seedscan.metrics.EventCompareSynthetic</cfg:class_name>
+                    <cfg:argument cfg:name="makeplots">true</cfg:argument>
+                </cfg:metric>
+
+                <!-- PowerBand Metrics:  -->
+
+                <cfg:metric>
+                    <cfg:class_name>asl.seedscan.metrics.CoherencePBM</cfg:class_name>
+                    <cfg:argument cfg:name="lower-limit">4</cfg:argument>
+                    <cfg:argument cfg:name="upper-limit">8</cfg:argument>
+                    <cfg:argument cfg:name="makeplots">true</cfg:argument>
+                </cfg:metric>
+                <cfg:metric>
+                    <cfg:class_name>asl.seedscan.metrics.CoherencePBM</cfg:class_name>
+                    <cfg:argument cfg:name="lower-limit">18</cfg:argument>
+                    <cfg:argument cfg:name="upper-limit">22</cfg:argument>
+                    <cfg:argument cfg:name="makeplots">true</cfg:argument>
+                </cfg:metric>
+                <cfg:metric>
+                    <cfg:class_name>asl.seedscan.metrics.CoherencePBM</cfg:class_name>
+                    <cfg:argument cfg:name="lower-limit">90</cfg:argument>
+                    <cfg:argument cfg:name="upper-limit">110</cfg:argument>
+                    <cfg:argument cfg:name="makeplots">true</cfg:argument>
+                </cfg:metric>
+                <cfg:metric>
+                    <cfg:class_name>asl.seedscan.metrics.CoherencePBM</cfg:class_name>
+                    <cfg:argument cfg:name="lower-limit">200</cfg:argument>
+                    <cfg:argument cfg:name="upper-limit">500</cfg:argument>
+                    <cfg:argument cfg:name="makeplots">true</cfg:argument>
+                </cfg:metric>
+
+                <cfg:metric>
+                    <cfg:class_name>asl.seedscan.metrics.DifferencePBM</cfg:class_name>
+                    <cfg:argument cfg:name="lower-limit">4</cfg:argument>
+                    <cfg:argument cfg:name="upper-limit">8</cfg:argument>
+                    <cfg:argument cfg:name="makeplots">false</cfg:argument>
+                </cfg:metric>
+                <cfg:metric>
+                    <cfg:class_name>asl.seedscan.metrics.DifferencePBM</cfg:class_name>
+                    <cfg:argument cfg:name="lower-limit">18</cfg:argument>
+                    <cfg:argument cfg:name="upper-limit">22</cfg:argument>
+                    <cfg:argument cfg:name="makeplots">false</cfg:argument>
+                </cfg:metric>
+                <cfg:metric>
+                    <cfg:class_name>asl.seedscan.metrics.DifferencePBM</cfg:class_name>
+                    <cfg:argument cfg:name="lower-limit">90</cfg:argument>
+                    <cfg:argument cfg:name="upper-limit">110</cfg:argument>
+                    <cfg:argument cfg:name="makeplots">false</cfg:argument>
+                </cfg:metric>
+                <cfg:metric>
+                    <cfg:class_name>asl.seedscan.metrics.DifferencePBM</cfg:class_name>
+                    <cfg:argument cfg:name="lower-limit">200</cfg:argument>
+                    <cfg:argument cfg:name="upper-limit">500</cfg:argument>
+                    <cfg:argument cfg:name="makeplots">false</cfg:argument>
+                </cfg:metric>
+
+                <cfg:metric>
+                    <cfg:class_name>asl.seedscan.metrics.NLNMDeviationMetric</cfg:class_name>
+                    <cfg:argument cfg:name="lower-limit">4</cfg:argument>
+                    <cfg:argument cfg:name="upper-limit">8</cfg:argument>
+                    <cfg:argument cfg:name="nlnm-modelfile">resources/NLNM.ascii/</cfg:argument>
+                    <cfg:argument cfg:name="nhnm-modelfile">resources/NHNM.ascii/</cfg:argument>
+                    <cfg:argument cfg:name="makeplots">true</cfg:argument>
+                </cfg:metric>
+                <cfg:metric>
+                    <cfg:class_name>asl.seedscan.metrics.NLNMDeviationMetric</cfg:class_name>
+                    <cfg:argument cfg:name="lower-limit">18</cfg:argument>
+                    <cfg:argument cfg:name="upper-limit">22</cfg:argument>
+                    <cfg:argument cfg:name="nlnm-modelfile">resources/NLNM.ascii/</cfg:argument>
+                    <cfg:argument cfg:name="nhnm-modelfile">resources/NHNM.ascii/</cfg:argument>
+                    <cfg:argument cfg:name="makeplots">true</cfg:argument>
+                </cfg:metric>
+                <cfg:metric>
+                    <cfg:class_name>asl.seedscan.metrics.NLNMDeviationMetric</cfg:class_name>
+                    <cfg:argument cfg:name="lower-limit">90</cfg:argument>
+                    <cfg:argument cfg:name="upper-limit">110</cfg:argument>
+                    <cfg:argument cfg:name="nlnm-modelfile">resources/NLNM.ascii/</cfg:argument>
+                    <cfg:argument cfg:name="nhnm-modelfile">resources/NHNM.ascii/</cfg:argument>
+                    <cfg:argument cfg:name="makeplots">true</cfg:argument>
+                </cfg:metric>
+                <cfg:metric>
+                    <cfg:class_name>asl.seedscan.metrics.NLNMDeviationMetric</cfg:class_name>
+                    <cfg:argument cfg:name="lower-limit">200</cfg:argument>
+                    <cfg:argument cfg:name="upper-limit">500</cfg:argument>
+                    <cfg:argument cfg:name="nlnm-modelfile">resources/NLNM.ascii/</cfg:argument>
+                    <cfg:argument cfg:name="nhnm-modelfile">resources/NHNM.ascii/</cfg:argument>
+                    <cfg:argument cfg:name="makeplots">true</cfg:argument>
+                </cfg:metric>
+                <cfg:metric>
+                    <cfg:class_name>asl.seedscan.metrics.DeadChannelMetric</cfg:class_name>
+                    <cfg:argument cfg:name="lower-limit">4</cfg:argument>
+                    <cfg:argument cfg:name="upper-limit">8</cfg:argument>
+                    <cfg:argument cfg:name="makeplots">false</cfg:argument>
+                </cfg:metric>
+                <cfg:metric>
+                    <cfg:class_name>asl.seedscan.metrics.StationDeviationMetric</cfg:class_name>
+                    <cfg:argument cfg:name="lower-limit">4</cfg:argument>
+                    <cfg:argument cfg:name="upper-limit">8</cfg:argument>
+                    <cfg:argument cfg:name="makeplots">true</cfg:argument>
+                    <!--			
+                    <cfg:argument cfg:name="modelpath">/Users/mth/mth/Projects/xs0/stationmodel/${NETWORK}_${STATION}/</cfg:argument>
+                    -->
+                    <cfg:argument cfg:name="modelpath">/home/asluser/outsidedata/senmodel/</cfg:argument>
+                </cfg:metric>
+                <cfg:metric>
+                    <cfg:class_name>asl.seedscan.metrics.StationDeviationMetric</cfg:class_name>
+                    <cfg:argument cfg:name="lower-limit">18</cfg:argument>
+                    <cfg:argument cfg:name="upper-limit">22</cfg:argument>
+                    <cfg:argument cfg:name="makeplots">true</cfg:argument>
+                    <!--
+                    <cfg:argument cfg:name="modelpath">/Users/mth/mth/Projects/xs0/stationmodel/${NETWORK}_${STATION}/</cfg:argument>
+                    -->
+                    <cfg:argument cfg:name="modelpath">/home/asluser/outsidedata/senmodel/</cfg:argument>
+                </cfg:metric>
+                <cfg:metric>
+                    <cfg:class_name>asl.seedscan.metrics.StationDeviationMetric</cfg:class_name>
+                    <cfg:argument cfg:name="lower-limit">90</cfg:argument>
+                    <cfg:argument cfg:name="upper-limit">110</cfg:argument>
+                    <cfg:argument cfg:name="makeplots">true</cfg:argument>
+                    <!--
+                    <cfg:argument cfg:name="modelpath">/Users/mth/mth/Projects/xs0/stationmodel/${NETWORK}_${STATION}/</cfg:argument>
+                    -->
+                    <cfg:argument cfg:name="modelpath">/home/asluser/outsidedata/senmodel/</cfg:argument>
+                </cfg:metric>
+                <cfg:metric>
+                    <cfg:class_name>asl.seedscan.metrics.StationDeviationMetric</cfg:class_name>
+                    <cfg:argument cfg:name="lower-limit">200</cfg:argument>
+                    <cfg:argument cfg:name="upper-limit">500</cfg:argument>
+                    <cfg:argument cfg:name="makeplots">true</cfg:argument>
+                    <!--
+                    <cfg:argument cfg:name="modelpath">/Users/mth/mth/Projects/xs0/stationmodel/${NETWORK}_${STATION}/</cfg:argument>
+                    -->
+                    <cfg:argument cfg:name="modelpath">/home/asluser/outsidedata/senmodel/</cfg:argument>
+                </cfg:metric>
+            </cfg:metrics>
+        </cfg:scan>
+        <!--
+
+        <cfg:scan cfg:name="yearly">
+            <cfg:path>/xs0/seed/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}</cfg:path>
+            <cfg:start_day>1</cfg:start_day>
+            <cfg:days_to_scan>366</cfg:days_to_scan>
+            <cfg:metrics>
+                <cfg:metric>
+                    <cfg:class_name>asl.seedscan.metrics.AvailabilityMetric</cfg:class_name>
+                </cfg:metric>
+            </cfg:metrics>
+        </cfg:scan>
+        -->
+    </cfg:scans>
+
+</cfg:config>
