@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- For assistance related to logback-translator or configuration -->
+<!-- files in general, please contact the logback user mailing list -->
+<!-- at http://www.qos.ch/mailman/listinfo/logback-user -->
+<!-- -->
+<!-- For professional support please see -->
+<!-- http://www.qos.ch/shop/products/professionalSupport -->
+<!-- -->
+<configuration>
+	<appender name="DataAppender"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>logs/DATA.log</File>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>logs/DATA.%d{yyyy-MM-dd}.log</fileNamePattern>
+		</rollingPolicy>
+		<filter class="ch.qos.logback.classic.filter.LevelFilter">
+			<level>ERROR</level>
+			<onMatch>ACCEPT</onMatch>
+			<onMismatch>DENY</onMismatch>
+		</filter>
+
+		<encoder>
+			<pattern>%d{yyyy-MM-dd HH:mm:ss} %-5p [%t]: %c{1} %m%n</pattern>
+		</encoder>
+	</appender>
+	<appender name="DebugAppender"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>logs/DEBUG.log</File>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>logs/DEBUG.%d{yyyy-MM-dd}.log</fileNamePattern>
+		</rollingPolicy>
+		<filter class="ch.qos.logback.classic.filter.LevelFilter">
+			<level>DEBUG</level>
+			<onMatch>ACCEPT</onMatch>
+			<onMismatch>DENY</onMismatch>
+		</filter>
+		<encoder>
+			<pattern>%d{yyyy-MM-dd HH:mm:ss} %-5p [%t]: %c{1}: %m%n</pattern>
+		</encoder>
+	</appender>
+	<appender name="InfoAppender"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>logs/INFO.log</File>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>logs/INFO.%d{yyyy-MM-dd}.log</fileNamePattern>
+		</rollingPolicy>
+		<filter class="ch.qos.logback.classic.filter.LevelFilter">
+			<level>INFO</level>
+			<onMatch>ACCEPT</onMatch>
+			<onMismatch>DENY</onMismatch>
+		</filter>
+		<encoder>
+			<pattern>%d{yyyy-MM-dd HH:mm:ss} %-5p [%t]: %c{1}: %m%n</pattern>
+		</encoder>
+	</appender>
+	<appender name="WarnAppender"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>logs/WARN.log</File>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>logs/WARN.%d{yyyy-MM-dd}.log</fileNamePattern>
+		</rollingPolicy>
+		<filter class="ch.qos.logback.classic.filter.LevelFilter">
+			<level>WARN</level>
+			<onMatch>ACCEPT</onMatch>
+			<onMismatch>DENY</onMismatch>
+		</filter>
+		<encoder>
+			<pattern>%d{yyyy-MM-dd HH:mm:ss} %-5p [%t]: %c{1}: %m%n</pattern>
+		</encoder>
+	</appender>
+	<appender name="ErrorAppender"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>logs/ERROR.log</File>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>logs/ERROR.%d{yyyy-MM-dd}.log</fileNamePattern>
+		</rollingPolicy>
+		<filter class="ch.qos.logback.classic.filter.LevelFilter">
+			<level>ERROR</level>
+			<onMatch>ACCEPT</onMatch>
+			<onMismatch>DENY</onMismatch>
+		</filter>
+		<encoder>
+			<pattern>%d{yyyy-MM-dd HH:mm:ss} %-5p [%t]: %c{1}: %m%n</pattern>
+		</encoder>
+	</appender>
+	<appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+		<Target>System.out</Target>
+		<encoder>
+			<pattern>%d{yyyy-MM-dd HH:mm:ss} %-5p [%t]: %c{1}: %m%n</pattern>
+		</encoder>
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<level>INFO</level>
+		</filter>
+	</appender>
+	<logger name="asl.seedsplitter" level="INFO" />
+	<logger name="DataLog" additivity="false" level="ERROR">
+		<appender-ref ref="DataAppender" />
+	</logger>
+	<root level="ALL">
+		<appender-ref ref="DebugAppender" />
+		<appender-ref ref="InfoAppender" />
+		<appender-ref ref="WarnAppender" />
+		<appender-ref ref="ErrorAppender" />
+		<appender-ref ref="stdout" />
+	</root>
+</configuration>
