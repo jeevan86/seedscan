@@ -1,6 +1,5 @@
 build
 *.class
-.classpath
 config.xml
 config.xml~
 doc
