@@ -67,10 +67,9 @@ public class PSD {
 	 * effect with nsegs replaced by nfrequencies to smooth The combination of
 	 * both will reduce error by sqrt(1 / nfreqs * nsegs)
 	 * 
-	 * @psd[f] - Contains smoothed crosspower-spectral density computed for nf =
+	 * psd[f] - Contains smoothed crosspower-spectral density computed for nf =
 	 *         nfft/2 + 1 frequencies (+ve freqs + DC + Nyq)
 	 * 
-	 * @author Mike Hagerty
 	 */
 	private void computePSD() {
 
@@ -85,7 +84,7 @@ public class PSD {
 
 		// For 13 windows with 75% overlap, each window will contain ndata/4
 		// points
-		// ** Still need to handle the case of multiple datasets with gaps!
+		// TODO: Still need to handle the case of multiple datasets with gaps!
 
 		int nseg_pnts = ndata / 4;
 		int noff = nseg_pnts / 4;
