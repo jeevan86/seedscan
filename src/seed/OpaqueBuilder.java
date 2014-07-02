@@ -59,7 +59,7 @@ public class OpaqueBuilder {
 	/**
 	 * Creates a new instance of OpaqueBuilder
 	 * 
-	 * @param byteOrder
+	 * @param blocketteByteOrder
 	 *            - byte order expected for all blockettes
 	 */
 	public OpaqueBuilder(Collection<String> tags, ByteOrder blocketteByteOrder,

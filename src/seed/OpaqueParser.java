@@ -46,20 +46,16 @@ public class OpaqueParser {
 	/**
 	 * Creates a new instance of OpaqueParser
 	 * 
-	 * @param byteOrder
-	 *            - byte order expected for all blockettes
 	 */
 	public OpaqueParser() {
 		contexts = new Hashtable<String, OpaqueContext>();
 	}
 
 	/**
-	 * process a blockette, adding its opaque data to the context
+	 * Process a blockette, adding its opaque data to the context
 	 * 
-	 * @param blockette
+	 * @param blk
 	 *            - a ByteBuffer containing the raw blockette to process
-	 * @param byteOrder
-	 *            - the byteOder of the items in this blockette's header
 	 */
 	public void addBlockette(Blockette2000 blk) throws BlocketteOrderException,
 			BlocketteTypeException, OpaqueSegmentOutOfOrderException,

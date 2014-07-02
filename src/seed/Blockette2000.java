@@ -122,7 +122,7 @@ public class Blockette2000 extends Blockette {
 	/**
 	 * Creates a new instance of Blockette2000
 	 * 
-	 * @param blockette
+	 * @param b
 	 *            - The raw bytes from an existing blockette 2000
 	 */
 	public Blockette2000(byte[] b) {

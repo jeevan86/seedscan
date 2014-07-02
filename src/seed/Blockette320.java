@@ -68,7 +68,7 @@ public class Blockette320 extends Blockette {
 	/**
 	 * Creates a new instance of Blockette320
 	 * 
-	 * @param blockette
+	 * @param b
 	 *            - The raw bytes from an existing blockette 320
 	 */
 	public Blockette320(byte[] b) {
