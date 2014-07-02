@@ -59,6 +59,8 @@ class OpaqueContext {
 		return state;
 	}
 
+	@SuppressWarnings("fallthrough")
+	// We want the fall through in the switch.
 	public boolean isComplete() {
 		boolean complete = false;
 		switch (state) {
