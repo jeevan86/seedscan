@@ -337,8 +337,6 @@ public class RawToMiniSeed {
 	 *            The clock quality as defined in SEED volume
 	 * @param timingQuality
 	 *            The clock quality as defined in SEED volume blockette1001
-	 * @param par
-	 *            The parent thread to use for logging
 	 */
 	public static void addTimeseries(int[] x, int nsamp, String seedname,
 			int year, int doy, int sec, int micros, double rt, int activity,
@@ -378,8 +376,6 @@ public class RawToMiniSeed {
 	 *            The clock quality as defined in SEED volume
 	 * @param timingQuality
 	 *            The timint quality (0-100)
-	 * @param par
-	 *            The parent thread to use for logging.
 	 * @param lastValue
 	 *            Only needed if exact match to existing seed is needed.
 	 */
@@ -778,8 +774,6 @@ public class RawToMiniSeed {
 	 *            Fractional Microseconds of first sample
 	 * @param startSeq
 	 *            Start any compression with this sequence number
-	 * @param par
-	 *            The parent thread for logging.
 	 */
 	public RawToMiniSeed(String name, double rt, int nFrames, int year,
 			int doy, int sec, int micros, int startSeq) {
@@ -1915,8 +1909,8 @@ public class RawToMiniSeed {
 		/**
 		 * set timing quality
 		 * 
-		 * @param the
-		 *            timing quality
+		 * @param i
+		 *            the timing quality
 		 */
 		public void setTimingQuality(int i) {
 			timingQuality = (byte) i;
@@ -1925,8 +1919,8 @@ public class RawToMiniSeed {
 		/**
 		 * public void set the number of frames in this header
 		 * 
-		 * @param the
-		 *            actual number of frames *
+		 * @param nf
+		 *            the actual number of frames *
 		 */
 		public void setActualNFrames(int nf) {
 			actualFrames = nf;
