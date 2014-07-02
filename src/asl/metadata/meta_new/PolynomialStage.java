@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import freq.Cmplx;
 
 public class PolynomialStage extends ResponseStage {
+	private static final long serialVersionUID = 1L;
 	private double lowerFrequencyBound;
 	private double upperFrequencyBound;
 	private double lowerApproximationBound;

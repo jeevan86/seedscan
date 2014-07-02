@@ -31,6 +31,7 @@ import freq.Cmplx;
  * info + the stage gain & frequency of gain
  */
 public class PoleZeroStage extends ResponseStage implements Cloneable {
+	private static final long serialVersionUID = 1L;
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.metadata.meta_new.PoleZeroStage.class);
 	private ArrayList<Cmplx> poles;
