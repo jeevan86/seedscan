@@ -7,7 +7,7 @@ package freq;
  * Created: Mon Jul 15 10:12:01 2002
  * 
  * @author <a href="mailto:">Charlie Groves</a>
- * @version
+ * 
  */
 
 public class NamedFilter extends ButterworthFilter {
