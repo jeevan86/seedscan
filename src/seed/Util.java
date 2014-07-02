@@ -607,6 +607,7 @@ public class Util extends Object {
 	 *            The string to be escaped
 	 * @return The escaped string
 	 */
+	@SuppressWarnings("fallthrough") //We want the fall through in the switch.
 	public static String sqlEscape(String s) {
 		StringBuilder result;
 		int i;
