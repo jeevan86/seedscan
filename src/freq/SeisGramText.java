@@ -404,7 +404,7 @@ public class SeisGramText {
 		// construct Locale object
 		Locale loc = new Locale(language, country, variant);
 		try {
-			loc.setDefault(new Locale(LANGUAGE_DEFAULT, COUNTRY_DEFAULT));
+			Locale.setDefault(new Locale(LANGUAGE_DEFAULT, COUNTRY_DEFAULT));
 		} catch (Exception e) {
 			logger.error("Exception:", e);
 		}
