@@ -465,7 +465,6 @@ public abstract class Metric {
 	 */
 	private final double[] computePSD(Channel channelX, Channel channelY,
 			double[] params) throws ChannelMetaException, MetricPSDException {
-		int ndata = 0;
 		double srate = 0; // srate = sample frequency, e.g., 20Hz
 
 		// This would give us 2 channels with the SAME number of (overlapping)
@@ -496,7 +495,6 @@ public abstract class Metric {
 			throw new MetricPSDException(message.toString());
 		}
 		srate = srateX;
-		ndata = chanXData.length;
 
 		if (srate == 0)
 			throw new MetricPSDException("Got srate=0");
