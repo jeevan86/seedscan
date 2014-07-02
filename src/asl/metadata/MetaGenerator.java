@@ -282,8 +282,8 @@ public class MetaGenerator extends UnicastRemoteObject implements MetaInterface 
 	 * for this station, Then scans through the epochs to find and return the
 	 * requested epoch metadata.
 	 * 
-	 * @station - The station for which metadata is requested
-	 * @timestamp - The (epoch) timestamp for which metadata is requested
+	 * @param station The station for which metadata is requested
+	 * @param timestamp The (epoch) timestamp for which metadata is requested
 	 * 
 	 *            ChannelData - Contains all Blockettes for a particular
 	 *            channel, for ALL epochs EpochData - Constains all Blockettes
