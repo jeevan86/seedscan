@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project default="javadoc">
     <target name="javadoc">
-        <javadoc access="private" author="true" classpath="lib/mysql-connector-java-5.1.16-bin.jar:lib/slf4j-api-1.7.7.jar:lib/logback-classic-1.1.2.jar:lib/jcommon-1.0.16.jar:lib/commons-cli-1.2.jar:lib/logback-core-1.1.2.jar:lib/TauP-2.1.0.jar:lib/postgresql-9.2-1002.jdbc4.jar:lib/jfreechart-1.0.13.jar" destdir="doc" nodeprecated="false" nodeprecatedlist="false" noindex="false" nonavbar="false" notree="false" source="1.6" sourcefiles="src/asl/seedscan/SeedScan.java" sourcepath="src" splitindex="true" use="true" version="true">
+        <javadoc access="private" author="true" classpath="lib/mysql-connector-java-5.1.16-bin.jar:lib/slf4j-api-1.7.7.jar:lib/logback-classic-1.1.2.jar:lib/jcommon-1.0.16.jar:lib/commons-cli-1.2.jar:lib/logback-core-1.1.2.jar:lib/TauP-2.1.0.jar:lib/postgresql-9.2-1002.jdbc4.jar:lib/jfreechart-1.0.13.jar" destdir="doc" nodeprecated="false" nodeprecatedlist="false" noindex="false" nonavbar="false" notree="false" packagenames="asl.seedscan.metrics,asl.seedscan.config,asl.seedscan.database,asl.seedscan.event,asl.metadata,asl,sac,asl.seedsplitter,timeutils,freq,seed,asl.concurrent,asl.util,asl.metadata.meta_new,asl.seedscan,asl.security,asl.worker" source="1.6" sourcepath="src" splitindex="true" use="true" version="true">
             <link href="http://download.oracle.com/javase/6/docs/api/"/>
         </javadoc>
     </target>

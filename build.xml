@@ -8,6 +8,7 @@
     <property name="project.archive"            value="SeedScan.jar" />
     <property name="src.dir"                    location="src"/>
     <property name="libs.dir"                   location="lib"/>
+    <property name="doc.dir"                    location="doc"/>
     <property name="resources.dir"              location="resources"/>
     <property name="build.root"                 location="build"/>
     <property name="build.resources"            location="build/resources"/>
@@ -145,18 +146,6 @@
             <tar destfile="${package.tar.file}" basedir="${package.root}" compression="bzip2"/>
     </target>
 	
-<!--DOCS-->
-    <target name="docs" depends="init_doc"
-            description="generate the javadoc documentation" >
-        <javadoc 
-        	sourcepath="${doc.src}" 
-        	destdir="${doc.dir}" 
-        	packagenames="${doc.packages}" 
-        	access="private"
-        	author="true"
-        />
-    </target>
-
 <!--CLEAN-JAXB-->
     <target name="clean_jaxb" description="clean up JAXB generated sources [del dir=seedscan.config.src]" >
         <delete dir="${seedscan.config.src}"/>
@@ -177,11 +166,12 @@
 
 <!--CLEAN-DOCS-->
     <target name="clean_docs" description="clean up docs" >
-    	<delete dir="${doc.dir}"/>
+        <delete><fileset dir="${doc.dir}"/></delete>
     </target>
 
 <!--CLEAN-->
     <target name="clean" description="clean up"
             depends="clean_build, clean_package, clean_docs"/>
 
+    <import file="./javadoc.xml"/>
 </project>
