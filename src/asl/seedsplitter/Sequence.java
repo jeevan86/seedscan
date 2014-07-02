@@ -97,10 +97,9 @@ public class Sequence extends MemberDigest {
 	}
 
 	/**
-	 * Sets the timestamp of the first data point.
+	 * Adds start time of first data point and sample rate to digest.
+	 * It then loops through blocks and adds them. 
 	 * 
-	 * @param startTime
-	 *            timestamp of first data point
 	 */
 	@Override
 	protected void addDigestMembers() {
