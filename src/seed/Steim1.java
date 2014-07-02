@@ -141,7 +141,9 @@ public class Steim1 {
 	/**
 	 * Abbreviated, zero-bias version of decode().
 	 * 
-	 * @see edu.iris.Fissures.codec.Steim1#decode(byte[],int,boolean,int)
+	 * @see <a
+	 *      href="http://www.seis.sc.edu/software/seedCodec/javadoc/edu/iris/dmc/seedcodec/Steim1.html#decode(byte[], int, boolean, int)">IRIS
+	 *      Steim1 decode function</a>
 	 */
 	public static int[] decode(byte[] b, int numSamples, boolean swapBytes)
 			throws SteimException {
@@ -305,7 +307,9 @@ public class Steim1 {
 	/**
 	 * Abbreviated zero-bias version of encode().
 	 * 
-	 * @see edu.iris.Fissures.codec.Steim1#encode(int[],int,int)
+	 * @see <a
+	 *      href="http://www.seis.sc.edu/software/seedCodec/javadoc/edu/iris/dmc/seedcodec/Steim1.html#encode(int[], int, int)">IRIS
+	 *      Steim1 encode function</a>
 	 */
 	public static SteimFrameBlock encode(int[] samples, int frames)
 			throws SteimException {

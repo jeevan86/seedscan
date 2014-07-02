@@ -305,7 +305,9 @@ public class Steim2 {
 	/**
 	 * Abbreviated, zero-bias version of decode().
 	 * 
-	 * @see edu.iris.Fissures.codec.Steim2#decode(byte[],int,boolean,int)
+	 * @see <a
+	 *      href="http://www.seis.sc.edu/software/seedCodec/javadoc/edu/iris/dmc/seedcodec/Steim2.html#decode(byte[], int, boolean)">IRIS
+	 *      Steim2 decode function</a>
 	 */
 	public static int[] decode(byte[] b, int numSamples, boolean swapBytes)
 			throws SteimException {

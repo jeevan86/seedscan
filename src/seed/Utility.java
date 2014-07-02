@@ -129,7 +129,9 @@ public class Utility {
 	 * @param swapBytes
 	 *            byte order swap flag
 	 * @return 32-bit integer
-	 * @see edu.iris.Fissures.seed.util.Utility#uBytesToLong(byte,byte,byte,byte,boolean)
+	 * @see <a
+	 *      href="http://www.seis.sc.edu/software/seedCodec/javadoc/edu/iris/dmc/seedcodec/Utility.html#uBytesToLong(byte, byte, byte, byte, boolean)">IRIS
+	 *      uBytesToLong function</a>
 	 */
 	public static int bytesToInt(byte a, byte b, byte c, byte d,
 			boolean swapBytes) {
