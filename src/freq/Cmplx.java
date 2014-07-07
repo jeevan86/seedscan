@@ -3,8 +3,8 @@
 // change package
 package freq;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+//import org.slf4j.Logger;
+//import org.slf4j.LoggerFactory;
 
 /*
  * This file is part of the Anthony Lomax Java Library. Copyright (C) 1999
@@ -21,8 +21,8 @@ import org.slf4j.LoggerFactory;
  */
 
 public class Cmplx implements java.io.Serializable {
-	private static final Logger logger = LoggerFactory
-			.getLogger(freq.Cmplx.class);
+/*	private static final Logger logger = LoggerFactory
+			.getLogger(freq.Cmplx.class);*/
 	private static final long serialVersionUID = 1L;
 
 	public double r; // real part
