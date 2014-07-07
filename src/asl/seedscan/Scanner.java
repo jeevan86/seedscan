@@ -69,8 +69,6 @@ public class Scanner implements Runnable {
 
 	private FallOffQueue<SeedSplitProgress> progressQueue;
 
-	private static long MB = 1048576L; // 1024*1024 - for java Runtime outputs
-
 	public Scanner(MetricReader reader, MetricInjector injector,
 			Station station, Scan scan) {
 		this.reader = reader;
@@ -101,8 +99,6 @@ public class Scanner implements Runnable {
 
 		GregorianCalendar timestamp = new GregorianCalendar(
 				TimeZone.getTimeZone("GMT"));
-
-		Runtime runtime = Runtime.getRuntime();
 
 		// Look for cfg:start_date first:
 		if (scan.getStartDate() > 1990001 && scan.getStartDate() < 2014365) {
@@ -212,11 +208,6 @@ public class Scanner implements Runnable {
 												// isn't null!
 				currentMetricData.setNextMetricData(nextMetricData);
 			}
-
-			// System.out.format("== Scanner: totalMemory=[%d] freeMemory=[%d] usedMemory=[%d]\n",
-			// runtime.totalMemory()/MB,
-			// runtime.freeMemory()/MB, (runtime.totalMemory() -
-			// runtime.freeMemory())/MB );
 
 			// [3] Loop over Metrics to compute, for this station, for this day
 
