@@ -75,19 +75,8 @@ public class MetricReader extends TaskThread<QueryContext<? extends Object>> {
 			 * TODO: If command becomes an enum, This should be a switch.
 			 * String switches aren't permitted until Java 7.
 			 * 
-			 * TODO: GET_METRIC_DIGEST is unused. It was originally planned for
-			 * determining if an entire metric needed recomputation.
 			 */
-			if (command.equals("GET-METRIC-DIGEST")) {
-				MetricContext<ByteBuffer> context = (MetricContext<ByteBuffer>) task
-						.getData();
-				MetricValueIdentifier id = context.getId();
-				ByteBuffer digest = metricDB.getMetricDigest(id.getDate(),
-						id.getMetricName(), id.getStation());
-				QueryResult<ByteBuffer> result = new QueryResult<ByteBuffer>(
-						digest);
-				context.getReplyQueue().put(result);
-			} else if (command.equals("GET-METRIC-VALUE-DIGEST")) {
+			if (command.equals("GET-METRIC-VALUE-DIGEST")) {
 				MetricContext<ByteBuffer> context = (MetricContext<ByteBuffer>) task
 						.getData();
 				MetricValueIdentifier id = context.getId();
@@ -117,8 +106,8 @@ public class MetricReader extends TaskThread<QueryContext<? extends Object>> {
 
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * 
 	 * 
 	 * @see asl.concurrent.TaskThread#cleanup()
 	 */
@@ -139,21 +128,6 @@ public class MetricReader extends TaskThread<QueryContext<? extends Object>> {
 					ex);
 		}
 		return value;
-	}
-
-	public ByteBuffer getMetricDigest(MetricValueIdentifier id) {
-		ByteBuffer digest = null;
-		try {
-			MetricContext<ByteBuffer> context = new MetricContext<ByteBuffer>(
-					id);
-			addTask("GET-METRIC-DIGEST", context);
-			digest = context.getReplyQueue().take().getResult();
-		} catch (InterruptedException ex) {
-			logger.warn(
-					"Interrupted while awaiting reply from database reader thread.",
-					ex);
-		}
-		return digest;
 	}
 
 	/**
