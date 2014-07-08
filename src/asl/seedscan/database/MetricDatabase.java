@@ -216,21 +216,4 @@ public class MetricDatabase {
 
 		return result;
 	}
-
-	public String selectAll(String startDate, String endDate) {
-		String result = "";
-		try {
-			CallableStatement callStatement = connection
-					.prepareCall("CALL spGetAll(?, ?, ?)");
-			callStatement.setString(1, startDate);
-			callStatement.setString(2, endDate);
-			callStatement.registerOutParameter(3, java.sql.Types.VARCHAR);
-			callStatement.executeQuery();
-			result = callStatement.getString(3);
-		} catch (SQLException e) {
-			logger.error("SQLException:", e);
-		}
-		return result;
-	}
-
 }
