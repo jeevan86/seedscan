@@ -1,21 +1,3 @@
-/*
- * Copyright 2011, United States Geological Survey or
- * third-party contributors as indicated by the @author tags.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
- *
- */
 
 package asl.seedscan.database;
 
@@ -35,28 +17,56 @@ import asl.metadata.Station;
 import asl.seedscan.config.DatabaseT;
 import asl.seedscan.metrics.MetricResult;
 
+/**
+ * The Class MetricDatabase.
+ * This contains methods for inserting and retrieving data from the database.
+ * 
+ * @author James Holland - USGS
+ * @author Joel Edwards - USGS
+ */
 public class MetricDatabase {
-	public static final Logger logger = LoggerFactory
+	
+	/** The Constant logger. */
+	private static final Logger logger = LoggerFactory
 			.getLogger(asl.seedscan.database.MetricDatabase.class);
 
+	/** The connection. */
 	private Connection connection;
+	
+	/** The uri. */
 	private String URI;
+	
+	/** The username. */
 	private String username;
+	
+	/** The password. */
 	private String password;
 
 	// private CallableStatement callStatement;
 
+	/**
+	 * Instantiates a new metric database based off the jaxb config.
+	 *
+	 * @param config the config
+	 */
 	public MetricDatabase(DatabaseT config) {
 		this(config.getUri(), config.getUsername(), config.getPassword()
 				.getPlain());
 	}
 
+	/**
+	 * Instantiates a new metric database.
+	 *
+	 * @param URI the location of the database
+	 * @param username the username
+	 * @param password the password
+	 */
 	public MetricDatabase(String URI, String username, String password) {
 		this.URI = URI;
 		this.username = username;
 		this.password = password;
 
-		logger.info("MetricDatabase Constructor(): Attempt to connect to the dbase");
+		logger.info("MetricDatabase Constructor(): Attempting to connect to the database");
 
 		try {
 			logger.info(String.format(
@@ -65,13 +75,17 @@ public class MetricDatabase {
 
 			connection = DriverManager.getConnection(URI, username, password);
 		} catch (SQLException e) {
-			// System.err.print(e);
 			logger.error("Could not open station database.", e);
 			// MTH: For now let's continue
 			// throw new RuntimeException("Could not open station database.");
 		}
 	}
 
+	/**
+	 * Checks if is connected.
+	 *
+	 * @return true, if is connected
+	 */
 	public boolean isConnected() {
 		Connection foo = getConnection();
 
@@ -81,36 +95,24 @@ public class MetricDatabase {
 		return true;
 	}
 
+	/**
+	 * Gets the connection.
+	 *
+	 * @return the connection
+	 */
 	public Connection getConnection() {
 		return connection;
 	}
 
-	public ByteBuffer getMetricDigest(Calendar date, String metricName,
-			Station station) {
-		ByteBuffer digest = null;
-
-		try {
-			CallableStatement callStatement = connection
-					.prepareCall("SELECT spGetMetricDigest(?, ?, ?, ?)");
-			// callStatement =
-			// connection.prepareCall("SELECT spGetMetricDigest(?, ?, ?, ?)");
-
-			java.sql.Date sqlDate = new java.sql.Date(date.getTime().getTime());
-			callStatement.setDate(1, sqlDate, date);
-			callStatement.setString(2, metricName);
-			callStatement.setString(3, station.getNetwork());
-			callStatement.setString(4, station.getStation());
-			ResultSet resultSet = callStatement.executeQuery();
-
-			if (resultSet.next())
-				digest = ByteBuffer.wrap(resultSet.getBytes(1));
-		} catch (SQLException e) {
-			logger.error("SQLException:", e);
-		}
-
-		return digest;
-	}
-
+	/**
+	 * Gets the metric value digest for a particular channel, metric, day.
+	 *
+	 * @param date the date
+	 * @param metricName the metric name
+	 * @param station the network and station information
+	 * @param channel the channel and location information
+	 * @return the metric value digest
+	 */
 	public ByteBuffer getMetricValueDigest(Calendar date, String metricName,
 			Station station, Channel channel) {
 		ByteBuffer digest = null;
@@ -143,6 +145,15 @@ public class MetricDatabase {
 		return digest;
 	}
 
+	/**
+	 * Gets the metric value for a particular channel, metric, day.
+	 *
+	 * @param date the date
+	 * @param metricName the metric name
+	 * @param station the network and station information
+	 * @param channel the channel and location information
+	 * @return the metric value
+	 */
 	public Double getMetricValue(Calendar date, String metricName,
 			Station station, Channel channel) {
 		Double value = null;
@@ -173,6 +184,12 @@ public class MetricDatabase {
 		return value;
 	}
 
+	/**
+	 * Insert metric result
+	 *
+	 * @param results the metric result to insert
+	 * @return 0 if successful
+	 */
 	public int insertMetricData(MetricResult results) {
 		int result = -1;
 
