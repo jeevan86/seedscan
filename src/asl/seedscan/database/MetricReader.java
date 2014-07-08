@@ -44,8 +44,8 @@ public class MetricReader extends TaskThread<QueryContext<? extends Object>> {
 		this.metricDB = metricDB;
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * 
 	 * 
 	 * @see asl.concurrent.TaskThread#setup()
 	 */
@@ -54,24 +54,30 @@ public class MetricReader extends TaskThread<QueryContext<? extends Object>> {
 		// Pre-run logic goes here
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see asl.concurrent.TaskThread#performTask(asl.concurrent.Task)
-	 */
 	/**
 	 * Perform task can generate an ClassCastException if a result is
 	 * unexpected. This will be caught and logged. The Task will fail however
 	 * and may generate some null pointers.
+	 * 
+	 * @see asl.concurrent.TaskThread#performTask(asl.concurrent.Task)
 	 */
 	@SuppressWarnings({ "unchecked" })
 	@Override
 	protected void performTask(Task<QueryContext<? extends Object>> task) {
+		// TODO: Determine if command should be an enum since it appears to
+		// behave as one.
 		String command = task.getCommand();
 
 		logger.info("performTask: command=" + command + " task=" + task);
 
 		try {
+			/*
+			 * TODO: If command becomes an enum, This should be a switch.
+			 * String switches aren't permitted until Java 7.
+			 * 
+			 * TODO: GET_METRIC_DIGEST is unused. It was originally planned for
+			 * determining if an entire metric needed recomputation.
+			 */
 			if (command.equals("GET-METRIC-DIGEST")) {
 				MetricContext<ByteBuffer> context = (MetricContext<ByteBuffer>) task
 						.getData();
