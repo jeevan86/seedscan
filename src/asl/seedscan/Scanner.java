@@ -269,7 +269,7 @@ public class Scanner implements Runnable {
 													.array())));
 
 							if (Double.isNaN(value)) {
-								logger.warn(String
+								logger.error(String
 										.format("%s [%s] [%s] %s: ERROR: metric value = [ NaN ] !!\n",
 												results.getMetricName(),
 												results.getStation(),
@@ -278,7 +278,7 @@ public class Scanner implements Runnable {
 																.getDate()), id));
 							}
 							if (Double.isInfinite(value)) {
-								logger.warn(String
+								logger.error(String
 										.format("%s [%s] [%s] %s: ERROR: metric value = [ Infinity ] !!\n",
 												results.getMetricName(),
 												results.getStation(),
