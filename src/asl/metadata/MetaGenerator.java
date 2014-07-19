@@ -267,7 +267,7 @@ public class MetaGenerator extends UnicastRemoteObject implements MetaInterface 
 					"== getStationData() - Volume==null for Station=[%s]\n",
 					station));
 			logger.error(message.toString());
-			System.exit(0);
+			//System.exit(0);
 		}
 		StationData stationData = volume.getStation(new StationKey(station));
 		if (stationData == null) {
