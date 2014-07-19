@@ -101,6 +101,7 @@ public class Scanner implements Runnable {
 				TimeZone.getTimeZone("GMT"));
 
 		// Look for cfg:start_date first:
+		//TODO: Removed this timed problem. This will quit working after 2014-365
 		if (scan.getStartDate() > 1990001 && scan.getStartDate() < 2014365) {
 			timestamp.set(Calendar.YEAR, scan.getStartDate() / 1000);
 			timestamp.set(Calendar.DAY_OF_YEAR, scan.getStartDate() % 1000);
