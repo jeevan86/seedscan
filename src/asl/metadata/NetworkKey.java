@@ -34,7 +34,11 @@ public class NetworkKey extends Key {
 		if (blockette.getNumber() != DATALESS_VOLUME_BLOCKETTE_NUMBER) {
 			throw new WrongBlocketteException();
 		}
-		network = blockette.getFieldValue(9, 0);
+		//TODO: The assumption that blockette 10 field 9 will always be either XX or XX* is wrong.
+		//This field is optional and can vary widely.
+		//This varLabel.substring(0,2) is a hack to get it working after Iris switched to XX.dataless
+		String varLabel = blockette.getFieldValue(9, 0);
+		network = varLabel.substring(0,2);
 	}
 
 	public NetworkKey(String network) {
