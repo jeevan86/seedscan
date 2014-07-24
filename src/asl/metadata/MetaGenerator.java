@@ -269,6 +269,7 @@ public class MetaGenerator extends UnicastRemoteObject implements MetaInterface 
 			logger.error(message.toString());
 			//System.exit(0);
 		}
+		//If this line is erring out, check out NetworkKey constructor. The volume label in blockette 10 field 9 may have changed.
 		StationData stationData = volume.getStation(new StationKey(station));
 		if (stationData == null) {
 			System.out
