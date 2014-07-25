@@ -28,7 +28,7 @@ public class SeedVolume {
 	/** The station locators. */
 	private ArrayList<Blockette> stationLocators;
 
-	/** The stations. */
+	/** The station list. */
 	private Hashtable<StationKey, StationData> stations;
 
 	/**
