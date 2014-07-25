@@ -255,25 +255,26 @@ public class MetaGenerator extends UnicastRemoteObject implements MetaInterface 
 	/**
 	 * loadDataless() reads in the entire dataless seed file (all stations)
 	 * getStationData returns the metadata for a single station for all epochs
-	 * It is called by getStationMeta below.
+	 * It is called by
+	 * {@link asl.metadata.MetaGenerator#getStationMeta(Station, Calendar)}
+	 * below.
+	 * 
+	 * @param station
+	 *            the station
+	 * @return the station data - this can be null if seed files are
+	 *         malformatted
 	 */
 	private StationData getStationData(Station station) {
 		SeedVolume volume = volumes.get(new NetworkKey(station.getNetwork()));
 		if (volume == null) {
-			// System.out.format("== MetaGenerator.getStationData() - Volume==null for Station=[%s]\n",
-			// station);
-			StringBuilder message = new StringBuilder();
-			message.append(String.format(
-					"== getStationData() - Volume==null for Station=[%s]\n",
-					station));
-			logger.error(message.toString());
-			//System.exit(0);
+			logger.error(
+					"== getStationData() - Volume==null for Station=[{}]  Check the volume label in Blockette 10 Field 9. Must be formatted like IU* to work.\n",
+					station);
+			return null; //No volume so nothing can be returned.
 		}
-		//If this line is erring out, check out NetworkKey constructor. The volume label in blockette 10 field 9 may have changed.
 		StationData stationData = volume.getStation(new StationKey(station));
 		if (stationData == null) {
-			System.out
-					.println("stationData is null ==> This COULD be caused by incorrect network code INSIDE seedfile ...");
+			logger.error("stationData is null ==> This COULD be caused by incorrect network code INSIDE seedfile ...");
 		}
 		return stationData;
 	}
