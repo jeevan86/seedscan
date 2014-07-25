@@ -57,7 +57,7 @@ public class Blockette implements java.io.Serializable {
 	 * @param fieldIdentifier the field identifier
 	 * @param data the data
 	 * @return true, if successful
-	 * @throws BlocketteFieldIdentifierFormatException the blockette field identifier format exception
+	 * @throws BlocketteFieldIdentifierFormatException The field identifier was malformed.
 	 */
 	public boolean addFieldData(String fieldIdentifier, String data)
 			throws BlocketteFieldIdentifierFormatException {
