@@ -55,7 +55,7 @@ public class Blockette implements java.io.Serializable {
 	 * Adds the field data.
 	 *
 	 * @param fieldIdentifier the field identifier
-	 * @param data the data
+	 * @param data the field data
 	 * @return true, if successful
 	 * @throws BlocketteFieldIdentifierFormatException The field identifier was malformed.
 	 */
@@ -77,6 +77,7 @@ public class Blockette implements java.io.Serializable {
 		// Some IDs can be out of order, so we add exceptions for those.
 		if ((lastStartID > start)
 				&& ((((number != 52) || (lastStartID > 4)) && (start == 3)) || ((number == 52) && (start == 4)))) {
+			logger.warn("Field Identifier out of order.");
 			return false;
 		}
 
@@ -163,7 +164,6 @@ public class Blockette implements java.io.Serializable {
 		}
 	}
 
-	// 
 	/**
 	 * Gets the blockette fields.
 	 * MTH: added this to return the fields hashtable for this blockette
