@@ -1,21 +1,3 @@
-/*
- * Copyright 2012, United States Geological Survey or
- * third-party contributors as indicated by the @author tags.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
- *
- */
 package asl.metadata;
 
 import java.util.ArrayList;
@@ -24,25 +6,59 @@ import java.util.Hashtable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
+/**
+ * The Class Blockette.
+ * This is used to store blockette numbers and the fields associated.
+ * 
+ * @author Joel Edwards - USGS
+ * @author Mike Hagerty
+ */
 public class Blockette implements java.io.Serializable {
+	
+	/** The Constant logger. */
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.metadata.Blockette.class);
+	
+	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
 
+	/** The number. */
 	private int number;
+	
+	/** The fields. */
 	private Hashtable<Integer, Field> fields;
 
+	/** The last start id. */
 	private int lastStartID = 0;
 
+	/**
+	 * Instantiates a new blockette.
+	 *
+	 * @param number the blockette number
+	 */
 	public Blockette(int number) {
 		this.number = number;
 		fields = new Hashtable<Integer, Field>();
 	}
 
+	/**
+	 * Gets the blockette number.
+	 *
+	 * @return the number
+	 */
 	public int getNumber() {
 		return number;
 	}
 
+	/**
+	 * Adds the field data.
+	 *
+	 * @param fieldIdentifier the field identifier
+	 * @param data the data
+	 * @return true, if successful
+	 * @throws BlocketteFieldIdentifierFormatException the blockette field identifier format exception
+	 */
 	public boolean addFieldData(String fieldIdentifier, String data)
 			throws BlocketteFieldIdentifierFormatException {
 		String[] range = fieldIdentifier.split("-");
@@ -108,6 +124,13 @@ public class Blockette implements java.io.Serializable {
 		return true;
 	}
 
+	/**
+	 * Gets the field value.
+	 *
+	 * @param fieldID the field id
+	 * @param valueIndex the value index
+	 * @return the field value
+	 */
 	public String getFieldValue(int fieldID, int valueIndex) {
 		String value = null;
 		if (fields.containsKey(fieldID)) {
@@ -116,6 +139,12 @@ public class Blockette implements java.io.Serializable {
 		return value;
 	}
 
+	/**
+	 * Gets the field values.
+	 *
+	 * @param fieldID the field id
+	 * @return the field values
+	 */
 	public ArrayList<String> getFieldValues(int fieldID) {
 		ArrayList<String> values = null;
 		if (fields.containsKey(fieldID)) {
@@ -124,6 +153,9 @@ public class Blockette implements java.io.Serializable {
 		return values;
 	}
 
+	/**
+	 * Prints the blockette's fields.
+	 */
 	public void print() {
 		System.out.format("Blockette Number:%02d\n", number);
 		for (Integer key : fields.keySet()) {
@@ -131,10 +163,15 @@ public class Blockette implements java.io.Serializable {
 		}
 	}
 
-	// MTH: added this to return the fields hashtable for this blockette
+	// 
+	/**
+	 * Gets the blockette fields.
+	 * MTH: added this to return the fields hashtable for this blockette
+	 * @return the blockette's fields
+	 */
 	public Hashtable<Integer, Field> getFields() {
 		if (fields == null) {
-			System.out.println(" fields is null!! ");
+			logger.error("Blockette [{}] fields are null! ", this.number);
 		}
 		return fields;
 	}
