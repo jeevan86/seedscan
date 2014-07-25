@@ -89,7 +89,6 @@ public class Blockette implements java.io.Serializable {
 			int end = Integer.parseInt(range[1]);
 			String[] dataItems = data.trim().split("\\s+");
 			int index = dataItems.length - (end - start + 1);
-			// System.out.format(" addFieldData(): start=%d end=%d index=%d dataItems.length=%d\n",start,end,index,dataItems.length);
 			for (; index < dataItems.length; index++) {
 				if (!fields.containsKey(id)) {
 					field = new Field(id, description);
@@ -167,6 +166,9 @@ public class Blockette implements java.io.Serializable {
 	/**
 	 * Gets the blockette fields.
 	 * MTH: added this to return the fields hashtable for this blockette
+	 * 
+	 * This doesn't appear to be used any where.
+	 * 
 	 * @return the blockette's fields
 	 */
 	public Hashtable<Integer, Field> getFields() {
