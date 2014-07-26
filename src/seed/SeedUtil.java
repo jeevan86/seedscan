@@ -209,7 +209,7 @@ public class SeedUtil {
 			return yr + 1900;
 		else if (yr < 60 && yr >= 0)
 			return yr + 2000;
-		System.out.println("Illegal year to sanitize =" + yr);
+		logger.error("Illegal year to sanitize = {}", yr);
 		return -1;
 	}
 
