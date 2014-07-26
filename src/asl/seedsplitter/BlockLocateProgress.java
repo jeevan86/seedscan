@@ -1,8 +1,5 @@
 package asl.seedsplitter;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import asl.worker.Progress;
 
 /**
@@ -11,8 +8,6 @@ import asl.worker.Progress;
  *         Progress feedback class for BlockLocator.
  */
 public class BlockLocateProgress implements Progress {
-	private static final Logger logger = LoggerFactory
-			.getLogger(asl.seedsplitter.BlockLocateProgress.class);
 
 	private BlockLocateError m_errorType = BlockLocateError.NONE;
 	private String m_errorMessage;

@@ -21,9 +21,6 @@ package asl.seedsplitter;
 
 import java.util.ArrayList;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * @author Joel D. Edwards <jdedwards@usgs.gov>
  * 
@@ -32,8 +29,6 @@ import org.slf4j.LoggerFactory;
  *         allocations.
  */
 public class BlockPool {
-	private static final Logger logger = LoggerFactory
-			.getLogger(asl.seedsplitter.BlockPool.class);
 
 	private ArrayList<int[]> m_pool;
 	private int m_blockSize = 0;
