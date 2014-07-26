@@ -77,7 +77,6 @@ public class Blockette implements java.io.Serializable {
 		// Some IDs can be out of order, so we add exceptions for those.
 		if ((lastStartID > start)
 				&& ((((number != 52) || (lastStartID > 4)) && (start == 3)) || ((number == 52) && (start == 4)))) {
-			logger.warn("Field Identifier out of order.");
 			return false;
 		}
 
