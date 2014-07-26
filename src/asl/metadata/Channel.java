@@ -29,13 +29,10 @@ public class Channel {
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.metadata.Channel.class);
 
-	private Station station = null; // We're not currently using this ... Do we
-									// need it ?
 	private String location = null;
 	private String channel = null;
 
 	public Channel(String location, String channel) {
-		// setStation(station);
 		setLocation(location);
 		try {
 			setChannel(channel);
@@ -140,20 +137,9 @@ public class Channel {
 		this.channel = channel;
 	}
 
-	private void setStation(Station station) throws ChannelException {
-		if (station == null) {
-			throw new ChannelException("station cannot be null");
-		}
-		this.station = station;
-	}
-
 	@Override
 	public String toString() {
 		return getLocation() + "-" + getChannel();
-	}
-
-	public Station getStation() {
-		return station;
 	}
 
 	// channel getter method(s)

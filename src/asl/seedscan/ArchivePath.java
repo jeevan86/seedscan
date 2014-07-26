@@ -42,23 +42,12 @@ public class ArchivePath {
 		this.station = station;
 	}
 
-	public ArchivePath(GregorianCalendar timestamp, Channel channel) {
-		this.timestamp = timestamp;
-		this.station = channel.getStation();
-		this.channel = channel;
-	}
-
 	public void setTimestamp(GregorianCalendar timestamp) {
 		this.timestamp = timestamp;
 	}
 
 	public void setStation(Station station) {
 		this.station = station;
-	}
-
-	public void setChannel(Channel channel) {
-		this.station = channel.getStation();
-		this.channel = channel;
 	}
 
 	public String makePath(String pattern) {
