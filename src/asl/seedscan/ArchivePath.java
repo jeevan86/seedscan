@@ -62,8 +62,6 @@ public class ArchivePath {
 	}
 
 	public String makePath(String pattern) {
-		int startIndex = 0;
-		int lastIndex = 0;
 		if (station != null) {
 			if (station.getNetwork() != null) {
 				pattern = pattern.replace("${NETWORK}", station.getNetwork());
