@@ -1,36 +1,45 @@
-/*
- * Copyright 2012, United States Geological Survey or
- * third-party contributors as indicated by the @author tags.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
- *
- */
 package asl.concurrent;
 
+/**
+ * The Class Task. This stores task information execution occurs in in the classes that extend {@link asl.concurrent.TaskThread<T>}
+ *
+ * @param <T> the generic type
+ * 
+ * @author Joel D. Edwards  - USGS
+ */
 public class Task<T> {
+	
+	/** The command. */
 	private String command;
+	
+	/** The data. */
 	private T data;
 
+	/**
+	 * Instantiates a new task.
+	 *
+	 * @param command the command
+	 * @param data the data
+	 */
 	public Task(String command, T data) {
 		this.command = command;
 		this.data = data;
 	}
 
+	/**
+	 * Gets the command.
+	 *
+	 * @return the command
+	 */
 	public String getCommand() {
 		return command;
 	}
 
+	/**
+	 * Gets the data.
+	 *
+	 * @return the data
+	 */
 	public T getData() {
 		return data;
 	}
