@@ -195,7 +195,7 @@ public class EventCompareSynthetic extends Metric {
 				String[] kcmp = { "Z", "N", "E" };
 				for (int i = 0; i < 3; i++) {
 					String fileKey = getStn() + ".XX.LX" + kcmp[i]
-							+ ".modes.sac.proc"; // e.g.,
+							+ ".modes.sac"; // e.g.,
 					// "ANMO.XX.LXZ.modes.sac.proc"
 					if (synthetics.containsKey(fileKey)) {
 						sacSynthetics[i] = synthetics.get(fileKey);
@@ -372,9 +372,9 @@ public class EventCompareSynthetic extends Metric {
 	 * doing: SUM[ x(n) * y(n) ] , where x(n)=data and y(n)=synth difference =
 	 * ------------------ SUM[ y(n) * y(n) ]
 	 * 
-	 * difference = 0. --> data are all zero difference = 1. --> data exactly
-	 * matches synthetic difference = 1. --> data exactly matches -synthetic (is
-	 * 180 deg out of phase)
+	 * difference = 0. --> data are all zero
+	 * difference = 1. --> data exactly matches synthetic
+	 * difference = 1. --> data exactly matches -synthetic (is * 180 deg out of phase)
 	 * 
 	 * data1 = x, data2 = y
 	 */
