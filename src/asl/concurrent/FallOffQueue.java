@@ -1,21 +1,3 @@
-/*
- * Copyright 2012, United States Geological Survey or
- * third-party contributors as indicated by the @author tags.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
- *
- */
 package asl.concurrent;
 
 import java.util.Collection;
@@ -23,11 +5,8 @@ import java.util.Iterator;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
- * @author Joel D. Edwards <jdedwards@usgs.gov>
+ * @author Joel D. Edwards  - USGS
  * 
  *         The FallOffQueue is a queue who's elements "fall off the end" when
  *         its maximum capacity is exceeded. This is not thread safe. We never
@@ -37,8 +16,6 @@ import org.slf4j.LoggerFactory;
  */
 public class FallOffQueue<E> extends LinkedBlockingQueue<E> {
 	public static final long serialVersionUID = 1L;
-	private static final Logger logger = LoggerFactory
-			.getLogger(asl.concurrent.FallOffQueue.class);
 
 	private int m_capacity;
 
