@@ -393,10 +393,10 @@ public class EventCompareSynthetic extends Metric {
 							data2.length));
 			return NO_RESULT;
 		}
-		double rms = 0.;
+		//double rms = 0.;
 		double numerator = 0.;
 		double denomenator = 0.;
-		int npts = n2 - n1 + 1;
+		//int npts = n2 - n1 + 1;
 
 		for (int i = n1; i < n2; i++) {
 			// rms += Math.pow( (data1[i] - data2[i]), 2 );
