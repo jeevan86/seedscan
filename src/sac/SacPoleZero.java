@@ -145,7 +145,7 @@ public class SacPoleZero {
 		if (obj instanceof SacPoleZero) {
 			SacPoleZero spz = (SacPoleZero) obj;
 			if (!close(spz.constant, constant)) {
-				System.out.println("const not close");
+				logger.error("const not close");
 				return false;
 			} else {
 				return closeButConstant(obj);
@@ -167,7 +167,7 @@ public class SacPoleZero {
 			} else {
 				for (int i = 0; i < poles.length; i++) {
 					if (!closeFourDigit(spz.poles[i], poles[i])) {
-						System.out.println("pole " + i + " not equal"
+						logger.error("pole " + i + " not equal"
 								+ spz.poles[i].getImaginary() + " "
 								+ poles[i].getImaginary() + " "
 								+ spz.poles[i].getReal() + " "
@@ -177,7 +177,7 @@ public class SacPoleZero {
 				}
 				for (int i = 0; i < zeros.length; i++) {
 					if (!closeFourDigit(spz.zeros[i], zeros[i])) {
-						System.out.println("zero " + i + " not equal");
+						logger.error("zero " + i + " not equal");
 						return false;
 					}
 				}
@@ -190,7 +190,7 @@ public class SacPoleZero {
 
 	private static boolean close(double a, double b) {
 		if (Math.abs(a - b) / a > 0.0001) {
-			System.out.println("fail close " + a + " " + b + " "
+			logger.error("fail close " + a + " " + b + " "
 					+ (Math.abs(a - b) / a) + " ratio=" + (a / b));
 			return false;
 		}
@@ -204,7 +204,7 @@ public class SacPoleZero {
 
 	private static boolean closeFourDigit(double a, double b) {
 		if (Math.abs(a - b) > 0.0001) {
-			System.out.println("fail closeFourDigit " + a + " " + b + " "
+			logger.error("fail closeFourDigit " + a + " " + b + " "
 					+ (Math.abs(a - b)) + " ratio=" + (a / b));
 			return false;
 		}
