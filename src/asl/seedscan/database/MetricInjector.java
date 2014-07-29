@@ -1,6 +1,3 @@
-/**
- * 
- */
 package asl.seedscan.database;
 
 import org.slf4j.Logger;
