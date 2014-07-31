@@ -106,9 +106,6 @@ public class SeedScan {
 			System.exit(1);
 		}
 
-		// ===== CONFIG: LOGGING =====
-		// MTH: This is now done in log4j.properties file
-
 		// ===== CONFIG: DATABASE =====
 		MetricDatabase readDB = new MetricDatabase(config.getDatabase());
 		MetricDatabase writeDB = new MetricDatabase(config.getDatabase());
