@@ -324,8 +324,7 @@ public class MetricData {
 					windowStartEpoch, windowEndEpoch, f1, f2, f3, f4);
 
 			if (x == null || y == null || z == null) {
-				System.out
-						.format("== getZNE (date:[%s]): getFilteredDisplacement returned null --> There is probably something wrong with this station\n",
+				logger.error("== getZNE (date:[{}]): getFilteredDisplacement returned null --> There is probably something wrong with this station\n",
 								metadata.getDate());
 				return null;
 			}
@@ -372,17 +371,15 @@ public class MetricData {
 			double f1, double f2, double f3, double f4)
 			throws ChannelMetaException, MetricException {
 		if (!metadata.hasChannel(channel)) {
-			logger.error(String
-					.format("Metadata NOT found for channel=[%s] date=[%s] --> Can't return Displacement",
-							channel, metadata.getDate()));
+			logger.error("Metadata NOT found for station=[{}-{}] channel=[{}] date=[{}] --> Can't return Displacement",
+					metadata.getNetwork(), metadata.getStation(), channel, metadata.getDate());
 			return null;
 		}
 		double[] timeseries = getWindowedData(channel, windowStartEpoch,
 				windowEndEpoch);
 		if (timeseries == null) {
-			logger.error(String
-					.format("Did not get requested window for channel=[%s] date=[%s] --> Can't return Displacement",
-							channel, metadata.getDate()));
+			logger.error("Did not get requested window for station=[{}-{}] channel=[{}] date=[{}] --> Can't return Displacement",
+							metadata.getNetwork(), metadata.getStation(), channel, metadata.getDate());
 			return null;
 		}
 		try {
@@ -536,7 +533,7 @@ public class MetricData {
 			long windowEndEpoch) {
 		if (windowStartEpoch > windowEndEpoch) {
 			logger.error(
-					"Requested window Epoch [{} - {}] is NOT VALID (start > end)",
+					"Requested window Epoch (ms timestamp) [{} - {}] is NOT VALID (start > end)",
 					windowStartEpoch, windowEndEpoch);
 			return null;
 		}
@@ -563,7 +560,7 @@ public class MetricData {
 		}
 
 		if (!windowFound) {
-			logger.error("Requested window Epoch [{} - {}] was NOT FOUND "
+			logger.error("Requested window Epoch (ms timestamp) [{} - {}] was NOT FOUND "
 					+ "within DataSet for channel=[{}] date=[{}]",
 					windowStartEpoch, windowEndEpoch, channel,
 					metadata.getDate());
@@ -586,7 +583,7 @@ public class MetricData {
 		if (windowStartEpoch < dataStartEpoch
 				|| windowStartEpoch > dataEndEpoch) {
 			logger.error(
-					"Requested window Epoch [{} - {}] does NOT START "
+					"Requested window Epoch (ms timestamp) [{} - {}] does NOT START "
 							+ "in current day data window Epoch [{} - {}] for channel=[{}] date=[{}]",
 					windowStartEpoch, windowEndEpoch, dataStartEpoch,
 					dataEndEpoch, channel, metadata.getDate());
