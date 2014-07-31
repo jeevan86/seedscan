@@ -286,7 +286,6 @@ public class MetricData {
 			long windowEndEpoch, double f1, double f2, double f3, double f4)
 			throws ChannelMetaException, MetricException {
 		ArrayList<double[]> dispZNE = new ArrayList<double[]>();
-		String date = metadata.getDate();
 
 		Channel vertChannel = new Channel(location, (band + "Z")); // e.g.,
 		// "00-LHZ"
@@ -546,7 +545,7 @@ public class MetricData {
 		ArrayList<DataSet> datasets = getChannelData(channel);
 		DataSet data = null;
 		boolean windowFound = false;
-		int nSet = 0;
+
 		for (int i = 0; i < datasets.size(); i++) {
 			data = datasets.get(i);
 			long startEpoch = data.getStartTime() / 1000; // Convert microsecs
@@ -554,7 +553,6 @@ public class MetricData {
 			long endEpoch = data.getEndTime() / 1000; // ...
 			if (windowStartEpoch >= startEpoch && windowStartEpoch < endEpoch) {
 				windowFound = true;
-				nSet = i;
 				break;
 			}
 		}
@@ -565,10 +563,6 @@ public class MetricData {
 					windowStartEpoch, windowEndEpoch, channel,
 					metadata.getDate());
 			return null;
-		} else {
-			// System.out.format("== getWindowedData: Requested window Epoch [%d - %d] WAS FOUND "
-			// + "within DataSet[i=%d] for channel=[%s]\n", windowStartEpoch,
-			// windowEndEpoch, nSet, channel);
 		}
 
 		long dataStartEpoch = data.getStartTime() / 1000; // Convert microsecs
