@@ -101,10 +101,15 @@ public class Scanner implements Runnable {
 				TimeZone.getTimeZone("GMT"));
 
 		// Look for cfg:start_date first:
-		//TODO: Removed this timed problem. This will quit working after 2014-365
-		if (scan.getStartDate() > 1990001 && scan.getStartDate() < 2014365) {
+		if (scan.getStartDate() >= 1970001 && scan.getStartDate() < 2114001) {
 			timestamp.set(Calendar.YEAR, scan.getStartDate() / 1000);
 			timestamp.set(Calendar.DAY_OF_YEAR, scan.getStartDate() % 1000);
+		} else if (scan.getStartDate() != 0
+				&& (scan.getStartDate() < 1970001 || scan.getStartDate() > 2114001)) {
+			logger.error(
+					"Start Date=[{}] is invalid. Either it must be inbetween 1970001 and 2114001 OR 0 to use start_day.",
+					scan.getStartDate());
+			return; // Can't scan an invalid date so get out of here.
 		} else { // Use cfg:start_day
 			timestamp.setTimeInMillis(timestamp.getTimeInMillis()
 					- (scan.getStartDay() * dayMilliseconds));
