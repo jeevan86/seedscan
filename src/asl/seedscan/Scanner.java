@@ -104,7 +104,7 @@ public class Scanner implements Runnable {
 		if (scan.getStartDate() >= 1970001 && scan.getStartDate() < 2114001) {
 			timestamp.set(Calendar.YEAR, scan.getStartDate() / 1000);
 			timestamp.set(Calendar.DAY_OF_YEAR, scan.getStartDate() % 1000);
-		} else if (scan.getStartDate() != 0
+		} else if (scan.getStartDate() != 0 //Catch if no startDate is set
 				&& (scan.getStartDate() < 1970001 || scan.getStartDate() > 2114001)) {
 			logger.error(
 					"Start Date=[{}] is invalid. Either it must be inbetween 1970001 and 2114001 OR 0 to use start_day.",
