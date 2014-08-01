@@ -18,7 +18,9 @@
  */
 package asl.seedscan;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -56,28 +58,28 @@ public class ScanManager {
 		logger.info("Number of Threads to Use = [{}]", threadCount);
 
 		ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+		List<Callable<Object>> tasks = new ArrayList<Callable<Object>>(
+				stationList.size());
 		for (Station station : stationList) {
 			if (passesFilter(station)) {
 				logger.debug("Add station={} to the task queue", station);
-				executor.execute(new Scanner(reader, injector, station, scan,
-						metaServer));
+				tasks.add(Executors.callable(new Scanner(reader, injector,
+						station, scan, metaServer)));
 			} else {
 				logger.debug("station={} Did NOT pass filter for scan={}",
 						station, scan.getName());
 			}
 		}
-		executor.shutdown();
-		/**
-		 * awaitTermination(long timeout, TimeUnit unit) - Blocks until all
-		 * tasks have completed execution after a shutdown request, or the
-		 * timeout occurs, or the current thread is interrupted, whichever
-		 * happens first.
-		 **/
-		while (executor.isTerminated() == false) { // Hang out here until all
-													// worker threads have
-													// finished
+		try {
+			executor.invokeAll(tasks); //It will wait here until scanner threads finish.
+			executor.shutdown();
+			Thread.sleep(100); // This lets any injector/reader threads finish
+								// before we return.
+		} catch (InterruptedException e) {
+			logger.warn("Scan Manager executor service interrupted.");
 		}
-		logger.info("ALL THREADS HAVE FINISHED");
+
+		logger.info("ALL SCANNER THREADS HAVE FINISHED");
 	}
 
 	private boolean passesFilter(Station station) {
