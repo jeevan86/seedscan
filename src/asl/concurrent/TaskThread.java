@@ -51,33 +51,50 @@ public abstract class TaskThread<T> implements Runnable {
 		setup();
 		Task<T> task;
 		running = true;
-		while (running) {
-			try {
-				if (timeout < 0) {
-					// Wait indefinitely if timeout is not specified
-					task = queue.take();
-				} else {
-					// Otherwise wait for the duration specified
-					task = queue.poll(timeout, unit);
-				}
+		boolean interrupt = false;
+		try {
+			while (running) {
+				try {
+					if (timeout < 0) {
+						// Wait indefinitely if timeout is not specified
+						task = queue.take();
+					} else {
+						// Otherwise wait for the duration specified
+						task = queue.poll(timeout, unit);
+					}
 
-				// If we received a halt command, wrap-up the thread
-				if ((task != null) && (task.getCommand() == "HALT")) {
-					logger.debug("Halt requested.");
-					running = false;
+					// If we received a halt command, wrap-up the thread
+					if ((task != null) && (task.getCommand() == "HALT")) {
+						logger.debug("Halt requested.");
+						running = false;
+					}
+					// Otherwise hand off the task
+					else {
+						logger.debug(String.format(
+								"Performing task %s : %s",
+								task.getCommand(),
+								(task.getData() == null) ? "null" : task
+										.getData()));
+						performTask(task);
+					}
+				} catch (InterruptedException e) {
+					// This is expected when thread are being killed.
+					// Mark interrupt to true so we can remark the thread later.
+					// We will still finish the thread execution as it may be an
+					// injector thread. Testing shows it gets a halt command in
+					// the next few queues anyway.
+					// SEE http://www.ibm.com/developerworks/library/j-jtp05236/
+					interrupt = true;
 				}
-				// Otherwise hand off the task
-				else {
-					logger.debug(String.format("Performing task %s : %s", task
-							.getCommand(), (task.getData() == null) ? "null"
-							: task.getData()));
-					performTask(task);
-				}
-			} catch (InterruptedException e) {
-				logger.warn("Caught InterruptedException:", e);
+			}
+			cleanup();
+		} finally {
+			if (interrupt) {
+				// Remark the thread as interrupted in case something higher
+				// wants to know.
+				Thread.currentThread().interrupt();
 			}
 		}
-		cleanup();
 	}
 
 	// abstract methods
