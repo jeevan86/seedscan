@@ -1,21 +1,3 @@
-/*
- * Copyright 2012, United States Geological Survey or
- * third-party contributors as indicated by the @author tags.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
- *
- */
 package asl.seedscan.metrics;
 
 import java.awt.BasicStroke;
@@ -45,42 +27,67 @@ import asl.util.Trace;
 import asl.util.TraceException;
 import edu.sc.seis.TauP.SphericalCoords;
 
-//import com.oregondsp.signalProcessing.filter.iir.*;
-
+/**
+ * The Class EventCompareSynthetic.
+ */
 public class EventCompareSynthetic extends Metric {
+	
+	/** The Constant logger. */
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.seedscan.metrics.EventCompareSynthetic.class);
 
+	/** The Constant PERIOD1. */
 	private static final double PERIOD1 = 500;
+	
+	/** The Constant PERIOD2. */
 	private static final double PERIOD2 = 400;
+	
+	/** The Constant PERIOD3. */
 	private static final double PERIOD3 = 165;
+	
+	/** The Constant PERIOD4. */
 	private static final double PERIOD4 = 85;
 
+	/** The Constant f1. Period 1 frequency: 1./PERIOD1 */
 	private static final double f1 = 1. / PERIOD1;
+	
+	/** The Constant f2. Period 2 frequency: 1./PERIOD2*/
 	private static final double f2 = 1. / PERIOD2;
+	
+	/** The Constant f3. Period 3 frequency: 1./PERIOD3*/
 	private static final double f3 = 1. / PERIOD3;
+	
+	/** The Constant f4. Period 4 frequency: 1./PERIOD4*/
 	private static final double f4 = 1. / PERIOD4;
 
-	// private static Hashtable<String, EventCMT> eventCMTs = null;
+	/** The event CMTs. */
 	private Hashtable<String, EventCMT> eventCMTs = null;
 
+	/** The channels. */
 	private Channel[] channels = null;
 
+	/** The sac header. */
 	private SacHeader hdr = null;
-	private double xDist = 999.;
 
+	/**
+	 * @see asl.seedscan.metrics.Metric#getVersion()
+	 */
 	@Override
 	public long getVersion() {
-		// return 1;
-		return 2; // 2013-09-16: Changed from result=rmsDiff to result=calcDiff
-		// (power ratio)
+		return 2;
 	}
 
+	/**
+	 * @see asl.seedscan.metrics.Metric#getName()
+	 */
 	@Override
 	public String getName() {
 		return "EventCompareSynthetic";
 	}
 
+	/**
+	 * @see asl.seedscan.metrics.Metric#process()
+	 */
 	public void process() {
 		logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
 
@@ -326,6 +333,12 @@ public class EventCompareSynthetic extends Metric {
 		}
 	} // end process()
 
+	/**
+	 * Gets the sac start time in millis.
+	 *
+	 * @param hdr the sac header
+	 * @return the sac start time in millis
+	 */
 	private long getSacStartTimeInMillis(SacHeader hdr) {
 		GregorianCalendar gcal = new GregorianCalendar(
 				TimeZone.getTimeZone("GMT"));
@@ -339,6 +352,15 @@ public class EventCompareSynthetic extends Metric {
 		return gcal.getTimeInMillis();
 	}
 
+	/**
+	 * Write sac file.
+	 * 
+	 * @deprecated
+	 *
+	 * @param data the data
+	 * @param hdr the hdr
+	 * @param filename the filename
+	 */
 	private void writeSacFile(double[] data, SacHeader hdr, String filename) {
 		// setNpts(int npts) {
 
@@ -350,6 +372,12 @@ public class EventCompareSynthetic extends Metric {
 		}
 	}
 
+	/**
+	 * Sac array to double.
+	 *
+	 * @param sacArray the sac array
+	 * @return the array list
+	 */
 	private ArrayList<double[]> sacArrayToDouble(SacTimeSeries[] sacArray) {
 		ArrayList<double[]> sacDouble = new ArrayList<double[]>();
 		for (int i = 0; i < sacArray.length; i++) {
@@ -378,6 +406,12 @@ public class EventCompareSynthetic extends Metric {
 	 * 180 deg out of phase)
 	 * 
 	 * data1 = x, data2 = y
+	 *
+	 * @param data1 the data1
+	 * @param data2 the data2
+	 * @param n1 the n1
+	 * @param n2 the n2
+	 * @return the double
 	 */
 	// private double rmsDiff(double[] data1, double[] data2, int n1, int n2) {
 	private double calcDiff(double[] data1, double[] data2, int n1, int n2) {
@@ -417,6 +451,19 @@ public class EventCompareSynthetic extends Metric {
 		return result;
 	}
 
+	/**
+	 * Make plots.
+	 *
+	 * @param d00 the d00
+	 * @param d10 the d10
+	 * @param d20 the d20
+	 * @param nstart the nstart
+	 * @param nend the nend
+	 * @param key the key
+	 * @param eventNumber the event number
+	 * @throws PlotMakerException the plot maker exception
+	 * @throws TraceException the trace exception
+	 */
 	public void makePlots(ArrayList<double[]> d00, ArrayList<double[]> d10,
 			ArrayList<double[]> d20, int nstart, int nend, String key,
 			int eventNumber) throws PlotMakerException, TraceException {
