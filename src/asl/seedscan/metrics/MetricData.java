@@ -377,7 +377,7 @@ public class MetricData {
 		double[] timeseries = getWindowedData(channel, windowStartEpoch,
 				windowEndEpoch);
 		if (timeseries == null) {
-			logger.error("Did not get requested window for station=[{}-{}] channel=[{}] date=[{}] --> Can't return Displacement",
+			logger.warn("Did not get requested window for station=[{}-{}] channel=[{}] date=[{}] --> Can't return Displacement",
 							metadata.getNetwork(), metadata.getStation(), channel, metadata.getDate());
 			return null;
 		}
@@ -538,7 +538,7 @@ public class MetricData {
 		}
 
 		if (!hasChannelData(channel)) {
-			logger.error("We have NO data for channel=[{}] date=[{}]", channel,
+			logger.warn("We have NO data for channel=[{}] date=[{}]", channel,
 					metadata.getDate());
 			return null;
 		}
@@ -558,7 +558,7 @@ public class MetricData {
 		}
 
 		if (!windowFound) {
-			logger.error("Requested window Epoch (ms timestamp) [{} - {}] was NOT FOUND "
+			logger.warn("Requested window Epoch (ms timestamp) [{} - {}] was NOT FOUND "
 					+ "within DataSet for channel=[{}] date=[{}]",
 					windowStartEpoch, windowEndEpoch, channel,
 					metadata.getDate());
@@ -576,7 +576,7 @@ public class MetricData {
 		// Requested Window must start in Day 1 (taken from current dataset(0))
 		if (windowStartEpoch < dataStartEpoch
 				|| windowStartEpoch > dataEndEpoch) {
-			logger.error(
+			logger.warn(
 					"Requested window Epoch (ms timestamp) [{} - {}] does NOT START "
 							+ "in current day data window Epoch [{} - {}] for channel=[{}] date=[{}]",
 					windowStartEpoch, windowEndEpoch, dataStartEpoch,
@@ -598,7 +598,7 @@ public class MetricData {
 				return null;
 			}
 			if (!nextMetricData.hasChannelData(channel)) {
-				logger.error(
+				logger.warn(
 						"Requested Epoch window spans into next day, but we have NO data "
 								+ "for channel=[{}] date=[{}] for next day",
 						channel, metadata.getDate());
@@ -883,9 +883,8 @@ public class MetricData {
 			try {
 				northDataSet.setSampleRate(srate1);
 			} catch (IllegalSampleRateException e) {
-				logger.error(String
-						.format("createRotatedChannels: Invalid Sample Rate = %f date=%s",
-								srate1, metadata.getDate()));
+				logger.error("createRotatedChannels: Invalid Sample Rate = {} date={}",
+								srate1, metadata.getDate());
 			}
 
 			int[] intArray = new int[ndata];
@@ -907,9 +906,8 @@ public class MetricData {
 			try {
 				eastDataSet.setSampleRate(srate1);
 			} catch (IllegalSampleRateException e) {
-				logger.error(String
-						.format("createRotatedChannels: Invalid Sample Rate = %f date=%s",
-								srate1, metadata.getDate()));
+				logger.error("createRotatedChannels: Invalid Sample Rate = {} date={}",
+								srate1, metadata.getDate());
 			}
 
 			for (int i = 0; i < ndata; i++) {
@@ -947,14 +945,12 @@ public class MetricData {
 		ArrayList<DataSet> channelXData = getChannelData(channelX);
 		ArrayList<DataSet> channelYData = getChannelData(channelY);
 		if (channelXData == null) {
-			logger.warn(String
-					.format("== getChannelOverlap: Error --> No DataSets found for Channel=%s Date=%s\n",
-							channelX, metadata.getDate()));
+			logger.warn("== getChannelOverlap: Warning --> No DataSets found for Channel={} Date={}\n",
+							channelX, metadata.getDate());
 		}
 		if (channelYData == null) {
-			logger.warn(String
-					.format("== getChannelOverlap: Error --> No DataSets found for Channel=%s Date=%s\n",
-							channelY, metadata.getDate()));
+			logger.warn("== getChannelOverlap: Warning --> No DataSets found for Channel={} Date={}\n",
+							channelY, metadata.getDate());
 		}
 		dataLists.add(channelXData);
 		dataLists.add(channelYData);
@@ -978,13 +974,10 @@ public class MetricData {
 				largestBlock = block;
 			}
 			if (lastBlock != null) {
-				System.out
-						.println("    Gap: "
-								+ ((block.getStartTime() - lastBlock
-										.getEndTime()) / block.getInterval())
-								+ " data points ("
-								+ (block.getStartTime() - lastBlock
-										.getEndTime()) + " microseconds)");
+				logger.error("Gap: {} data points ({} microseconds)", ((block
+						.getStartTime() - lastBlock.getEndTime()) / block
+						.getInterval()), (block.getStartTime() - lastBlock
+						.getEndTime()));
 			}
 			// System.out.println("  Time Range: " +
 			// Sequence.timestampToString(block.getStartTime()) + " - " +
@@ -1013,7 +1006,6 @@ public class MetricData {
 								largestBlock.getEndTime());
 						channels[i] = intArrayToDoubleArray(channel);
 					} catch (SequenceRangeException e) {
-						// System.out.println("SequenceRangeException");
 						logger.error("SequenceRangeException:", e);
 					} catch (IndexOutOfBoundsException e) {
 						logger.error("IndexOutOfBoundsException:", e);
