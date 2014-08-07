@@ -28,36 +28,54 @@ import asl.util.TraceException;
 import edu.sc.seis.TauP.SphericalCoords;
 
 /**
+ * <p>
  * The Class EventCompareSynthetic.
+ * </p>
+ * 
+ * The difference is calculated by a power scale formula
+ * result=SUM(data[i] * syn[i]) / SUM(syn[i] * syn[i])
+ * <p>
+ * Result meanings<br/>
+ * x = 0  data is to small or all 0s. The channel is dead.<br/>
+ * 0 < x < 1 data shows less displacement than the synthetic.<br/>
+ * 1 = data aligns exactly with the synthetic.<br/>
+ * x > 1 data shows greater displacement than the synthetic.<br/>
+ * x < 0 The data is out of phase from the synthetic.<br/>
+ * x = -1 The data is exactly 180 degrees out of phase, but matches the data.<br/>
+ * </p>
+ * 
+ * @see <a
+	 *      href="http://srl.geoscienceworld.org/content/77/1/12.full">Observations of Time-dependent Errors in Long-period Instrument Gain at Global Seismic Stations</a>
+	 *      Equation 3 <br/>
  */
 public class EventCompareSynthetic extends Metric {
-	
+
 	/** The Constant logger. */
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.seedscan.metrics.EventCompareSynthetic.class);
 
 	/** The Constant PERIOD1. */
 	private static final double PERIOD1 = 500;
-	
+
 	/** The Constant PERIOD2. */
 	private static final double PERIOD2 = 400;
-	
+
 	/** The Constant PERIOD3. */
 	private static final double PERIOD3 = 165;
-	
+
 	/** The Constant PERIOD4. */
 	private static final double PERIOD4 = 85;
 
 	/** The Constant f1. Period 1 frequency: 1./PERIOD1 */
 	private static final double f1 = 1. / PERIOD1;
-	
-	/** The Constant f2. Period 2 frequency: 1./PERIOD2*/
+
+	/** The Constant f2. Period 2 frequency: 1./PERIOD2 */
 	private static final double f2 = 1. / PERIOD2;
-	
-	/** The Constant f3. Period 3 frequency: 1./PERIOD3*/
+
+	/** The Constant f3. Period 3 frequency: 1./PERIOD3 */
 	private static final double f3 = 1. / PERIOD3;
-	
-	/** The Constant f4. Period 4 frequency: 1./PERIOD4*/
+
+	/** The Constant f4. Period 4 frequency: 1./PERIOD4 */
 	private static final double f4 = 1. / PERIOD4;
 
 	/** The event CMTs. */
@@ -253,9 +271,9 @@ public class EventCompareSynthetic extends Metric {
 				}
 				ArrayList<double[]> dataDisp3 = sacArrayToDouble(sacSynthetics);
 				if (dataDisp3 == null) {
-					System.out
-							.format("== %s: Error loading sac synthetics for stn=[%s] day=[%s] --> skip\n",
-									getName(), getStation(), getDay());
+					logger.warn(
+							"== {}: Error loading sac synthetics for stn=[{}] day=[{}] --> skip\n",
+							getName(), getStation(), getDay());
 					continue;
 				} else {
 					dataDisp.addAll(dataDisp3);
@@ -276,10 +294,6 @@ public class EventCompareSynthetic extends Metric {
 					makePlots(dataDisp00, dataDisp10, dataDisp3, nstart, nend,
 							key, eventNumber);
 				}
-
-				// Displacements are in meters so rmsDiff's will be small
-				// scale rmsDiffs to micrometers:
-				// 2013-09-16: Switch to calcDiff = scaled power ratio
 
 				if (compute00) {
 					for (int i = 0; i < 3; i++) {
@@ -335,8 +349,9 @@ public class EventCompareSynthetic extends Metric {
 
 	/**
 	 * Gets the sac start time in millis.
-	 *
-	 * @param hdr the sac header
+	 * 
+	 * @param hdr
+	 *            the sac header
 	 * @return the sac start time in millis
 	 */
 	private long getSacStartTimeInMillis(SacHeader hdr) {
@@ -353,29 +368,10 @@ public class EventCompareSynthetic extends Metric {
 	}
 
 	/**
-	 * Write sac file.
-	 * 
-	 * @deprecated
-	 *
-	 * @param data the data
-	 * @param hdr the hdr
-	 * @param filename the filename
-	 */
-	private void writeSacFile(double[] data, SacHeader hdr, String filename) {
-		// setNpts(int npts) {
-
-		SacTimeSeries sac = new SacTimeSeries(hdr, data);
-		try {
-			sac.write(filename);
-		} catch (Exception e) {
-			logger.warn("Exception:", e);
-		}
-	}
-
-	/**
 	 * Sac array to double.
-	 *
-	 * @param sacArray the sac array
+	 * 
+	 * @param sacArray
+	 *            the sac array
 	 * @return the array list
 	 */
 	private ArrayList<double[]> sacArrayToDouble(SacTimeSeries[] sacArray) {
@@ -385,8 +381,6 @@ public class EventCompareSynthetic extends Metric {
 			float[] fdata = sac.getY();
 			double[] data = new double[fdata.length];
 			for (int k = 0; k < fdata.length; k++) {
-				// data[k] = (double)fdata[k] * 1.0e-9; // Synthetic units =
-				// nanometers
 				data[k] = (double) fdata[k];
 			}
 			sacDouble.add(data);
@@ -396,24 +390,32 @@ public class EventCompareSynthetic extends Metric {
 	}
 
 	/**
-	 * compare 2 double[] arrays between array indices n1 and n2 currently
-	 * doing: SUM[ x(n) * y(n) ] , where x(n)=data and y(n)=synth difference =
-	 * ------------------ SUM[ y(n) * y(n) ]
+	 * Compare 2 double[] arrays between array indices n1 and n2 currently
+	 * doing: SUM[ x(n) * y(n) ] / SUM[ y(n) * y(n) ], where x(n)=data and
+	 * y(n)=synth
 	 * 
-	 * difference = 0. --> data are all zero 
-	 * difference = 1. --> data exactly matches synthetic
-	 * difference = 1. --> data exactly matches -synthetic (is
-	 * 180 deg out of phase)
+	 * difference = 0. --> data are all zero<br/>
+	 * difference = 1. --> data exactly matches synthetic<br/>
+	 * difference = 1. --> data exactly matches -synthetic (is 180 deg out of
+	 * phase)<br/>
 	 * 
-	 * data1 = x, data2 = y
-	 *
-	 * @param data1 the data1
-	 * @param data2 the data2
-	 * @param n1 the n1
-	 * @param n2 the n2
-	 * @return the double
+	 * @see <a
+	 *      href="http://srl.geoscienceworld.org/content/77/1/12.full">http://srl.geoscienceworld.org/content/77/1/12.full</a>
+	 *      Equation 3 <br/>
+	 * 
+	 * 
+	 *      data1 = x, data2 = y
+	 * 
+	 * @param data1
+	 *            the data in meters displaced
+	 * @param data2
+	 *            the synthetic in meters displaced
+	 * @param n1
+	 *            the window start; nstart in process()
+	 * @param n2
+	 *            the window end; nend in process()
+	 * @return the result
 	 */
-	// private double rmsDiff(double[] data1, double[] data2, int n1, int n2) {
 	private double calcDiff(double[] data1, double[] data2, int n1, int n2) {
 		if (n2 < n1) {
 			logger.error(
@@ -422,24 +424,18 @@ public class EventCompareSynthetic extends Metric {
 			return NO_RESULT;
 		}
 		if (n2 >= data1.length || n2 >= data2.length) {
-			logger.error(String
-					.format("station=[%s] day=[%s]: calcDiff: n2=[%d] > data1.length=[%d] and/or data2.length=[%d] --> Bad window",
-							getStation(), getDay(), n2, data1.length,
-							data2.length));
+			logger.error(
+					"station=[{}] day=[{}]: calcDiff: n2=[{}] > data1.length=[{}] and/or data2.length=[{}] --> Bad window",
+					getStation(), getDay(), n2, data1.length, data2.length);
 			return NO_RESULT;
 		}
-		//double rms = 0.;
 		double numerator = 0.;
 		double denomenator = 0.;
-		//int npts = n2 - n1 + 1;
 
 		for (int i = n1; i < n2; i++) {
-			// rms += Math.pow( (data1[i] - data2[i]), 2 );
 			numerator += data1[i] * data2[i];
 			denomenator += data2[i] * data2[i];
 		}
-		// rms /= (double)npts;
-		// rms = Math.sqrt(rms);
 
 		if (denomenator == 0.) {
 			logger.error(
@@ -453,16 +449,25 @@ public class EventCompareSynthetic extends Metric {
 
 	/**
 	 * Make plots.
-	 *
-	 * @param d00 the d00
-	 * @param d10 the d10
-	 * @param d20 the d20
-	 * @param nstart the nstart
-	 * @param nend the nend
-	 * @param key the key
-	 * @param eventNumber the event number
-	 * @throws PlotMakerException the plot maker exception
-	 * @throws TraceException the trace exception
+	 * 
+	 * @param d00
+	 *            the 00 data
+	 * @param d10
+	 *            the 10 data
+	 * @param d20
+	 *            the 20 data
+	 * @param nstart
+	 *            the window start; nstart in process()
+	 * @param nend
+	 *            the window end; nend in process()
+	 * @param key
+	 *            the key
+	 * @param eventNumber
+	 *            the event number
+	 * @throws PlotMakerException
+	 *             the plot maker exception
+	 * @throws TraceException
+	 *             the trace exception
 	 */
 	public void makePlots(ArrayList<double[]> d00, ArrayList<double[]> d10,
 			ArrayList<double[]> d20, int nstart, int nend, String key,
@@ -486,8 +491,6 @@ public class EventCompareSynthetic extends Metric {
 			plotMaker = new PlotMaker2(plotTitle);
 			plotMaker.initialize3Panels("LHZ", "LH1/LHN", "LH2/LHE");
 		}
-		int iPanel = 0;
-		Color color = Color.black;
 
 		BasicStroke stroke = new BasicStroke(2.0f);
 
