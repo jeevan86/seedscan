@@ -55,7 +55,6 @@ public class DeadChannelMetric extends PowerBandMetric {
 		logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
 
 		Station station;
-		String day;
 		String metric;
 
 		String netstat;
@@ -67,9 +66,7 @@ public class DeadChannelMetric extends PowerBandMetric {
 		Double threshold;
 		String NLNMBaseName;
 		String NLNMName;
-		String NLNMDay;
 
-		day = getDay();
 		date = getDate();
 		metric = getName();
 		threshold = -7.0;
@@ -86,7 +83,6 @@ public class DeadChannelMetric extends PowerBandMetric {
 		String[] tokens = metric.split("[:]");
 		period = tokens[1];
 		NLNMName = NLNMBaseName + ":" + period;
-		NLNMDay = (EpochData.epochToDateString(date));
 
 		// Get NLNM Metric Value using name, date and channels
 		List<Channel> channels = stationMeta.getChannelArray("LH");
