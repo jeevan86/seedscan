@@ -73,7 +73,7 @@ public class ScanManager {
 		try {
 			executor.invokeAll(tasks); //It will wait here until scanner threads finish.
 			executor.shutdown();
-			Thread.sleep(100); // This lets any injector/reader threads finish
+			Thread.sleep(500); // This lets any injector/reader threads finish
 								// before we return.
 		} catch (InterruptedException e) {
 			logger.warn("Scan Manager executor service interrupted.");
