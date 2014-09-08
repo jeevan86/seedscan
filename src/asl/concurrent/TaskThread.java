@@ -55,10 +55,13 @@ public abstract class TaskThread<T> implements Runnable {
 		try {
 			while (running) {
 				try {
-					if (timeout < 0) {
+					if (timeout < 0 && interrupt == false) {
 						// Wait indefinitely if timeout is not specified
 						task = queue.take();
-					} else {
+					}else if(interrupt == true){
+						task = queue.poll();
+					}
+					else {
 						// Otherwise wait for the duration specified
 						task = queue.poll(timeout, unit);
 					}
@@ -66,6 +69,10 @@ public abstract class TaskThread<T> implements Runnable {
 					// If we received a halt command, wrap-up the thread
 					if ((task != null) && (task.getCommand() == "HALT")) {
 						logger.debug("Halt requested.");
+						running = false;
+					}
+					else if (task == null && interrupt == true) {
+						logger.debug("Thread Interrupted and Queue is empty.");
 						running = false;
 					}
 					// Otherwise hand off the task
@@ -78,7 +85,7 @@ public abstract class TaskThread<T> implements Runnable {
 						performTask(task);
 					}
 				} catch (InterruptedException e) {
-					// This is expected when thread are being killed.
+					// This is expected when threads are being killed.
 					// Mark interrupt to true so we can remark the thread later.
 					// We will still finish the thread execution as it may be an
 					// injector thread. Testing shows it gets a halt command in
