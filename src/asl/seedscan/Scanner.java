@@ -56,7 +56,7 @@ import asl.util.Hex;
 public class Scanner implements Runnable {
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.seedscan.Scanner.class);
-	public static final long dayMilliseconds = 1000 * 60 * 60 * 24;
+	private static final long MILLISECONDS_IN_DAY = 1000 * 60 * 60 * 24;
 
 	private Station station;
 	private MetricInjector injector;
@@ -112,7 +112,7 @@ public class Scanner implements Runnable {
 			return; // Can't scan an invalid date so get out of here.
 		} else { // Use cfg:start_day
 			timestamp.setTimeInMillis(timestamp.getTimeInMillis()
-					- (scan.getStartDay() * dayMilliseconds));
+					- (scan.getStartDay() * MILLISECONDS_IN_DAY));
 		}
 
 		// timestamp is now set to current time - (24 hours x StartDay). What we
@@ -140,12 +140,12 @@ public class Scanner implements Runnable {
 		for (int i = 0; i < scan.getDaysToScan(); i++) {
 			if (i != 0) {
 				timestamp.setTimeInMillis(timestamp.getTimeInMillis()
-						- dayMilliseconds);
+						- MILLISECONDS_IN_DAY);
 			}
 			GregorianCalendar nextDayTimestamp = (GregorianCalendar) timestamp
 					.clone();
 			nextDayTimestamp.setTimeInMillis(timestamp.getTimeInMillis()
-					+ dayMilliseconds);
+					+ MILLISECONDS_IN_DAY);
 
 			logger.debug(String.format("Scan Station=%s Day=%s Thread id=[%d]",
 					station, EpochData.epochToDateString(timestamp), Thread
