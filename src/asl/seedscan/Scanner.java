@@ -56,7 +56,7 @@ import asl.util.Hex;
 public class Scanner implements Runnable {
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.seedscan.Scanner.class);
-	public long dayMilliseconds = 1000 * 60 * 60 * 24;
+	public static final long dayMilliseconds = 1000 * 60 * 60 * 24;
 
 	private Station station;
 	private MetricInjector injector;
@@ -318,6 +318,7 @@ public class Scanner implements Runnable {
 			}
 
 		} // end loop over day to scan
+		//Clear out references to data so that memory can be saved.
 		this.currentMetricData = null;
 		this.nextMetricData = null;
 	} // end scan()
