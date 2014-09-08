@@ -318,6 +318,8 @@ public class Scanner implements Runnable {
 			}
 
 		} // end loop over day to scan
+		this.currentMetricData = null;
+		this.nextMetricData = null;
 	} // end scan()
 
 	/**
