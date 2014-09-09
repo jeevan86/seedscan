@@ -25,8 +25,6 @@ import javax.swing.SwingWorker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import asl.concurrent.FallOffQueue;
-
 /**
  * @author Joel D. Edwards <jdedwards@usgs.gov>
  * 
@@ -45,8 +43,6 @@ public class BlockLocator extends
 	private long m_processedDataSets = 0;
 	private int m_percentComplete = 0;
 	private BlockLocateProgress m_lastProgress = null;
-	private FallOffQueue<BlockLocateProgress> m_externalProgressQueue = null;
-
 	/**
 	 * Creates a new BlockLocator based on the supplied structure of DataSets.
 	 * 
@@ -56,38 +52,8 @@ public class BlockLocator extends
 	 */
 	public BlockLocator(ArrayList<ArrayList<DataSet>> dataLists) {
 		super();
-		this._construct(dataLists, null);
-	}
-
-	/**
-	 * Creates a new BlockLocator based on the supplied structure of DataSets.
-	 * 
-	 * @param dataLists
-	 *            A structure of DataSets across which to locate contiguous
-	 *            blocks.
-	 * @param externalProgressQueue
-	 *            A queue for passing progress information to the caller.
-	 */
-	public BlockLocator(ArrayList<ArrayList<DataSet>> dataLists,
-			FallOffQueue<BlockLocateProgress> externalProgressQueue) {
-		super();
-		this._construct(dataLists, externalProgressQueue);
-	}
-
-	/**
-	 * Hidden initializer which is called by all constructors.
-	 * 
-	 * @param dataLists
-	 *            A structure of DataSets across which to locate contiguous
-	 *            blocks.
-	 * @param externalProgressQueue
-	 *            A queue for passing progress information to the caller.
-	 */
-	public void _construct(ArrayList<ArrayList<DataSet>> dataLists,
-			FallOffQueue<BlockLocateProgress> externalProgressQueue) {
 		m_dataLists = dataLists;
 		m_blockList = new ArrayList<ContiguousBlock>(16);
-		m_externalProgressQueue = externalProgressQueue;
 	}
 
 	/**
