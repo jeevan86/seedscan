@@ -3,9 +3,6 @@
 // change package
 package freq;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /* 
  * This file is part of the Anthony Lomax Java Library.
  *
@@ -27,8 +24,6 @@ import org.slf4j.LoggerFactory;
  */
 
 public class ButterworthFilter implements FrequencyDomainProcess {
-	private static final Logger logger = LoggerFactory
-			.getLogger(freq.ButterworthFilter.class);
 	private SeisGramText localeText;
 	public double highFreqCorner;
 	public double lowFreqCorner;
@@ -42,9 +37,6 @@ public class ButterworthFilter implements FrequencyDomainProcess {
 
 	private static final double NUM_POLES_MIN = 2;
 	private static final double NUM_POLES_MAX = 20;
-
-	private static final double PI = Math.PI;
-	private static final double TWOPI = 2.0 * Math.PI;
 
 	public static final int CAUSAL = 0;
 	public static final int NONCAUSAL = 1;
