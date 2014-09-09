@@ -38,8 +38,6 @@ public class ScanManager {
 			.getLogger(asl.seedscan.ScanManager.class);
 
 	private Scan scan = null;
-	private ConcurrentLinkedQueue<Runnable> taskQueue = null;
-	private boolean running = true;
 
 	public ScanManager(MetricReader reader, MetricInjector injector,
 			List<Station> stationList, Scan scan, MetaServer metaServer)
@@ -71,7 +69,8 @@ public class ScanManager {
 			}
 		}
 		try {
-			executor.invokeAll(tasks); //It will wait here until scanner threads finish.
+			executor.invokeAll(tasks); // It will wait here until scanner
+										// threads finish.
 			executor.shutdown();
 			Thread.sleep(500); // This lets any injector/reader threads finish
 								// before we return.
