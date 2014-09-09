@@ -88,11 +88,13 @@ public class Blockette320 extends Blockette {
 		// int min = bb.get() & 0x000000ff; // Min of hour(0-59)
 		int min = (int) bb.get(); // Min of hour(0-59)
 		int sec = (int) bb.get(); // Sec of min (0-59, 60 for leap seconds)
+		@SuppressWarnings("unused")
 		int unused = (int) bb.get(); // Unused for data (required for alignment)
 		// int seconds = (int)bb.getShort(); // .0001 seconds (0--9999)
 		// int seconds = bb.getShort() & 0x0000ffff; // .0001 seconds (0--9999)
 		int seconds = (int) bb.getChar(); // .0001 seconds (0--9999)
 
+		@SuppressWarnings("unused")
 		byte reserved = bb.get();
 		byte calFlags = bb.get();
 
