@@ -61,7 +61,6 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 
 	private String name = null;
 	private String location = null;
-	private String comment = null;
 	private String instrumentType = null;
 	private String channelFlags = null;
 	private String metaDate = null; // This will be the readable date for
@@ -204,10 +203,6 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 	} // end addDigestMembers()
 
 	// setter(s)
-	public void setComment(String comment) {
-		this.comment = comment;
-	}
-
 	public void setSampleRate(double sampleRate) {
 		this.sampleRate = sampleRate;
 	}
@@ -320,17 +315,12 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 		// If we have a seismic channel we need to ensure a valid response
 
 		boolean isSeismicChannel = false;
-		boolean isMassPosition = false;
-
 		String seismicCodes = "HN"; // The 2nd char of channels: BH?, LH?, UH?,
 									// VH?, EH?, HH?, EN?, LN?, HN?
 		if (seismicCodes.contains(this.getName().substring(1, 2))) {
 			isSeismicChannel = true;
 		}
 
-		if (this.getName().substring(1, 2).equals("M")) {
-			isMassPosition = true;
-		}
 		/**
 		 * String excludeCodes = "MDIKRW"; // Channel codes that we DON'T expect
 		 * to have a stage 0 (e.g., VM?, LD?, LIO, etc.) if
@@ -628,6 +618,7 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 					String ResponseOutUnits = blockette.getFieldValue(6, 0);
 					Double A0Normalization = Double.parseDouble(blockette
 							.getFieldValue(7, 0));
+					@SuppressWarnings("unused")
 					Double frequencyOfNormalization = Double
 							.parseDouble(blockette.getFieldValue(8, 0));
 					int numberOfZeros = Integer.parseInt(blockette
@@ -719,13 +710,11 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 
 				if (stage.hasBlockette(54)) {
 					Blockette blockette = stage.getBlockette(54);
-					// blockette.print();
-					char[] respType = null;
 					String ResponseInUnits = null;
 					String ResponseOutUnits = null;
 
 					String TransferFunctionType = blockette.getFieldValue(3, 0);
-					respType = TransferFunctionType.toCharArray();
+					TransferFunctionType.toCharArray();
 					ResponseInUnits = blockette.getFieldValue(5, 0);
 					ResponseOutUnits = blockette.getFieldValue(6, 0);
 
@@ -810,7 +799,6 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 	@Override
 	public String toString() {
 		StringBuilder result = new StringBuilder();
-		String NEW_LINE = System.getProperty("line.separator");
 		result.append(String.format("%15s%s\t%15s%.2f\t%15s%.2f\n", "Channel:",
 				name, "sampleRate:", sampleRate, "Depth:", depth));
 		result.append(String.format("%15s%s\t%15s%.2f\t%15s%.2f\n",
