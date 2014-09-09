@@ -1,23 +1,4 @@
 /*
- * Copyright 2011, United States Geological Survey or
- * third-party contributors as indicated by the @author tags.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
- *
- */
-
-/*
  * Blockette2000.java
  * * The blockette 1000 has :
  * 0  UWORD - blockette type == 2000
@@ -74,17 +55,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * This class represents the Blockette 2000 from the SEED standard V2.4
  * 
  * @author Joel Edwards <jdedwards@usgs.gov>
  */
 public class Blockette2000 extends Blockette {
-	private static final Logger logger = LoggerFactory
-			.getLogger(seed.Blockette2000.class);
 	public static final short FIXED_LENGTH = 15;
 	public static final ByteOrder DEFAULT_WORD_ORDER = ByteOrder.BIG_ENDIAN;
 	public static final Charset TAG_CHARSET = Charset.forName("UTF-8");
