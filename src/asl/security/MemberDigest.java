@@ -85,23 +85,21 @@ public abstract class MemberDigest {
 	}
 
 	// Methods for adding member variables' data to the digest
-	protected void addToDigest(byte[] data, int offset, int length) {
+	private void addToDigest(byte[] data, int offset, int length) {
 		digest.update(data, offset, length);
 	}
 
-	protected void addToDigest(byte[] data) {
+	private void addToDigest(byte[] data) {
 		addToDigest(data, 0, data.length);
 	}
 
-	protected void addToDigest(Object data) {
-		addToDigest(data.toString().getBytes());
-	}
+	
 
 	protected void addToDigest(String data) {
 		addToDigest(data.getBytes());
 	}
 
-	protected void addToDigest(ByteBuffer data) {
+	private void addToDigest(ByteBuffer data) {
 		addToDigest(data.array());
 	}
 
@@ -109,9 +107,7 @@ public abstract class MemberDigest {
 		addToDigest(ByteBuffer.allocate(2).putChar(data));
 	}
 
-	protected void addToDigest(Short data) {
-		addToDigest(ByteBuffer.allocate(2).putShort(data));
-	}
+	
 
 	protected void addToDigest(Integer data) {
 		addToDigest(ByteBuffer.allocate(4).putInt(data));
@@ -121,9 +117,7 @@ public abstract class MemberDigest {
 		addToDigest(ByteBuffer.allocate(8).putLong(data));
 	}
 
-	protected void addToDigest(Float data) {
-		addToDigest(ByteBuffer.allocate(4).putFloat(data));
-	}
+	
 
 	protected void addToDigest(Double data) {
 		addToDigest(ByteBuffer.allocate(8).putDouble(data));
