@@ -61,7 +61,7 @@ public class MetricDatabase {
 	 * @param username the username
 	 * @param password the password
 	 */
-	public MetricDatabase(String URI, String username, String password) {
+	private MetricDatabase(String URI, String username, String password) {
 		this.URI = URI;
 		this.username = username;
 		this.password = password;
@@ -113,7 +113,7 @@ public class MetricDatabase {
 	 * @param channel the channel and location information
 	 * @return the metric value digest
 	 */
-	public ByteBuffer getMetricValueDigest(Calendar date, String metricName,
+	ByteBuffer getMetricValueDigest(Calendar date, String metricName,
 			Station station, Channel channel) {
 		ByteBuffer digest = null;
 
@@ -154,7 +154,7 @@ public class MetricDatabase {
 	 * @param channel the channel and location information
 	 * @return the metric value
 	 */
-	public Double getMetricValue(Calendar date, String metricName,
+	Double getMetricValue(Calendar date, String metricName,
 			Station station, Channel channel) {
 		Double value = null;
 		String sqlDateString = null;
@@ -190,7 +190,7 @@ public class MetricDatabase {
 	 * @param results the metric result to insert
 	 * @return 0 if successful
 	 */
-	public int insertMetricData(MetricResult results) {
+	int insertMetricData(MetricResult results) {
 		int result = -1;
 
 		synchronized (connection) {
