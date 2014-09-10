@@ -25,7 +25,7 @@ package asl.seedsplitter;
  *         attempted on a pair of blocks with differing sample rates
  *         (intervals).
  */
-public class BlockIntervalMismatchException extends Exception {
+class BlockIntervalMismatchException extends Exception {
 	public static final long serialVersionUID = 1L;
 
 	/**
@@ -33,15 +33,5 @@ public class BlockIntervalMismatchException extends Exception {
 	 */
 	public BlockIntervalMismatchException() {
 		super();
-	}
-
-	/**
-	 * Constructor which accepts a message.
-	 * 
-	 * @param message
-	 *            A message providing additional information about the mismatch.
-	 */
-	public BlockIntervalMismatchException(String message) {
-		super(message);
 	}
 }

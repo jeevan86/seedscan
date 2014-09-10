@@ -37,7 +37,7 @@ public class ArchivePath {
 		this.station = station;
 	}
 
-	public ArchivePath(GregorianCalendar timestamp, Station station) {
+	ArchivePath(GregorianCalendar timestamp, Station station) {
 		this.timestamp = timestamp;
 		this.station = station;
 	}
