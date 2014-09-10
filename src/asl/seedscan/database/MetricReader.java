@@ -1,6 +1,3 @@
-/**
- * 
- */
 package asl.seedscan.database;
 
 import java.nio.ByteBuffer;
@@ -20,7 +17,7 @@ public class MetricReader extends TaskThread<QueryContext<? extends Object>> {
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.seedscan.database.MetricInjector.class);
 
-	MetricDatabase metricDB;
+	private MetricDatabase metricDB;
 
 	/**
 	 * 
@@ -34,14 +31,6 @@ public class MetricReader extends TaskThread<QueryContext<? extends Object>> {
 		// System.out.println("== MetricReader.isConnected() = " +
 		// metricDB.isConnected() );
 		return metricDB.isConnected();
-	}
-
-	/**
-	 * @param capacity
-	 */
-	public MetricReader(MetricDatabase metricDB, int capacity) {
-		super(capacity);
-		this.metricDB = metricDB;
 	}
 
 	/**
