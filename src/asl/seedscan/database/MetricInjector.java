@@ -19,7 +19,7 @@ public class MetricInjector extends TaskThread<MetricResult> {
 			.getLogger(asl.seedscan.database.MetricInjector.class);
 
 	/** The metric db. */
-	MetricDatabase metricDB;
+	private MetricDatabase metricDB;
 
 	/**
 	 * Instantiates a new metric injector.
@@ -29,19 +29,6 @@ public class MetricInjector extends TaskThread<MetricResult> {
 	 */
 	public MetricInjector(MetricDatabase metricDB) {
 		super();
-		this.metricDB = metricDB;
-	}
-
-	/**
-	 * Instantiates a new metric injector.
-	 * 
-	 * @param metricDB
-	 *            the MetricDatabase to inject into
-	 * @param capacity
-	 *            the size of the task queue
-	 */
-	public MetricInjector(MetricDatabase metricDB, int capacity) {
-		super(capacity);
 		this.metricDB = metricDB;
 	}
 
