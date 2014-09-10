@@ -120,7 +120,7 @@ public abstract class TaskThread<T> implements Runnable {
 		}
 	}
 
-	public void halt(boolean now) throws InterruptedException {
+	private void halt(boolean now) throws InterruptedException {
 		if (now) {
 			running = false;
 		}

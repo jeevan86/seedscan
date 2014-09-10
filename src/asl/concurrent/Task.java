@@ -21,7 +21,7 @@ public class Task<T> {
 	 * @param command the command
 	 * @param data the data
 	 */
-	public Task(String command, T data) {
+	Task(String command, T data) {
 		this.command = command;
 		this.data = data;
 	}

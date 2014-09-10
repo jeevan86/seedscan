@@ -3,7 +3,6 @@ package asl.concurrent;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Joel D. Edwards  - USGS
