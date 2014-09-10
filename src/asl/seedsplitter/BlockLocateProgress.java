@@ -22,7 +22,7 @@ public class BlockLocateProgress implements Progress {
 	 *            The percentage of the total number of blocks which have been
 	 *            processed.
 	 */
-	public BlockLocateProgress(double percentComplete) {
+	BlockLocateProgress(double percentComplete) {
 		_init(percentComplete, false, BlockLocateError.NONE, null);
 	}
 
@@ -36,7 +36,7 @@ public class BlockLocateProgress implements Progress {
 	 *            A boolean value signifying whether the location operation is
 	 *            complete.
 	 */
-	public BlockLocateProgress(double percentComplete, boolean complete) {
+	BlockLocateProgress(double percentComplete, boolean complete) {
 		_init(percentComplete, complete, BlockLocateError.NONE, null);
 	}
 
@@ -52,7 +52,7 @@ public class BlockLocateProgress implements Progress {
 	 *            A message providing greater detail about the error, if one
 	 *            occurred.
 	 */
-	public BlockLocateProgress(double percentComplete,
+	BlockLocateProgress(double percentComplete,
 			BlockLocateError errorType, String errorMessage) {
 		_init(percentComplete, false, errorType, errorMessage);
 	}

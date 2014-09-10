@@ -24,6 +24,6 @@ package asl.seedsplitter;
  *         An enumeration describing the possible errors encountered when
  *         performing a block location.
  */
-public enum BlockLocateError {
+enum BlockLocateError {
 	NONE, INTERVAL_MISMATCH
 }
