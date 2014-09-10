@@ -88,8 +88,6 @@ import java.util.Hashtable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import asl.worker.CancelledException;
-
 public class Dataless {
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.metadata.Dataless.class);
@@ -108,26 +106,22 @@ public class Dataless {
 	private String stage;
 	private String line;
 
-	private boolean cancelRequested = false;
-
 	public Dataless(Collection<String> rawDataless) {
 		this.rawDataless = rawDataless;
 		complete = false;
 	}
 
 	// This should be the one we use until station/network masks are implemented
-	public void processVolume() throws CancelledException,
-			DatalessParseException {
+	public void processVolume() throws DatalessParseException {
 		processVolume("now", "is the time");
 	}
 
-	public void processVolume(Station station) throws CancelledException,
-			DatalessParseException {
+	public void processVolume(Station station) throws DatalessParseException {
 		processVolume(station.getNetwork(), station.getStation());
 	}
 
 	public void processVolume(String networkMask, String stationMask)
-			throws CancelledException, DatalessParseException {
+			throws DatalessParseException {
 		boolean failed = true;
 		try {
 			parse();
@@ -146,9 +140,6 @@ public class Dataless {
 			logger.warn("Invalid timestamp format.", exception);
 		} catch (WrongBlocketteException exception) {
 			logger.warn("Wrong blockettte.", exception);
-		} catch (CancelledException exception) {
-			logger.warn("Cancelled exception.", exception);
-			failed = false;
 		}
 
 		if (failed) {
@@ -156,22 +147,7 @@ public class Dataless {
 		}
 	}
 
-	public void cancel() {
-		cancelRequested = true;
-	}
-
-	public boolean cancelled() {
-		return cancelRequested;
-	}
-
-	private void checkCancel() throws CancelledException {
-		if (cancelled()) {
-			throw new CancelledException();
-		}
-	}
-
-	private void parse() throws BlocketteFieldIdentifierFormatException,
-			CancelledException {
+	private void parse() throws BlocketteFieldIdentifierFormatException {
 		if (rawDataless == null) {
 			return;
 		}
@@ -188,12 +164,6 @@ public class Dataless {
 		stage = "Parsing Dataless";
 
 		for (String line : rawDataless) {
-			try {
-				checkCancel();
-			} catch (CancelledException e) {
-				throw e;
-			}
-
 			count++;
 			percent = Math.floor(count / total * 100.0);
 			if (percent > lastPercent) {
@@ -257,7 +227,7 @@ public class Dataless {
 	}
 
 	private void assemble() throws BlocketteFieldIdentifierFormatException,
-			BlocketteOutOfOrderException, CancelledException,
+			BlocketteOutOfOrderException, 
 			DuplicateBlocketteException, MissingBlocketteDataException,
 			TimestampFormatException, WrongBlocketteException {
 		if (blockettes == null) {
@@ -278,12 +248,6 @@ public class Dataless {
 		EpochData epoch = null;
 
 		for (Blockette blockette : blockettes) {
-			try {
-				checkCancel();
-			} catch (CancelledException e) {
-				throw e;
-			}
-
 			count++;
 			percent = Math.floor(count / total * 100.0);
 			if (percent > lastPercent) {
