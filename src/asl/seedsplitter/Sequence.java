@@ -308,7 +308,7 @@ public class Sequence extends MemberDigest {
 	 *            will be merged.
 	 * 
 	 */
-	public synchronized void mergeInto(Sequence seq)
+	synchronized void mergeInto(Sequence seq)
 			throws SequenceIntervalMismatchException,
 			SequenceMergeRangeException, SequenceTimingException,
 			BlockSizeMismatchException {
@@ -332,12 +332,12 @@ public class Sequence extends MemberDigest {
 
 		logger.debug("");
 		logger.debug("    Source DataSet: "
-				+ DataSet.timestampToString(this.getStartTime()) + " to "
-				+ DataSet.timestampToString(this.getEndTime()) + " ("
+				+ Sequence.timestampToString(this.getStartTime()) + " to "
+				+ Sequence.timestampToString(this.getEndTime()) + " ("
 				+ this.getLength() + " data points)");
 		logger.debug("    Target DataSet: "
-				+ DataSet.timestampToString(seq.getStartTime()) + " to "
-				+ DataSet.timestampToString(seq.getEndTime()) + " ("
+				+ Sequence.timestampToString(seq.getStartTime()) + " to "
+				+ Sequence.timestampToString(seq.getEndTime()) + " ("
 				+ seq.getLength() + " data points)");
 		if (m_startTime > seq.getEndTime()) {
 			if (((m_startTime - seq.getEndTime()) < (m_interval - intervalAdjustment))
@@ -376,14 +376,13 @@ public class Sequence extends MemberDigest {
 			// MTH: 2013-04-27 This seems wrong:
 			// seq._reset();
 			DataSet dataSet = (DataSet) this;
-			System.out
-					.format("== Sequence.mergeInto() [%s_%s %s-%s] this=[%s-%s] is a subSequence of seq=[%s-%s] --> this._reset()\n",
+			logger.debug("== Sequence.mergeInto() [{}_{} {}-{}] this=[{}-{}] is a subSequence of seq=[{}-{}] --> this._reset()\n",
 							dataSet.getNetwork(), dataSet.getStation(),
 							dataSet.getLocation(), dataSet.getChannel(),
-							DataSet.timestampToString(this.getStartTime()),
-							DataSet.timestampToString(this.getEndTime()),
-							DataSet.timestampToString(seq.getStartTime()),
-							DataSet.timestampToString(seq.getEndTime()));
+							Sequence.timestampToString(this.getStartTime()),
+							Sequence.timestampToString(this.getEndTime()),
+							Sequence.timestampToString(seq.getStartTime()),
+							Sequence.timestampToString(seq.getEndTime()));
 			this._reset();
 			return;
 		}
