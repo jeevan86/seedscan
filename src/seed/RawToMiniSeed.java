@@ -295,7 +295,7 @@ public class RawToMiniSeed {
 		synchronized (oob) {
 			itr = oob.values().iterator();
 			while (itr.hasNext()) {
-				RawToMiniSesed rm = itr.next();
+				RawToMiniSeed rm = itr.next();
 				if (rm.lastAge() > ms) {
 					logger.error("RTMS: timeout stale OOB chans  age="
 							+ rm.lastAge() + " " + rm);
