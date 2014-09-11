@@ -273,7 +273,7 @@ public class RawToMiniSeed {
 			while (itr.hasNext()) {
 				RawToMiniSeed rm = itr.next();
 				if (rm.lastAge() > ms) {
-					Util.prta("RTMS: timeout stale primary age=" + rm.lastAge()
+					logger.error("RTMS: timeout stale primary age=" + rm.lastAge()
 							+ " " + rm);
 					rm.forceOut();
 					itr.remove();
@@ -285,7 +285,7 @@ public class RawToMiniSeed {
 			while (itr.hasNext()) {
 				RawToMiniSeed rm = itr.next();
 				if (rm.lastAge() > ms) {
-					Util.prta("RTMS: timeout stale 2nd chans  age="
+					logger.error("RTMS: timeout stale 2nd chans  age="
 							+ rm.lastAge() + " " + rm);
 					rm.forceOut();
 					itr.remove();
@@ -295,9 +295,9 @@ public class RawToMiniSeed {
 		synchronized (oob) {
 			itr = oob.values().iterator();
 			while (itr.hasNext()) {
-				RawToMiniSeed rm = itr.next();
+				RawToMiniSesed rm = itr.next();
 				if (rm.lastAge() > ms) {
-					Util.prta("RTMS: timeout stale OOB chans  age="
+					logger.error("RTMS: timeout stale OOB chans  age="
 							+ rm.lastAge() + " " + rm);
 					rm.forceOut();
 					itr.remove();
@@ -407,7 +407,7 @@ public class RawToMiniSeed {
 				sb = new StringBuffer(10000);
 			else if (sb.length() > 0)
 				sb.delete(0, sb.length());
-			Util.prt("RTMS: Add TS " + seedname + " "
+			logger.info("RTMS: Add TS " + seedname + " "
 					+ timeFromUSec(sec * 1000000L + micros) + " rt=" + rt
 					+ " ns=" + nsamp + " lst=" + lastValue);
 		}
@@ -418,7 +418,7 @@ public class RawToMiniSeed {
 			sec++;
 		}
 		while (sec >= 86400) { // Do seconds say its a new day?
-			Util.prta("RTMS: day adjust new yr=" + year + " doy=" + doy
+			logger.info("RTMS: day adjust new yr=" + year + " doy=" + doy
 					+ " sec=" + sec + " usec=" + micros + " seedname="
 					+ seedname);
 			int jul = SeedUtil.toJulian(year, doy);
@@ -427,7 +427,7 @@ public class RawToMiniSeed {
 			int[] ymd = SeedUtil.fromJulian(jul);
 			year = ymd[0];
 			doy = SeedUtil.doy_from_ymd(ymd);
-			Util.prta("RTMS: day adjust new yr=" + year + " doy=" + doy
+			logger.info("RTMS: day adjust new yr=" + year + " doy=" + doy
 					+ " sec=" + sec + " seedname=" + seedname);
 		}
 
@@ -438,14 +438,14 @@ public class RawToMiniSeed {
 		RawToMiniSeed rm2 = (RawToMiniSeed) secondChans.get(seedname);
 		RawToMiniSeed rm3 = (RawToMiniSeed) oob.get(seedname);
 		if (dbg)
-			Util.prta("RTMS: rm =" + rm + "\nrm2=" + rm2 + "\nrm3=" + rm3);
+			logger.debug("RTMS: rm =" + rm + "\nrm2=" + rm2 + "\nrm3=" + rm3);
 
 		// If the oob or secondChans list has not been used lately, force out
 		// the data
 		if (rm != null) {
 			if (rm.lastAge() > 120000) {
 				if (dbg)
-					Util.prta("RTMS: timeout primary chans " + seedname
+					logger.debug("RTMS: timeout primary chans " + seedname
 							+ " age=" + rm.lastAge() + " now="
 							+ System.currentTimeMillis() + " " + rm);
 				rm.forceOut();
@@ -455,7 +455,7 @@ public class RawToMiniSeed {
 				rm = null;
 				if (rm2 != null) {
 					if (dbg)
-						Util.prta("RTMS: promote rm2 to rm for " + seedname);
+						logger.debug("RTMS: promote rm2 to rm for " + seedname);
 					chans.put(seedname, rm2);
 					synchronized (secondChans) {
 						secondChans.remove(seedname);
@@ -464,7 +464,7 @@ public class RawToMiniSeed {
 					rm2 = null;
 					if (rm3 != null) {
 						if (dbg)
-							Util.prta("RTMS: promote rm3 to rm2 for "
+							logger.debug("RTMS: promote rm3 to rm2 for "
 									+ seedname);
 						synchronized (secondChans) {
 							secondChans.put(seedname, rm3);
@@ -484,7 +484,7 @@ public class RawToMiniSeed {
 		if (rm2 != null) {
 			if (rm2.lastAge() > 120000) {
 				if (dbg)
-					Util.prta("RTMS: timeout 2nd chans " + seedname + " age="
+					logger.debug("RTMS: timeout 2nd chans " + seedname + " age="
 							+ rm2.lastAge() + " now="
 							+ System.currentTimeMillis() + " " + rm2);
 				rm2.forceOut();
@@ -494,7 +494,7 @@ public class RawToMiniSeed {
 				rm2 = null;
 				if (rm3 != null) {
 					if (dbg)
-						Util.prta("RTMS: promote rm3 to rm2 for " + seedname);
+						logger.debug("RTMS: promote rm3 to rm2 for " + seedname);
 					synchronized (secondChans) {
 						secondChans.put(seedname, rm3);
 					}
@@ -509,7 +509,7 @@ public class RawToMiniSeed {
 		if (rm3 != null) {
 			if (rm3.lastAge() > 120000) {
 				if (dbg)
-					Util.prta("RTMS: timeout OOB chan " + seedname
+					logger.debug("RTMS: timeout OOB chan " + seedname
 							+ " lastage=" + rm3.lastAge() + " now="
 							+ System.currentTimeMillis() + " " + rm3);
 				rm3.forceOut();
@@ -525,7 +525,7 @@ public class RawToMiniSeed {
 		if (rm != null && rm2 != null) {
 			if (rm.getJulianUSec() < rm2.getJulianUSec()) { // switch these two
 				if (dbg)
-					Util.prta("RTMS: " + seedname + " Swap rm and rm2 "
+					logger.debug("RTMS: " + seedname + " Swap rm and rm2 "
 							+ seedname + " " + rm.lastTime() + " "
 							+ rm2.lastTime() + " df="
 							+ (rm2.getJulianUSec() - rm.getJulianUSec())
@@ -550,7 +550,7 @@ public class RawToMiniSeed {
 		if (rm != null && rm3 != null) {
 			if (rm.getJulianUSec() < rm3.getJulianUSec()) { // switch these two
 				if (dbg)
-					Util.prta("RTMS: " + seedname + " Swap rm and rm3 "
+					logger.debug("RTMS: " + seedname + " Swap rm and rm3 "
 							+ seedname + " " + rm.lastTime() + " "
 							+ rm3.lastTime() + " df="
 							+ (rm3.getJulianUSec() - rm.getJulianUSec())
@@ -575,7 +575,7 @@ public class RawToMiniSeed {
 		if (rm2 != null && rm3 != null) {
 			if (rm2.getJulianUSec() < rm3.getJulianUSec()) { // switch these two
 				if (dbg)
-					Util.prta("RTMS: " + seedname + " Swap rm2 and rm3 "
+					logger.debug("RTMS: " + seedname + " Swap rm2 and rm3 "
 							+ seedname + " " + rm2.lastTime() + " "
 							+ rm3.lastTime() + " df="
 							+ (rm3.getJulianUSec() - rm2.getJulianUSec())
@@ -600,7 +600,7 @@ public class RawToMiniSeed {
 
 		// if(dbg) Util.prt("rm="+rm+" rm2="+rm2+" rm3="+rm3);
 		if (rm == null) {
-			Util.prta("RTMS: create new channel for " + seedname + " rate="
+			logger.info("RTMS: create new channel for " + seedname + " rate="
 					+ rt + " rm=" + rm + " rm2=" + rm2 + " rm3=" + rm3);
 			rm = new RawToMiniSeed(seedname, rt, 7, year, doy, sec, micros, 0);
 			if (dbg)
@@ -612,7 +612,7 @@ public class RawToMiniSeed {
 			long gap = rm.gapCalc(year, doy, sec, micros);
 			// long gapb = rm.gapCalcBegin(year,doy,sec,micros,nsamp);
 			if (dbg)
-				Util.prt("RTMS: " + seedname + " ns=" + nsamp + " sc=" + sec
+				logger.debug("RTMS: " + seedname + " ns=" + nsamp + " sc=" + sec
 						+ " gp=" + gap + "\nRTMS: rm =" + rm + "\nRTMS: rm2="
 						+ rm2 + "\nRTMS: rm3=" + rm3);
 
@@ -634,7 +634,7 @@ public class RawToMiniSeed {
 					} else { // rm3 is null use it for this one unless its close
 								// to rm2 or rm
 						if (dbg)
-							Util.prta("RTMS: create new OOB (3rd) channel for "
+							logger.debug("RTMS: create new OOB (3rd) channel for "
 									+ seedname
 									+ " rate="
 									+ rt
@@ -654,7 +654,7 @@ public class RawToMiniSeed {
 					}
 				} else { // rm2 is null
 					if (dbg)
-						Util.prta("RTMS: create new second channel for "
+						logger.debug("RTMS: create new second channel for "
 								+ seedname
 								+ " rate="
 								+ rt
@@ -678,27 +678,27 @@ public class RawToMiniSeed {
 			} // end if gap is continuous or in future
 		} // end else this is not a new channel
 		if (dbg)
-			Util.prt("RTMS: rm chosen is " + rm + " adding "
+			logger.debug("RTMS: rm chosen is " + rm + " adding "
 					+ timeFromUSec(sec * 1000000L + micros) + " ns=" + nsamp);
 
 		if (dbg && rm == rm2)
-			Util.prta("RTMS: use 2ndChans " + seedname + " sec=" + sec);
+			logger.debug("RTMS: use 2ndChans " + seedname + " sec=" + sec);
 		if (dbg && rm == rm3)
-			Util.prta("RTMS: use OOB chan " + seedname + " sec=" + sec);
+			logger.debug("RTMS: use OOB chan " + seedname + " sec=" + sec);
 
 		if (Math.abs(rm.getRate() - rt) / rt > 0.001) {
-			Util.prta("  *** ??? rate change on " + seedname + " from "
+			logger.debug("  *** ??? rate change on " + seedname + " from "
 					+ rm.getRate() + " to " + rt);
 			rm.setRate(rt);
 		}
 		if (dbg)
-			Util.prta("RTMS: enter process rm=" + rm + " ns=" + nsamp + " rt="
+			logger.debug("RTMS: enter process rm=" + rm + " ns=" + nsamp + " rt="
 					+ rm.getRate() + " " + rm.getSeedname());
 		// processes the time series, time and flags.
 		rm.process(x, nsamp, year, doy, sec, micros, activity, IOClock,
 				quality, timingQuality, lastValue, (rm == rm3));
 		if (dbg)
-			Util.prta("RTMS: exit process " + rm.getSeedname());
+			logger.debug("RTMS: exit process " + rm.getSeedname());
 
 	}
 
@@ -717,7 +717,7 @@ public class RawToMiniSeed {
 		// find this channel in tree map or create it
 		RawToMiniSeed rm = chans.get(seedname);
 		if (rm == null) {
-			Util.prta("forceout(): *** Call to forceout on non-existant channel="
+			logger.error("forceout(): *** Call to forceout on non-existant channel="
 					+ seedname);
 			if (dbg)
 				sb.append("call to forceout on non-existing channel!! = "
@@ -741,17 +741,6 @@ public class RawToMiniSeed {
 	 */
 	public void setOutputHandler(MiniSeedOutputHandler obj) {
 		overrideOutput = obj;
-	}
-
-	/**
-	 * write stuff to the parents log file
-	 */
-	private void prt(String s) {
-		Util.prt(s);
-	}
-
-	private void prta(String s) {
-		Util.prta(s);
 	}
 
 	/**
@@ -795,7 +784,7 @@ public class RawToMiniSeed {
 		try {
 			julian = SeedUtil.toJulian(year, doy);
 		} catch (RuntimeException e) {
-			prta("RuntimeException special catch in RTMS: seed=" + name
+			logger.error("RuntimeException special catch in RTMS: seed=" + name
 					+ " yr=" + year + " doy=" + doy + " sec=" + sec);
 			// e.printStackTrace();
 			logger.error("RuntimeException:", e);
@@ -957,10 +946,10 @@ public class RawToMiniSeed {
 				.toJulian(year, doy) && sec < 100)) || // its just a packet on
 														// the next day early
 				sec < 0 || sec >= 86400 || micros > 1000000 || micros < 0) {
-			prta("RTMS: this  =" + toString());
-			prta("RTMS: odd rm=" + chans.get(seedname));
-			prta("RTMS: odd rm2=" + secondChans.get(seedname));
-			prta("RTMS: odd rm3=" + oob.get(seedname));
+			logger.info("RTMS: this  =" + toString());
+			logger.info("RTMS: odd rm=" + chans.get(seedname));
+			logger.info("RTMS: odd rm2=" + secondChans.get(seedname));
+			logger.info("RTMS: odd rm3=" + oob.get(seedname));
 			RuntimeException e = new RuntimeException("RTMS: " + seedname
 					+ " julian=" + julian + " " + SeedUtil.toJulian(year, doy)
 					+ "  time not right! yr=" + year + " doy=" + doy + " sec="
@@ -970,7 +959,7 @@ public class RawToMiniSeed {
 
 		// If this data is from the next day, cut off the old day
 		if (SeedUtil.toJulian(year, doy) != julian) {
-			prta("RTMS: " + seedname + " New day on input (EOD?) :" + julian
+			logger.info("RTMS: " + seedname + " New day on input (EOD?) :" + julian
 					+ " != " + SeedUtil.toJulian(year, doy) + " sec=" + sec
 					+ " usec=" + micros);
 			forceOut(reverse);
@@ -998,7 +987,7 @@ public class RawToMiniSeed {
 							+ " discont2 force out gap=" + (gap / 1000000.)
 							+ " sec\n");
 				if (dbg)
-					prta("RTMS: " + seedname + " " + earliestTime()
+					logger.debug("RTMS: " + seedname + " " + earliestTime()
 							+ " discont2 frc out gap=" + (gap / 1000000.));
 				forceOut(reverse);
 				clear();
@@ -1020,7 +1009,7 @@ public class RawToMiniSeed {
 								+ " discont force out gap=" + (gap / 1000000.)
 								+ " sec\n");
 					if (dbg)
-						prta("RTMS: " + seedname + " " + lastTime()
+						logger.debug("RTMS: " + seedname + " " + lastTime()
 								+ " discont frc out gap=" + (gap / 1000000.)
 								+ " Sec fr=" + currentFrame + " wd="
 								+ currentWord + " ns=" + ns + " rt=" + rate
@@ -1048,7 +1037,7 @@ public class RawToMiniSeed {
 		int[] d = new int[Math.max(0, ndata) + nsamp]; // space for the
 														// differences
 		if (d.length == 0)
-			prta("***** there are no samples in d!" + toString());
+			logger.error("***** there are no samples in d!" + toString());
 		for (int i = 0; i < ndata; i++)
 			x[i] = data[i];// put left over data into data array
 		for (int i = 0; i < nsamp; i++)
@@ -1082,7 +1071,7 @@ public class RawToMiniSeed {
 		while (somePacked) {
 			loops++;
 			if (loops % 100000 == 0) {
-				prta("  ***** ception Infinite loop process seed=" + seedname
+				logger.error("  ***** ception Infinite loop process seed=" + seedname
 						+ " nextdiff=" + nextDiff);
 				System.exit(0);
 			}
@@ -1090,7 +1079,7 @@ public class RawToMiniSeed {
 			if (currentFrame == 0 && currentWord == 1 && nextDiff < x.length) {
 				frames[0].put(x[nextDiff], 1); // forward integration constant
 				if (dbg && sb == null)
-					prt("RTMS: null sb and dbg is on " + seedname);
+					logger.debug("RTMS: null sb and dbg is on " + seedname);
 				if (dbg)
 					sb.append("Word 1 is hdr "
 							+ Integer.toHexString(x[nextDiff]) + "\n");
@@ -1137,7 +1126,7 @@ public class RawToMiniSeed {
 				bits = 15;
 			} else { // 1x30 bit diff
 				if (Math.abs(d[nextDiff]) > 536870912)
-					prta("RTMS: " + seedname
+					logger.error("RTMS: " + seedname
 							+ " **** diff bigger than 30 bits " + d[nextDiff]
 							+ " packet will be broken" + year + ":" + doy
 							+ " sec=" + sec);
@@ -1178,7 +1167,7 @@ public class RawToMiniSeed {
 						((long) sec * 1000000L + micros + (nextDiff - ndata)
 								* periodUSec)) / periodUSec);
 					// if(dbg)
-					prta("RTMS: " + seedname + " EOD cut off ndata begbuf="
+					logger.debug("RTMS: " + seedname + " EOD cut off ndata begbuf="
 							+ begbuf + " needed=" + nleft + " ndataold="
 							+ ndataold + " nextDiff=" + nextDiff + " nsamp="
 							+ nsamp + " ns=" + ns + " sec=" + sec + " usec="
@@ -1228,7 +1217,7 @@ public class RawToMiniSeed {
 								+ (nextDiff - ndataold) * periodUSec;
 						ndata = ndataold; // finished with fakeout, restore
 											// ndata
-						prta("RTMS: " + seedname + " EOD cut done ndata="
+						logger.debug("RTMS: " + seedname + " EOD cut done ndata="
 								+ ndata + " nextDiff=" + nextDiff + " ns=" + ns
 								+ " sec=" + sec + " usec=" + micros);
 						// difftime = (long) sec * 1000000L + (long) micros +
@@ -1364,13 +1353,13 @@ public class RawToMiniSeed {
 				} // if(currentWord < 16)
 			} // if somePacked
 		} // while (somePacked)
-		prt("****** Unusual exit from process!");
+		logger.debug("****** Unusual exit from process!");
 		System.exit(0);
 	}
 
 	// These variables are used by the putbuf related routines
-	static byte[] lastbuf;
-	static boolean newPutbuf;
+	private static byte[] lastbuf;
+	private static boolean newPutbuf;
 
 	/**
 	 * for debugging returns state of "newPutbuf" boolean which is set by
@@ -1427,13 +1416,12 @@ public class RawToMiniSeed {
 			MiniSeed ms = new MiniSeed(buf);
 			if (ms.getTimeInMillis() % 86400000L + (ms.getNsamp() - 1)
 					/ ms.getRate() * 1000. > 86400000)
-				prt("*** RTMS: created block that spans midnight!=" + ms);
+				logger.warn("*** RTMS: created block that spans midnight!=" + ms);
 			// prt("RTMS: Putbuf rw="+(backblk+"    ").substring(0,5)+" ms="+ms.toString());
 			// Write to the data files
 			if (dbg)
 				sb.append("putbuf(): writeMiniSeed for ms=" + ms);
 		} catch (IllegalSeednameException e) {
-			prt("Putbuf: illegal seedname=" + e.getMessage());
 			logger.error("IllegalSeednameException:", e);
 		}
 
@@ -1482,7 +1470,7 @@ public class RawToMiniSeed {
 			sb.append("Force out called reverse=" + reverse + "\n");
 		if (currentWord >= 16) { // DEBUG: this should nebvver happen, but it
 									// does!!!!
-			prta(seedname + "Exception: forceoutCalled with currentWord>=16="
+			logger.error(seedname + "Exception: forceoutCalled with currentWord>=16="
 					+ currentWord + " ndata=" + ndata);
 			// clear the output related variables (things into the frames).
 			// Set up for new compression buffer
@@ -1493,7 +1481,7 @@ public class RawToMiniSeed {
 		}
 
 		if (dbg)
-			prta(seedname + " forceOut() called with rev=" + reverse
+			logger.debug(seedname + " forceOut() called with rev=" + reverse
 					+ " ndata=" + ndata);
 		int key = frames[currentFrame].get(0);
 		// is there any data sitting in ndata, we must force it out as well
@@ -1549,14 +1537,14 @@ public class RawToMiniSeed {
 				bits = 30;
 			}
 			if (!packOK(d, 0, npack, 1 << (bits - 1))) {
-				prt(seedname
+				logger.error(seedname
 						+ " Steim2 Exception: force out does not work!  bits="
 						+ bits + " npack=" + npack + " ndata=" + ndata
 						+ " reverse=" + reverse + " limit=" + (1 << (bits - 1)));
-				prt(seedname + " ns=" + ns + " curWord=" + currentWord
+				logger.error(seedname + " ns=" + ns + " curWord=" + currentWord
 						+ " curFrm=" + currentFrame + " nextdiff=" + nextDiff);
 				for (int i = 0; i < ndata; i++)
-					prt("d[" + i + "]=" + d[i] + " data[" + i + "]=" + data[i]);
+					logger.error("d[" + i + "]=" + d[i] + " data[" + i + "]=" + data[i]);
 				RuntimeException e = new RuntimeException(
 						"force out does not work");
 				logger.error("RuntimeException:", e);
@@ -1585,7 +1573,7 @@ public class RawToMiniSeed {
 				// prt("ForceOut buf="+sb.toString());
 			}
 			if (currentWord >= 16)
-				prta("ERR:Forceout current word=" + currentWord + " bits="
+				logger.error("ERR:Forceout current word=" + currentWord + " bits="
 						+ bits + " ndata=" + ndata);
 			frames[currentFrame].put(w, currentWord);
 			currentWord++;
@@ -1746,7 +1734,7 @@ public class RawToMiniSeed {
 			setRate(rate);
 
 			if (name.substring(0, 5).equals("XXMPR"))
-				Util.prt("set rate rate=" + rate + " fact=" + rateFactor
+				logger.info("set rate rate=" + rate + " fact=" + rateFactor
 						+ " mult=" + rateMultiplier);
 			numFrames = nFrames;
 			sequence = startSequence;
@@ -1951,17 +1939,17 @@ public class RawToMiniSeed {
 	 * gettting 4 bytes at a time to the encapsulated arrays. No matter what
 	 * kind of computer we are on, this data is written in high endian order
 	 */
-	class SteimFrames {
-		byte[] w;
+	private class SteimFrames {
+		private byte[] w;
 
 		public SteimFrames() {
 			w = new byte[64];
 		}
 
 		/** put the int i in the steim frame at index */
-		public void put(int i, int index) {
+		private void put(int i, int index) {
 			if (index >= 16)
-				prta("Index is out of range in steimFrame PUT" + index);
+				logger.error("Index is out of range in steimFrame PUT" + index);
 			for (int j = 0; j < 4; j++) {
 				w[index * 4 + 3 - j] = (byte) (i & 0xFF);
 				i = i >> 8;
@@ -1969,7 +1957,7 @@ public class RawToMiniSeed {
 		}
 
 		/** get the int from the index offset of the Steim Frame */
-		public int get(int index) {
+		private int get(int index) {
 			int i = 0;
 			for (int j = 0; j < 4; j++) {
 				i = i << 8;

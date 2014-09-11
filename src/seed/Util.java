@@ -9,20 +9,12 @@ package seed;
  * Created on March 14, 2000, 3:58 PMt
  */
 
-import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 class Util extends Object {
-	private static final Logger logger = LoggerFactory
-			.getLogger(seed.Util.class);
-
-	private static PrintStream out = System.out;
 	/**
 	 * Print a string in all printable characers, take non-printable to their
 	 * hex vales
@@ -42,69 +34,11 @@ class Util extends Object {
 		return sb.toString();
 	}
 
-	/**
-	 * prta adds time stamp to output of prt(). takes the input text and prints
-	 * it out. It might go into the MSDOS window or to the SESSION.OUT file
-	 * depending on the state of the debug flag. The "main" should decide on
-	 * debug or not, set the flag and then all of the output will be available
-	 * on the window or in the file. The file is really useful when something
-	 * does not work because the user can e-mail it to us and a full debug
-	 * listing is available for postmortem
-	 * 
-	 * @param txt
-	 *            The output text
-	 */
-	static void prta(String txt) {
-		Util.prt(Util.asctime() + " " + txt);
-	}
-
-	/**
-	 * prt takes the input text and prints it out. It might go into the MSDOS
-	 * window or to the SESSION.OUT file depending on the state of the debug
-	 * flag. The "main" should decide on debug or not, set the flag and then all
-	 * of the output will be available on the window or in the file. The file is
-	 * really useful when something does not work because the user can e-mail it
-	 * to us and a full debug listing is available for postmortem
-	 * 
-	 * @param txt
-	 *            The output text
-	 */
-	static void prt(String txt) {
-		// System.out.println("OS="+OS+" Debug="+debug_flag+" isApplet="+isApplet+" txt="+txt+" out="+out);
-		out.println(txt);
-		out.flush();
-	}
-
 	// This sets the default time zone to GMT so that GregorianCalendar uses GMT
 	// as the local time zone!
 	public static void setModeGMT() {
 		TimeZone tz = TimeZone.getTimeZone("GMT+0");
 		TimeZone.setDefault(tz);
-	}
-
-	/**
-	 * return a time string to the hundredths of second for current time
-	 * 
-	 * @return the time string hh:mm:ss.hh
-	 */
-	private static String asctime() {
-		return asctime(new GregorianCalendar());
-	}
-
-	/**
-	 * return a time string to the hundredths of second from a GregorianCalendar
-	 * 
-	 * @param d
-	 *            A gregorian calendar to translate to time hh:mm:ss.hh
-	 * @return the time string hh:mm:ss.hh
-	 */
-	private static String asctime(GregorianCalendar d) {
-		if (df == null)
-			df = new DecimalFormat("00");
-		return df.format(d.get(Calendar.HOUR_OF_DAY)) + ":"
-				+ df.format(d.get(Calendar.MINUTE)) + ":"
-				+ df.format(d.get(Calendar.SECOND)) + "."
-				+ df.format((d.get(Calendar.MILLISECOND) + 5) / 10);
 	}
 
 	private static DecimalFormat df;
@@ -218,7 +152,6 @@ class Util extends Object {
 
 		for (k = 0; k < 16; k++) {
 			val = (i >> j) & 0xf;
-			// prt(i+" i >> j="+j+" 0xF="+val);
 			if (val < 10)
 				c = (char) (val + '0');
 			else

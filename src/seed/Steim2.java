@@ -228,7 +228,7 @@ public class Steim2 {
 				// if bias was zero, then we want the first sample to be X(0)
 				// constant
 				if (tempSamples.length < 4)
-					Util.prt("   **** Bad tempsamples (<3) in first frame!="
+					logger.error("   **** Bad tempsamples (<3) in first frame!="
 							+ tempSamples.length);
 				else if (bias == 0) {
 					lastValue = start - tempSamples[3]; // X(-1) = X(0) - d(0)
@@ -494,17 +494,17 @@ public class Steim2 {
 	public static void main(String[] args) throws SteimException {
 		Util.setModeGMT();
 		GregorianCalendar end = new GregorianCalendar(2006, 3, 15, 23, 59);
-		Util.prt(Util.ascdate(end) + " " + Util.asctime2(end) + " ms="
+		logger.info(Util.ascdate(end) + " " + Util.asctime2(end) + " ms="
 				+ end.getTimeInMillis());
 		int dom = end.get(Calendar.DAY_OF_MONTH);
 		long time = end.getTimeInMillis();
 		int ms = 60002;
 		// end.setTimeInMillis(time+ms);
 		end.add(Calendar.MILLISECOND, ms);
-		Util.prt(Util.ascdate(end) + " " + Util.asctime2(end) + " ms="
+		logger.info(Util.ascdate(end) + " " + Util.asctime2(end) + " ms="
 				+ end.getTimeInMillis() + " df="
 				+ (end.getTimeInMillis() - time));
-		Util.prt("Dom = " + dom + " end dom=" + end.get(Calendar.DAY_OF_MONTH));
+		logger.info("Dom = " + dom + " end dom=" + end.get(Calendar.DAY_OF_MONTH));
 		byte[] b = new byte[64];
 		@SuppressWarnings("unused")
 		int[] temp;
