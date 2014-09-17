@@ -455,6 +455,7 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 				response = pz.getResponse(freqs);
 			} catch (PoleZeroStageException e) {
 				logger.error("PoleZeroStageException:", e);
+				throw new ChannelMetaException("PoleZeroStageException");
 			}
 
 			if (outUnits == 0) {
