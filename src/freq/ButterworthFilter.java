@@ -25,12 +25,12 @@ package freq;
 
 public class ButterworthFilter implements FrequencyDomainProcess {
 	private SeisGramText localeText;
-	public double highFreqCorner;
-	public double lowFreqCorner;
-	public int numPoles;
+	private double highFreqCorner;
+	private double lowFreqCorner;
+	private int numPoles;
 	public int filterType;
 
-	public String errorMessage;
+	
 
 	private static final double FREQ_MIN = 1.0e-5;
 	private static final double FREQ_MAX = 1.0e5;
@@ -38,7 +38,7 @@ public class ButterworthFilter implements FrequencyDomainProcess {
 	private static final double NUM_POLES_MIN = 2;
 	private static final double NUM_POLES_MAX = 20;
 
-	public static final int CAUSAL = 0;
+	private static final int CAUSAL = 0;
 	public static final int NONCAUSAL = 1;
 	public static final int TWOPASS = 1;
 
@@ -56,7 +56,6 @@ public class ButterworthFilter implements FrequencyDomainProcess {
 		this.lowFreqCorner = lowFreqCorner;
 		this.numPoles = numPoles;
 		this.filterType = filterType;
-		this.errorMessage = " ";
 	}
 
 	/** Method to set high frequency corner */
