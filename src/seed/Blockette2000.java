@@ -61,9 +61,9 @@ import java.util.Collection;
  * @author Joel Edwards <jdedwards@usgs.gov>
  */
 public class Blockette2000 extends Blockette {
-	public static final short FIXED_LENGTH = 15;
-	public static final ByteOrder DEFAULT_WORD_ORDER = ByteOrder.BIG_ENDIAN;
-	public static final Charset TAG_CHARSET = Charset.forName("UTF-8");
+	static final short FIXED_LENGTH = 15;
+	private static final ByteOrder DEFAULT_WORD_ORDER = ByteOrder.BIG_ENDIAN;
+	private static final Charset TAG_CHARSET = Charset.forName("UTF-8");
 
 	@Override
 	public short blocketteNumber() {
@@ -268,7 +268,7 @@ public class Blockette2000 extends Blockette {
 		return (short) (getHeaderLength() - FIXED_LENGTH);
 	}
 
-	public static String tagsToTagString(Collection<String> tags) {
+	static String tagsToTagString(Collection<String> tags) {
 		String tagString = "";
 		for (String tag : tags) {
 			tagString += tag + "~";
@@ -276,16 +276,16 @@ public class Blockette2000 extends Blockette {
 		return tagString;
 	}
 
-	public static byte[] tagStringToByteArray(String tagString) {
+	static byte[] tagStringToByteArray(String tagString) {
 		return tagString.getBytes(TAG_CHARSET);
 	}
-
+//TODO: Evaluate if this method is still needed, it has 0 references.
 	public static byte[] tagsToByteArray(Collection<String> tags) {
 		return tagStringToByteArray(tagsToTagString(tags));
 	}
 
 	// === Opaque Data ===
-	public void setOpaqueData(byte[] data, int offset, int length) {
+	void setOpaqueData(byte[] data, int offset, int length) {
 		short headerLength = getHeaderLength();
 		short oldBlocketteLength = getBlocketteLength();
 		short oldOpaqueLength = (short) (oldBlocketteLength - headerLength);

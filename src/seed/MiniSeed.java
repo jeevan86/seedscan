@@ -1,23 +1,4 @@
 /*
- * Copyright 2011, United States Geological Survey or
- * third-party contributors as indicated by the @author tags.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
- *
- */
-
-/*
  * MiniSeed.java
  *
  * Created on May 24, 2005, 2:00 PM
@@ -44,7 +25,7 @@ import org.slf4j.LoggerFactory;
  * byte array and break apart the fixed data header and other data blockettes
  * and represent them as separate internal structures.
  * 
- * @author davidketchum
+ * @author David Ketchum
  */
 public class MiniSeed implements MiniSeedOutputHandler {
 	// private static final Logger logger =
@@ -53,7 +34,7 @@ public class MiniSeed implements MiniSeedOutputHandler {
 	private static final Logger logger = LoggerFactory
 			.getLogger(seed.MiniSeed.class);
 
-	public final static int ACTIVITY_CAL_ON = 1;
+	private final static int ACTIVITY_CAL_ON = 1;
 	public final static int ACTIVITY_TIME_CORRECTION_APPLIED = 2;
 	public final static int ACTIVITY_BEGIN_EVENT = 4;
 	public final static int ACTIVITY_END_EVENT = 8;

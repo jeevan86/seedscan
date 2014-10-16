@@ -1,21 +1,3 @@
-/*
- * Copyright 2012, United States Geological Survey or
- * third-party contributors as indicated by the @author tags.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
- *
- */
 package asl.metadata;
 
 import java.util.ArrayList;
@@ -30,8 +12,8 @@ public class ChannelData {
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.metadata.ChannelData.class);
 
-	public static final int CHANNEL_EPOCH_INFO_BLOCKETTE_NUMBER = 52;
-	public static final int CHANNEL_COMMENT_BLOCKETTE_NUMBER = 59;
+	private static final int CHANNEL_EPOCH_INFO_BLOCKETTE_NUMBER = 52;
+	private static final int CHANNEL_COMMENT_BLOCKETTE_NUMBER = 59;
 
 	private Hashtable<Calendar, Blockette> comments;
 	private Hashtable<Calendar, EpochData> epochs;
@@ -40,7 +22,7 @@ public class ChannelData {
 
 	// constructor(s)
 	// public ChannelData(String location, String name)
-	public ChannelData(ChannelKey channelKey) {
+	ChannelData(ChannelKey channelKey) {
 		this.location = channelKey.getLocation();
 		this.name = channelKey.getName();
 		comments = new Hashtable<Calendar, Blockette>();
@@ -57,7 +39,7 @@ public class ChannelData {
 	}
 
 	// comments
-	public Calendar addComment(Blockette blockette)
+	Calendar addComment(Blockette blockette)
 			throws MissingBlocketteDataException, TimestampFormatException,
 			WrongBlocketteException {
 		if (blockette.getNumber() != CHANNEL_COMMENT_BLOCKETTE_NUMBER) {
@@ -87,7 +69,7 @@ public class ChannelData {
 	}
 
 	// epochs
-	public Calendar addEpoch(Blockette blockette)
+	Calendar addEpoch(Blockette blockette)
 			throws MissingBlocketteDataException, TimestampFormatException,
 			WrongBlocketteException {
 		if (blockette.getNumber() != CHANNEL_EPOCH_INFO_BLOCKETTE_NUMBER) {
@@ -114,7 +96,7 @@ public class ChannelData {
 		return epochs.containsKey(timestamp);
 	}
 
-	public EpochData getEpoch(Calendar timestamp) {
+	EpochData getEpoch(Calendar timestamp) {
 		return epochs.get(timestamp);
 	}
 
@@ -126,7 +108,7 @@ public class ChannelData {
 	 * oldest startTimestamp - oldest endTimestamp
 	 **/
 	// public boolean containsEpoch(Calendar epochTime)
-	public Calendar containsEpoch(Calendar epochTime) {
+	Calendar containsEpoch(Calendar epochTime) {
 		boolean containsEpochTime = false;
 
 		ArrayList<Calendar> epochtimes = new ArrayList<Calendar>();
@@ -170,8 +152,7 @@ public class ChannelData {
 				endTimeStamp = epoch.getEndTime();
 				if (endTimeStamp == null) { // This Epoch is open - we don't
 											// allow that here!
-					System.out
-							.println("Error: Older Epoch has Open End Time (=null)");
+					logger.error("Older Epoch has Open End Time (=null)");
 					// if (epochTime.getTimeInMillis() >=
 					// startTimeStamp.getTimeInMillis() ) {
 					// containsEpochTime = true;
@@ -187,11 +168,6 @@ public class ChannelData {
 			}
 		}
 
-		// These should be the latest ones we checked, so they are correct IF
-		// the epochTime was found
-		String epochDateString = EpochData.epochToDateString(epochTime);
-		String startDateString = EpochData.epochToDateString(startTimeStamp);
-		String endDateString = EpochData.epochToDateString(endTimeStamp);
 		if (containsEpochTime) {
 			// System.out.format("----ChannelData %s-%s Epoch: [%s - %s] contains EpochTime=%s\n",getLocation(),
 			// getName(), startDateString,endDateString,epochDateString);
@@ -203,7 +179,7 @@ public class ChannelData {
 
 	}
 
-	public void printEpochs() {
+	void printEpochs() {
 		// TreeSet<Calendar> epochtimes = new TreeSet<Calendar>();
 		// epochtimes.addAll(epochs.keySet());
 

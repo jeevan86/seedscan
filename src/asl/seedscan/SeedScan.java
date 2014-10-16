@@ -367,6 +367,7 @@ public class SeedScan {
 			logger.info("Release seedscan lock and quit metaServer");
 			lock = null;
 			metaServer.quit();
+			System.exit(0);	
 		}
 	} // main()
 
