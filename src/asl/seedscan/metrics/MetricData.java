@@ -21,6 +21,7 @@ package asl.seedscan.metrics;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.Hashtable;
 import java.util.Set;
 
@@ -58,6 +59,7 @@ public class MetricData {
 	private StationMeta metadata;
 	private Hashtable<String, String> synthetics;
 	private MetricReader metricReader;
+	private GregorianCalendar timestamp;
 
 	private MetricData nextMetricData;
 
@@ -84,11 +86,13 @@ public class MetricData {
 	}
 
 	public MetricData(MetricReader metricReader,
+			GregorianCalendar timestamp,
 			Hashtable<String, ArrayList<DataSet>> data,
 			Hashtable<String, ArrayList<Integer>> qualityData,
 			StationMeta metadata,
 			Hashtable<String, ArrayList<Blockette320>> randomCal) {
 		this.metricReader = metricReader;
+		this.timestamp = timestamp;
 		this.data = data;
 		this.qualityData = qualityData;
 		this.randomCal = randomCal;

@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.RejectedExecutionException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +51,7 @@ public class ScanManager {
 		// threads and the main thread.
 		if (threadCount > 20) {
 			threadCount = 20;
-			// threadCount = 1;
+			//threadCount = 1;
 		}
 
 		logger.info("Number of Threads to Use = [{}]", threadCount);
@@ -71,10 +73,14 @@ public class ScanManager {
 			executor.invokeAll(tasks); // It will wait here until scanner
 										// threads finish.
 			executor.shutdown();
-			Thread.sleep(500); // This lets any injector/reader threads finish
-								// before we return.
+			executor.awaitTermination(300, TimeUnit.SECONDS); // This lets any injector/reader threads finish
+																// before we return.
 		} catch (InterruptedException e) {
-			logger.warn("Scan Manager executor service interrupted.");
+			logger.warn("Scan Manager executor service interrupted:", e);
+		} catch (NullPointerException e) {
+			logger.warn("Scan Manager executor service returned null:", e);
+		} catch (RejectedExecutionException e) {
+			logger.warn("Scan Manager executor service cannot be scheduled:", e);
 		}
 
 		logger.info("ALL SCANNER THREADS HAVE FINISHED");
