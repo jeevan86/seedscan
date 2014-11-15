@@ -45,7 +45,6 @@ public class ConfigParser {
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.seedscan.ConfigParser.class);
 
-	private ConfigT config = null;
 	private Schema schema = null;
 
 	public ConfigParser(Collection<File> schemaFiles) {
