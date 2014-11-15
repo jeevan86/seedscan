@@ -139,19 +139,6 @@ public class SeedVolume {
 	}
 
 	/**
-	 * Prints the stations.
-	 * 
-	 * @deprecated It is no longer used.
-	 */
-	public void printStations() {
-		TreeSet<StationKey> keys = new TreeSet<StationKey>();
-		keys.addAll(stations.keySet());
-		for (StationKey key : keys) {
-			System.out.format("     == SeedVolume: Stn = [%s]\n", key);
-		}
-	}
-
-	/**
 	 * Gets the station list.
 	 * 
 	 * @return the station list
