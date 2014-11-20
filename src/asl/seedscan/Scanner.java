@@ -243,8 +243,6 @@ public class Scanner implements Runnable {
 			}
 			currentMetricData = null;
 			currentMetricData = getMetricData(timestamp);
-			if (currentMetricData == null)
-				continue;
 
 			if (currentMetricData != null) { // This doesn't mean nextMetricData
 							// isn't null!
