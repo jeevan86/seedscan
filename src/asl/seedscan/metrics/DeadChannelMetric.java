@@ -110,7 +110,7 @@ public class DeadChannelMetric extends PowerBandMetric {
 
 			// => oldDigest == newDigest, no need to recompute metric
 			if (digest == null) {
-				logger.warn(
+				logger.info(
 						"Digest unchanged station:[{}] channel:[{}] day:[{}] --> Skip metric",
 						station, channel, getDay());
 				continue;
