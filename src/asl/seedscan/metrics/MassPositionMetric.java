@@ -69,7 +69,7 @@ public class MassPositionMetric extends Metric {
 
 			if (digest == null) { // means oldDigest == newDigest and we don't
 				// need to recompute the metric
-				logger.warn(
+				logger.info(
 						"Digest unchanged station:[{}] channel:[{}] day:[{}] --> Skip metric",
 						getStation(), channel, day);
 				continue;

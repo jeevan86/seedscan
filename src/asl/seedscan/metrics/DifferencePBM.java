@@ -89,7 +89,7 @@ public class DifferencePBM extends PowerBandMetric {
 
 			if (digest == null) { // means oldDigest == newDigest and we don't
 				// need to recompute the metric
-				logger.warn(
+				logger.info(
 						"Digest unchanged station:[{}] day:[{}] channelX=[{}] channelY=[{}]--> Skip metric",
 						getStation(), getDay(), channelX, channelY);
 				completeCompute = false;

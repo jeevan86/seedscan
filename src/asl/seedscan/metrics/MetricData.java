@@ -1159,21 +1159,21 @@ public class MetricData {
 			// System.out.println("=== MetricData.metricReader *IS* connected");
 			ByteBuffer oldDigest = metricReader.getMetricValueDigest(id);
 			if (oldDigest == null) {
-				logger.warn("Old digest is null.");
+				logger.info("Old digest is null.");
 			} else if (newDigest.compareTo(oldDigest) == 0) {
-				logger.warn("Digests are Equal !!");
+				logger.info("Digests are Equal !!");
 				if (forceUpdate) { // Don't do anything --> return the digest to
 					// force the metric computation
 					String msg = String
 							.format("== valueDigestChanged: metricName=%s date=%s Digests are Equal BUT forceUpdate=[%s]"
 									+ " so compute the metric anyway!\n",
 									metricName, strdate, forceUpdate);
-					logger.warn(msg);
+					logger.info(msg);
 				} else {
 					newDigest = null;
 				}
 			}
-			logger.warn(String
+			logger.info(String
 					.format("valueDigestChanged() --> oldDigest = getMetricValueDigest(%s, %s, %s, %s)",
 							strdate, metricName, station, channelId));
 		} else {

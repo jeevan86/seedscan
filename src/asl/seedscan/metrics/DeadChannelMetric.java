@@ -97,7 +97,7 @@ public class DeadChannelMetric extends PowerBandMetric {
 		// metric
 		for (Channel channel : channels) {
 			if (!metricData.hasChannelData(channel)) {
-				logger.warn(
+				logger.info(
 						"No data found for channel:[{}] day:[{}] --> Skip metric",
 						channel, getDay());
 				continue;
