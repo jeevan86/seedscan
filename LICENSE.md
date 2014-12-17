@@ -67,3 +67,7 @@ License
     License:        
     Website:        http://www.seis.sc.edu/taup/
                     https://github.com/crotwell/TauP
+                    
+###Other Copyright notices
+Anthony Lomax Java Library Copyright (C) 1999 Anthony Lomax <lomax@faille.unice.fr>
+
