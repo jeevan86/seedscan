@@ -49,9 +49,11 @@ License
                     seedscan/lib/sources/logback/lgpl-2.1.txt
     Website:        http://logback.qos.ch/
 ######SLF4J
-    Source:         
-    Object Code:    
-    License:        
+    Copyright (c) 2004-2014 QOS.ch All rights reserved.
+    Source:         seedscan/lib/sources/slf4j/slf4j-api-1.7.8-sources.jar
+    Object Code:    seedscan/lib/slf4j-api-1.7.8.jar
+    License:        MIT License (X11 License)
+                    seedscan/lib/sources/slf4j/LICENSE.txt
     Website:        http://www.slf4j.org/
 ######Postgresql JDBC
     Copyright (c) 1997-2011, PostgreSQL Global Development Group   

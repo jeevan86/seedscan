@@ -5,10 +5,10 @@
 	<classpathentry kind="lib" path="lib/commons-cli-1.2.jar"/>
 	<classpathentry kind="lib" path="lib/logback-classic-1.1.2.jar" sourcepath="lib/sources/logback/logback-classic-1.1.2-sources.jar"/>
 	<classpathentry kind="lib" path="lib/logback-core-1.1.2.jar" sourcepath="lib/sources/logback/logback-core-1.1.2-sources.jar"/>
-	<classpathentry kind="lib" path="lib/slf4j-api-1.7.7.jar"/>
 	<classpathentry kind="lib" path="lib/TauP-2.1.0.jar"/>
 	<classpathentry kind="lib" path="lib/jcommon-1.0.23.jar"/>
 	<classpathentry kind="lib" path="lib/jfreechart-1.0.19.jar"/>
 	<classpathentry kind="lib" path="lib/postgresql-9.3-1102.jdbc41.jar"/>
+	<classpathentry kind="lib" path="lib/slf4j-api-1.7.8.jar" sourcepath="lib/sources/slf4j/slf4j-api-1.7.8-sources.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
