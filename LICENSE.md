@@ -39,9 +39,14 @@ License
     License:        LGPL Version 2.1 (included in source tarball)
     Website:        http://www.jfree.org/jfreechart/
 ######Logback
-    Source:         
-    Object Code:    
-    License:        
+    Copyright (C) 1999-2012, QOS.ch. All rights reserved.
+    Source:         seedscan/lib/sources/logback-classic-1.1.2-sources.jar
+                    seedscan/lib/sources/logback-core-1.1.2-sources.jar
+    Object Code:    seedscan/lib/logback-classic-1.1.2.jar
+                    seedscan/lib/logback-core-1.1.2.jar
+    License:        LGPL Version 2.1
+                    seedscan/lib/sources/logback/LICENSE.txt
+                    seedscan/lib/sources/logback/lgpl-2.1.txt
     Website:        http://logback.qos.ch/
 ######SLF4J
     Source:         
