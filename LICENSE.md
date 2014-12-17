@@ -16,11 +16,12 @@ License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ###Libraries
-    Below are copyright notices regarding included libraries and the location of their source code and binaries.
+    Below are copyright notices for included libraries and the location of their source code and Object Code.
 ######Apache Commons CLI                                                                                                                              
     Copyright 2001-2009 The Apache Software Foundation
     This product includes software developed by
     The Apache Software Foundation (http://www.apache.org/).
-    Source: seedscan                                                                
+    Source:         seedscan/lib/sources/commons-cli-1.2-src.tar.gz
+    Object Code:    seedscan/lib/commons-cli-1.2.jar
 
-######Date Setup  
+######
