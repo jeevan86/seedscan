@@ -3,9 +3,6 @@
 // change package
 package freq;
 
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
-
 /*
  * This file is part of the Anthony Lomax Java Library. Copyright (C) 1999
  * Anthony Lomax <lomax@faille.unice.fr> This program is free software; you can
@@ -21,8 +18,7 @@ package freq;
  */
 
 public class Cmplx implements java.io.Serializable {
-/*	private static final Logger logger = LoggerFactory
-			.getLogger(freq.Cmplx.class);*/
+
 	private static final long serialVersionUID = 1L;
 
 	public double r; // real part
