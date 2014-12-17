@@ -69,5 +69,5 @@ License
                     https://github.com/crotwell/TauP
                     
 ###Other Copyright notices
-Anthony Lomax Java Library Copyright (C) 1999 Anthony Lomax <lomax@faille.unice.fr>
+Cmplx.java Copyright (C) 1999 Anthony Lomax <lomax@faille.unice.fr>  GPL v2 or later
 
