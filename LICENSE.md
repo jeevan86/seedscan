@@ -1,7 +1,7 @@
 License
 ========
 
-###Seedscan
+###SeedScan
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -25,13 +25,16 @@ License
     Source:         seedscan/lib/sources/commons-cli-1.2-src.tar.gz
     Object Code:    seedscan/lib/commons-cli-1.2.jar
     License:        Apache License Version 2.0 (included in source tarball)
+    Website:        http://commons.apache.org/proper/commons-cli/
 ######JCommon
     (C)opyright, 2000-2014, by Object Refinery Limited and Contributors.
     Source:         seedscan/lib/sources/jcommon-1.0.23.tar.gz
     Object Code:    seedscan/lib/jcommon-1.0.23.jar
     License:        LGPL Version 2.1 (included in source tarball)
+    Website:        http://www.jfree.org/jcommon/
 ######JFreeChart
     (C)opyright, 2000-2014, by Object Refinery Limited and Contributors.
     Source:         seedscan/lib/sources/jfreechart-1.0.19.tar.gz
     Object Code:    seedscan/lib/jfreechart-1.0.19.jar
     License:        LGPL Version 2.1 (included in source tarball)
+    Website:        http://www.jfree.org/jfreechart/
