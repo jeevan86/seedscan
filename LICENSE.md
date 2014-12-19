@@ -48,6 +48,10 @@ License
                     seedscan/lib/sources/logback/LICENSE.txt
                     seedscan/lib/sources/logback/lgpl-2.1.txt
     Website:        http://logback.qos.ch/
+######SeisFile Sac Library
+    Source:         seedscan/src/sac
+    License:        GPL Version 3 or later
+    Website:        http://www.seis.sc.edu/seisFile.html
 ######SLF4J
     Copyright (c) 2004-2014 QOS.ch All rights reserved.
     Source:         seedscan/lib/sources/slf4j/slf4j-api-1.7.8-sources.jar
