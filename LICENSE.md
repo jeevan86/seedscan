@@ -26,6 +26,10 @@ License
     Object Code:    seedscan/lib/commons-cli-1.2.jar
     License:        Apache License Version 2.0 (included in source tarball)
     Website:        http://commons.apache.org/proper/commons-cli/
+######Cmplx.java
+    Copyright (C) 1999 Anthony Lomax <lomax@faille.unice.fr>
+    Source:         seedscan/src/freq
+    License:        GPL Version 2 or later
 ######JCommon
     (C)opyright, 2000-2014, by Object Refinery Limited and Contributors.
     Source:         seedscan/lib/sources/jcommon-1.0.23.tar.gz
@@ -48,6 +52,9 @@ License
                     seedscan/lib/sources/logback/LICENSE.txt
                     seedscan/lib/sources/logback/lgpl-2.1.txt
     Website:        http://logback.qos.ch/
+######MiniSEED Library
+    Source:         seedscan/src/seed
+    License:        GPL Version 3 or later
 ######SeisFile Sac Library
     Source:         seedscan/src/sac
     License:        GPL Version 3 or later
@@ -71,7 +78,3 @@ License
     License:        
     Website:        http://www.seis.sc.edu/taup/
                     https://github.com/crotwell/TauP
-                    
-###Other Copyright notices
-Cmplx.java Copyright (C) 1999 Anthony Lomax <lomax@faille.unice.fr>  GPL v2 or later
-
