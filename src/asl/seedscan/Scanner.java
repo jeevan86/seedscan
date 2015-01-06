@@ -231,8 +231,6 @@ public class Scanner implements Runnable {
 	
 			if (i == 0) {
 				nextMetricData = getMetricData(nextDayTimestamp);
-				if (nextMetricData == null)
-					continue;
 			} else {
 				// Need to null out ref to next day before passing
 				// currentMetricData to avoid chaining refs
