@@ -657,7 +657,7 @@ public class MiniSeed implements MiniSeedOutputHandler {
 		if (buf[0] < '0' || buf[0] > '9' || buf[1] < '0' || buf[1] > '9'
 				|| buf[2] < '0' || buf[2] > '9' || buf[3] < '0' || buf[3] > '9'
 				|| buf[4] < '0' || buf[4] > '9' || buf[5] < '0' || buf[5] > '9'
-				|| (buf[6] != 'D' && buf[6] != 'R' && buf[6] != 'Q')
+				|| (buf[6] != 'D' && buf[6] != 'R' && buf[6] != 'Q' && buf[6] != 'M')
 				|| buf[7] != ' ') {
 			throw new IllegalSeednameException("Bad seq # or [DQR] "
 					+ toStringRaw(buf));

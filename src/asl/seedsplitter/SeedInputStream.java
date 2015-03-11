@@ -209,12 +209,12 @@ public class SeedInputStream implements Runnable {
 						// 'D'
 						// or the NEIC post processed data indicator 'Q'
 						// or the one mentioned on the IRIS website 'M'
-						/* 'D' 'M' 'Q' */
+						/* 'D' 'M' 'Q' 'R' */
 						if ((indicator != 0x44) && (indicator != 0x4D)
-								&& (indicator != 0x51)) {
+								&& (indicator != 0x51) && (indicator != 0x52)) {
 							m_skippedBytes += m_bufferBytes;
 							m_bufferBytes = 0;
-							logger.debug(formatter
+							logger.error(formatter
 									.format("Skipping bad indicator: 0x%x\n",
 											indicator).toString());
 						} else {
