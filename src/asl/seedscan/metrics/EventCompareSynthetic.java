@@ -27,8 +27,6 @@ import asl.util.Trace;
 import asl.util.TraceException;
 import edu.sc.seis.TauP.SphericalCoords;
 
-
-
 /**
  * <p>
  * The Class EventCompareSynthetic.
@@ -132,14 +130,12 @@ public class EventCompareSynthetic extends Metric {
 		 **/
 		int nChannels = 9;
 		int nDigests = 6;
-		double corrVal = 0.;
 
 		ByteBuffer[] digestArray = new ByteBuffer[nDigests];
 		// Channel[] channels = new Channel[nChannels];
 		channels = new Channel[nChannels];
 
 		double[] results = new double[nDigests];
-		boolean[] returnResults = new boolean[nDigests];
 
 		channels[0] = new Channel("00", "LHZ");
 		channels[1] = new Channel("00", "LHND");
@@ -303,30 +299,16 @@ public class EventCompareSynthetic extends Metric {
 					for (int i = 0; i < 3; i++) {
 						// results[i] += 1.e6 * rmsDiff( dataDisp00.get(i),
 						// dataDisp3.get(i), nstart, nend);
-						corrVal = getCorr(dataDisp00.get(i),
+						results[i] += calcDiff(dataDisp00.get(i),
 								dataDisp3.get(i), nstart, nend);
-						//Check if the correlation is high enough to add the comparison
-						if (corrVal >= 0.85){
-							returnResults[i] = true;
-							results[i] += calcDiff(dataDisp00.get(i),
-								dataDisp3.get(i), nstart, nend);
-						}
-					
 					}
 				}
 				if (compute10) {
 					for (int i = 0; i < 3; i++) {
 						// results[i+3] += 1.e6 * rmsDiff( dataDisp10.get(i),
 						// dataDisp3.get(i), nstart, nend);
-						corrVal = getCorr(dataDisp10.get(i),
+						results[i + 3] += calcDiff(dataDisp10.get(i),
 								dataDisp3.get(i), nstart, nend);
-						//Check if the correlation is high enough to add the comparison
-						if (corrVal >= 0.85){
-							returnResults[i + 3] = true;
-							results[i + 3] += calcDiff(dataDisp10.get(i),
-								dataDisp3.get(i), nstart, nend);
-						}
-
 					}
 				}
 
@@ -343,16 +325,7 @@ public class EventCompareSynthetic extends Metric {
 					Channel channelX = channels[i];
 					double result = results[i] / (double) nEvents;
 					ByteBuffer digest = digestArray[i];
-					if (returnResults[i]){
-						metricResult.addResult(channelX, result, digest);
-					}	else{
-						logger.info(
-					"station=[{}] day=[{}]: Low correlation",
-					getStation(), getDay());
-			
-					}
-
-
+					metricResult.addResult(channelX, result, digest);
 				}
 			}
 			if (compute10) {
@@ -360,14 +333,7 @@ public class EventCompareSynthetic extends Metric {
 					Channel channelX = channels[i];
 					double result = results[i] / (double) nEvents;
 					ByteBuffer digest = digestArray[i];
-					if (returnResults[i]){
-						metricResult.addResult(channelX, result, digest);
-					} else{
-						logger.info(
-					"station=[{}] day=[{}]: Low correlation",
-					getStation(), getDay());
-			
-					}
+					metricResult.addResult(channelX, result, digest);
 				}
 			}
 		} catch (ChannelMetaException e) {
@@ -479,58 +445,6 @@ public class EventCompareSynthetic extends Metric {
 		double result = numerator / denomenator;
 
 		return result;
-	}
-
-
-	private double getCorr(double[] data1, double[] data2, int n1, int n2){
-		//This function computs the Pearson's correlation value for the two time series
-		if (n2 < n1) {
-			logger.error(
-					"station=[{}] day=[{}]: calcDiff: n2 < n1 --> Bad window",
-					getStation(), getDay());
-			return NO_RESULT;
-		}
-		if (n2 >= data1.length || n2 >= data2.length) {
-			logger.error(
-					"station=[{}] day=[{}]: calcDiff: n2=[{}] > data1.length=[{}] and/or data2.length=[{}] --> Bad window",
-					getStation(), getDay(), n2, data1.length, data2.length);
-			return NO_RESULT;
-		}
-
-
-		//Calculate the mean of both data streams
-		double data1mean = 0.;
-		double data2mean = 0.;		
-
-		for (int i = n1; i < n2; i++) {
-			data1mean += data1[i];
-			data2mean += data2[i];
-
-		}  
-		data1mean = data1mean / (double) data1.length;
-		data2mean = data2mean / (double) data2.length;
-
-		//Calculate the standard deviation of both data streams
-		double std1 = 0.;
-		double std2 = 0.;
-
-		for (int i = n1; i < n2; i++){
-			std1 += (data1[i] - data1mean) * (data1[i] - data1mean);
-			std2 += (data2[i] - data2mean) * (data2[i] - data2mean);
-
-		}
-		std1 = std1 / (double) data1.length;
-		std2 = std2 / (double) data2.length;
-
-		//Calculate the r correlation
-		double r = 0.;
-		for (int i = n1; i < n2; i++) {
-			r += (data1[i] - data1mean) * (data2[i] - data2mean) / (std1*std2);
-
-		}
-		r = r / (double) (data1.length - 1);
-		
-		return r;
 	}
 
 	/**
