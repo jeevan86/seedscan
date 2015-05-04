@@ -38,7 +38,7 @@ public abstract class ResponseStage implements Comparable<ResponseStage>,
 	/** The input units. */
 	protected int inputUnits;
 	
-	/** The output units. */
+	/** The output units. Never used in code Consider removal. */
 	protected int outputUnits;
 	
 	/** The input units string. */
@@ -120,12 +120,12 @@ public abstract class ResponseStage implements Comparable<ResponseStage>,
 	}
 
 	/**
-	 * Sets the output units.
+	 * Sets the output unit string.
 	 *
-	 * @param outputUnitsString the new output units
+	 * @param outputUnitsString the new output units, this is normalized to lower case
 	 */
 	public void setOutputUnits(String outputUnitsString) {
-		this.outputUnitsString = outputUnitsString;
+		this.outputUnitsString = outputUnitsString.toLowerCase();
 	}
 
 	/**
