@@ -66,37 +66,34 @@ public abstract class ResponseStage implements Comparable<ResponseStage>,
 	 * 0-360 (theta) 10 = Volts (V)
 	 */
 	public void setInputUnits(String inputUnitsString) {
-		this.inputUnitsString = inputUnitsString;
+		this.inputUnitsString = inputUnitsString.toLowerCase();
 
-		if (inputUnitsString.contains("Displacement")
-				|| inputUnitsString.contains("displacement")) {
+		if (inputUnitsString.contains("displacement")) {
 			inputUnits = 1;
-		} else if (inputUnitsString.contains("Velocity")
-				|| inputUnitsString.contains("velocity")) {
+		} else if (inputUnitsString.contains("velocity")) {
 			inputUnits = 2;
-		} else if (inputUnitsString.contains("Acceleration")
-				|| inputUnitsString.contains("M/S**2")) {
+		} else if (inputUnitsString.contains("acceleration")
+				|| inputUnitsString.contains("m/s**2".toLowerCase())) {
 			inputUnits = 3;
-		} else if (inputUnitsString.contains("Pressure")) {
-			if (inputUnitsString.contains("KPA")) {
+		} else if (inputUnitsString.contains("pressure")) {
+			if (inputUnitsString.contains("kpa")) {
 				inputUnits = 5;
 			} else {
 				inputUnits = 4;
 			}
-		} else if (inputUnitsString.contains("Magnetic")) {
-			if (inputUnitsString.contains("nanoTeslas")) {
+		} else if (inputUnitsString.contains("magnetic")) {
+			if (inputUnitsString.contains("nanoteslas")) {
 				inputUnits = 7;
 			} else {
 				inputUnits = 6;
 			}
-		} else if (inputUnitsString.contains("Degrees")) {
-			if (inputUnitsString.contains("Centigrade")) {
+		} else if (inputUnitsString.contains("degrees")) {
+			if (inputUnitsString.contains("centigrade")) {
 				inputUnits = 8;
 			} else {
 				inputUnits = 9;
 			}
-		} else if (inputUnitsString.contains("Volts")
-				|| inputUnitsString.contains("VOLTS")) {
+		} else if (inputUnitsString.contains("volts")) {
 			inputUnits = 10;
 		} else { // We didn't find anything
 			inputUnits = 0;
