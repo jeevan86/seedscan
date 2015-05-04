@@ -2,7 +2,6 @@ package asl.metadata.meta_new;
 
 import java.io.Serializable;
 
-// TODO: Auto-generated Javadoc
 /**
  * Every response stage type will contain generic info from SEED Blockette B058
  * (e.g., Stage Gain, Frequency of Gain) here.
@@ -38,7 +37,9 @@ public abstract class ResponseStage implements Comparable<ResponseStage>,
 	/** The input units. */
 	protected int inputUnits;
 	
-	/** The output units. Never used in code Consider removal. */
+	/** The output units.
+	 * TODO: Never used in code Consider removal. 
+	 */
 	protected int outputUnits;
 	
 	/** The input units string. */
@@ -86,32 +87,32 @@ public abstract class ResponseStage implements Comparable<ResponseStage>,
 	public void setInputUnits(String inputUnitsString) {
 		this.inputUnitsString = inputUnitsString.toLowerCase();
 
-		if (inputUnitsString.contains("displacement")) {
+		if (this.inputUnitsString.contains("displacement")) {
 			inputUnits = 1;
-		} else if (inputUnitsString.contains("velocity")) {
+		} else if (this.inputUnitsString.contains("velocity")) {
 			inputUnits = 2;
-		} else if (inputUnitsString.contains("acceleration")
-				|| inputUnitsString.contains("m/s**2".toLowerCase())) {
+		} else if (this.inputUnitsString.contains("acceleration")
+				|| this.inputUnitsString.contains("m/s**2".toLowerCase())) {
 			inputUnits = 3;
-		} else if (inputUnitsString.contains("pressure")) {
-			if (inputUnitsString.contains("kpa")) {
+		} else if (this.inputUnitsString.contains("pressure")) {
+			if (this.inputUnitsString.contains("kpa")) {
 				inputUnits = 5;
 			} else {
 				inputUnits = 4;
 			}
-		} else if (inputUnitsString.contains("magnetic")) {
-			if (inputUnitsString.contains("nanoteslas")) {
+		} else if (this.inputUnitsString.contains("magnetic")) {
+			if (this.inputUnitsString.contains("nanoteslas")) {
 				inputUnits = 7;
 			} else {
 				inputUnits = 6;
 			}
-		} else if (inputUnitsString.contains("degrees")) {
-			if (inputUnitsString.contains("centigrade")) {
+		} else if (this.inputUnitsString.contains("degrees")) {
+			if (this.inputUnitsString.contains("centigrade")) {
 				inputUnits = 8;
 			} else {
 				inputUnits = 9;
 			}
-		} else if (inputUnitsString.contains("volts")) {
+		} else if (this.inputUnitsString.contains("volts")) {
 			inputUnits = 10;
 		} else { // We didn't find anything
 			inputUnits = 0;
