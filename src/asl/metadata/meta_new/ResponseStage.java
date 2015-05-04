@@ -1,26 +1,8 @@
-/*
- * Copyright 2012, United States Geological Survey or
- * third-party contributors as indicated by the @author tags.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
- *
- */
-
 package asl.metadata.meta_new;
 
 import java.io.Serializable;
 
+// TODO: Auto-generated Javadoc
 /**
  * Every response stage type will contain generic info from SEED Blockette B058
  * (e.g., Stage Gain, Frequency of Gain) here.
@@ -38,19 +20,49 @@ import java.io.Serializable;
 public abstract class ResponseStage implements Comparable<ResponseStage>,
 		Serializable {
 
+	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
+	
+	/** The stage number. */
 	protected int stageNumber;
+	
+	/** The stage type. */
 	protected char stageType;
+	
+	/** The stage gain. */
 	protected double stageGain;
+	
+	/** The stage gain frequency. */
 	protected double stageGainFrequency;
+	
+	/** The input units. */
 	protected int inputUnits;
+	
+	/** The output units. */
 	protected int outputUnits;
+	
+	/** The input units string. */
 	protected String inputUnitsString;
+	
+	/** The output units string. */
 	protected String outputUnitsString;
 
+	/**
+	 * Copy the response stage.
+	 *
+	 * @return the response stage
+	 */
 	abstract public ResponseStage copy();
 
 	// constructor(s)
+	/**
+	 * Instantiates a new response stage.
+	 *
+	 * @param number the number
+	 * @param type the type
+	 * @param gain the gain
+	 * @param frequency the frequency
+	 */
 	public ResponseStage(int number, char type, double gain, double frequency) {
 		stageNumber = number;
 		stageType = type;
@@ -63,7 +75,13 @@ public abstract class ResponseStage implements Comparable<ResponseStage>,
 	 * Velocity (m/s) 3 = Acceleration (m/s^2) 4 = Pressure (Pa) 5 = Pressure
 	 * (KPa) 6 = Magnetic Flux Density (Teslas - T) 7 = Magnetic Flux Density
 	 * (nanoTeslas - NT) 8 = Degrees Centigrade (C) 9 = Degrees Orientation
-	 * 0-360 (theta) 10 = Volts (V)
+	 * 0-360 (theta) 10 = Volts (V).
+	 * 
+	 * The input string is normalized to lower case before comparison.
+	 * 
+	 * TODO: Passing magic numbers is not good, These should be replaced with an enum.
+	 *
+	 * @param inputUnitsString the string containing the input units
 	 */
 	public void setInputUnits(String inputUnitsString) {
 		this.inputUnitsString = inputUnitsString.toLowerCase();
@@ -101,42 +119,91 @@ public abstract class ResponseStage implements Comparable<ResponseStage>,
 
 	}
 
+	/**
+	 * Sets the output units.
+	 *
+	 * @param outputUnitsString the new output units
+	 */
 	public void setOutputUnits(String outputUnitsString) {
 		this.outputUnitsString = outputUnitsString;
 	}
 
+	/**
+	 * Gets the input units.
+	 * 
+	 * @see asl.metadata.meta_new.ResponseStage.setInputUnits(String)
+	 *
+	 * @return the input units
+	 */
 	public int getInputUnits() {
 		return inputUnits;
 	}
 
+	/**
+	 * Gets the input units string.
+	 *
+	 * @return the input units string
+	 */
 	public String getInputUnitsString() {
 		return inputUnitsString;
 	}
 
+	/**
+	 * Gets the output units string.
+	 *
+	 * @return the output units string
+	 */
 	public String getOutputUnitsString() {
 		return outputUnitsString;
 	}
 
+	/**
+	 * Gets the stage gain frequency.
+	 *
+	 * @return the stage gain frequency
+	 */
 	public double getStageGainFrequency() {
 		return stageGainFrequency;
 	}
 
+	/**
+	 * Gets the stage number.
+	 *
+	 * @return the stage number
+	 */
 	public int getStageNumber() {
 		return stageNumber;
 	}
 
+	/**
+	 * Gets the stage type.
+	 *
+	 * @return the stage type
+	 */
 	public char getStageType() {
 		return stageType;
 	}
 
+	/**
+	 * Gets the stage gain.
+	 *
+	 * @return the stage gain
+	 */
 	public double getStageGain() {
 		return stageGain;
 	}
 
+	/**
+	 * Prints the response stage as set in the overridden toString().
+	 * @see asl.metadata.meta_new.ResponseStage.toString()
+	 */
 	public void print() {
 		System.out.println(this);
 	}
 
+	/**
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
 		StringBuilder result = new StringBuilder();
@@ -149,6 +216,9 @@ public abstract class ResponseStage implements Comparable<ResponseStage>,
 		return result.toString();
 	}
 
+	/**
+	 * @see java.lang.Comparable#compareTo(java.lang.Object)
+	 */
 	@Override
 	public int compareTo(ResponseStage stage) {
 		if (this.getStageNumber() > stage.getStageNumber()) {
