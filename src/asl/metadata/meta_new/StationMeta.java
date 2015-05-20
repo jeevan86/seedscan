@@ -251,8 +251,6 @@ public class StationMeta implements java.io.Serializable {
 			// the derived channels (e.g., LHND, LHED)
 			if (channel.getChannel().contains(band)
 					&& channel.getChannel().length() == 3) {
-				// System.out.format("== Channel [%s] contains band [%s]\n",
-				// channel, band);
 				channelArrayList.add(channel);
 			}
 		}
@@ -293,8 +291,7 @@ public class StationMeta implements java.io.Serializable {
 			return null;
 
 		} else {
-			System.out.format(
-					"== getChannel: Channel=[%d-%d%d] date=[%s] NOT FOUND\n",
+			logger.warn("== getChannel: Channel=[{}-{}{}] date=[{}] NOT FOUND\n",
 					location, band, comp, this.getDate());
 			return null;
 		}
@@ -322,8 +319,6 @@ public class StationMeta implements java.io.Serializable {
 
 			if (channel.getChannel().contains(band)
 					&& channel.getLocation().equals(location)) {
-				// System.out.format("== Channel [%s] contains band [%s]\n",
-				// channel, band);
 				channelArrayList.add(channel);
 			}
 		}
@@ -465,8 +460,6 @@ public class StationMeta implements java.io.Serializable {
 			}
 			azimuth = 90.; // EAST
 		} else {
-			// System.out.format("== addRotatedChannel: Error -- Don't know how to make channel=[%s]\n",
-			// derivedChannelName);
 			logger.error(String
 					.format("== addRotatedChannel: -- Don't know how to make channel=[%s] date=[%s]\n",
 							derivedChannelName, this.getDate()));
@@ -474,8 +467,6 @@ public class StationMeta implements java.io.Serializable {
 		}
 
 		if (!found) {
-			// System.out.format("== addRotatedChannel: Error -- StationMeta doesn't contain horizontal channels "
-			// + "needed to make channel=[%s]\n", derivedChannelName);
 			logger.error(String.format(
 					"== addRotatedChannel: -- StationMeta doesn't contain horizontal channels "
 							+ "needed to make channel=[%s] date=[%s]\n",
@@ -486,9 +477,11 @@ public class StationMeta implements java.io.Serializable {
 		Channel origChannel = new Channel(location, origChannelName);
 		Channel derivedChannel = new Channel(location, derivedChannelName);
 
-		try { // ChannelMeta.copy(channel)
-			// Deep copy the orig chanMeta to the derived chanMeta and set the
-			// derived chanMeta azimuth
+		try {
+			/*
+			 * ChannelMeta.copy(channel) Deep copy the orig chanMeta to the
+			 * derived chanMeta and set the derived chanMeta azimuth
+			 */
 			ChannelMeta derivedChannelMeta = (getChanMeta(origChannel))
 					.copy(derivedChannel);
 			derivedChannelMeta.setAzimuth(azimuth);
@@ -511,40 +504,11 @@ public class StationMeta implements java.io.Serializable {
 	public void printStationInfo() {
 
 		blockette50.print();
-
-		/**
-		 * StringBuilder result = new StringBuilder(); String NEW_LINE =
-		 * System.getProperty("line.separator");
-		 * result.append(String.format("%s\n"
-		 * ,"============================================================") );
-		 * result
-		 * .append(String.format("%10s%s\t%15s%.2f\t%15s[%s]\n","Station:",
-		 * name,"Latitude:",latitude,"Meta Timestamp:",
-		 * EpochData.epochToDateString(getMetaTimestamp()) ) );
-		 * result.append(String
-		 * .format("%10s%s\t%15s%.2f\t%15s%.2f\n","Network:",
-		 * network,"Longitude:",longitude, "Elevation:",elevation) );
-		 * result.append(String.format("%10s%s\t\n", "Comment:", comment) );
-		 * result.append(String.format("%s\n",
-		 * "============================================================") );
-		 * result.append(NEW_LINE); System.out.print(result.toString());
-		 **/
-		// return result.toString();
 	}
 
 	@Override
 	public String toString() {
 		return network + "_" + name;
-		/**
-		 * StringBuilder result = new StringBuilder(); String NEW_LINE =
-		 * System.getProperty("line.separator");
-		 * result.append(String.format("%10s%s\t%15s%.2f\n"
-		 * ,"Station:",name,"Latitude:",latitude) );
-		 * result.append(String.format(
-		 * "%10s%s\t%15s%.2f\t%15s%.2f\n","Network:",
-		 * network,"Longitude:",longitude, "Elevation:",elevation) );
-		 * result.append(NEW_LINE); return result.toString();
-		 **/
 	}
 
 }
