@@ -141,6 +141,10 @@ public class StationMeta implements java.io.Serializable {
 	public double getLongitude() {
 		return longitude;
 	}
+	
+	public double getElevation() {
+		return elevation;
+	}
 
 	public int getNumberOfChannels() {
 		return channels.size();
