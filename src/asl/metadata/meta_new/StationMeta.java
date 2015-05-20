@@ -35,35 +35,56 @@ import asl.metadata.ChannelKey;
 import asl.metadata.EpochData;
 import asl.metadata.WrongBlocketteException;
 
+// TODO: Auto-generated Javadoc
 /**
  * Our internal representation of a station's metadata Holds all channel
- * metadata for a single station for a specified day
- * 
+ * metadata for a single station for a specified day.
+ *
  * @author Mike Hagerty <hagertmb@bc.edu>
- * 
- * @param timestamp
- *            the date (exact day) for which we want the station's metadata
  */
 public class StationMeta implements java.io.Serializable {
+	
+	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
 
+	/** The Constant logger. */
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.metadata.meta_new.StationMeta.class);
 
+	/** The network. */
 	private String network = null;
+	
+	/** The name. */
 	private String name = null;
-	private String comment = null;
+	
+	/** The latitude. */
 	private double latitude;
+	
+	/** The longitude. */
 	private double longitude;
+	
+	/** The elevation. */
 	private double elevation;
+	
+	/** The channels. */
 	private Hashtable<ChannelKey, ChannelMeta> channels;
+	
+	/** The meta timestamp. */
 	private Calendar metaTimestamp = null;
+	
+	/** The meta date. */
 	private String metaDate = null;
 
+	/** The blockette50. */
 	private Blockette blockette50 = null;
 
-	// constructor(s)
-
+	/**
+	 * Instantiates a new station meta.
+	 *
+	 * @param blockette the blockette
+	 * @param timestamp the timestamp
+	 * @throws WrongBlocketteException if the passed blockette 
+	 */
 	public StationMeta(Blockette blockette, Calendar timestamp)
 			throws WrongBlocketteException {
 		if (blockette.getNumber() != 50) { // We're expecting a station
@@ -81,79 +102,84 @@ public class StationMeta implements java.io.Serializable {
 		this.blockette50 = blockette;
 	}
 
-	public void setLatitude(double latitude) throws StationMetaException {
-		if (!(latitude <= 90. && latitude >= -90)) {
-			throw new StationMetaException(
-					String.format(
-							"Error (date:%s): station latitude must be: -90 <= val <= 90",
-							this.metaDate));
-		}
-		this.latitude = latitude;
-	}
-
-	public void setLongitude(double longitude) throws StationMetaException {
-		if (!(longitude <= 180. && longitude >= -180)) {
-			throw new StationMetaException(
-					String.format(
-							"Error (date:%s): station longitude must be: -180 <= val <= 180",
-							this.metaDate));
-		}
-		this.longitude = longitude;
-	}
-
-	public void setLatLon(double latitude, double longitude) {
-		try {
-			this.setLatitude(latitude);
-			this.setLongitude(longitude);
-		} catch (StationMetaException e) {
-			logger.error("Exception:", e);
-		}
-	}
-
-	public void setElevation(double elevation) {
-		this.elevation = elevation;
-	}
-
-	public void setComment(String comment) {
-		this.comment = comment;
-	}
-
+	/**
+	 * Adds the channel.
+	 *
+	 * @param chanKey the chan key
+	 * @param channel the channel
+	 */
 	public void addChannel(ChannelKey chanKey, ChannelMeta channel) {
 		channels.put(chanKey, channel);
 	}
 
+	/**
+	 * Gets the station.
+	 *
+	 * @return the station
+	 */
 	public String getStation() {
 		return name;
 	}
 
+	/**
+	 * Gets the network.
+	 *
+	 * @return the network
+	 */
 	public String getNetwork() {
 		return network;
 	}
 
-	public String getComment() {
-		return comment;
-	}
-
+	/**
+	 * Gets the latitude.
+	 *
+	 * @return the latitude
+	 */
 	public double getLatitude() {
 		return latitude;
 	}
 
+	/**
+	 * Gets the longitude.
+	 *
+	 * @return the longitude
+	 */
 	public double getLongitude() {
 		return longitude;
 	}
 	
+	/**
+	 * Gets the elevation.
+	 *
+	 * @return the elevation
+	 */
 	public double getElevation() {
 		return elevation;
 	}
 
+	/**
+	 * Gets the number of channels.
+	 *
+	 * @return the number of channels
+	 */
 	public int getNumberOfChannels() {
 		return channels.size();
 	}
 
+	/**
+	 * Gets the timestamp.
+	 *
+	 * @return the timestamp
+	 */
 	public Calendar getTimestamp() {
 		return (Calendar) metaTimestamp.clone();
 	}
 
+	/**
+	 * Gets the date.
+	 *
+	 * @return the date
+	 */
 	public String getDate() {
 		return metaDate;
 	}
@@ -161,6 +187,9 @@ public class StationMeta implements java.io.Serializable {
 	/**
 	 * Look for particular channelMeta (e.g., "00" "VHZ") in channels Hashtable.
 	 * Return it if found, else return null
+	 *
+	 * @param chanKey the chan key
+	 * @return the chan meta
 	 */
 	public ChannelMeta getChanMeta(ChannelKey chanKey) {
 		if (channels.containsKey(chanKey)) {
@@ -170,17 +199,32 @@ public class StationMeta implements java.io.Serializable {
 		}
 	}
 
+	/**
+	 * Gets the chan meta.
+	 *
+	 * @param channel the channel
+	 * @return the chan meta
+	 */
 	public ChannelMeta getChanMeta(Channel channel) {
 		return getChanMeta(new ChannelKey(channel.getLocation(),
 				channel.getChannel()));
 	}
 
+	/**
+	 * Gets the chan meta.
+	 *
+	 * @param location the location
+	 * @param name the name
+	 * @return the chan meta
+	 */
 	public ChannelMeta getChanMeta(String location, String name) {
 		return getChanMeta(new ChannelKey(location, name));
 	}
 
 	/**
-	 * Return the entire channels Hashtable
+	 * Return the entire channels Hashtable.
+	 *
+	 * @return the channel hash table
 	 */
 	public Hashtable<ChannelKey, ChannelMeta> getChannelHashTable() {
 		return channels;
@@ -194,6 +238,9 @@ public class StationMeta implements java.io.Serializable {
 	 * "00-LH1" -or- "00-LHN" channels[2] = "00-LH2" -or- "00-LHE" channels[3] =
 	 * "10-LHZ" channels[4] = "10-LH1" -or- "10-LHN" channels[5] = "10-LH2" -or-
 	 * "10-LHE"
+	 *
+	 * @param band the band
+	 * @return the ZNE channel array
 	 */
 	public List<Channel> getZNEChannelArray(String band) {
 		if (!Channel.validBandCode(band.substring(0, 1))
@@ -235,6 +282,9 @@ public class StationMeta implements java.io.Serializable {
 	 * the 2-char band e.g., if band = "LH" then return "00-LHZ", "00-LH1",
 	 * "00-LH2", "00-LHN", "00-LHE", "10-LHZ", "10-LH1", "10-LH2", .. -or-
 	 * "---LHZ", "---LH1", "---LH2", "---LHN", "---LHE",
+	 *
+	 * @param band the band
+	 * @return the channel array
 	 */
 	public List<Channel> getChannelArray(String band) {
 		if (!Channel.validBandCode(band.substring(0, 1))
@@ -265,6 +315,11 @@ public class StationMeta implements java.io.Serializable {
 	 * Handle horizontal naming conventions (e.g., LH1,2 versus LHN,E)
 	 * 
 	 * "00" "LH" "1"
+	 *
+	 * @param location the location
+	 * @param band the band
+	 * @param comp the comp
+	 * @return the channel
 	 */
 	public Channel getChannel(String location, String band, String comp) {
 
@@ -306,6 +361,13 @@ public class StationMeta implements java.io.Serializable {
 	 * Same as above but limit return channels to those containing the specified
 	 * location as well as the specified band
 	 */
+	/**
+	 * Gets the channel array.
+	 *
+	 * @param location the location
+	 * @param band the band
+	 * @return the channel array
+	 */
 	public List<Channel> getChannelArray(String location, String band) {
 		if (!Channel.validLocationCode(location)) {
 			return null;
@@ -332,8 +394,10 @@ public class StationMeta implements java.io.Serializable {
 
 	/**
 	 * Return a (sorted) ArrayList of channels that are continuous
-	 * (channelFlag="C?")
-	 **/
+	 * (channelFlag="C?").
+	 *
+	 * @return the continuous channels
+	 */
 	public List<Channel> getContinuousChannels() {
 		TreeSet<ChannelKey> keys = new TreeSet<ChannelKey>();
 		keys.addAll(channels.keySet());
@@ -353,19 +417,44 @@ public class StationMeta implements java.io.Serializable {
 
 	// boolean hasChannel methods:
 
+	/**
+	 * Checks for channel.
+	 *
+	 * @param channelKey the channel key
+	 * @return true, if successful
+	 */
 	public boolean hasChannel(ChannelKey channelKey) {
 		return channels.containsKey(channelKey);
 	}
 
+	/**
+	 * Checks for channel.
+	 *
+	 * @param channel the channel
+	 * @return true, if successful
+	 */
 	public boolean hasChannel(Channel channel) {
 		return hasChannel(new ChannelKey(channel.getLocation(),
 				channel.getChannel()));
 	}
 
+	/**
+	 * Checks for channel.
+	 *
+	 * @param location the location
+	 * @param name the name
+	 * @return true, if successful
+	 */
 	public boolean hasChannel(String location, String name) {
 		return hasChannel(new ChannelKey(location, name));
 	}
 
+	/**
+	 * Checks for channels.
+	 *
+	 * @param channelArray the channel array
+	 * @return true, if successful
+	 */
 	public boolean hasChannels(ChannelArray channelArray) {
 		for (Channel channel : channelArray.getChannels()) {
 			if (!hasChannel(channel)) {
@@ -375,6 +464,15 @@ public class StationMeta implements java.io.Serializable {
 		return true; // If we made it to here then it must've found all channels
 	}
 
+	/**
+	 * Checks for channels.
+	 *
+	 * @param location the location
+	 * @param chan1 the chan1
+	 * @param chan2 the chan2
+	 * @param chan3 the chan3
+	 * @return true, if successful
+	 */
 	public boolean hasChannels(String location, String chan1, String chan2,
 			String chan3) {
 		if (hasChannel(location, chan1) && hasChannel(location, chan2)
@@ -385,6 +483,13 @@ public class StationMeta implements java.io.Serializable {
 		}
 	}
 
+	/**
+	 * Checks for channels.
+	 *
+	 * @param location the location
+	 * @param band the band
+	 * @return true, if successful
+	 */
 	public boolean hasChannels(String location, String band) {
 		if (!Channel.validLocationCode(location)) {
 			// return null;
@@ -414,6 +519,9 @@ public class StationMeta implements java.io.Serializable {
 	/**
 	 * Not sure yet if we need this to drive addRotatedChannel below e.g., if we
 	 * need to rotate 2 channels at one time
+	 *
+	 * @param location the location
+	 * @param channelPrefix the channel prefix
 	 */
 	public void addRotatedChannelMeta(String location, String channelPrefix) {
 		String northChannelName = channelPrefix + "ND";
@@ -426,6 +534,9 @@ public class StationMeta implements java.io.Serializable {
 	 * If handed a derivedChannelName like "LHND" (or "LHED"), try to create it
 	 * from LH1 (or LH2) channel metadata. If these aren't found, look for LHN
 	 * (or LHE) instead.
+	 *
+	 * @param location the location
+	 * @param derivedChannelName the derived channel name
 	 */
 	public void addRotatedChannel(String location, String derivedChannelName) {
 
@@ -495,6 +606,9 @@ public class StationMeta implements java.io.Serializable {
 		}
 	}
 
+	/**
+	 * Prints the.
+	 */
 	public void print() {
 		System.out.print(this);
 		ArrayList<ChannelKey> chanKeys = new ArrayList<ChannelKey>();
@@ -505,11 +619,17 @@ public class StationMeta implements java.io.Serializable {
 		}
 	}
 
+	/**
+	 * Prints the station info.
+	 */
 	public void printStationInfo() {
 
 		blockette50.print();
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
 		return network + "_" + name;
