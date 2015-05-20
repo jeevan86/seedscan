@@ -336,8 +336,8 @@ public class MetricData {
 			}
 			int ndata = x.length;
 
-			double srate1 = metadata.getChanMeta(channel1).getSampleRate();
-			double srate2 = metadata.getChanMeta(channel2).getSampleRate();
+			double srate1 = metadata.getChannelMetadata(channel1).getSampleRate();
+			double srate2 = metadata.getChannelMetadata(channel2).getSampleRate();
 
 			if (srate1 != srate2) {
 				StringBuilder message = new StringBuilder();
@@ -349,8 +349,8 @@ public class MetricData {
 			double[] n = new double[ndata];
 			double[] e = new double[ndata];
 
-			double az1 = (metadata.getChanMeta(channel1)).getAzimuth();
-			double az2 = (metadata.getChanMeta(channel2)).getAzimuth();
+			double az1 = (metadata.getChannelMetadata(channel1)).getAzimuth();
+			double az2 = (metadata.getChannelMetadata(channel2)).getAzimuth();
 
 			Timeseries.rotate_xy_to_ne(az1, az2, x, y, n, e);
 
@@ -421,7 +421,7 @@ public class MetricData {
 			return null;
 		}
 
-		ChannelMeta chanMeta = metadata.getChanMeta(channel);
+		ChannelMeta chanMeta = metadata.getChannelMetadata(channel);
 		double srate = chanMeta.getSampleRate();
 		int ndata = timeseries.length;
 
@@ -819,8 +819,8 @@ public class MetricData {
 		double[] chanNData = new double[ndata];
 		double[] chanEData = new double[ndata];
 
-		double az1 = (metadata.getChanMeta(channel1)).getAzimuth();
-		double az2 = (metadata.getChanMeta(channel2)).getAzimuth();
+		double az1 = (metadata.getChannelMetadata(channel1)).getAzimuth();
+		double az2 = (metadata.getChannelMetadata(channel2)).getAzimuth();
 
 		Timeseries.rotate_xy_to_ne(az1, az2, chan1Data, chan2Data, chanNData,
 				chanEData);
@@ -1198,7 +1198,7 @@ public class MetricData {
 
 		ArrayList<Channel> channels = channelArray.getChannels();
 		for (Channel channel : channels) {
-			ChannelMeta chanMeta = getMetaData().getChanMeta(channel);
+			ChannelMeta chanMeta = getMetaData().getChannelMetadata(channel);
 			if (chanMeta == null) {
 				logger.warn(String
 						.format("getHash: metadata not found for requested channel:%s date:%s\n",

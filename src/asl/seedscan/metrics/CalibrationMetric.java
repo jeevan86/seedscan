@@ -88,7 +88,7 @@ public class CalibrationMetric extends Metric {
 			}
 
 			if (!(channel.getChannel().equals("BHZ"))
-					&& stationMeta.getChanMeta(channel).getInstrumentType()
+					&& stationMeta.getChannelMetadata(channel).getInstrumentType()
 							.contains("STS-2")) {
 				// Skip STS-2/STS-2.5 Horizontal Channels
 				logger.info(
@@ -295,7 +295,7 @@ public class CalibrationMetric extends Metric {
 		double[] freq = psdX.getFreq();
 		int nf = freq.length;
 
-		ChannelMeta chanMeta = stationMeta.getChanMeta(channel);
+		ChannelMeta chanMeta = stationMeta.getChannelMetadata(channel);
 		ResponseStage stage = chanMeta.getStage(1);
 		double s = 0;
 		if (stage.getStageType() == 'A') {

@@ -51,10 +51,10 @@ public class StationMeta implements java.io.Serializable {
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.metadata.meta_new.StationMeta.class);
 
-	/** The network. */
+	/** The network code. */
 	private String network = null;
 	
-	/** The name. */
+	/** The name code. */
 	private String name = null;
 	
 	/** The latitude. */
@@ -103,9 +103,9 @@ public class StationMeta implements java.io.Serializable {
 	}
 
 	/**
-	 * Adds the channel.
+	 * Adds the channel to channels HashTable.
 	 *
-	 * @param chanKey the chan key
+	 * @param chanKey the channel key
 	 * @param channel the channel
 	 */
 	public void addChannel(ChannelKey chanKey, ChannelMeta channel) {
@@ -113,7 +113,7 @@ public class StationMeta implements java.io.Serializable {
 	}
 
 	/**
-	 * Gets the station.
+	 * Gets the station code.
 	 *
 	 * @return the station
 	 */
@@ -188,10 +188,10 @@ public class StationMeta implements java.io.Serializable {
 	 * Look for particular channelMeta (e.g., "00" "VHZ") in channels Hashtable.
 	 * Return it if found, else return null
 	 *
-	 * @param chanKey the chan key
-	 * @return the chan meta
+	 * @param chanKey the channel key
+	 * @return the channel metadata
 	 */
-	public ChannelMeta getChanMeta(ChannelKey chanKey) {
+	public ChannelMeta getChannelMetadata(ChannelKey chanKey) {
 		if (channels.containsKey(chanKey)) {
 			return channels.get(chanKey);
 		} else {
@@ -200,25 +200,13 @@ public class StationMeta implements java.io.Serializable {
 	}
 
 	/**
-	 * Gets the chan meta.
-	 *
+	 * Gets the channel metadata
 	 * @param channel the channel
-	 * @return the chan meta
+	 * @return the channel metadata
 	 */
-	public ChannelMeta getChanMeta(Channel channel) {
-		return getChanMeta(new ChannelKey(channel.getLocation(),
+	public ChannelMeta getChannelMetadata(Channel channel) {
+		return getChannelMetadata(new ChannelKey(channel.getLocation(),
 				channel.getChannel()));
-	}
-
-	/**
-	 * Gets the chan meta.
-	 *
-	 * @param location the location
-	 * @param name the name
-	 * @return the chan meta
-	 */
-	public ChannelMeta getChanMeta(String location, String name) {
-		return getChanMeta(new ChannelKey(location, name));
 	}
 
 	/**
@@ -406,7 +394,7 @@ public class StationMeta implements java.io.Serializable {
 
 		for (ChannelKey channelKey : keys) {
 			Channel channel = channelKey.toChannel();
-			String channelFlags = getChanMeta(channelKey).getChannelFlags();
+			String channelFlags = getChannelMetadata(channelKey).getChannelFlags();
 
 			if (channelFlags.substring(0, 1).equals("C")) {
 				channelArrayList.add(channel);
@@ -597,7 +585,7 @@ public class StationMeta implements java.io.Serializable {
 			 * ChannelMeta.copy(channel) Deep copy the orig chanMeta to the
 			 * derived chanMeta and set the derived chanMeta azimuth
 			 */
-			ChannelMeta derivedChannelMeta = (getChanMeta(origChannel))
+			ChannelMeta derivedChannelMeta = (getChannelMetadata(origChannel))
 					.copy(derivedChannel);
 			derivedChannelMeta.setAzimuth(azimuth);
 			this.addChannel(new ChannelKey(derivedChannel), derivedChannelMeta);

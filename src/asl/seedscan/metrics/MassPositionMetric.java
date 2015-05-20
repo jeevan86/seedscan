@@ -88,7 +88,7 @@ public class MassPositionMetric extends Metric {
 
 	private double computeMetric(Channel channel, String station, String day,
 			String metric) throws MetricException {
-		ChannelMeta chanMeta = stationMeta.getChanMeta(channel);
+		ChannelMeta chanMeta = stationMeta.getChannelMetadata(channel);
 		List<DataSet> datasets = metricData.getChannelData(channel);
 
 		double a0 = 0;

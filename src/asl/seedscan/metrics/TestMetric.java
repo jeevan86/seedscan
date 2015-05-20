@@ -94,7 +94,7 @@ public class TestMetric extends Metric {
 		 **/
 
 		// Plot PoleZero Amp & Phase Response of this channel:
-		ChannelMeta chanMeta = stationMeta.getChanMeta(channel);
+		ChannelMeta chanMeta = stationMeta.getChannelMetadata(channel);
 		chanMeta.plotPoleZeroResp();
 		PoleZeroStage pz = (PoleZeroStage) chanMeta.getStage(1);
 		pz.print();

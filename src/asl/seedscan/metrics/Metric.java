@@ -485,8 +485,8 @@ public abstract class Metric {
 				.getSampleRate();
 		double srateY = metricData.getChannelData(channelY).get(0)
 				.getSampleRate();
-		ChannelMeta chanMetaX = stationMeta.getChanMeta(channelX);
-		ChannelMeta chanMetaY = stationMeta.getChanMeta(channelY);
+		ChannelMeta chanMetaX = stationMeta.getChannelMetadata(channelX);
+		ChannelMeta chanMetaY = stationMeta.getChannelMetadata(channelY);
 
 		if (srateX != srateY) {
 			StringBuilder message = new StringBuilder();

@@ -85,7 +85,7 @@ public class AvailabilityMetric extends Metric {
 		double dataSR = 0.0;
 
 		// The expected (=from metadata) number of samples:
-		ChannelMeta chanMeta = stationMeta.getChanMeta(channel);
+		ChannelMeta chanMeta = stationMeta.getChannelMetadata(channel);
 		final int SECONDS_PER_DAY = 86400;
 		metaSR = chanMeta.getSampleRate();
 		int expectedPoints = (int) (metaSR * SECONDS_PER_DAY + 1);
