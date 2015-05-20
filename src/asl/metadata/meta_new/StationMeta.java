@@ -271,7 +271,7 @@ public class StationMeta implements java.io.Serializable {
 	 * "00-LH2", "00-LHN", "00-LHE", "10-LHZ", "10-LH1", "10-LH2", .. -or-
 	 * "---LHZ", "---LH1", "---LH2", "---LHN", "---LHE",
 	 *
-	 * @param band the band
+	 * @param band the frequency band
 	 * @return the channel array
 	 */
 	public List<Channel> getChannelArray(String band) {
@@ -298,15 +298,49 @@ public class StationMeta implements java.io.Serializable {
 		}
 		return channelArrayList;
 	}
+	
+	/**
+	 * Gets the channel array.
+	 * Same as above but limit return channels to those containing the specified
+	 * location as well as the specified band
+	 * @see asl.metadata.meta_new.StationMeta.getChannelArray(String)
+	 *
+	 * @param location the location code
+	 * @param band the frequency band
+	 * @return the channel array
+	 */
+	public List<Channel> getChannelArray(String location, String band) {
+		if (!Channel.validLocationCode(location)) {
+			return null;
+		}
+		if (!Channel.validBandCode(band.substring(0, 1))
+				|| !Channel.validInstrumentCode(band.substring(1, 2))) {
+			return null;
+		}
+		TreeSet<ChannelKey> keys = new TreeSet<ChannelKey>();
+		keys.addAll(channels.keySet());
 
+		ArrayList<Channel> channelArrayList = new ArrayList<Channel>();
+
+		for (ChannelKey channelKey : keys) {
+			Channel channel = channelKey.toChannel();
+
+			if (channel.getChannel().contains(band)
+					&& channel.getLocation().equals(location)) {
+				channelArrayList.add(channel);
+			}
+		}
+		return channelArrayList;
+	}
+	
 	/**
 	 * Handle horizontal naming conventions (e.g., LH1,2 versus LHN,E)
 	 * 
 	 * "00" "LH" "1"
 	 *
-	 * @param location the location
-	 * @param band the band
-	 * @param comp the comp
+	 * @param location the location code EG 00
+	 * @param band the frequency band EG LH
+	 * @param comp the component EG N or 1
 	 * @return the channel
 	 */
 	public Channel getChannel(String location, String band, String comp) {
@@ -345,41 +379,6 @@ public class StationMeta implements java.io.Serializable {
 		}
 	}
 
-	/*
-	 * Same as above but limit return channels to those containing the specified
-	 * location as well as the specified band
-	 */
-	/**
-	 * Gets the channel array.
-	 *
-	 * @param location the location
-	 * @param band the band
-	 * @return the channel array
-	 */
-	public List<Channel> getChannelArray(String location, String band) {
-		if (!Channel.validLocationCode(location)) {
-			return null;
-		}
-		if (!Channel.validBandCode(band.substring(0, 1))
-				|| !Channel.validInstrumentCode(band.substring(1, 2))) {
-			return null;
-		}
-		TreeSet<ChannelKey> keys = new TreeSet<ChannelKey>();
-		keys.addAll(channels.keySet());
-
-		ArrayList<Channel> channelArrayList = new ArrayList<Channel>();
-
-		for (ChannelKey channelKey : keys) {
-			Channel channel = channelKey.toChannel();
-
-			if (channel.getChannel().contains(band)
-					&& channel.getLocation().equals(location)) {
-				channelArrayList.add(channel);
-			}
-		}
-		return channelArrayList;
-	}
-
 	/**
 	 * Return a (sorted) ArrayList of channels that are continuous
 	 * (channelFlag="C?").
@@ -402,8 +401,6 @@ public class StationMeta implements java.io.Serializable {
 		}
 		return channelArrayList;
 	}
-
-	// boolean hasChannel methods:
 
 	/**
 	 * Checks for channel.
@@ -431,7 +428,7 @@ public class StationMeta implements java.io.Serializable {
 	 *
 	 * @param location the location
 	 * @param name the name
-	 * @return true, if successful
+	 * @return true, if the channel has metadata
 	 */
 	public boolean hasChannel(String location, String name) {
 		return hasChannel(new ChannelKey(location, name));
@@ -441,7 +438,7 @@ public class StationMeta implements java.io.Serializable {
 	 * Checks for channels.
 	 *
 	 * @param channelArray the channel array
-	 * @return true, if successful
+	 * @return true, if all channels have metadata.
 	 */
 	public boolean hasChannels(ChannelArray channelArray) {
 		for (Channel channel : channelArray.getChannels()) {
