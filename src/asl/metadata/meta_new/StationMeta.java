@@ -215,10 +215,10 @@ public class StationMeta implements java.io.Serializable {
 						chan[j + 3]))) {
 					channelArrayList.add(new Channel(location[i], chan[j + 3]));
 				} else {
-					logger.error(String
-							.format("Error: CAN'T find Channel=[%s-%s] OR Channel=[%s-%s] for date=[%s] in metadata",
-									location[i], chan[j], location[i],
-									chan[j + 3], this.getDate()));
+					logger.error(
+							"Error: CAN'T find Channel=[{}-{}] OR Channel=[{}-{}] for date=[{}] in metadata",
+							location[i], chan[j], location[i], chan[j + 3],
+							this.getDate());
 				}
 			}
 		}
@@ -291,7 +291,8 @@ public class StationMeta implements java.io.Serializable {
 			return null;
 
 		} else {
-			logger.warn("== getChannel: Channel=[{}-{}{}] date=[{}] NOT FOUND\n",
+			logger.warn(
+					"== getChannel: Channel=[{}-{}{}] date=[{}] NOT FOUND\n",
 					location, band, comp, this.getDate());
 			return null;
 		}
@@ -460,17 +461,16 @@ public class StationMeta implements java.io.Serializable {
 			}
 			azimuth = 90.; // EAST
 		} else {
-			logger.error(String
-					.format("== addRotatedChannel: -- Don't know how to make channel=[%s] date=[%s]\n",
-							derivedChannelName, this.getDate()));
+			logger.error(
+					"== addRotatedChannel: -- Don't know how to make channel=[{}] date=[{}]\n",
+					derivedChannelName, this.getDate());
 			return;
 		}
 
 		if (!found) {
-			logger.error(String.format(
-					"== addRotatedChannel: -- StationMeta doesn't contain horizontal channels "
-							+ "needed to make channel=[%s] date=[%s]\n",
-					derivedChannelName, this.getDate()));
+			logger.error(
+					"== addRotatedChannel: -- StationMeta doesn't contain horizontal channels needed to make channel=[{}] date=[{}]\n",
+					derivedChannelName, this.getDate());
 			return;
 		}
 
