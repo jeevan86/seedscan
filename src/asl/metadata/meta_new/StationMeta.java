@@ -606,14 +606,14 @@ public class StationMeta implements java.io.Serializable {
 	}
 
 	/**
-	 * Prints the station info.
+	 * Prints blockette 50 which is the station identifier blockette.
 	 */
 	public void printStationInfo() {
 
 		blockette50.print();
 	}
 
-	/* (non-Javadoc)
+	/** 
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
