@@ -395,7 +395,8 @@ public class StationMeta implements java.io.Serializable {
 			Channel channel = channelKey.toChannel();
 			String channelFlags = getChannelMetadata(channelKey).getChannelFlags();
 
-			if (channelFlags.substring(0, 1).equals("C")) {
+			if (channelFlags.substring(0, 1).equals("C")
+					|| channelFlags.equals("G") || channelFlags.equals("H")){
 				channelArrayList.add(channel);
 			}
 		}
@@ -592,7 +593,7 @@ public class StationMeta implements java.io.Serializable {
 	}
 
 	/**
-	 * Prints the.
+	 * Prints the Station metadata and channels to System.out.
 	 */
 	public void print() {
 		System.out.print(this);
