@@ -1,21 +1,3 @@
-/*
- * Copyright 2012, United States Geological Survey or
- * third-party contributors as indicated by the @author tags.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
- *
- */
 package asl.seedscan.metrics;
 
 import java.io.UnsupportedEncodingException;
@@ -31,20 +13,34 @@ import asl.metadata.meta_new.PolynomialStage;
 import asl.metadata.meta_new.ResponseStage;
 import asl.seedsplitter.DataSet;
 
+/**
+ * The Class MassPositionMetric.
+ */
 public class MassPositionMetric extends Metric {
+	
+	/** The Constant logger. */
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.seedscan.metrics.MassPositionMetric.class);
 
+	/* (non-Javadoc)
+	 * @see asl.seedscan.metrics.Metric#getVersion()
+	 */
 	@Override
 	public long getVersion() {
 		return 1;
 	}
 
+	/* (non-Javadoc)
+	 * @see asl.seedscan.metrics.Metric#getName()
+	 */
 	@Override
 	public String getName() {
 		return "MassPositionMetric";
 	}
 
+	/* (non-Javadoc)
+	 * @see asl.seedscan.metrics.Metric#process()
+	 */
 	public void process() {
 		logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
 
@@ -89,6 +85,17 @@ public class MassPositionMetric extends Metric {
 		}// end foreach channel
 	} // end process()
 
+	/**
+	 * Compute metric.
+	 *
+	 * @param channel the channel
+	 * @param station the station
+	 * @param day the day
+	 * @param metric the metric
+	 * @return the double
+	 * @throws MetricException the metric exception
+	 * @throws UnsupportedEncodingException the unsupported encoding exception
+	 */
 	private double computeMetric(Channel channel, String station, String day,
 			String metric) throws MetricException, UnsupportedEncodingException {
 		ChannelMeta chanMeta = stationMeta.getChannelMetadata(channel);
