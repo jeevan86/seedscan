@@ -38,17 +38,17 @@ public class MassPositionMetric extends Metric {
 	 *            the day
 	 * @param metric
 	 *            the metric UNUSED
-	 * @return the double
+	 * @return the computed mass position value.
 	 * @throws MetricException
 	 *             thrown when a polynomial response is not formed correctly
 	 * @throws UnsupportedEncodingException
 	 *             thrown when the response is not a polynomial response
 	 */
-	private double computeMetric(Channel channel, String station, String day
-			) throws MetricException, UnsupportedEncodingException {
+	private double computeMetric(Channel channel, String station, String day)
+			throws MetricException, UnsupportedEncodingException {
 
-		ChannelMeta chanMeta = stationMeta.getChannelMetadata(channel);
-		List<DataSet> datasets = metricData.getChannelData(channel);
+		ChannelMeta chanMeta = this.stationMeta.getChannelMetadata(channel);
+		List<DataSet> datasets = this.metricData.getChannelData(channel);
 
 		double a0 = 0;
 		double a1 = 0;
@@ -103,7 +103,7 @@ public class MassPositionMetric extends Metric {
 			ndata += dataset.getLength();
 		} // end for each dataset
 
-		massPosition = Math.sqrt(massPosition / (double) ndata);
+		massPosition = Math.sqrt(massPosition / ndata);
 
 		double massRange = (upperBound - lowerBound) / 2;
 		double massCenter = lowerBound + massRange;
@@ -130,40 +130,42 @@ public class MassPositionMetric extends Metric {
 	/**
 	 * @see asl.seedscan.metrics.Metric#process()
 	 */
+	@Override
 	public void process() {
-		logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
+		logger.info("-Enter- [ Station {} ] [ Day {} ]", this.getStation(),
+				this.getDay());
 
-		String station = getStation();
-		String day = getDay();
+		String station = this.getStation();
+		String day = this.getDay();
 
 		// Get all VM? channels in metadata to use for loop
-		List<Channel> channels = stationMeta.getChannelArray("VM");
+		List<Channel> channels = this.stationMeta.getChannelArray("VM");
 
 		// Loop over channels, get metadata & data for channel and Calculate
 		// Metric
 		for (Channel channel : channels) {
-			if (!metricData.hasChannelData(channel)) {
+			if (!this.metricData.hasChannelData(channel)) {
 				logger.warn(
 						"No data found for channel:[{}] day:[{}] --> Skip metric",
 						channel, day);
 				continue;
 			}
 
-			ByteBuffer digest = metricData.valueDigestChanged(channel,
-					createIdentifier(channel), getForceUpdate());
+			ByteBuffer digest = this.metricData.valueDigestChanged(channel,
+					this.createIdentifier(channel), this.getForceUpdate());
 
 			if (digest == null) { // means oldDigest == newDigest and we don't
 				// need to recompute the metric
 				logger.info(
 						"Digest unchanged station:[{}] channel:[{}] day:[{}] --> Skip metric",
-						getStation(), channel, day);
+						this.getStation(), channel, day);
 				continue;
 			}
 
 			try {
-				double result = computeMetric(channel, station, day);
+				double result = this.computeMetric(channel, station, day);
 
-				metricResult.addResult(channel, result, digest);
+				this.metricResult.addResult(channel, result, digest);
 			} catch (MetricException e) {
 				logger.error(e.getMessage());
 			} catch (UnsupportedEncodingException e) {
