@@ -44,8 +44,8 @@ public class MassPositionMetric extends Metric {
 	 * @throws UnsupportedEncodingException
 	 *             thrown when the response is not a polynomial response
 	 */
-	private double computeMetric(Channel channel, String station, String day,
-			String metric) throws MetricException, UnsupportedEncodingException {
+	private double computeMetric(Channel channel, String station, String day
+			) throws MetricException, UnsupportedEncodingException {
 
 		ChannelMeta chanMeta = stationMeta.getChannelMetadata(channel);
 		List<DataSet> datasets = metricData.getChannelData(channel);
@@ -135,8 +135,6 @@ public class MassPositionMetric extends Metric {
 
 		String station = getStation();
 		String day = getDay();
-		// UNUSED
-		String metric = getName();
 
 		// Get all VM? channels in metadata to use for loop
 		List<Channel> channels = stationMeta.getChannelArray("VM");
@@ -163,7 +161,7 @@ public class MassPositionMetric extends Metric {
 			}
 
 			try {
-				double result = computeMetric(channel, station, day, metric);
+				double result = computeMetric(channel, station, day);
 
 				metricResult.addResult(channel, result, digest);
 			} catch (MetricException e) {
@@ -172,6 +170,6 @@ public class MassPositionMetric extends Metric {
 				logger.warn(e.getMessage());
 			}
 
-		}// end foreach channel
-	} // end process()
-} // end class
+		}
+	}
+}
