@@ -196,8 +196,7 @@ public class EventCompareStrongMotion extends Metric {
 				// comparison:
 				double[] arrivalTimes = getEventArrivalTimes(eventCMT);
 				if (arrivalTimes == null) {
-					System.out
-							.format("== %s: arrivalTimes==null for stn=[%s] day=[%s]: Distance to stn probably > 97-deg --> Don't compute metric\n",
+					logger.info("== {}: arrivalTimes==null for stn=[{}] day=[{}]: Distance to stn probably > 97-deg --> Don't compute metric\n",
 									getName(), getStation(), getDay());
 					continue;
 				}
@@ -242,8 +241,7 @@ public class EventCompareStrongMotion extends Metric {
 
 				if ((dataDisp00 == null && dataDisp10 == null)
 						|| dataDisp20 == null) {
-					System.out
-							.format("== %s: day=[{}] getZNE returned null data --> skip this event\n",
+					logger.info("== {}: day=[{}] getZNE returned null data --> skip this event\n",
 									getName(), getDay());
 					continue;
 				}
