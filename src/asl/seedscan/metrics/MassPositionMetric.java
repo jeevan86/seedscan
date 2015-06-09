@@ -15,95 +15,38 @@ import asl.seedsplitter.DataSet;
 
 /**
  * The Class MassPositionMetric.
+ * 
  * @author James Holland - USGS (jholland@usgs.gov)
  * @author Mike Hagerty
  * @author Alejandro Gonzalez - Honeywell
  * @author Joel Edwards - USGS
  */
 public class MassPositionMetric extends Metric {
-	
+
 	/** The Constant logger. */
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.seedscan.metrics.MassPositionMetric.class);
 
-	/** 
-	 * @see asl.seedscan.metrics.Metric#getVersion()
-	 */
-	@Override
-	public long getVersion() {
-		return 1;
-	}
-
 	/**
-	 * @see asl.seedscan.metrics.Metric#getName()
-	 */
-	@Override
-	public String getName() {
-		return "MassPositionMetric";
-	}
-
-	/**
-	 * @see asl.seedscan.metrics.Metric#process()
-	 */
-	public void process() {
-		logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
-
-		String station = getStation();
-		String day = getDay();
-		//UNUSED
-		String metric = getName();
-
-		// Get all VM? channels in metadata to use for loop
-		List<Channel> channels = stationMeta.getChannelArray("VM");
-
-		// Loop over channels, get metadata & data for channel and Calculate
-		// Metric
-		for (Channel channel : channels) {
-			if (!metricData.hasChannelData(channel)) {
-				logger.warn(
-						"No data found for channel:[{}] day:[{}] --> Skip metric",
-						channel, day);
-				continue;
-			}
-
-			ByteBuffer digest = metricData.valueDigestChanged(channel,
-					createIdentifier(channel), getForceUpdate());
-
-			if (digest == null) { // means oldDigest == newDigest and we don't
-				// need to recompute the metric
-				logger.info(
-						"Digest unchanged station:[{}] channel:[{}] day:[{}] --> Skip metric",
-						getStation(), channel, day);
-				continue;
-			}
-
-			try {
-				double result = computeMetric(channel, station, day, metric);
-
-				metricResult.addResult(channel, result, digest);
-			} catch (MetricException e) {
-				logger.error(e.getMessage());
-			} catch (UnsupportedEncodingException e) {
-				logger.warn(e.getMessage());
-			}
-
-		}// end foreach channel
-	} // end process()
-
-	/**
-	 * Computes the actual mass position metric. 
-	 *
-	 * @param channel the channel
-	 * @param station the station
-	 * @param day the day
-	 * @param metric the metric UNUSED
+	 * Computes the actual mass position metric.
+	 * 
+	 * @param channel
+	 *            the channel
+	 * @param station
+	 *            the station
+	 * @param day
+	 *            the day
+	 * @param metric
+	 *            the metric UNUSED
 	 * @return the double
-	 * @throws MetricException thrown when a polynomial response is not formed correctly
-	 * @throws UnsupportedEncodingException thrown when the response is not a polynomial response
+	 * @throws MetricException
+	 *             thrown when a polynomial response is not formed correctly
+	 * @throws UnsupportedEncodingException
+	 *             thrown when the response is not a polynomial response
 	 */
 	private double computeMetric(Channel channel, String station, String day,
 			String metric) throws MetricException, UnsupportedEncodingException {
-		
+
 		ChannelMeta chanMeta = stationMeta.getChannelMetadata(channel);
 		List<DataSet> datasets = metricData.getChannelData(channel);
 
@@ -167,4 +110,68 @@ public class MassPositionMetric extends Metric {
 
 		return 100. * Math.abs(massPosition - massCenter) / massRange;
 	}
+
+	/**
+	 * @see asl.seedscan.metrics.Metric#getName()
+	 */
+	@Override
+	public String getName() {
+		return "MassPositionMetric";
+	}
+
+	/**
+	 * @see asl.seedscan.metrics.Metric#getVersion()
+	 */
+	@Override
+	public long getVersion() {
+		return 1;
+	}
+
+	/**
+	 * @see asl.seedscan.metrics.Metric#process()
+	 */
+	public void process() {
+		logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
+
+		String station = getStation();
+		String day = getDay();
+		// UNUSED
+		String metric = getName();
+
+		// Get all VM? channels in metadata to use for loop
+		List<Channel> channels = stationMeta.getChannelArray("VM");
+
+		// Loop over channels, get metadata & data for channel and Calculate
+		// Metric
+		for (Channel channel : channels) {
+			if (!metricData.hasChannelData(channel)) {
+				logger.warn(
+						"No data found for channel:[{}] day:[{}] --> Skip metric",
+						channel, day);
+				continue;
+			}
+
+			ByteBuffer digest = metricData.valueDigestChanged(channel,
+					createIdentifier(channel), getForceUpdate());
+
+			if (digest == null) { // means oldDigest == newDigest and we don't
+				// need to recompute the metric
+				logger.info(
+						"Digest unchanged station:[{}] channel:[{}] day:[{}] --> Skip metric",
+						getStation(), channel, day);
+				continue;
+			}
+
+			try {
+				double result = computeMetric(channel, station, day, metric);
+
+				metricResult.addResult(channel, result, digest);
+			} catch (MetricException e) {
+				logger.error(e.getMessage());
+			} catch (UnsupportedEncodingException e) {
+				logger.warn(e.getMessage());
+			}
+
+		}// end foreach channel
+	} // end process()
 } // end class
