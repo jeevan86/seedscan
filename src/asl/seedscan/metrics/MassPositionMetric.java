@@ -15,6 +15,10 @@ import asl.seedsplitter.DataSet;
 
 /**
  * The Class MassPositionMetric.
+ * @author James Holland - USGS (jholland@usgs.gov)
+ * @author Mike Hagerty
+ * @author Alejandro Gonzalez - Honeywell
+ * @author Joel Edwards - USGS
  */
 public class MassPositionMetric extends Metric {
 	
@@ -22,7 +26,7 @@ public class MassPositionMetric extends Metric {
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.seedscan.metrics.MassPositionMetric.class);
 
-	/* (non-Javadoc)
+	/** 
 	 * @see asl.seedscan.metrics.Metric#getVersion()
 	 */
 	@Override
@@ -30,7 +34,7 @@ public class MassPositionMetric extends Metric {
 		return 1;
 	}
 
-	/* (non-Javadoc)
+	/**
 	 * @see asl.seedscan.metrics.Metric#getName()
 	 */
 	@Override
@@ -38,7 +42,7 @@ public class MassPositionMetric extends Metric {
 		return "MassPositionMetric";
 	}
 
-	/* (non-Javadoc)
+	/**
 	 * @see asl.seedscan.metrics.Metric#process()
 	 */
 	public void process() {
@@ -46,6 +50,7 @@ public class MassPositionMetric extends Metric {
 
 		String station = getStation();
 		String day = getDay();
+		//UNUSED
 		String metric = getName();
 
 		// Get all VM? channels in metadata to use for loop
@@ -86,18 +91,19 @@ public class MassPositionMetric extends Metric {
 	} // end process()
 
 	/**
-	 * Compute metric.
+	 * Computes the actual mass position metric. 
 	 *
 	 * @param channel the channel
 	 * @param station the station
 	 * @param day the day
-	 * @param metric the metric
+	 * @param metric the metric UNUSED
 	 * @return the double
-	 * @throws MetricException the metric exception
-	 * @throws UnsupportedEncodingException the unsupported encoding exception
+	 * @throws MetricException thrown when a polynomial response is not formed correctly
+	 * @throws UnsupportedEncodingException thrown when the response is not a polynomial response
 	 */
 	private double computeMetric(Channel channel, String station, String day,
 			String metric) throws MetricException, UnsupportedEncodingException {
+		
 		ChannelMeta chanMeta = stationMeta.getChannelMetadata(channel);
 		List<DataSet> datasets = metricData.getChannelData(channel);
 
