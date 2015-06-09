@@ -290,49 +290,61 @@ public class Scanner implements Runnable {
 					MetricResult results = metric.getMetricResult();
 					// System.out.format("Results for %s:\n",
 					// metric.getClass().getName());
-					if (results == null) {
-					} else {
-						for (String id : results.getIdSortedSet()) {
-							double value = results.getResult(id);
-							ByteBuffer digest = results.getDigest(id);
-							logger.info(String.format(
-									"%s [%7s] [%s] %15s:%6.2f [%s]", results
-											.getMetricName(), results
-											.getStation(), EpochData
-											.epochToDateString(results
-													.getDate()), id, value, Hex
-											.byteArrayToHexString(digest
-													.array())));
-	
-							if (Double.isNaN(value)) {
-								logger.error(String
-										.format("%s [%s] [%s] %s: ERROR: metric value = [ NaN ] !!\n",
-												results.getMetricName(),
-												results.getStation(),
-												EpochData.epochToDateString(results
-														.getDate()), id));
-							}
-							if (Double.isInfinite(value)) {
-								logger.error(String
-										.format("%s [%s] [%s] %s: ERROR: metric value = [ Infinity ] !!\n",
-												results.getMetricName(),
-												results.getStation(),
-												EpochData.epochToDateString(results
-														.getDate()), id));
-							}
-						}
-						if (injector.isConnected()) {
-							try {
-								injector.inject(results);
-							} catch (InterruptedException ex) {
-								String message = String
-										.format("Scanner: InterruptedException injecting metric [%s]",
-												metric.toString());
-								logger.warn(message, ex);
-							}
-						} else {
-							logger.warn("Injector *IS NOT* connected --> Don't inject");
-						}
+                    if (results == null) {
+                    } else {
+                        for (String id : results.getIdSortedSet()) {
+                            double value = results.getResult(id);
+                            ByteBuffer digest = results.getDigest(id);
+                            /* @formatter:off */
+							logger.info(
+								String.format(
+									"%s [%7s] [%s] %15s:%6.2f [%X]",
+									results.getMetricName(),
+									results.getStation(),
+									EpochData.epochToDateString(results.getDate()),
+									id,
+									value,
+									digest.array()
+								)
+							);
+							
+
+                            if (Double.isNaN(value)) {
+                                logger.error(
+                                    String.format(
+                                        "%s [%s] [%s] %s: ERROR: metric value = [ NaN ] !!\n",
+                                        results.getMetricName(),
+                                        results.getStation(),
+                                        EpochData.epochToDateString(results.getDate()),
+                                        id
+                                    )
+                                );
+                            }
+                            if (Double.isInfinite(value)) {
+                                logger.error(
+                                    String.format(
+                                        "%s [%s] [%s] %s: ERROR: metric value = [ Infinity ] !!\n",
+                                        results.getMetricName(),
+                                        results.getStation(),
+                                        EpochData.epochToDateString(results.getDate()),
+                                        id
+                                    )
+                                );
+                            }
+                            /* @formatter:on */
+                        }
+                        if (injector.isConnected()) {
+                            try {
+                                injector.inject(results);
+                            } catch (InterruptedException ex) {
+                                String message = String
+                                        .format("Scanner: InterruptedException injecting metric [%s]",
+                                                metric.toString());
+                                logger.warn(message, ex);
+                            }
+                        } else {
+                            logger.warn("Injector *IS NOT* connected --> Don't inject");
+                        }
 					}
 				} // end loop over metrics
 			} catch (InstantiationException e) {
