@@ -91,6 +91,7 @@ public abstract class Metric {
 
 	/**
 	 * Gets the version.
+	 * This function appears to not be used.
 	 *
 	 * @return the version
 	 */
