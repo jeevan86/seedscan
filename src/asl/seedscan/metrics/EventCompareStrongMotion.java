@@ -251,18 +251,17 @@ public class EventCompareStrongMotion extends Metric {
 							key, eventNumber);
 				}
 
-				// Displacements are in meters so rmsDiff's will be small
-				// scale rmsDiffs to micrometers:
+				// switched from rmsDiff to scaleFac with 00/10 being the reference
 
 				if (compute00) {
 					for (int i = 0; i < 3; i++) {
-						results[i] += 1.e6 * rmsDiff(dataDisp00.get(i),
+						results[i] += scaleFac(dataDisp00.get(i),
 								dataDisp20.get(i), nstart, nend);
 					}
 				}
 				if (compute10) {
 					for (int i = 0; i < 3; i++) {
-						results[i + 3] += 1.e6 * rmsDiff(dataDisp10.get(i),
+						results[i + 3] += scaleFac(dataDisp10.get(i),
 								dataDisp20.get(i), nstart, nend);
 					}
 				}
@@ -325,6 +324,37 @@ public class EventCompareStrongMotion extends Metric {
 
 		return rms;
 	}
+
+
+	private double scaleFac(double[] data1, double[] data2, int n1, int n2) {
+		// if n1 < n2 or nend < data.length ...
+		double numerator = 0.;
+        double denominator = 0.;
+		int npts = n2 - n1 + 1;
+		for (int i = n1; i < n2; i++) {
+			numerator += (data1[i] * data2[i]);
+            denominator += (data1[i] *data1[i]);
+		}
+        if (denominator == 0.) {
+			logger.error(
+					"station=[{}] day=[{}]: scaleFac: denominator==0 --> Divide by 0 --> Expect result = Infinity!",
+					getStation(), getDay());
+		}
+
+		double result = numerator / denominator;
+
+
+		return result;
+	}
+
+
+
+
+
+
+
+
+
 
 	private double[] getEventArrivalTimes(EventCMT eventCMT) {
 
