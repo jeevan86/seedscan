@@ -39,7 +39,6 @@ public abstract class MemberDigest {
 
 	private MessageDigest digest = null;
 	private ByteBuffer raw = null;
-	private String str = null;
 
 	/**
 	 * Constructor.
@@ -67,21 +66,11 @@ public abstract class MemberDigest {
 		digest.reset();
 		addDigestMembers();
 		raw = ByteBuffer.wrap(digest.digest());
-		try {
-			str = Hex.byteArrayToHexString(raw.array());
-		} catch (IllegalArgumentException e) {
-			logger.error("IllegalArgumentException:", e);
-		}
 	}
 
 	public ByteBuffer getDigestBytes() {
 		computeDigest();
 		return raw;
-	}
-
-	public String getDigestString() {
-		computeDigest();
-		return str;
 	}
 
 	// Methods for adding member variables' data to the digest
