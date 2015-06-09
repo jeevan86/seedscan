@@ -110,11 +110,13 @@ public class EventCompareStrongMotion extends Metric {
 		 **/
 		int nChannels = 9;
 		int nDigests = 6;
+        double corrVal = 0.;
 
 		ByteBuffer[] digestArray = new ByteBuffer[nDigests];
 		// Channel[] channels = new Channel[nChannels];
 
 		double[] results = new double[nDigests];
+        boolean[] returnResults = new boolean[nDigests];
 
 		channels[0] = new Channel("00", "LHZ");
 		channels[1] = new Channel("00", "LHND");
@@ -255,14 +257,24 @@ public class EventCompareStrongMotion extends Metric {
 
 				if (compute00) {
 					for (int i = 0; i < 3; i++) {
-						results[i] += scaleFac(dataDisp00.get(i),
+                        corrVal = getCorr(dataDisp00.get(i),
 								dataDisp20.get(i), nstart, nend);
+                        if (corrVal >= 0.85){
+                            returnResults[i] = true;
+						    results[i] += scaleFac(dataDisp00.get(i),
+								    dataDisp20.get(i), nstart, nend);
+                        }
 					}
 				}
 				if (compute10) {
 					for (int i = 0; i < 3; i++) {
-						results[i + 3] += scaleFac(dataDisp10.get(i),
+                        corrVal = getCorr(dataDisp10.get(i),
 								dataDisp20.get(i), nstart, nend);
+                        if (corrVal >= 0.85){
+                            returnResults[i + 3] = true;
+						    results[i + 3] += scaleFac(dataDisp10.get(i),
+								    dataDisp20.get(i), nstart, nend);
+                        }
 					}
 				}
 
@@ -283,7 +295,15 @@ public class EventCompareStrongMotion extends Metric {
 					if (digest == null)
 						continue; // We don't want to try to inject a null
 									// digest if that channel is not updated
-					metricResult.addResult(channelX, channelY, result, digest);
+                    if(returnResults[i]){
+					    metricResult.addResult(channelX, channelY, result, digest);
+                    }
+                    else{
+                        logger.info(
+					        "station=[{}] day=[{}]: Low correlation",
+					        getStation(), getDay());
+                    }
+
 				}
 			}
 			if (compute10) {
@@ -295,7 +315,15 @@ public class EventCompareStrongMotion extends Metric {
 					if (digest == null)
 						continue; // We don't want to try to inject a null
 									// digest if that channel is not updated
-					metricResult.addResult(channelX, channelY, result, digest);
+                
+					if(returnResults[i]){
+					    metricResult.addResult(channelX, channelY, result, digest);
+                    }
+                    else{
+                        logger.info(
+					        "station=[{}] day=[{}]: Low correlation",
+					        getStation(), getDay());
+                    }
 				}
 			}
 		} catch (ChannelMetaException e) {
@@ -349,7 +377,56 @@ public class EventCompareStrongMotion extends Metric {
 
 
 
+    private double getCorr(double[] data1, double[] data2, int n1, int n2){
+		//This function computs the Pearson's correlation value for the two time series
+		if (n2 < n1) {
+			logger.error(
+					"station=[{}] day=[{}]: calcDiff: n2 < n1 --> Bad window",
+					getStation(), getDay());
+			return NO_RESULT;
+		}
+		if (n2 >= data1.length || n2 >= data2.length) {
+			logger.error(
+					"station=[{}] day=[{}]: calcDiff: n2=[{}] > data1.length=[{}] and/or data2.length=[{}] --> Bad window",
+					getStation(), getDay(), n2, data1.length, data2.length);
+			return NO_RESULT;
+		}
 
+
+		//Calculate the mean of both data streams
+		double data1mean = 0.;
+		double data2mean = 0.;		
+
+		for (int i = n1; i < n2; i++) {
+			data1mean += data1[i];
+			data2mean += data2[i];
+
+		}  
+		data1mean = data1mean / (double) data1.length;
+		data2mean = data2mean / (double) data2.length;
+
+		//Calculate the standard deviation of both data streams
+		double std1 = 0.;
+		double std2 = 0.;
+
+		for (int i = n1; i < n2; i++){
+			std1 += (data1[i] - data1mean) * (data1[i] - data1mean);
+			std2 += (data2[i] - data2mean) * (data2[i] - data2mean);
+
+		}
+		std1 = std1 / (double) data1.length;
+		std2 = std2 / (double) data2.length;
+
+		//Calculate the r correlation
+		double r = 0.;
+		for (int i = n1; i < n2; i++) {
+			r += (data1[i] - data1mean) * (data2[i] - data2mean) / (std1*std2);
+
+		}
+		r = r / (double) (data1.length - 1);
+		
+		return r;
+	}
 
 
 
