@@ -62,7 +62,6 @@ public class SeedSplitter extends
 	// along the lines of (file # out of total, byte count out of total, percent
 	// complete)
 	private File[] m_files;
-	private String[] m_digests;
 	private Hashtable<String, ArrayList<DataSet>> m_table;
 	private LinkedBlockingQueue<ByteBlock> m_recordQueue;
 	private LinkedBlockingQueue<DataSet> m_dataQueue;
