@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory;
 
 import seed.IllegalSeednameException;
 import seed.MiniSeed;
-import asl.util.Hex;
 
 /**
  * @author Joel D. Edwards <jdedwards@usgs.gov>
