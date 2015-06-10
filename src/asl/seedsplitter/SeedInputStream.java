@@ -44,8 +44,8 @@ public class SeedInputStream implements Runnable {
 			.getLogger(asl.seedsplitter.SeedInputStream.class);
 	private static final Formatter formatter = new Formatter();
 
-	public static int MAX_RECORD_SIZE = 16384;
-	public static int BLOCK_SIZE = 256;
+	private static int MAX_RECORD_SIZE = 16384;
+	private static int BLOCK_SIZE = 256;
 
 	private DataInputStream m_inputStream = null;
 	private LinkedBlockingQueue<ByteBlock> m_queue = null;
