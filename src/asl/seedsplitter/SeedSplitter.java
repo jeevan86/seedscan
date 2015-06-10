@@ -99,7 +99,6 @@ public class SeedSplitter extends
 		// Keep an eye on this so we can decrease the size if the GUI lags,
 		// or increase the size if the GUI is jerky.
 		m_progressQueue = new FallOffQueue<SeedSplitProgress>(1);
-		m_digests = new String[m_files.length];
 	}
 
 	/**
@@ -200,15 +199,6 @@ public class SeedSplitter extends
 	}
 
 	/**
-	 * Returns an array of Strings containing the SHA-1 sums of each file.
-	 * 
-	 * @return An array of Strings containing the SHA-1 sums of each file.
-	 */
-	public String[] getDigests() {
-		return m_digests;
-	}
-
-	/**
 	 * Overrides the doInBackground method of SwingWorker, launching and
 	 * monitoring two threads which read the files and process MiniSEED Data.
 	 * 
@@ -298,7 +288,6 @@ public class SeedSplitter extends
 						datalogger.error("InterruptedException:", e);
 					}
 				}
-				m_digests[i] = stream.getDigestString();
 			} catch (FileNotFoundException e) {
 				// logger.debug("File '" +file.getName()+ "' not found\n");
 				String message = "FileNotFoundException: File '"
