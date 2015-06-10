@@ -138,26 +138,6 @@ public class SeedInputStream implements Runnable {
 	}
 
 	/**
-	 * Returns a hex version of the digest for this stream.
-	 * 
-	 * @return a String version of the for this stream.
-	 */
-	public String getDigestString() {
-		String result = null;
-		if (m_digest != null) {
-			try {
-				result = Hex.byteArrayToHexString(((MessageDigest) m_digest
-						.clone()).digest());
-			} catch (CloneNotSupportedException ex) {
-				logger.error("CloneNotSupportedException:", ex);
-			} catch (IllegalArgumentException ex) {
-				logger.error("IllegalArgumentException:", ex);
-			}
-		}
-		return result;
-	}
-
-	/**
 	 * Causes this thread to halt gracefully.
 	 */
 	public void halt() {
