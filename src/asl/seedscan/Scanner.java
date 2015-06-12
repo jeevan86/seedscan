@@ -296,13 +296,12 @@ public class Scanner implements Runnable {
                             /* @formatter:off */
 							logger.info(
 								String.format(
-									"%s [%7s] [%s] %15s:%6.2f [%X]",
+									"%s [%7s] [%s] %15s:%6.2f",
 									results.getMetricName(),
 									results.getStation(),
 									EpochData.epochToDateString(results.getDate()),
 									id,
-									value,
-									digest.array()
+									value
 								)
 							);
 							
