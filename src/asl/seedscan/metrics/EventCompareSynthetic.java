@@ -133,6 +133,7 @@ public class EventCompareSynthetic extends Metric {
 		int nChannels = 9;
 		int nDigests = 6;
 		double corrVal = 0.;
+        double tempRes = 0.; 
 
 		ByteBuffer[] digestArray = new ByteBuffer[nDigests];
 		// Channel[] channels = new Channel[nChannels];
@@ -308,8 +309,12 @@ public class EventCompareSynthetic extends Metric {
 						//Check if the correlation is high enough to add the comparison
 						if (corrVal >= 0.85){
 							returnResults[i] = true;
-							results[i] += calcDiff(dataDisp00.get(i),
+                            tempRes = calcDiff(dataDisp00.get(i),
 								dataDisp3.get(i), nstart, nend);
+                            if(tempRes >= 50.) {
+                                tempRes = 50.;
+                            }
+                            results[i] += tempRes;
 						}
 					
 					}
@@ -323,8 +328,12 @@ public class EventCompareSynthetic extends Metric {
 						//Check if the correlation is high enough to add the comparison
 						if (corrVal >= 0.85){
 							returnResults[i + 3] = true;
-							results[i + 3] += calcDiff(dataDisp10.get(i),
+							tempRes = calcDiff(dataDisp10.get(i),
 								dataDisp3.get(i), nstart, nend);
+                            if(tempRes >= 50.){
+                                tempRes = 50.;
+                            }
+                            results[i + 3] += tempRes;
 						}
 
 					}
