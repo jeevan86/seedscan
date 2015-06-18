@@ -15,7 +15,7 @@ import asl.security.MemberDigest;
  * @author Joel D. Edwards <jdedwards@usgs.gov>
  * 
  */
-public class Sequence extends MemberDigest {
+public class Sequence extends MemberDigest implements Comparable<Sequence> {
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.seedsplitter.Sequence.class);
 
@@ -951,5 +951,24 @@ public class Sequence extends MemberDigest {
 		} catch (RuntimeException e) {
 			throw e;
 		}
+	}
+
+	@Override
+	public int compareTo(Sequence other) {
+		int result = 0;
+		if (other == null) {
+			result = 1;
+		} else {
+			if (this.startsBefore(other)) {
+				result = -1;
+			} else if (other.startsBefore(this)) {
+				result = 1;
+			} else if (other.endsAfter(this)) {
+				result = -1;
+			} else if (this.endsAfter(other)) {
+				result = 1;
+			}
+		}
+		return result;
 	}
 }
