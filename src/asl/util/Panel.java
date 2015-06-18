@@ -50,17 +50,4 @@ public class Panel {
 		return traces.size();
 	}
 
-	// log v. linear -- enum ?
-	private class axis {
-		private double minRange;
-		private double maxRange;
-		private String axisLabel;
-
-		public axis(double minRange, double maxRange, String label) {
-			this.minRange = minRange;
-			this.maxRange = maxRange;
-			this.axisLabel = label;
-		}
-	}
-
 }
