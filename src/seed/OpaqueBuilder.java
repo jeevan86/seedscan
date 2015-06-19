@@ -34,7 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class represents the Blockette 2000 from the SEED standard V2.4
+ * This class is a helper class for representing "Variable Length Opaque data"
  * 
  * @author Joel Edwards <jdedwards@usgs.gov>
  */

@@ -33,8 +33,6 @@ import java.util.Hashtable;
 /**
  * This class represents the Blockette 2000 from the SEED standard V2.4
  * 
- * This class does not appear to be referenced anywhere.
- * Investigation as to whether it should be kept is needed.
  * 
  * @author Joel Edwards <jdedwards@usgs.gov>
  */
