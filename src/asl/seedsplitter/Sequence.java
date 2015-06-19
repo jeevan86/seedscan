@@ -11,10 +11,8 @@ import org.slf4j.LoggerFactory;
 
 import asl.security.MemberDigest;
 
-
 /**
- * The Class Sequence.
- * Extends MemberDigest
+ * The Class Sequence. Extends MemberDigest
  * 
  * Note: this class has a natural ordering that is inconsistent with equals.
  *
@@ -22,14 +20,14 @@ import asl.security.MemberDigest;
  * @author Joel D. Edwards - USGS
  */
 public class Sequence extends MemberDigest implements Comparable<Sequence> {
-	
+
 	/** The Constant logger. */
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.seedsplitter.Sequence.class);
 
 	/** The Constant BLOCK_SIZE. */
 	public static final int BLOCK_SIZE = 4096;
-	
+
 	/** The m_tz. */
 	private static TimeZone m_tz = TimeZone.getTimeZone("GMT");
 
@@ -38,26 +36,28 @@ public class Sequence extends MemberDigest implements Comparable<Sequence> {
 
 	/** The m_blocks. */
 	private ArrayList<int[]> m_blocks = null;
-	
+
 	/** The m_block. */
 	private int[] m_block = null;
-	
+
 	/** The m_length. */
 	private int m_length = 0;
-	
+
 	/** The m_remainder. */
 	private int m_remainder = 0;
 
-	/** The m_start time. Microseconds since the epoch.*/
+	/** The m_start time. Microseconds since the epoch. */
 	private long m_startTime = 0;
-	
+
 	/** The m_sample rate. */
 	private double m_sampleRate = 0.0;
-	
+
 	/** The m_interval. */
 	private long m_interval = 0;
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#clone()
 	 */
 	public Object clone() throws CloneNotSupportedException {
@@ -80,8 +80,10 @@ public class Sequence extends MemberDigest implements Comparable<Sequence> {
 	/**
 	 * Creates a new instance of this object.
 	 *
-	 * @throws CloneNotSupportedException the clone not supported exception
-	 * @throws RuntimeException the runtime exception
+	 * @throws CloneNotSupportedException
+	 *             the clone not supported exception
+	 * @throws RuntimeException
+	 *             the runtime exception
 	 */
 	public Sequence() throws CloneNotSupportedException, RuntimeException {
 		super();
@@ -109,8 +111,8 @@ public class Sequence extends MemberDigest implements Comparable<Sequence> {
 	}
 
 	/**
-	 * Adds start time of first data point and sample rate to digest.
-	 * It then loops through blocks and adds them. 
+	 * Adds start time of first data point and sample rate to digest. It then
+	 * loops through blocks and adds them.
 	 * 
 	 */
 	@Override
@@ -140,8 +142,10 @@ public class Sequence extends MemberDigest implements Comparable<Sequence> {
 	/**
 	 * Sets the time series' sample rate in Hz.
 	 *
-	 * @param sampleRate            sample rate in Hz
-	 * @throws IllegalSampleRateException the illegal sample rate exception
+	 * @param sampleRate
+	 *            sample rate in Hz
+	 * @throws IllegalSampleRateException
+	 *             the illegal sample rate exception
 	 */
 	public void setSampleRate(double sampleRate)
 			throws IllegalSampleRateException {
@@ -315,12 +319,17 @@ public class Sequence extends MemberDigest implements Comparable<Sequence> {
 	 * A SequenceTimingException is thrown when the Sequences startTimes are not
 	 * synchronized by a factor of the interval.
 	 *
-	 * @param seq            The Sequence into which the data points from this sequence
+	 * @param seq
+	 *            The Sequence into which the data points from this sequence
 	 *            will be merged.
-	 * @throws SequenceIntervalMismatchException the sequence interval mismatch exception
-	 * @throws SequenceMergeRangeException the sequence merge range exception
-	 * @throws SequenceTimingException the sequence timing exception
-	 * @throws BlockSizeMismatchException the block size mismatch exception
+	 * @throws SequenceIntervalMismatchException
+	 *             the sequence interval mismatch exception
+	 * @throws SequenceMergeRangeException
+	 *             the sequence merge range exception
+	 * @throws SequenceTimingException
+	 *             the sequence timing exception
+	 * @throws BlockSizeMismatchException
+	 *             the block size mismatch exception
 	 */
 	synchronized void mergeInto(Sequence seq)
 			throws SequenceIntervalMismatchException,
@@ -390,13 +399,14 @@ public class Sequence extends MemberDigest implements Comparable<Sequence> {
 			// MTH: 2013-04-27 This seems wrong:
 			// seq._reset();
 			DataSet dataSet = (DataSet) this;
-			logger.debug("== Sequence.mergeInto() [{}_{} {}-{}] this=[{}-{}] is a subSequence of seq=[{}-{}] --> this._reset()\n",
-							dataSet.getNetwork(), dataSet.getStation(),
-							dataSet.getLocation(), dataSet.getChannel(),
-							Sequence.timestampToString(this.getStartTime()),
-							Sequence.timestampToString(this.getEndTime()),
-							Sequence.timestampToString(seq.getStartTime()),
-							Sequence.timestampToString(seq.getEndTime()));
+			logger.debug(
+					"== Sequence.mergeInto() [{}_{} {}-{}] this=[{}-{}] is a subSequence of seq=[{}-{}] --> this._reset()\n",
+					dataSet.getNetwork(), dataSet.getStation(),
+					dataSet.getLocation(), dataSet.getChannel(),
+					Sequence.timestampToString(this.getStartTime()),
+					Sequence.timestampToString(this.getEndTime()),
+					Sequence.timestampToString(seq.getStartTime()),
+					Sequence.timestampToString(seq.getEndTime()));
 			this._reset();
 			return;
 		}
@@ -584,12 +594,16 @@ public class Sequence extends MemberDigest implements Comparable<Sequence> {
 	 * Returns a new Array containing a subset of the data points in this
 	 * sequence.
 	 *
-	 * @param index            The index of the first returned data point.
-	 * @param count            The number of data points to return.
+	 * @param index
+	 *            The index of the first returned data point.
+	 * @param count
+	 *            The number of data points to return.
 	 * @return Returns a new Array containing a subset of the data points in
 	 *         this sequence.
-	 * @throws IndexOutOfBoundsException the index out of bounds exception
-	 * @throws SequenceRangeException the sequence range exception
+	 * @throws IndexOutOfBoundsException
+	 *             the index out of bounds exception
+	 * @throws SequenceRangeException
+	 *             the sequence range exception
 	 */
 	public int[] getSeries(int index, int count)
 			throws IndexOutOfBoundsException, SequenceRangeException {
@@ -654,13 +668,17 @@ public class Sequence extends MemberDigest implements Comparable<Sequence> {
 	 * Returns a new Array containing the specified number of data points
 	 * starting at the specified timestamp.
 	 *
-	 * @param startTime            The first returned data point must start at or after this
+	 * @param startTime
+	 *            The first returned data point must start at or after this
 	 *            timestamp.
-	 * @param count            The number of data points to return.
+	 * @param count
+	 *            The number of data points to return.
 	 * @return Returns a new Array containing all of the data points in this
 	 *         sequence.
-	 * @throws SequenceRangeException the sequence range exception
-	 * @throws IndexOutOfBoundsException the index out of bounds exception
+	 * @throws SequenceRangeException
+	 *             the sequence range exception
+	 * @throws IndexOutOfBoundsException
+	 *             the index out of bounds exception
 	 */
 	public int[] getSeries(long startTime, int count)
 			throws SequenceRangeException, IndexOutOfBoundsException {
@@ -687,12 +705,16 @@ public class Sequence extends MemberDigest implements Comparable<Sequence> {
 	 * The specified start and end times must be within the range of the actual
 	 * data.
 	 *
-	 * @param startTime            The first value should be at or after this point in time.
-	 * @param endTime            The last value should be at or before this point in time.
+	 * @param startTime
+	 *            The first value should be at or after this point in time.
+	 * @param endTime
+	 *            The last value should be at or before this point in time.
 	 * @return An array of int values.
-	 * @throws SequenceRangeException             If the requested window is not contained within this
+	 * @throws SequenceRangeException
+	 *             If the requested window is not contained within this
 	 *             Sequence.
-	 * @throws IndexOutOfBoundsException the index out of bounds exception
+	 * @throws IndexOutOfBoundsException
+	 *             the index out of bounds exception
 	 */
 	public int[] getSeries(long startTime, long endTime)
 			throws SequenceRangeException, IndexOutOfBoundsException {
@@ -934,14 +956,20 @@ public class Sequence extends MemberDigest implements Comparable<Sequence> {
 	/**
 	 * Returns the timestamp of the first data point.
 	 *
-	 * @param sequences            - a Collection of Sequences which will be collapsed into a
+	 * @param sequences
+	 *            - a Collection of Sequences which will be collapsed into a
 	 *            single sequence, disregarding gaps and removing duplicates
 	 * @return new sequence containing
-	 * @throws SequenceIntervalMismatchException the sequence interval mismatch exception
-	 * @throws SequenceMergeRangeException the sequence merge range exception
-	 * @throws SequenceTimingException the sequence timing exception
-	 * @throws CloneNotSupportedException the clone not supported exception
-	 * @throws RuntimeException the runtime exception
+	 * @throws SequenceIntervalMismatchException
+	 *             the sequence interval mismatch exception
+	 * @throws SequenceMergeRangeException
+	 *             the sequence merge range exception
+	 * @throws SequenceTimingException
+	 *             the sequence timing exception
+	 * @throws CloneNotSupportedException
+	 *             the clone not supported exception
+	 * @throws RuntimeException
+	 *             the runtime exception
 	 */
 	public static Sequence collapse(Collection<Sequence> sequences)
 			throws SequenceIntervalMismatchException,
@@ -993,11 +1021,12 @@ public class Sequence extends MemberDigest implements Comparable<Sequence> {
 	 * Unlike the equals comparison it doesn't take into account frequency.
 	 * 
 	 *
-	 * @param other the sequence to compare to
+	 * @param other
+	 *            the sequence to compare to
 	 * @return An integer value: 0 if Sequences are considered equal; less than
 	 *         0 if this Sequence comes before Sequence other; greater than 0 if
 	 *         Sequence other comes before this Sequence.
-	 *         
+	 * 
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)
 	 */
 	@Override
