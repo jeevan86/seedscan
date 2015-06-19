@@ -23,28 +23,24 @@ import static sac.SacConstants.IAMPH;
 import static sac.SacConstants.IRLIM;
 import static sac.SacConstants.ITIME;
 import static sac.SacConstants.IntelByteOrder;
-import static sac.SacConstants.LITTLE_ENDIAN;
-import static sac.SacConstants.TRUE;
 import static sac.SacConstants.data_offset;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.DataInput;
 import java.io.DataInputStream;
-import java.io.DataOutput;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.RandomAccessFile;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * 
+ * IF THERE ARE ANY PROBLEMS IN ANY OF THE SAC CLASSES, CONSIDER SCRAPPING OUR
+ * VERSION AND LINKING TO A JAR LIKE A NORMAL LIBRARY
+ * 
  * Class that represents a sac file. All headers are have the same names as
  * within the Sac program. Can read the whole file or just the header as well as
  * write a file.
@@ -69,47 +65,6 @@ public class SacTimeSeries {
 	public SacTimeSeries() {
 	}
 
-	/**
-	 * create a new SAC timeseries from the given header and data. The header
-	 * values related to the data are set correctly: npts=data.length<br/>
-	 * e=b+(npts-1)*delta<br/>
-	 * iftype=ITIME leven=TRUE<br/>
-	 * Setting of all other headers is the responsibility of the caller.
-	 * 
-	 * @param header
-	 * @param data
-	 */
-	public SacTimeSeries(SacHeader header, float[] data) {
-		this.header = header;
-		header.setIftype(ITIME);
-		header.setLeven(TRUE);
-		setY(data);
-	}
-
-	public SacTimeSeries(SacHeader header, double[] doubleData) {
-		float[] data = new float[doubleData.length];
-		for (int i = 0; i < data.length; i++) {
-			data[i] = (float) doubleData[i];
-		}
-		this.header = header;
-		header.setIftype(ITIME);
-		header.setLeven(TRUE);
-		setY(data);
-	}
-
-	public SacTimeSeries(File file) throws FileNotFoundException, IOException {
-		read(file);
-	}
-
-	public SacTimeSeries(String filename) throws FileNotFoundException,
-			IOException {
-		this(new File(filename));
-	}
-
-	public SacTimeSeries(DataInput inStream) throws IOException {
-		read(inStream);
-	}
-
 	public float[] getY() {
 		return y;
 	}
@@ -121,7 +76,7 @@ public class SacTimeSeries {
 				&& !SacConstants.isUndef(getHeader().getB())) {
 			getHeader().setE(
 					getHeader().getB() + (y.length - 1)
-							* getHeader().getDelta());
+					* getHeader().getDelta());
 		}
 	}
 
@@ -169,10 +124,6 @@ public class SacTimeSeries {
 		return header;
 	}
 
-	public void printHeader(PrintWriter out) {
-		header.printHeader(out);
-	}
-
 	public int getNumPtsRead() {
 		return numPtsRead;
 	}
@@ -192,20 +143,6 @@ public class SacTimeSeries {
 	private float[] phase;
 
 	private int numPtsRead = 0;
-
-	/**
-	 * reads the sac file specified by the filename. Only a very simple check is
-	 * made to be sure the file really is a sac file.
-	 * 
-	 * @throws FileNotFoundException
-	 *             if the file cannot be found
-	 * @throws IOException
-	 *             if it isn't a sac file or if it happens :)
-	 */
-	public void read(String filename) throws FileNotFoundException, IOException {
-		File sacFile = new File(filename);
-		read(sacFile);
-	}
 
 	public void read(File sacFile) throws FileNotFoundException, IOException {
 		if (sacFile.length() < data_offset) {
@@ -234,17 +171,17 @@ public class SacTimeSeries {
 				if (sacFile.length() != header.getNpts() * 4 * 2 + data_offset) {
 					throw new IOException(
 							sacFile.getName()
-									+ " does not appear to be a amph or rlim sac file! npts("
-									+ header.getNpts() + ") * 4 *2 + header("
-									+ data_offset + ") !=  file length="
-									+ sacFile.length() + "\n  as linux: npts("
-									+ SacHeader.swapBytes(header.getNpts())
-									+ ")*4*2 + header(" + data_offset
-									+ ") !=  file length=" + sacFile.length());
+							+ " does not appear to be a amph or rlim sac file! npts("
+							+ header.getNpts() + ") * 4 *2 + header("
+							+ data_offset + ") !=  file length="
+							+ sacFile.length() + "\n  as linux: npts("
+							+ SacHeader.swapBytes(header.getNpts())
+							+ ")*4*2 + header(" + data_offset
+							+ ") !=  file length=" + sacFile.length());
 				}
 			} else if (header.getLeven() == 0
 					&& sacFile.length() != header.getNpts() * 4 * 2
-							+ data_offset) {
+					+ data_offset) {
 				throw new IOException(sacFile.getName()
 						+ " does not appear to be a uneven sac file! npts("
 						+ header.getNpts() + ") * 4 *2 + header(" + data_offset
@@ -262,13 +199,8 @@ public class SacTimeSeries {
 		}
 	}
 
-	public void read(DataInput dis) throws IOException {
-		header = new SacHeader(dis);
-		readData(dis);
-	}
-
 	/** read the data portion of the given File */
-	protected void readData(DataInput fis) throws IOException {
+	private void readData(DataInput fis) throws IOException {
 		y = new float[header.getNpts()];
 		readDataArray(fis, y, header.getByteOrder());
 		if (header.getLeven() == FALSE || header.getIftype() == IRLIM
@@ -285,30 +217,6 @@ public class SacTimeSeries {
 			}
 		}
 		numPtsRead = header.getNpts();
-	}
-
-	/**
-	 * reads data.length floats. It is up to the caller to insure that the type
-	 * of SAC file (iftype = LEVEN, IRLIM, IAMPH) and how many data points
-	 * remain are compatible with the size of the float array to be read.
-	 * 
-	 * @throws IOException
-	 */
-	public static void readSomeData(DataInput dataIn, float[] data,
-			boolean byteOrder) throws IOException {
-		readDataArray(dataIn, data, byteOrder);
-	}
-
-	/**
-	 * skips samplesToSkip data points. It is up to the caller to insure that
-	 * the type of SAC file (iftype = LEVEN, IRLIM, IAMPH) and how many data
-	 * points remain are compatible with the size of the float array to be read.
-	 * 
-	 * @throws IOException
-	 */
-	public static int skipSamples(DataInput dataIn, int samplesToSkip)
-			throws IOException {
-		return dataIn.skipBytes(samplesToSkip * 4) / 4;
 	}
 
 	private static void readDataArray(DataInput fis, float[] d,
@@ -334,115 +242,4 @@ public class SacTimeSeries {
 		}
 	}
 
-	/** writes this object out as a sac file. */
-	public void write(String filename) throws FileNotFoundException,
-			IOException {
-		File f = new File(filename);
-		write(f);
-	}
-
-	/** writes this object out as a sac file. */
-	public void write(File file) throws FileNotFoundException, IOException {
-		DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(
-				new FileOutputStream(file)));
-		try {
-			header.writeHeader(dos);
-			writeData(dos);
-		} finally {
-			dos.close();
-		}
-	}
-
-	public void writeData(DataOutput dos) throws IOException {
-		for (int i = 0; i < header.getNpts(); i++) {
-			header.writeFloat(dos, y[i]);
-		}
-		if (header.getLeven() == FALSE || header.getIftype() == IRLIM
-				|| header.getIftype() == IAMPH) {
-			for (int i = 0; i < header.getNpts(); i++) {
-				header.writeFloat(dos, x[i]);
-			}
-		}
-	}
-
-	public static void appendData(File outfile, float[] data)
-			throws IOException {
-		RandomAccessFile raFile = new RandomAccessFile(outfile, "rw");
-		try {
-			SacHeader header = new SacHeader(raFile);
-			if (header.getLeven() == FALSE || header.getIftype() == IRLIM
-					|| header.getIftype() == IAMPH) {
-				raFile.close();
-				throw new IOException(
-						"Can only append to evenly sampled sac files, ie only Y");
-			}
-			int origNpts = header.getNpts();
-			header.setNpts(header.getNpts() + data.length);
-			header.setE((header.getNpts() - 1) * header.getDelta());
-			raFile.seek(0);
-			header.writeHeader(raFile);
-			raFile.skipBytes(origNpts * 4); // four bytes per float
-			if (header.getByteOrder() == LITTLE_ENDIAN) {
-				// Phil Crotwell's solution:
-				// careful here as dos.writeFloat() will collapse all NaN floats
-				// to
-				// a single NaN value. But we are trying to write out byte
-				// swapped values
-				// so different floats that are all NaN are different values in
-				// the
-				// other byte order. Solution is to swap on the integer bits,
-				// not the float.
-				for (int i = 0; i < data.length; i++) {
-					raFile.writeInt(SacHeader.swapBytes(Float
-							.floatToRawIntBits(data[i])));
-				}
-			} else {
-				for (int i = 0; i < data.length; i++) {
-					raFile.writeFloat(data[i]);
-				}
-			}
-		} catch (Exception e) {
-			logger.error("Exception:", e);
-		} finally {
-			raFile.close();
-		}
-	}
-
-	/**
-	 * just for testing. Reads the filename given as the argument, writes out
-	 * some header variables and then writes it back out as "outsacfile".
-	 */
-	public static void main(String[] args) {
-		SacTimeSeries data = new SacTimeSeries();
-		if (args.length != 1) {
-			System.out.println("Usage: java SacTimeSeries sacsourcefile ");
-			return;
-		}
-		try {
-			data.read(args[0]);
-			// data.y = new float[100000];
-			// for (int i=0; i<100000; i++) {
-			// data.y[i] = (float)Math.sin(Math.PI*i/18000)/1000000.0f;
-			// data.y[i] = (float)Math.sin(Math.PI*i/18000);
-			// //System.out.println("point is " + data.y[i]);
-			// }
-			// data.npts = data.y.length;
-			// data.printHeader();
-			System.out.println("stla original: " + data.header.getStla()
-					+ " npts=" + data.header.getNpts());
-			// data.setLittleEndian();
-			data.write("outsacfile");
-			data.read("outsacfile");
-			System.out.println("stla after read little endian: "
-					+ data.header.getStla() + " npts=" + data.header.getNpts());
-			System.out.println("Done writing");
-		} catch (FileNotFoundException e) {
-			// System.out.println("File " + args[0] + " doesn't exist.");
-			logger.error("FileNotFoundException:", e);
-		} catch (IOException e) {
-			// System.out.println("IOException: " + e.getMessage());
-			// e.printStackTrace();
-			logger.error("IOException:", e);
-		}
-	}
 }
