@@ -30,17 +30,12 @@ import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * This class is a helper class for representing "Variable Length Opaque data"
  * 
  * @author Joel Edwards <jdedwards@usgs.gov>
  */
 public class OpaqueBuilder {
-	private static final Logger logger = LoggerFactory
-			.getLogger(seed.OpaqueBuilder.class);
 	private boolean finished = false;
 
 	private OpaqueContext context;
