@@ -81,16 +81,7 @@ public class SacHeader {
 		}
 	}
 
-	public static SacHeader createEmptyEvenSampledTimeSeriesHeader() {
-		SacHeader header = new SacHeader();
-		header.leven = TRUE;
-		header.iftype = ITIME;
-		header.npts = 0;
-		header.b = 0.0f;
-		header.e = 0.0f;
-		header.idep = SacConstants.IUNKN;
-		return header;
-	}
+	
 
 	/**
 	 * reads the header from the given stream. The NVHDR value (should be 6) is
