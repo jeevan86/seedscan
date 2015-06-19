@@ -18,8 +18,6 @@
  */
 package asl.seedsplitter;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Joel D. Edwards <jdedwards@usgs.gov>
@@ -28,9 +26,6 @@ import org.slf4j.LoggerFactory;
  *         information with the data.
  */
 public class DataSet extends Sequence {
-	private static final Logger logger = LoggerFactory
-			.getLogger(asl.seedsplitter.DataSet.class);
-
 	private String m_network;
 	private String m_station;
 	private String m_location;
