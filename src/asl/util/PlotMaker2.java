@@ -99,7 +99,7 @@ public class PlotMaker2 {
 			// System.out.format("== plotMaker: request to output plot=[%s] but we are unable to create it "
 			// + " --> skip plot\n", fileName );
 			logger.warn(
-					"== Request to output plot=[%s] but we are unable to create it "
+					"== Request to output plot=[{}] but we are unable to create it "
 							+ " --> skip plot\n", fileName);
 			return;
 		}
