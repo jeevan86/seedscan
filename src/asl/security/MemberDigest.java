@@ -24,17 +24,11 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * @author Joel D. Edwards <jdedwards@usgs.gov>
  * 
  */
 public abstract class MemberDigest {
-	private static final Logger logger = LoggerFactory
-			.getLogger(asl.security.MemberDigest.class);
-
 	private MessageDigest digest = null;
 	private ByteBuffer raw = null;
 

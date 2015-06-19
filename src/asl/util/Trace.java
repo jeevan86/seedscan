@@ -22,15 +22,10 @@ package asl.util;
 import java.awt.Color;
 import java.awt.Stroke;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * @author Mike Hagerty <hagertmb@bc.edu>
  */
 public class Trace {
-	private static final Logger logger = LoggerFactory
-			.getLogger(asl.util.Trace.class);
 	private double[] xdata;
 	private double[] ydata;
 	private String traceName;
