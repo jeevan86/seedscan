@@ -364,8 +364,7 @@ public class SeedSplitProcessor implements Runnable {
 						}
 
 						if (!m_trees.containsKey(key)) {
-							tree = new TreeSet<DataSet>(
-									new SequenceComparator());
+							tree = new TreeSet<DataSet>();
 							m_trees.put(key, tree);
 						} else {
 							tree = m_trees.get(key);
