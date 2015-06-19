@@ -18,15 +18,9 @@
  */
 package asl.seedscan.metrics;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import asl.metadata.Channel;
 
 public class CrossPowerKey {
-	private static final Logger logger = LoggerFactory
-			.getLogger(asl.seedscan.metrics.CrossPowerKey.class);
-
 	private String key;
 
 	public CrossPowerKey(Channel a, Channel b) {

@@ -20,13 +20,7 @@ package asl.seedscan.metrics;
 
 import java.util.Arrays;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class CrossPower {
-	private static final Logger logger = LoggerFactory
-			.getLogger(asl.seedscan.metrics.CrossPower.class);
-
 	private double[] powerSpectrum = null;
 	private double spectrumDeltaF = 0.;
 

@@ -21,13 +21,7 @@ package asl.metadata;
 
 import java.util.ArrayList;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class ChannelArray {
-	private static final Logger logger = LoggerFactory
-			.getLogger(asl.metadata.ChannelArray.class);
-
 	private ArrayList<Channel> channels = null;
 
 	public ChannelArray(String location, String channel1, String channel2,
