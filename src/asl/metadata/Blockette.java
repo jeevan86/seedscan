@@ -156,7 +156,7 @@ public class Blockette implements java.io.Serializable {
 	 * Prints the blockette's fields.
 	 */
 	public void print() {
-		System.out.format("Blockette Number:%02d\n", number);
+		logger.info("Blockette Number:{}\n", String.format("%02d", number));
 		for (Integer key : fields.keySet()) {
 			fields.get(key).print();
 		}

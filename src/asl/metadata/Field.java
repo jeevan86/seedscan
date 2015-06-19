@@ -78,7 +78,7 @@ public class Field implements java.io.Serializable {
 
 	public void print() {
 		for (String value : values) {
-			System.out.format("Field:%02d Description:%s Value:%s\n", fieldID,
+			logger.info("Field:{} Description:{} Value:{}\n", String.format("%02d", fieldID),
 					description, value);
 		}
 	}
