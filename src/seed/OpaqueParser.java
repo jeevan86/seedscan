@@ -30,17 +30,15 @@ package seed;
 
 import java.util.Hashtable;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * This class represents the Blockette 2000 from the SEED standard V2.4
+ * 
+ * This class does not appear to be referenced anywhere.
+ * Investigation as to whether it should be kept is needed.
  * 
  * @author Joel Edwards <jdedwards@usgs.gov>
  */
 public class OpaqueParser {
-	private static final Logger logger = LoggerFactory
-			.getLogger(seed.OpaqueParser.class);
 	private Hashtable<String, OpaqueContext> contexts;
 
 	/**
