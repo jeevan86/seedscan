@@ -11,13 +11,15 @@ import org.slf4j.LoggerFactory;
 
 import asl.security.MemberDigest;
 
-// TODO: Auto-generated Javadoc
+
 /**
  * The Class Sequence.
+ * Extends MemberDigest
  * 
  * Note: this class has a natural ordering that is inconsistent with equals.
  *
- * @author Joel D. Edwards <jdedwards@usgs.gov>
+ * @author James Holland - USGS <jholland@usgs.gov>
+ * @author Joel D. Edwards - USGS
  */
 public class Sequence extends MemberDigest implements Comparable<Sequence> {
 	
@@ -29,7 +31,7 @@ public class Sequence extends MemberDigest implements Comparable<Sequence> {
 	public static final int BLOCK_SIZE = 4096;
 	
 	/** The m_tz. */
-	private static TimeZone m_tz = TimeZone.getTimeZone("GMT");;
+	private static TimeZone m_tz = TimeZone.getTimeZone("GMT");
 
 	/** The m_pool. */
 	private BlockPool m_pool = null;
@@ -46,8 +48,8 @@ public class Sequence extends MemberDigest implements Comparable<Sequence> {
 	/** The m_remainder. */
 	private int m_remainder = 0;
 
-	/** The m_start time. */
-	private long m_startTime = 0; // Microseconds since the epoch
+	/** The m_start time. Microseconds since the epoch.*/
+	private long m_startTime = 0;
 	
 	/** The m_sample rate. */
 	private double m_sampleRate = 0.0;
@@ -532,7 +534,7 @@ public class Sequence extends MemberDigest implements Comparable<Sequence> {
 	 * @param index
 	 *            The index of the desired block
 	 * 
-	 * @return refernce to the int array at the specified index.
+	 * @return reference to the int array at the specified index.
 	 * @throws ArrayIndexOutOfBoundsException
 	 *             - index out of range (index < 0 || index >= getLength()).
 	 */
@@ -547,7 +549,7 @@ public class Sequence extends MemberDigest implements Comparable<Sequence> {
 	 * @param index
 	 *            The index of the desired block
 	 * 
-	 * @return refernce the number of valid data points in the block located at
+	 * @return reference the number of valid data points in the block located at
 	 *         this index.
 	 * @throws ArrayIndexOutOfBoundsException
 	 *             - index out of range (index < 0 || index >= getLength()).
@@ -842,7 +844,6 @@ public class Sequence extends MemberDigest implements Comparable<Sequence> {
 				.getEndTime()));
 	}
 
-	/* static methods */
 	/**
 	 * Checks a sample rate to ensure it is valid, returning the associated
 	 * interval in microseconds.
