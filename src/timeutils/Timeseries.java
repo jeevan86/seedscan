@@ -7,9 +7,6 @@ import java.io.PrintWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import sac.SacHeader;
-import sac.SacTimeSeries;
-
 public class Timeseries {
 	private static final Logger logger = LoggerFactory
 			.getLogger(timeutils.Timeseries.class);
@@ -280,44 +277,6 @@ public class Timeseries {
 			interpolatedValues[i] = y[0];
 		}
 		return interpolatedValues;
-	}
-
-	public static void writeSacFile(double[] data, double dt, String filename,
-			String kstnm, String kcmpnm) {
-		writeSacFile(data, dt, filename, kstnm, kcmpnm, null);
-	}
-
-	public static void writeSacFile(double[] data, double dt, String filename,
-			String kstnm, String kcmpnm, String kevnm) {
-
-		SacHeader hdr = null;
-		try {
-			hdr = new SacHeader(
-					"/Users/mth/mth/Projects/asl/seedscan/resources/sac.file");
-		} catch (Exception e) {
-			// System.out.format("== Timeseries.writeSacFile: Error when attempting to read in default sac hdr [%s]\n",
-			// e);
-			String message = "== writeSacFile: Error when attempting to read in default sac hdr\n";
-			logger.error(message, e);
-		}
-
-		hdr.setDelta((float) dt);
-		if (kstnm != null) {
-			hdr.setKstnm(kstnm);
-		}
-		if (kcmpnm != null) {
-			hdr.setKcmpnm(kcmpnm);
-		}
-		if (kevnm != null) {
-			hdr.setKevnm(kevnm);
-		}
-
-		SacTimeSeries sac = new SacTimeSeries(hdr, data);
-		try {
-			sac.write(filename);
-		} catch (Exception e) {
-			logger.error("Exception:", e);
-		}
 	}
 
 	public static void rotate_xy_to_ne(double az1, double az2, double[] x,
