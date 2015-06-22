@@ -17,6 +17,7 @@ import java.io.IOException;
  * 
  * IF THERE ARE ANY PROBLEMS IN ANY OF THE SAC CLASSES, CONSIDER SCRAPPING OUR
  * VERSION AND LINKING TO A JAR LIKE A NORMAL LIBRARY
+ * @see https://github.com/crotwell/seisFile
  * 
  * Class that represents a sac file heder. All headers are have the same names
  * as within the Sac program.
