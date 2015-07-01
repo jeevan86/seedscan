@@ -19,7 +19,7 @@
 package asl.seedsplitter;
 
 /**
- * @author Joel D. Edwards <jdedwards@usgs.gov>
+ * @author Joel D. Edwards
  * 
  *         An enumeration describing the possible errors encountered when
  *         performing a block location.

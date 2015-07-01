@@ -23,7 +23,7 @@ public class BlocketteFieldIdentifierFormatException extends Exception {
 	 *
 	 * @param message the specific message
 	 * 
-	 * @see asl.metadata.Blockette.addFieldData(String, String)
+	 * @see asl.metadata.Blockette#addFieldData(String, String)
 	 */
 	public BlocketteFieldIdentifierFormatException(String message) {
 		super(message);

@@ -57,6 +57,10 @@ public class MetricData {
 	private Hashtable<String, ArrayList<Integer>> qualityData;
 	private Hashtable<String, ArrayList<Blockette320>> randomCal;
 	private StationMeta metadata;
+	/**
+	 * @deprecated This was most likely replaced by {@link asl.seedscan.metrics.EventCompareSynthetic#eventCMTs}
+	 */
+	@Deprecated
 	private Hashtable<String, String> synthetics;
 	private MetricReader metricReader;
 	private GregorianCalendar timestamp;
@@ -200,7 +204,7 @@ public class MetricData {
 
 	/**
 	 * 
-	 * @return ArrayList<DataSet> = All DataSets for a given channel (e.g.,
+	 * @return {@code ArrayList<DataSet>} = All DataSets for a given channel (e.g.,
 	 *         "00-BHZ")
 	 * 
 	 */
@@ -1063,7 +1067,7 @@ public class MetricData {
 	 *         digest (e.g., because the channels don't exist or we are unable
 	 *         to compute rotated channels, etc.) null - Will cause the Metric
 	 *         that called valueDigestChanged to skip to the next channel
-	 * @return digest - If the digest has changed (OR if the database is NOT
+	 * 		   digest - If the digest has changed (OR if the database is NOT
 	 *         connected so that we couldn't get an old digest to compare).
 	 *         digest - Will cause the Metric that called valueDigestChanged to
 	 *         execute its computeMetric().

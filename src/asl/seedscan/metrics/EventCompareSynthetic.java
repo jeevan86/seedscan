@@ -34,21 +34,21 @@ import edu.sc.seis.TauP.SphericalCoords;
  * The Class EventCompareSynthetic.
  * </p>
  * 
- * The difference is calculated by a power scale formula
- * result=SUM(data[i] * syn[i]) / SUM(syn[i] * syn[i])
+ * The difference is calculated by a power scale formula result=SUM(data[i] *
+ * syn[i]) / SUM(syn[i] * syn[i])
  * <p>
- * Result meanings<br/>
- * x = 0  data is to small or all 0s. The channel is dead.<br/>
- * 0 < x < 1 data shows less displacement than the synthetic.<br/>
- * 1 = data aligns exactly with the synthetic.<br/>
- * x > 1 data shows greater displacement than the synthetic.<br/>
- * x < 0 The data is out of phase from the synthetic.<br/>
- * x = -1 The data is exactly 180 degrees out of phase, but matches the data.<br/>
+ * Result meanings<br>
+ * x = 0 data is to small or all 0s. The channel is dead.<br>
+ * {@literal 0 < x < 1} data shows less displacement than the synthetic.<br>
+ * 1 = data aligns exactly with the synthetic.<br>
+ * {@literal x > 1} data shows greater displacement than the synthetic.<br>
+ * {@literal x < 0} The data is out of phase from the synthetic.<br>
+ * x = -1 The data is exactly 180 degrees out of phase, but matches the data.<br>
  * </p>
  * 
- * @see <a
-	 *      href="http://srl.geoscienceworld.org/content/77/1/12.full">Observations of Time-dependent Errors in Long-period Instrument Gain at Global Seismic Stations</a>
-	 *      Equation 3 <br/>
+ * <a href="http://srl.geoscienceworld.org/content/77/1/12.full">Observations of
+ * Time-dependent Errors in Long-period Instrument Gain at Global Seismic
+ * Stations</a>Equation 3
  */
 public class EventCompareSynthetic extends Metric {
 
@@ -437,17 +437,16 @@ public class EventCompareSynthetic extends Metric {
 	 * doing: SUM[ x(n) * y(n) ] / SUM[ y(n) * y(n) ], where x(n)=data and
 	 * y(n)=synth
 	 * 
-	 * difference = 0. --> data are all zero<br/>
-	 * difference = 1. --> data exactly matches synthetic<br/>
-	 * difference = 1. --> data exactly matches -synthetic (is 180 deg out of
-	 * phase)<br/>
+	 * {@literal difference = 0. -->} data are all zero<br>
+	 * {@literal difference = 1. -->} data exactly matches synthetic<br>
+	 * {@literal difference = 1. -->} data exactly matches -synthetic (is 180 deg out of
+	 * phase)<br>
 	 * 
-	 * @see <a
-	 *      href="http://srl.geoscienceworld.org/content/77/1/12.full">http://srl.geoscienceworld.org/content/77/1/12.full</a>
-	 *      Equation 3 <br/>
+	 * <a href="http://srl.geoscienceworld.org/content/77/1/12.full">http://srl.
+	 * geoscienceworld.org/content/77/1/12.full</a> Equation 3 <br>
 	 * 
 	 * 
-	 *      data1 = x, data2 = y
+	 * data1 = x, data2 = y
 	 * 
 	 * @param data1
 	 *            the data in meters displaced

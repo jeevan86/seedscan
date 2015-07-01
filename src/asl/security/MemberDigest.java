@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * @author Joel D. Edwards <jdedwards@usgs.gov>
+ * @author Joel D. Edwards
  * 
  */
 public abstract class MemberDigest {
@@ -35,7 +35,7 @@ public abstract class MemberDigest {
 	/**
 	 * Constructor.
 	 * 
-	 * @throws RuntimeException
+	 * @throws RuntimeException if MD5 digest type could not be used.
 	 */
 	public MemberDigest() throws RuntimeException {
 		this("MD5");

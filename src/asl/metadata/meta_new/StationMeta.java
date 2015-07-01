@@ -35,12 +35,11 @@ import asl.metadata.ChannelKey;
 import asl.metadata.EpochData;
 import asl.metadata.WrongBlocketteException;
 
-// TODO: Auto-generated Javadoc
 /**
  * Our internal representation of a station's metadata Holds all channel
  * metadata for a single station for a specified day.
  *
- * @author Mike Hagerty <hagertmb@bc.edu>
+ * @author Mike Hagerty hagertmb@bc.edu
  */
 public class StationMeta implements java.io.Serializable {
 	
@@ -303,7 +302,7 @@ public class StationMeta implements java.io.Serializable {
 	 * Gets the channel array.
 	 * Same as above but limit return channels to those containing the specified
 	 * location as well as the specified band
-	 * @see asl.metadata.meta_new.StationMeta.getChannelArray(String)
+	 * @see asl.metadata.meta_new.StationMeta#getChannelArray(String)
 	 *
 	 * @param location the location code
 	 * @param band the frequency band

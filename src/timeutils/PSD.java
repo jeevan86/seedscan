@@ -1,16 +1,11 @@
 package timeutils;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import freq.Cmplx;
 
 /**
- * @author Mike Hagerty <hagertmb@bc.edu>
+ * @author Mike Hagerty hagertmb@bc.edu
  */
 public class PSD {
-	private static final Logger logger = LoggerFactory
-			.getLogger(timeutils.PSD.class);
 	Cmplx[] psd = null;
 	double[] freq = null;
 	double[] dataX = null;
@@ -61,9 +56,9 @@ public class PSD {
 	 * 
 	 * Use Peterson's algorithm (24 hrs = 13 segments with 75% overlap, etc.)
 	 * 
-	 * From Bendat & Piersol p.328: time segment averaging --> reduces the
+	 * From Bendat &amp; Piersol p.328: time segment averaging reduces the
 	 * normalized standard error by sqrt (1 / nsegs) and increases the
-	 * resolution bandwidth to nsegs * df frequency smoothing --> has same
+	 * resolution bandwidth to nsegs * df frequency smoothing has same
 	 * effect with nsegs replaced by nfrequencies to smooth The combination of
 	 * both will reduce error by sqrt(1 / nfreqs * nsegs)
 	 * 

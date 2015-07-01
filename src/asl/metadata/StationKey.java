@@ -3,7 +3,7 @@ package asl.metadata;
 
 /**
  * The Class StationKey.
- * This is used to tie stations in {@link asl.metadata.SeedVolume.stations}
+ * This is used to tie stations in {@link asl.metadata.SeedVolume#stations}
  * 
  * @author Joel Edwards
  * @author Mike Hagerty

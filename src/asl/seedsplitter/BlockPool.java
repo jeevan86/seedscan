@@ -3,7 +3,7 @@ package asl.seedsplitter;
 import java.util.ArrayList;
 
 /**
- * @author Joel D. Edwards <jdedwards@usgs.gov>
+ * @author Joel D. Edwards
  * 
  *         Keeps a pool of integer blocks of uniform size into which existing
  *         blocks can be injected in order to minimize the need for new

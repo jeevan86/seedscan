@@ -46,7 +46,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @author Mike Hagerty <hagertmb@bc.edu>
+ * @author Mike Hagerty hagertmb@bc.edu
  */
 public class PlotMaker2 {
 	private static final Logger logger = LoggerFactory

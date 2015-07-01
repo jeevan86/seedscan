@@ -28,7 +28,7 @@ import freq.Cmplx;
 
 /**
  * Our internal representation of a PoleZero Stage includes the analog polezero
- * info + the stage gain & frequency of gain
+ * info + the stage gain and frequency of gain
  */
 public class PoleZeroStage extends ResponseStage implements Cloneable {
 	private static final long serialVersionUID = 1L;

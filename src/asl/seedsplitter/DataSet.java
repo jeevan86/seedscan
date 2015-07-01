@@ -20,7 +20,7 @@ package asl.seedsplitter;
 
 
 /**
- * @author Joel D. Edwards <jdedwards@usgs.gov>
+ * @author Joel D. Edwards
  * 
  *         A subclass of Sequence which pairs seismic station and channel
  *         information with the data.

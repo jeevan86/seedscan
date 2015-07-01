@@ -20,7 +20,7 @@
 package asl.seedsplitter;
 
 /**
- * @author Joel Edwards <jdedwards@usgs.gov>
+ * @author Joel Edwards
  * 
  *         The ByteBlock class wraps blocks of data read from a stream.
  */

@@ -111,7 +111,7 @@ public class AvailabilityMetric extends Metric {
 		} // end for each dataset
 
 		if (expectedPoints > 0) {
-			availability = 100. * (double) ndata / (double) expectedPoints;
+			availability = 100. * ndata / expectedPoints;
 		} else {
 			logger.warn("Expected points for channel={} = 0!", channel);
 			return NO_RESULT;

@@ -23,7 +23,7 @@ import java.awt.Color;
 import java.awt.Stroke;
 
 /**
- * @author Mike Hagerty <hagertmb@bc.edu>
+ * @author Mike Hagerty hagertmb@bc.edu
  */
 public class Trace {
 	private double[] xdata;

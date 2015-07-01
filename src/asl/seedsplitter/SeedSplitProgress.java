@@ -21,7 +21,7 @@ package asl.seedsplitter;
 import asl.worker.Progress;
 
 /**
- * @author Joel D. Edwards <jdedwards@usgs.gov>
+ * @author Joel D. Edwards
  * 
  *         Stores progress information about the progress made by
  *         {@link SeedSplitter}.

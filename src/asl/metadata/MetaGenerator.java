@@ -43,7 +43,7 @@ import asl.metadata.meta_new.StationMeta;
  * MetaGenerator - Holds metadata for all networks x stations x channels x
  * epochs Currently reads metadata in from network dataless seed files
  * 
- * @author Mike Hagerty <hagertmb@bc.edu>
+ * @author Mike Hagerty hagertmb@bc.edu
  * 
  */
 public class MetaGenerator extends UnicastRemoteObject implements MetaInterface {

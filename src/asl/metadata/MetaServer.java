@@ -34,7 +34,7 @@ import asl.metadata.meta_new.StationMeta;
 /**
  * MetaServer - Return requested metadata
  * 
- * @author Mike Hagerty <hagertmb@bc.edu>
+ * @author Mike Hagerty hagertmb@bc.edu
  * 
  */
 public class MetaServer {

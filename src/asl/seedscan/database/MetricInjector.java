@@ -8,10 +8,10 @@ import asl.concurrent.TaskThread;
 import asl.seedscan.metrics.MetricResult;
 
 /**
- * The Class MetricInjector. This class extends TaskThread<MetricResult> and
+ * The Class MetricInjector. This class extends {@code TaskThread<MetricResult>} and
  * handles adding injection tasks to the task queue in TaskThread.java.
  * 
- * @author Joel D. Edwards <jdedwards@usgs.gov>
+ * @author Joel D. Edwards jdedwards@usgs.gov
  */
 public class MetricInjector extends TaskThread<MetricResult> {
 
@@ -38,8 +38,6 @@ public class MetricInjector extends TaskThread<MetricResult> {
 	 * @return true, if connected
 	 */
 	public boolean isConnected() {
-		// System.out.println("== MetricInjector.isConnected() = " +
-		// metricDB.isConnected() );
 		return metricDB.isConnected();
 	}
 

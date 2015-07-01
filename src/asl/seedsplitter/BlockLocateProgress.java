@@ -3,7 +3,7 @@ package asl.seedsplitter;
 import asl.worker.Progress;
 
 /**
- * @author Joel D. Edwards <jdedwards@usgs.gov>
+ * @author Joel D. Edwards
  * 
  *         Progress feedback class for BlockLocator.
  */

@@ -58,7 +58,7 @@ import java.util.Collection;
 /**
  * This class represents the Blockette 2000 from the SEED standard V2.4
  * 
- * @author Joel Edwards <jdedwards@usgs.gov>
+ * @author Joel Edwards
  */
 public class Blockette2000 extends Blockette {
 	static final short FIXED_LENGTH = 15;

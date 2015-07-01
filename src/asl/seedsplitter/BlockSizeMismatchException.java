@@ -1,7 +1,7 @@
 package asl.seedsplitter;
 
 /**
- * @author Joel D. Edwards <jdedwards@usgs.gov>
+ * @author Joel D. Edwards
  * 
  *         The BlockSizeMismatchException is thrown by BlockPool when an attempt
  *         is made to add a block of data whose size does not match that

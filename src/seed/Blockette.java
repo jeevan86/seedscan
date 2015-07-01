@@ -12,7 +12,7 @@ import java.nio.ByteOrder;
  * Created on October 3, 2012, 10:38 UTC
  * 
  * 
- * @author Joel D. Edwards <jdedwards@usgs.gov>
+ * @author Joel D. Edwards
  */
 public abstract class Blockette {
 	private static final ByteOrder DEFAULT_BYTE_ORDER = ByteOrder.BIG_ENDIAN;

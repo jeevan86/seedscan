@@ -9,12 +9,11 @@ import java.io.Serializable;
  * In addition, info that is unique to a particular stage type will be stored in
  * the child class for that type (PoleZeroStage, PolynomialStage, etc.)
  * 
- * Stage Type SEED Blockette(s) Child Class
- * ---------------------------------------------------------- A [Analog Response
- * rad/sec] B053 PoleZeroStage B [Analog Response Hz] B053 PoleZeroStage P
- * [Polynomial] B062 PolynomialStage D [Digital] B054, B057 DigitalStage
+ * Stage Type SEED Blockette(s) Child Class A [Analog Response rad/sec] B053
+ * PoleZeroStage B [Analog Response Hz] B053 PoleZeroStage P [Polynomial] B062
+ * PolynomialStage D [Digital] B054, B057 DigitalStage
  * 
- * @author Mike Hagerty <hagertmb@bc.edu>
+ * @author Mike Hagerty hagertmb@bc.edu
  */
 public abstract class ResponseStage implements Comparable<ResponseStage>,
 		Serializable {
@@ -132,7 +131,7 @@ public abstract class ResponseStage implements Comparable<ResponseStage>,
 	/**
 	 * Gets the input units.
 	 * 
-	 * @see asl.metadata.meta_new.ResponseStage.setInputUnits(String)
+	 * @see asl.metadata.meta_new.ResponseStage#setInputUnits(String)
 	 *
 	 * @return the input units
 	 */
@@ -196,7 +195,7 @@ public abstract class ResponseStage implements Comparable<ResponseStage>,
 
 	/**
 	 * Prints the response stage as set in the overridden toString().
-	 * @see asl.metadata.meta_new.ResponseStage.toString()
+	 * @see asl.metadata.meta_new.ResponseStage#toString()
 	 */
 	public void print() {
 		System.out.println(this);

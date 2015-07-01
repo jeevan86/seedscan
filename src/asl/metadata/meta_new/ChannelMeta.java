@@ -51,7 +51,7 @@ import freq.Cmplx;
  * DigitalStage has been left general in order to be able to read and store
  * these coefficients.
  * 
- * @author Mike Hagerty <hagertmb@bc.edu>
+ * @author Mike Hagerty hagertmb@bc.edu
  */
 public class ChannelMeta extends MemberDigest implements Serializable,
 		Cloneable {
@@ -563,13 +563,13 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 	}
 
 	/**
-	 * processEpochData Convert EpochData = Hashtable<StageNumber, StageData>
+	 * processEpochData Convert EpochData = {@literal Hashtable<StageNumber, StageData>}
 	 * for this Channel + Epoch Into a sequence of ResponseStages, one for each
 	 * StageNumber For now we're just pulling/saving the first 3 stages
 	 * 
 	 * For each stageNumber, check for a B058 and if present, grab Gain +
-	 * freqOfGain Then, if you see a B054 --> create a new DigitalStage & add to
-	 * ChannelMeta else, if you see a B053 --> create a new PoleZeroStage & add
+	 * freqOfGain Then, if you see a B054 {@literal --> create a new DigitalStage & add to}
+	 * ChannelMeta else, if you see a B053 {@literal --> create a new PoleZeroStage & add}
 	 * to ChannelMeta else ...
 	 **/
 	public void processEpochData(EpochData epochData) {

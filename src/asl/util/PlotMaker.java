@@ -50,7 +50,7 @@ import asl.metadata.EpochData;
 import asl.metadata.Station;
 
 /**
- * @author Mike Hagerty <hagertmb@bc.edu>
+ * @author Mike Hagerty hagertmb@bc.edu
  */
 public class PlotMaker {
 	private static final Logger logger = LoggerFactory

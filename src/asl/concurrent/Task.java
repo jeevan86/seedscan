@@ -1,7 +1,7 @@
 package asl.concurrent;
 
 /**
- * The Class Task. This stores task information execution occurs in in the classes that extend {@link asl.concurrent.TaskThread<T>}
+ * The Class Task. This stores task information execution occurs in in the classes that extend {@link asl.concurrent.TaskThread}
  *
  * @param <T> the generic type
  * 

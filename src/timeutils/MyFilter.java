@@ -115,8 +115,8 @@ public class MyFilter {
 
 	/**
 	 * Return val of cos taper at point n where taper is flat between n2 --- n3
-	 * and applies cos between n1-n2 and n3-n4 (i.e., it is zero for n<=n1 and
-	 * n>= n4)
+	 * and applies cos between n1-n2 and n3-n4
+	 * {@literal (i.e., it is zero for n<=n1 and n>= n4)}
 	 */
 	private static double bpass(int n, int n1, int n2, int n3, int n4) {
 		if (n <= n1 || n >= n4)
@@ -158,10 +158,6 @@ public class MyFilter {
 	 * 
 	 * @param timeseries
 	 *            Input data
-	 * @param peakval
-	 *            The peak value frequency
-	 * @param sps
-	 *            Samples per second
 	 * @return filtered time series
 	 */
 	public static double[] filterdata(double[] timeseries, double delta,

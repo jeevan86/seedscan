@@ -19,7 +19,7 @@
 package asl.worker;
 
 /**
- * @author Joel D. Edwards <jdedwards@usgs.gov>
+ * @author Joel D. Edwards
  * 
  *         Interface for tracking progress of various finite operations.
  */

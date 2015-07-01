@@ -370,9 +370,7 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 
 	/**
 	 * readNoiseModel() - Read in Peterson's NewLow(or High)NoiseModel from file
-	 * specified in config.xml e.g., <cfg:argument
-	 * cfg:name="nlnm-modelfile">/Users
-	 * /mth/mth/Projects/xs0/NLNM.ascii/</cfg:argument>
+	 * specified in config.xml
 	 **/
 	private synchronized static void readNoiseModel(String fileName,
 			NoiseModel noiseModel) throws MetricException {

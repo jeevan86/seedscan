@@ -54,7 +54,7 @@ public class SeedUtil {
 
 	/**
 	 * From a year, month, and day of the month calculate the Julian day of
-	 * year. Parts stolen from K&R's C book.
+	 * year. Parts stolen from K&amp;R's C book.
 	 * 
 	 * @param ymd
 	 *            The year, month day as an array
@@ -79,7 +79,7 @@ public class SeedUtil {
 
 	/**
 	 * From a year, month, and day of the month calculate the Julian day of
-	 * year. Parts stolen from K&R's C book.
+	 * year. Parts stolen from K&amp;R's C book.
 	 * 
 	 * @param yr
 	 *            The year
@@ -107,7 +107,7 @@ public class SeedUtil {
 
 	/**
 	 * From a Unix 3 character month in ascii, a day of month, and year,
-	 * calculate the Julian day of year. Parts stolen from K&R's C book.
+	 * calculate the Julian day of year. Parts stolen from K&amp;R's C book.
 	 * 
 	 * @param yr
 	 *            The year
@@ -195,7 +195,7 @@ public class SeedUtil {
 	}
 
 	/**
-	 * sanitize year using the rule of 60, two digit ears >=60 = 1900+yr years
+	 * sanitize year using the rule of 60, two digit ears {@literal >=60 = 1900+yr years}
 	 * less than 60 are 2000+yr. If its 4 digits already, just return it.
 	 * 
 	 * @param yr

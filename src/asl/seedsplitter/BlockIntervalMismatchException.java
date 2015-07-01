@@ -19,7 +19,7 @@
 package asl.seedsplitter;
 
 /**
- * @author Joel D. Edwards <jdedwards@usgs.gov>
+ * @author Joel D. Edwards
  * 
  *         A BlockIntervalMismatchException is thrown when an operation is
  *         attempted on a pair of blocks with differing sample rates

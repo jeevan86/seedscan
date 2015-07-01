@@ -16,7 +16,7 @@ import asl.security.MemberDigest;
  * 
  * Note: this class has a natural ordering that is inconsistent with equals.
  *
- * @author James Holland - USGS <jholland@usgs.gov>
+ * @author James Holland - USGS jholland@usgs.gov
  * @author Joel D. Edwards - USGS
  */
 public class Sequence extends MemberDigest implements Comparable<Sequence> {
@@ -546,7 +546,7 @@ public class Sequence extends MemberDigest implements Comparable<Sequence> {
 	 * 
 	 * @return reference to the int array at the specified index.
 	 * @throws ArrayIndexOutOfBoundsException
-	 *             - index out of range (index < 0 || index >= getLength()).
+	 *             {@literal index out of range (index < 0 || index >= getLength())}
 	 */
 	public int[] getBlock(int index) throws ArrayIndexOutOfBoundsException {
 		return m_blocks.get(index);
@@ -562,7 +562,7 @@ public class Sequence extends MemberDigest implements Comparable<Sequence> {
 	 * @return reference the number of valid data points in the block located at
 	 *         this index.
 	 * @throws ArrayIndexOutOfBoundsException
-	 *             - index out of range (index < 0 || index >= getLength()).
+	 *             {@literal index out of range (index < 0 || index >= getLength())}
 	 */
 	public int getBlockSize(int index) throws ArrayIndexOutOfBoundsException {
 		if (index > m_blocks.size()) {

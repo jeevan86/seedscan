@@ -29,7 +29,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
-//import org.apache.log4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import seed.BlockSizeException;
@@ -41,7 +40,7 @@ import seed.SteimException;
 import asl.concurrent.FallOffQueue;
 
 /**
- * @author Joel D. Edwards <jdedwards@usgs.gov>
+ * @author Joel D. Edwards
  * 
  *         The SeedSplitProcessor receives MiniSEED records via a Queue, and
  *         splits them up by channel into trees. All of the channel trees are

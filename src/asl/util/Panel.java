@@ -22,7 +22,7 @@ package asl.util;
 import java.util.ArrayList;
 
 /**
- * @author Mike Hagerty <hagertmb@bc.edu>
+ * @author Mike Hagerty hagertmb@bc.edu
  */
 public class Panel {
 	private ArrayList<Trace> traces;

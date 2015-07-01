@@ -20,7 +20,7 @@ package asl.seedsplitter;
 
 
 /**
- * @author Joel D. Edwards <jdedwards@usgs.gov>
+ * @author Joel D. Edwards
  * 
  *         A simple class containing start and end times for contiguous data
  *         blocks.

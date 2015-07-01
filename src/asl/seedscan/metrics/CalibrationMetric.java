@@ -482,7 +482,7 @@ public class CalibrationMetric extends Metric {
 	/**
 	 * I think the danger with double check synchronization is *not* that the
 	 * 2nd thread will try to re-create sensorTable, but rather, that for some
-	 * earlier Java versions (e.g., ver < 1.5), it's possible that the 2nd
+	 * earlier Java versions {@literal (e.g., ver < 1.5)}, it's possible that the 2nd
 	 * thread will see sensorTable != null before this (in getSensor()), so it
 	 * won't need the lock, and may try to use sensorTable before it is
 	 * completely initialized by the 1st thread.

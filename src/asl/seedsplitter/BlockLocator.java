@@ -26,11 +26,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @author Joel D. Edwards <jdedwards@usgs.gov>
+ * @author Joel D. Edwards
  * 
- *         The BlockLocator class takes a ArrayList of ArrayList<DataSet>
+ *         The BlockLocator class takes a ArrayList of {@code ArrayList<DataSet>}
  *         objects and builds a list of contiguous data segments which are
- *         common across all of the ArrayList<DataSet> objects.
+ *         common across all of the {@code ArrayList<DataSet>} objects.
  */
 public class BlockLocator extends
 		SwingWorker<ArrayList<ContiguousBlock>, ContiguousBlock> {
@@ -79,7 +79,7 @@ public class BlockLocator extends
 
 	/**
 	 * Searches for contiguous blocks of data across all of the supplied
-	 * ArrayList<DataSet> objects.
+	 * {@code ArrayList<DataSet>} objects.
 	 * 
 	 * @return A ArrayList of ContiguousBlock objects.
 	 */

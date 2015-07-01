@@ -19,8 +19,7 @@
 package asl.seedsplitter;
 
 /**
- * @author Joel D. Edwards <jdedwards@usgs.gov>
- * 
+ * @author Joel D. Edwards
  */
 public class SeedRecordOverlapException extends Exception {
 	public static final long serialVersionUID = 1L;

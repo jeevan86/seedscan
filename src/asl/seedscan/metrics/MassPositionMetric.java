@@ -36,8 +36,6 @@ public class MassPositionMetric extends Metric {
 	 *            the station
 	 * @param day
 	 *            the day
-	 * @param metric
-	 *            the metric UNUSED
 	 * @return the computed mass position value.
 	 * @throws MetricException
 	 *             thrown when a polynomial response is not formed correctly

@@ -39,7 +39,7 @@ import seed.Blockette320;
 import asl.concurrent.FallOffQueue;
 
 /**
- * @author Joel D. Edwards <jdedwards@usgs.gov>
+ * @author Joel D. Edwards
  * 
  *         The SeedSplitter class reads MiniSEED records from a list of files,
  *         filters out records that don't match the filters (if supplied),

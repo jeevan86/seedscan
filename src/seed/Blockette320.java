@@ -47,7 +47,7 @@ import java.util.GregorianCalendar;
 /**
  * This class represents the Blockette 320 from the SEED standard V2.4
  * 
- * @author Mike Hagerty <mhagerty@bc.edu>
+ * @author Mike Hagerty mhagerty@bc.edu
  */
 public class Blockette320 extends Blockette {
 	private String calInputChannel = null;

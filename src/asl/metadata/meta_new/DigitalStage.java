@@ -70,7 +70,7 @@ public class DigitalStage extends ResponseStage implements Cloneable {
 	 * Estimated delay (seconds): 0.000000E+00 B057F08 Correction applied
 	 * (seconds): 0.000000E+00
 	 * 
-	 * .... or for stage # > 2: B054F03 Transfer function type: D B054F04 Stage
+	 * .... {@literal or for stage # > 2: B054F03} Transfer function type: D B054F04 Stage
 	 * sequence number: 3 B054F05 Response in units lookup: COUNTS - Digital
 	 * Counts B054F06 Response out units lookup: COUNTS - Digital Counts B054F07
 	 * Number of numerators: 64 B054F10 Number of denominators: 0 # Numerator

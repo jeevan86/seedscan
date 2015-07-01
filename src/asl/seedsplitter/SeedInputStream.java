@@ -33,7 +33,7 @@ import seed.IllegalSeednameException;
 import seed.MiniSeed;
 
 /**
- * @author Joel D. Edwards <jdedwards@usgs.gov>
+ * @author Joel D. Edwards
  * 
  *         Reads MiniSEED records from multiple files, and pushes them into a
  *         queue to be processed by a supported class (seed

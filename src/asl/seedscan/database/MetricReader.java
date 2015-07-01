@@ -9,10 +9,10 @@ import asl.concurrent.Task;
 import asl.concurrent.TaskThread;
 
 /**
- * @author Joel D. Edwards <jdedwards@usgs.gov>
+ * @author Joel D. Edwards
  * 
  */
-@SuppressWarnings("cast")
+@SuppressWarnings("cast") //Why is this here?
 public class MetricReader extends TaskThread<QueryContext<? extends Object>> {
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.seedscan.database.MetricInjector.class);
