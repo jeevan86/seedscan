@@ -719,20 +719,22 @@ public class MiniSeed implements MiniSeedOutputHandler {
 	}
 
 	public static int crackBlockSize(byte[] buf)
-			throws IllegalSeednameException {
+			throws IllegalSeednameException, BlockSizeException {
 		ByteBuffer bb = ByteBuffer.wrap(buf);
 		if (swapNeeded(buf))
 			bb.order(ByteOrder.LITTLE_ENDIAN);
 		bb.position(39); // position # of blockettes that follow
 		int nblks = bb.get(); // get it
-		bb.position(46); // position offset to first blockette
+		bb.position(44); //The position of the data offset and end of data header.
+		int dataOffset = bb.getShort();
+		bb.position(46); // position offset to first blockette and end of fixed data header
 		int offset = bb.getShort();
 		for (int i = 0; i < nblks; i++) {
-			if (offset < 48 || offset >= 64) {
-				logger.error("Illegal offset trying to crackBlockSize() off="
-						+ offset + " nblks=" + nblks + " seedname="
-						+ crackSeedname(buf));
-				break;
+			if (offset < 48 || offset >= dataOffset) {
+				String message = "Illegal offset trying to crackBlockSize() blocketteOffset="
+						+ offset + " dataOffset= " + dataOffset + " nblks=" + nblks + " seedname="
+						+ crackSeedname(buf);
+				throw new BlockSizeException(message);
 			}
 			bb.position(offset);
 			int type = bb.getShort();
@@ -743,7 +745,11 @@ public class MiniSeed implements MiniSeedOutputHandler {
 				return 1 << bb.get();
 			}
 		}
-		return 0;
+		/*If we got here we never found a blockette 1000*/
+		String message = "Missing blockette 1000 trying to crackBlockSize() blocketteOffset="
+				+ offset + " dataOffset= " + dataOffset + " nblks=" + nblks + " seedname="
+				+ crackSeedname(buf);
+		throw new BlockSizeException(message);
 
 	}
 

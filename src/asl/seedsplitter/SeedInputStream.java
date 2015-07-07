@@ -29,6 +29,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import seed.BlockSizeException;
 import seed.IllegalSeednameException;
 import seed.MiniSeed;
 
@@ -200,9 +201,12 @@ public class SeedInputStream implements Runnable {
 							try {
 								recordLength = MiniSeed
 										.crackBlockSize(m_buffer);
-							} catch (IllegalSeednameException e) {
-								logger.debug("Invalid Format, Skipping Chunk.",
-										e);
+								if(recordLength == 0){
+									System.out.println("No record Length");
+								}
+							} catch (IllegalSeednameException | BlockSizeException e) {
+								logger.debug("Invalid Format, Skipping Chunk.");
+								logger.error(e.getMessage());
 								m_skippedBytes += m_bufferBytes;
 								m_bufferBytes = 0;
 							}
