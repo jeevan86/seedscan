@@ -1,8 +1,10 @@
 build
 *.class
+.classpath
 config.xml
 config.xml~
 doc
+.gradle/
 logs/*
 log.txt
 *.old
@@ -10,11 +12,12 @@ log.txt
 .project
 *.pyc
 rdseed.err_log*
+schema/*
 seedscan.jar
 SeedScan.jar
 seedscan.lock
 .settings
-src/asl/seedscan/config
+src/main/java/asl/seedscan/config
 src/log4j.properties
 *.swp
 *.txt

@@ -1,0 +1,69 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'application'
+
+version = '1.0'
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.8
+
+mainClassName = 'asl.seedscan.SeedScan'
+applicationDefaultJvmArgs = ["-Xms64m", "-Xmx30g", "-Djava.awt.headless=true"]
+
+buildscript {
+    repositories {
+        jcenter()
+            mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.github.jacobono:gradle-jaxb-plugin:1.3.6'
+    }
+}
+
+apply plugin: 'com.github.jacobono.jaxb'
+
+repositories {
+    mavenCentral()
+}
+dependencies {
+    compile group: 'junit', name: 'junit', version: '4.+'
+    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.+'
+    compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.+'
+    compile group: 'org.jfree', name: 'jfreechart', version: '1.0.+'
+    compile group: 'commons-cli', name: 'commons-cli', version: '1.2'
+    compile group: 'org.postgresql', name: 'postgresql', version: '9.4-1201-jdbc41'
+    compile files('lib/TauP-2.1.0.jar')
+
+    jaxb 'com.sun.xml.bind:jaxb-xjc:2.2.7-b41'
+    jaxb 'com.sun.xml.bind:jaxb-impl:2.2.7-b41'
+    jaxb 'javax.xml.bind:jaxb-api:2.2.7'
+}
+
+jaxb {
+    xsdDir = "schemas"
+    xjc {
+    	destinationDir = 'src/main/java'
+    	removeOldOutput = 'yes'
+    }
+}
+
+jar {
+	/* Adds all dependent libraries*/
+	from {
+              configurations.compile.collect {
+                  it.isDirectory() ? it : zipTree(it)
+              }
+              configurations.runtime.collect {
+                  it.isDirectory() ? it : zipTree(it)
+              }
+          }
+
+    manifest {
+        attributes 'Implementation-Title': 'ASL SeedScan Data Quality Analyzer',
+                   'Implementation-Version': version,
+                   'Main-Class': 'asl.seedscan.SeedScan'
+    }
+}
+
+tasks.compileJava.dependsOn('xjc')
