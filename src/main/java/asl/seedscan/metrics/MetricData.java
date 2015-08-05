@@ -18,10 +18,10 @@
  */
 package asl.seedscan.metrics;
 
+import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.Hashtable;
 import java.util.Set;
 
@@ -49,7 +49,12 @@ import asl.seedsplitter.IllegalSampleRateException;
 import asl.seedsplitter.SequenceRangeException;
 import freq.Cmplx;
 
-public class MetricData {
+public class MetricData implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.seedscan.metrics.MetricData.class);
 
@@ -57,14 +62,7 @@ public class MetricData {
 	private Hashtable<String, ArrayList<Integer>> qualityData;
 	private Hashtable<String, ArrayList<Blockette320>> randomCal;
 	private StationMeta metadata;
-	/**
-	 * @deprecated This was most likely replaced by {@link asl.seedscan.metrics.EventCompareSynthetic#eventCMTs}
-	 */
-	@Deprecated
-	private Hashtable<String, String> synthetics;
-	private MetricReader metricReader;
-	private GregorianCalendar timestamp;
-
+	private transient MetricReader metricReader;
 	private MetricData nextMetricData;
 
 	// Attach nextMetricData here for windows that span into next day
@@ -90,13 +88,11 @@ public class MetricData {
 	}
 
 	public MetricData(MetricReader metricReader,
-			GregorianCalendar timestamp,
 			Hashtable<String, ArrayList<DataSet>> data,
 			Hashtable<String, ArrayList<Integer>> qualityData,
 			StationMeta metadata,
 			Hashtable<String, ArrayList<Blockette320>> randomCal) {
 		this.metricReader = metricReader;
-		this.timestamp = timestamp;
 		this.data = data;
 		this.qualityData = qualityData;
 		this.randomCal = randomCal;
@@ -455,7 +451,7 @@ public class MetricData {
 		}
 		Timeseries.detrend(data);
 		Timeseries.debias(data);
-		double wss = Timeseries.costaper(data, .01);
+		Timeseries.costaper(data, .01);
 
 		double[] freq = new double[nf];
 		for (int k = 0; k < nf; k++) {
@@ -513,25 +509,6 @@ public class MetricData {
 			throw e;
 		}
 	}
-
-	/**
-	 * Doesn't appear to be used (?) public ArrayList<double[]>
-	 * window(ArrayList<double[]> dataArrayIn, double delta, double xstart,
-	 * double xend) {
-	 * 
-	 * int nstart = (int)(xstart/delta); int nend = (int)(xend/delta); int npts
-	 * = nend - nstart + 1;
-	 * 
-	 * ArrayList<double[]> dataArrayOut = new ArrayList<double[]>(
-	 * dataArrayIn.size() );
-	 * 
-	 * for (int i=0; i<dataArrayIn.size(); i++) { double[] channelIn =
-	 * dataArrayIn.get(i); double[] channelOut = new double[npts]; for (int j=0;
-	 * j<npts; j++) { channelOut[j] = channelIn[j + nstart]; }
-	 * dataArrayOut.add(channelOut); }
-	 * 
-	 * return dataArrayOut; }
-	 **/
 
 	/**
 	 *

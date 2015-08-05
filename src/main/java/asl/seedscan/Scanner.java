@@ -476,7 +476,7 @@ public class Scanner implements Runnable {
 			Hashtable<String, ArrayList<Blockette320>> calibrationTable = null;
 			calibrationTable = splitter.getCalTable();
 
-			return new MetricData(reader, timestamp, table, qualityTable, stationMeta,
+			return new MetricData(reader, table, qualityTable, stationMeta,
 					calibrationTable);
 		} catch (TimeoutException e) {
 			StringBuilder message = new StringBuilder();
