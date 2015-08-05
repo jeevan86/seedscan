@@ -22,8 +22,9 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -32,12 +33,12 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import timeutils.Timeseries;
 import asl.metadata.Channel;
 import asl.util.PlotMaker2;
 import asl.util.PlotMakerException;
 import asl.util.Trace;
 import asl.util.TraceException;
+import timeutils.Timeseries;
 
 /**
  * NLNMDeviationMetric - Compute Difference (over specified range of periods =
@@ -63,9 +64,12 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 		addArgument("nlnm-modelfile");
 		addArgument("nhnm-modelfile");
 	}
+	
+	private static final String DEFAULT_NLNM_PATH = "/noiseModels/NLNM.ascii";
+	private static final String DEFAULT_NHNM_PATH = "/noiseModels/NHNM.ascii";
 
-	private static String NLNMFile;
-	private static String NHNMFile;
+	private static URL NLNMFile;
+	private static URL NHNMFile;
 
 	private static NoiseModel NLNM;
 	private static NoiseModel NHNM;
@@ -80,18 +84,22 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 		String metric = getName();
 
 		try {
-			NLNMFile = get("nlnm-modelfile");
-			NHNMFile = get("nhnm-modelfile");
-			if (NLNMFile == null)
-				throw new Exception(
-						String.format(
-								"station=[%s] day=[%s]: Failed to get nlnm-modelfile from config.xml:\n",
-								station, day));
-			if (NHNMFile == null)
-				throw new Exception(
-						String.format(
-								"station=[%s] day=[%s]: Failed to get nhnm-modelfile from config.xml:\n",
-								station, day));
+			
+			String nlnmPath = get("nlnm-modelfile");
+			String nhnmPath = get("nhnm-modelfile");
+			if (nlnmPath == null){
+				NLNMFile = this.getClass().getResource(DEFAULT_NLNM_PATH);
+			}
+			else{
+				new File(get("nlnm-modelfile")).toURI().toURL();
+			}
+			
+			if (nhnmPath == null){
+				NHNMFile = this.getClass().getResource(DEFAULT_NHNM_PATH);
+			}
+			else{
+				NHNMFile = new File(get("nhnm-modelfile")).toURI().toURL();
+			}
 
 		} catch (Exception e) {
 			StringBuilder message = new StringBuilder();
@@ -370,30 +378,19 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 
 	/**
 	 * readNoiseModel() - Read in Peterson's NewLow(or High)NoiseModel from file
-	 * specified in config.xml
+	 * specified in config.xml or a default file found in the jar.
 	 **/
-	private synchronized static void readNoiseModel(String fileName,
+	private synchronized static void readNoiseModel(URL fileURL,
 			NoiseModel noiseModel) throws MetricException {
-		if (fileName == null)
-			fileName = "";
-		logger.info("Read in Noise Model from file=[{}]", fileName);
+		logger.info("Read in Noise Model from file=[{}]", fileURL.toString());
 
-		// First see if the file exists
-		if (!(new File(fileName).exists())) {
-			StringBuilder message = new StringBuilder();
-			message.append(String.format(
-					"Noise Model file={%s} does NOT exist!\n", fileName));
-			MetricException e = new MetricException(message.toString());
-			logger.error("MetricException:", e);
-			return;
-		}
-		// Temp ArrayList(s) to read in unknown number of (x,y) pairs:
+		// Temporary ArrayList(s) to read in unknown number of (x,y) pairs:
 		ArrayList<Double> tmpPers = new ArrayList<Double>();
 		ArrayList<Double> tmpPows = new ArrayList<Double>();
 		BufferedReader br = null;
 		try {
 			String line;
-			br = new BufferedReader(new FileReader(fileName));
+			br = new BufferedReader(new InputStreamReader(fileURL.openStream()));
 			while ((line = br.readLine()) != null) {
 				String[] args = line.trim().split("\\s+");
 				if (args.length != 2) {
