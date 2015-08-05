@@ -20,13 +20,7 @@ package asl.seedscan.metrics;
 
 import java.util.Enumeration;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class MetricWrapper {
-	private static final Logger logger = LoggerFactory
-			.getLogger(asl.seedscan.metrics.MetricWrapper.class);
-
 	private Metric arguments;
 	private Class<?> metricClass;
 
