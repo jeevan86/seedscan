@@ -184,6 +184,25 @@ public class EventCompareSynthetic extends Metric {
 			}
 		}
 
+		/*
+		 * If only one channel has a metric change, we still want to compute for
+		 * all channels again.
+		 */
+		if (compute00) {
+			for (int i = 0; i < 3; i++) {
+				Channel channelX = channels[i];
+				digestArray[i] = metricData.valueDigestChanged(channelX, createIdentifier(channelX), true);
+				results[i] = 0.;
+			}
+		}
+		if (compute10) {
+			for (int i = 3; i < 6; i++) {
+				Channel channelX = channels[i];
+				digestArray[i] = metricData.valueDigestChanged(channelX, createIdentifier(channelX), true);
+				results[i] = 0.;
+			}
+		}
+
 		if (!compute00 && !compute10) {
 			logger.info(String
 					.format("== Day=[%s] Stn=[%s] - digest==null (or missing)for BOTH 00-LH and 10-LH chans --> Skip Metric",
