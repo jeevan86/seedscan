@@ -44,7 +44,7 @@ public class NetworkKey extends Key {
 		String varLabel = blockette.getFieldValue(9, 0);
 		network = varLabel.substring(0, 2);
 		logger.info("Network key created for [{}]", network);
-		if (network != varLabel) {
+		if (network.equals(varLabel)) {
 			logger.warn(
 					"Volume label doesn't match determined network. Volume label = [{}]",
 					varLabel);
