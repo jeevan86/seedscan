@@ -28,6 +28,7 @@
 
 package seed;
 
+import java.io.Serializable;
 
 /**
  * The blockette 1001 has : 0 i*2 blockette type is 1001 2 i*2 Next Blockette
@@ -37,7 +38,11 @@ package seed;
  * 
  * @author davidketchum
  */
-public class Blockette1001 extends Blockette {
+public class Blockette1001 extends Blockette implements Serializable{
+	/**
+	 * Serial Version UID
+	 */
+	private static final long serialVersionUID = 1L;
 	/**
 	 * Creates a new instance of Blockette1001
 	 * 

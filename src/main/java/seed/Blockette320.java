@@ -41,6 +41,7 @@
 
 package seed;
 
+import java.io.Serializable;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
@@ -49,7 +50,11 @@ import java.util.GregorianCalendar;
  * 
  * @author Mike Hagerty mhagerty@bc.edu
  */
-public class Blockette320 extends Blockette {
+public class Blockette320 extends Blockette  implements Serializable {
+	/**
+	 * Serial Version UID
+	 */
+	private static final long serialVersionUID = 1L;
 	private String calInputChannel = null;
 	private long calDuration = 0L;
 	private double calPeakAmp = 0.;

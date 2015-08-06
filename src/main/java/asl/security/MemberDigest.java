@@ -18,6 +18,7 @@
  */
 package asl.security;
 
+import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -28,8 +29,12 @@ import java.util.Collection;
  * @author Joel D. Edwards
  * 
  */
-public abstract class MemberDigest {
-	private MessageDigest digest = null;
+public abstract class MemberDigest implements Serializable {
+	/**
+	 * Serial Version UID
+	 */
+	private static final long serialVersionUID = 1L;
+	private transient MessageDigest digest = null;
 	private ByteBuffer raw = null;
 
 	/**

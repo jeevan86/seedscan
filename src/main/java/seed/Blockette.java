@@ -1,6 +1,7 @@
 
 package seed;
 
+import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -14,7 +15,11 @@ import java.nio.ByteOrder;
  * 
  * @author Joel D. Edwards
  */
-public abstract class Blockette {
+public abstract class Blockette  implements Serializable {
+	/**
+	 * Serial Version UID
+	 */
+	private static final long serialVersionUID = 1L;
 	private static final ByteOrder DEFAULT_BYTE_ORDER = ByteOrder.BIG_ENDIAN;
 	private ByteOrder byteOrder = DEFAULT_BYTE_ORDER;
 

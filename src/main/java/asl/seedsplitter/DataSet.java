@@ -18,6 +18,7 @@
  */
 package asl.seedsplitter;
 
+import java.io.Serializable;
 
 /**
  * @author Joel D. Edwards
@@ -25,7 +26,11 @@ package asl.seedsplitter;
  *         A subclass of Sequence which pairs seismic station and channel
  *         information with the data.
  */
-public class DataSet extends Sequence {
+public class DataSet extends Sequence implements Serializable {
+	/**
+	 * Serial version UID
+	 */
+	private static final long serialVersionUID = 1L;
 	private String m_network;
 	private String m_station;
 	private String m_location;

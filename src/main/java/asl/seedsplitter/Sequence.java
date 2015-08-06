@@ -1,5 +1,6 @@
 package asl.seedsplitter;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -19,7 +20,12 @@ import asl.security.MemberDigest;
  * @author James Holland - USGS jholland@usgs.gov
  * @author Joel D. Edwards - USGS
  */
-public class Sequence extends MemberDigest implements Comparable<Sequence> {
+public class Sequence extends MemberDigest implements Comparable<Sequence>, Serializable {
+
+	/**
+	 * Serial Version UID
+	 */
+	private static final long serialVersionUID = 1L;
 
 	/** The Constant logger. */
 	private static final Logger logger = LoggerFactory

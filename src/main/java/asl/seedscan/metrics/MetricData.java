@@ -63,7 +63,7 @@ public class MetricData implements Serializable {
 	private Hashtable<String, ArrayList<Blockette320>> randomCal;
 	private StationMeta metadata;
 	private transient MetricReader metricReader;
-	private MetricData nextMetricData;
+	private transient MetricData nextMetricData;
 
 	// Attach nextMetricData here for windows that span into next day
 	public void setNextMetricData(MetricData nextMetricData) {

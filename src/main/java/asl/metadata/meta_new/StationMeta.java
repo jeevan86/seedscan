@@ -18,6 +18,7 @@
  */
 package asl.metadata.meta_new;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -41,7 +42,7 @@ import asl.metadata.WrongBlocketteException;
  *
  * @author Mike Hagerty hagertmb@bc.edu
  */
-public class StationMeta implements java.io.Serializable {
+public class StationMeta implements Serializable {
 	
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;

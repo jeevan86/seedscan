@@ -49,6 +49,7 @@
 
 package seed;
 
+import java.io.Serializable;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -60,7 +61,11 @@ import java.util.Collection;
  * 
  * @author Joel Edwards
  */
-public class Blockette2000 extends Blockette {
+public class Blockette2000 extends Blockette implements Serializable{
+	/**
+	 * Serial Version UID
+	 */
+	private static final long serialVersionUID = 1L;
 	static final short FIXED_LENGTH = 15;
 	private static final ByteOrder DEFAULT_WORD_ORDER = ByteOrder.BIG_ENDIAN;
 	private static final Charset TAG_CHARSET = Charset.forName("UTF-8");

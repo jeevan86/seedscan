@@ -1,5 +1,6 @@
 package asl.seedsplitter;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 /**
@@ -9,7 +10,11 @@ import java.util.ArrayList;
  *         blocks can be injected in order to minimize the need for new
  *         allocations.
  */
-public class BlockPool {
+public class BlockPool implements Serializable{
+	/**
+	 * Serial Version UID
+	 */
+	private static final long serialVersionUID = 1L;
 
 	private ArrayList<int[]> m_pool;
 	private int m_blockSize = 0;

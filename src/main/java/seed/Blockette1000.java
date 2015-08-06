@@ -35,6 +35,7 @@
 
 package seed;
 
+import java.io.Serializable;
 
 /**
  * This class represents the Blockette 1000 from the SEED standard V2.4
@@ -46,7 +47,12 @@ package seed;
  * 
  * @author davidketchum
  */
-public class Blockette1000 extends Blockette {
+public class Blockette1000 extends Blockette implements Serializable{
+	/**
+	 * Serial Version UID
+	 */
+	private static final long serialVersionUID = 1L;
+
 	/**
 	 * Creates a new instance of Blockette1000
 	 * 
