@@ -27,13 +27,15 @@ repositories {
     mavenCentral()
 }
 dependencies {
-    compile group: 'junit', name: 'junit', version: '4.+'
     compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.+'
     compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.+'
     compile group: 'org.jfree', name: 'jfreechart', version: '1.0.+'
     compile group: 'commons-cli', name: 'commons-cli', version: '1.2'
     compile group: 'org.postgresql', name: 'postgresql', version: '9.4-1201-jdbc41'
     compile files('lib/TauP-2.1.0.jar')
+    
+    testCompile group: 'org.mockito', name: 'mockito-all', version: '1.10.19'
+    testCompile group: 'junit', name: 'junit', version: '4.+'
 
     jaxb 'com.sun.xml.bind:jaxb-xjc:2.2.7-b41'
     jaxb 'com.sun.xml.bind:jaxb-impl:2.2.7-b41'
