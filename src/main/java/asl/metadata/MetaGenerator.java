@@ -179,12 +179,7 @@ public class MetaGenerator extends UnicastRemoteObject implements MetaInterface 
 			}
 
 			if (volume == null) {
-				// System.out.format("== MetaGenerator: Error processing dataless volume==null! for file=[%s]\n",
-				// fileName);
-				StringBuilder message = new StringBuilder();
-				message.append(String
-						.format("== processing dataless volume==null! for file=[%s]\n"));
-				logger.error(message.toString());
+				logger.error("== processing dataless volume==null! for file=[{}]\n", fileName);
 				System.exit(0);
 			} else {
 				addVolume(volume);

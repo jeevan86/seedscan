@@ -179,7 +179,7 @@ public class Dataless {
 			// assume we are going to skip this line
 			skipped++;
 
-			if (line == "") {
+			if (line.equals("")) {
 				continue;
 			}
 			if (line.startsWith("#")) {
@@ -335,7 +335,7 @@ public class Dataless {
 				try {
 					channelKey = new ChannelKey(blockette);
 				} catch (WrongBlocketteException e) {
-					logger.error(String.format("WrongBlocketteException:", e));
+					logger.error("WrongBlocketteException:", e);
 				}
 				if (!station.hasChannel(channelKey)) {
 					// channel = new ChannelData(channelKey.getLocation(),
