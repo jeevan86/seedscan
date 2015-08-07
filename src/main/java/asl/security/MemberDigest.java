@@ -18,6 +18,9 @@
  */
 package asl.security;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
@@ -35,7 +38,7 @@ public abstract class MemberDigest implements Serializable {
 	 */
 	private static final long serialVersionUID = 1L;
 	private transient MessageDigest digest = null;
-	private ByteBuffer raw = null;
+	private transient ByteBuffer raw = null;
 
 	/**
 	 * Constructor.
@@ -47,14 +50,7 @@ public abstract class MemberDigest implements Serializable {
 	}
 
 	public MemberDigest(String algorithm) throws RuntimeException {
-		try {
-			digest = MessageDigest.getInstance(algorithm);
-		} catch (NoSuchAlgorithmException ex) {
-			String message = String
-					.format("Could not initialize digest for the '" + algorithm
-							+ "' algorithm:" + ex.toString());
-			throw new RuntimeException(message);
-		}
+		setAlgorithm(algorithm);
 	}
 
 	protected abstract void addDigestMembers();
@@ -78,8 +74,6 @@ public abstract class MemberDigest implements Serializable {
 	private void addToDigest(byte[] data) {
 		addToDigest(data, 0, data.length);
 	}
-
-	
 
 	protected void addToDigest(String data) {
 		addToDigest(data.getBytes());
@@ -170,5 +164,27 @@ public abstract class MemberDigest implements Serializable {
 		}
 
 		return last;
+	}
+	
+	private void setAlgorithm(String algorithm) throws RuntimeException {
+		try {
+			digest = MessageDigest.getInstance(algorithm);
+		} catch (NoSuchAlgorithmException ex) {
+			String message = String
+					.format("Could not initialize digest for the '" + algorithm
+							+ "' algorithm:" + ex.getMessage());
+			throw new RuntimeException(message);
+		}
+	}
+	
+	private void writeObject(ObjectOutputStream out) throws IOException {
+		out.defaultWriteObject();
+		out.writeObject(new String(this.digest.getAlgorithm()));
+	}
+	
+	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+		in.defaultReadObject();
+		String algorithm = (String)in.readObject();
+		setAlgorithm(algorithm);
 	}
 }
