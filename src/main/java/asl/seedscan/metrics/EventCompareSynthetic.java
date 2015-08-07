@@ -186,7 +186,8 @@ public class EventCompareSynthetic extends Metric {
 
 		/*
 		 * If only one channel has a metric change, we still want to compute for
-		 * all channels again.
+		 * all channels again. This forces recomputation of location if any
+		 * individual channel has been updated.
 		 */
 		if (compute00) {
 			for (int i = 0; i < 3; i++) {
