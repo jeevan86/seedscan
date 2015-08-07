@@ -452,25 +452,18 @@ public class SeedSplitProcessor implements Runnable {
 									tempData.setSampleRate(sampleRate);
 								} catch (RuntimeException e) {
 									MiniSeed ms = new MiniSeed(recordBytes);
-									logger.debug(String.format(
-											"Invalid Start Time: sequence #%d",
-											ms.getSequence(), e));
 									datalogger.error(String.format(
 											"Invalid Start Time: sequence #%d",
-											ms.getSequence(), e));
+											ms.getSequence()), e);
 									tempData = null;
 									break progress;
 								} catch (IllegalSampleRateException e) {
 									MiniSeed ms = new MiniSeed(recordBytes);
-									logger.debug(String
-											.format("Invalid Sample Rate: sequence #%d, rate = %f",
-													ms.getSequence(),
-													ms.getRate(), e));
 									datalogger
 											.error(String
 													.format("Invalid Sample Rate: sequence #%d, rate = %f",
 															ms.getSequence(),
-															ms.getRate(), e));
+															ms.getRate()), e);
 									tempData = null;
 									break progress;
 								}
