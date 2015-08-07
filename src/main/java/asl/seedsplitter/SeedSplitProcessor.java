@@ -50,9 +50,6 @@ import asl.concurrent.FallOffQueue;
  */
 @SuppressWarnings("cast")
 public class SeedSplitProcessor implements Runnable {
-	// private static final Logger logger =
-	// LoggerFactory.getLogger(asl.seedsplitter.SeedSplitProcessor.class);
-	private static final Logger datalogger = LoggerFactory.getLogger("DataLog");
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.seedsplitter.SeedSplitProcessor.class);
 
@@ -293,15 +290,13 @@ public class SeedSplitProcessor implements Runnable {
 						// Set the default location codes
 						if (location.equals("--") || location.equals("")
 								|| location == null) {
-							logger.debug(String
-									.format("miniseed channel=[%s] location=[%s] was changed to [00]",
-											channel, location));
+							logger.debug("miniseed channel=[{}] location=[{}] was changed to [00]",
+											channel, location);
 							location = "00";
 						}
 						if (location.equals("HR")) {
-							logger.debug(String
-									.format("miniseed channel=[%s] location=[%s] was changed to [10]",
-											channel, location));
+							logger.debug("miniseed channel=[{}] location=[{}] was changed to [10]",
+											channel, location);
 							location = "10";
 						}
 
@@ -310,14 +305,11 @@ public class SeedSplitProcessor implements Runnable {
 							interval = DataSet.sampleRateToInterval(sampleRate);
 						} catch (IllegalSampleRateException e) {
 							MiniSeed ms = new MiniSeed(recordBytes);
-							logger.debug(String
-									.format("Illegal Sample Rate: sequence #%d, rate = %f",
-											ms.getSequence(), sampleRate, e));
-							datalogger
+							logger
 									.error(String
 											.format("Illegal Sample Rate: sequence #%d, rate = %f",
 													ms.getSequence(),
-													sampleRate, e));
+													sampleRate), e);
 							// logger.fatal("This is a fatal error");
 							discarded++;
 							break progress;
@@ -395,29 +387,17 @@ public class SeedSplitProcessor implements Runnable {
 								// interval) {
 								// (VIM-HACK) }
 								replaceDataSet = true;
-								logger.debug(String
-										.format("Found data overlap <%s] - [%s> sequence #%d.!\n",
-												DataSet.timestampToString(tempData
-														.getEndTime()),
-												DataSet.timestampToString(startTime),
-												ms.getSequence()));
-								datalogger
-										.error(String
-												.format("Found data overlap <%s] - [%s> sequence #%d.!\n",
+								logger
+										.error("Found data overlap <{}] - [{}> sequence #{}.!\n",
 														DataSet.timestampToString(tempData
 																.getEndTime()),
 														DataSet.timestampToString(startTime),
-														ms.getSequence()));
+														ms.getSequence());
 								if (ms.getSequence() <= lastSequenceNumber) {
-									logger.debug(String
-											.format("Out of sequence last=%d current=%d",
-													lastSequenceNumber,
-													ms.getSequence()));
-									datalogger
-											.error(String
-													.format("Out of sequence last=%d current=%d",
+									logger
+											.error("Out of sequence last={} current={}",
 															lastSequenceNumber,
-															ms.getSequence()));
+															ms.getSequence());
 								}
 								// throw new SeedRecordOverlapException();
 							}
@@ -427,8 +407,7 @@ public class SeedSplitProcessor implements Runnable {
 								if (tempData != null) {
 									tree.add(tempData);
 									logger.debug("Adding DataSet to TreeSet.");
-									logger.debug(String
-											.format("  Range: %s - %s (%d data points {CHECK: %d})",
+									logger.debug("  Range: {} - {} ({} data points {CHECK: {}})",
 													DataSet.timestampToString(tempData
 															.getStartTime()),
 													DataSet.timestampToString(tempData
@@ -437,7 +416,7 @@ public class SeedSplitProcessor implements Runnable {
 															.getStartTime())
 															/ tempData
 																	.getInterval() + 1),
-													tempData.getLength()));
+													tempData.getLength());
 									tempData = null;
 									temps.remove(key);
 								}
@@ -452,14 +431,14 @@ public class SeedSplitProcessor implements Runnable {
 									tempData.setSampleRate(sampleRate);
 								} catch (RuntimeException e) {
 									MiniSeed ms = new MiniSeed(recordBytes);
-									datalogger.error(String.format(
+									logger.error(String.format(
 											"Invalid Start Time: sequence #%d",
 											ms.getSequence()), e);
 									tempData = null;
 									break progress;
 								} catch (IllegalSampleRateException e) {
 									MiniSeed ms = new MiniSeed(recordBytes);
-									datalogger
+									logger
 											.error(String
 													.format("Invalid Sample Rate: sequence #%d, rate = %f",
 															ms.getSequence(),
@@ -470,9 +449,9 @@ public class SeedSplitProcessor implements Runnable {
 								temps.put(key, tempData);
 							} // replaceDataSet
 						} catch (CloneNotSupportedException e) {
-							datalogger.error("CloneNotSupportedException:", e);
+							logger.error("CloneNotSupportedException:", e);
 						} catch (RuntimeException e) {
-							datalogger.error("RuntimeException:", e);
+							logger.error("RuntimeException:", e);
 						}
 
 						record = new MiniSeed(recordBytes);
@@ -481,7 +460,7 @@ public class SeedSplitProcessor implements Runnable {
 						// MTH: decomp() will return null in the event of Steim2
 						// Exception, etc.
 						if (samples == null) {
-							datalogger
+							logger
 									.error("Caught SteimException --> Skip this block");
 						} else { // samples != null
 
@@ -548,16 +527,16 @@ public class SeedSplitProcessor implements Runnable {
 
 				} catch (SteimException e) {
 					// logger.warn("SteimException:", e);
-					datalogger.error("SteimException:", e);
+					logger.error("SteimException:", e);
 				} catch (BlockSizeException e) {
 					// logger.warn("BlockSizeException:", e);
-					datalogger.error("BlockSizeException:", e);
+					logger.error("BlockSizeException:", e);
 				} catch (InterruptedException e) {
 					// logger.warn("InterruptedException:", e);
-					datalogger.error("InterruptedException:", e);
+					logger.error("InterruptedException:", e);
 				} catch (IllegalSeednameException e) {
 					// logger.warn("IllegalSeednameException:", e);
-					datalogger.error("IllegalSeednameException:", e);
+					logger.error("IllegalSeednameException:", e);
 				} // end try
 			}
 			m_progressQueue.put(progress);
@@ -650,12 +629,12 @@ public class SeedSplitProcessor implements Runnable {
 						throw new RuntimeException(
 								"Interval Mismatch. This should never happen!");
 					} catch (SequenceMergeRangeException e) {
-						datalogger.error("SequenceMergeRangeException:", e);
+						logger.error("SequenceMergeRangeException:", e);
 						list.add(lastDataSet);
 						lastDataSet = currDataSet;
 						currDataSet = null;
 					} catch (SequenceTimingException e) {
-						datalogger
+						logger
 								.error("SequenceTimingException: Sequences could not be correctly paired!",
 										e);
 						list.add(lastDataSet);
@@ -665,7 +644,7 @@ public class SeedSplitProcessor implements Runnable {
 						// throw new
 						// RuntimeException("Timing Error. These sequences cannot be correctly paired!");
 					} catch (BlockSizeMismatchException e) {
-						datalogger
+						logger
 								.error("BlockSizeMismatchException: BlockPool.addBlock() Impossible situation!",
 										e);
 					}
