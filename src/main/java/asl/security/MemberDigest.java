@@ -1,21 +1,3 @@
-/*
- * Copyright 2012, United States Geological Survey or
- * third-party contributors as indicated by the @author tags.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
- *
- */
 package asl.security;
 
 import java.io.IOException;
@@ -29,89 +11,176 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * @author Joel D. Edwards
- * 
+ * The Class MemberDigest.
+ *
+ * @author Joel D. Edwards - USGS
+ * @author James Holland - USGS
  */
 public abstract class MemberDigest implements Serializable {
-	/**
-	 * Serial Version UID
-	 */
+
+	/** The Serial Version UID. */
 	private static final long serialVersionUID = 1L;
+
+	/** The digest. */
 	private transient MessageDigest digest = null;
+
+	/** The raw digest, this is inserted into the database. */
 	private transient ByteBuffer raw = null;
 
 	/**
-	 * Constructor.
+	 * Default Constructor. Uses MD5 as its hashing algorithm.
 	 * 
-	 * @throws RuntimeException if MD5 digest type could not be used.
+	 * @throws RuntimeException
+	 *             if MD5 digest type could not be used.
 	 */
 	public MemberDigest() throws RuntimeException {
 		this("MD5");
 	}
 
+	/**
+	 * Instantiates a new member digest.
+	 *
+	 * @param algorithm
+	 *            the algorithm
+	 * @throws RuntimeException
+	 *             if the passed algorithm could not be used.
+	 */
 	public MemberDigest(String algorithm) throws RuntimeException {
 		setAlgorithm(algorithm);
 	}
 
+	/**
+	 * Adds the digest members.
+	 */
 	protected abstract void addDigestMembers();
 
+	/**
+	 * Compute digest. Calls the abstract {@link #addDigestMembers()};
+	 */
 	private synchronized void computeDigest() {
 		digest.reset();
 		addDigestMembers();
 		raw = ByteBuffer.wrap(digest.digest());
 	}
 
+	/**
+	 * Gets the digest bytes. Calls {@link #computeDigest()} which in turn calls
+	 * the abstracted {@link #addDigestMembers()}
+	 *
+	 * @return the digest ByteBuffer {@link #raw}
+	 */
 	public ByteBuffer getDigestBytes() {
 		computeDigest();
 		return raw;
 	}
 
+	/**
+	 * Adds a byte[] with offset to digest.
+	 *
+	 * @param data
+	 *            the data
+	 * @param offset
+	 *            the offset
+	 * @param length
+	 *            the length
+	 */
 	// Methods for adding member variables' data to the digest
 	private void addToDigest(byte[] data, int offset, int length) {
 		digest.update(data, offset, length);
 	}
 
+	/**
+	 * Adds a byte[] to digest.
+	 *
+	 * @param data
+	 *            the data
+	 */
 	private void addToDigest(byte[] data) {
 		addToDigest(data, 0, data.length);
 	}
 
+	/**
+	 * Adds a String to digest.
+	 *
+	 * @param data
+	 *            the data
+	 */
 	protected void addToDigest(String data) {
 		addToDigest(data.getBytes());
 	}
 
+	/**
+	 * Adds a ByteBuffer to digest.
+	 *
+	 * @param data
+	 *            the data
+	 */
 	private void addToDigest(ByteBuffer data) {
 		addToDigest(data.array());
 	}
 
+	/**
+	 * Adds a Character to digest.
+	 *
+	 * @param data
+	 *            the data
+	 */
 	protected void addToDigest(Character data) {
 		addToDigest(ByteBuffer.allocate(2).putChar(data));
 	}
 
-	
-
+	/**
+	 * Adds an Integer to digest.
+	 *
+	 * @param data
+	 *            the data
+	 */
 	protected void addToDigest(Integer data) {
 		addToDigest(ByteBuffer.allocate(4).putInt(data));
 	}
 
+	/**
+	 * Adds a Long to digest.
+	 *
+	 * @param data
+	 *            the data
+	 */
 	protected void addToDigest(Long data) {
 		addToDigest(ByteBuffer.allocate(8).putLong(data));
 	}
 
-	
-
+	/**
+	 * Adds a Double to digest.
+	 *
+	 * @param data
+	 *            the data
+	 */
 	protected void addToDigest(Double data) {
 		addToDigest(ByteBuffer.allocate(8).putDouble(data));
 	}
 
+	/**
+	 * Combines multiple MemberDigests into a ByteBuffer
+	 *
+	 * @param digests
+	 *            the MemberDigest collection
+	 * @return the combined ByteBuffer
+	 */
 	public static ByteBuffer multiDigest(Collection<MemberDigest> digests) {
-		ArrayList<ByteBuffer> buffers = new ArrayList<ByteBuffer>(
-				digests.size());
+		ArrayList<ByteBuffer> buffers = new ArrayList<ByteBuffer>(digests.size());
 		for (MemberDigest digest : digests) {
 			buffers.add(digest.getDigestBytes());
 		}
 		return multiBuffer(buffers);
 	}
 
+	/**
+	 * Combines multiple ByteBuffers into a single ByteBuffer
+	 *
+	 * @param digests
+	 *            the ByteBuffer Collection
+	 * @return the combined ByteBuffer
+	 */
 	public static ByteBuffer multiBuffer(Collection<ByteBuffer> digests) {
 		// If the digests collection is empty, we will end up returning null
 		ByteBuffer last = null;
@@ -165,26 +234,52 @@ public abstract class MemberDigest implements Serializable {
 
 		return last;
 	}
-	
+
+	/**
+	 * Sets the algorithm. This should only be called when initializing.
+	 *
+	 * @param algorithm
+	 *            the new algorithm
+	 * @throws RuntimeException
+	 *             if the given algorithm causes a
+	 *             {@linkplain java.security.NoSuchAlgorithmException}
+	 */
 	private void setAlgorithm(String algorithm) throws RuntimeException {
 		try {
 			digest = MessageDigest.getInstance(algorithm);
 		} catch (NoSuchAlgorithmException ex) {
 			String message = String
-					.format("Could not initialize digest for the '" + algorithm
-							+ "' algorithm:" + ex.getMessage());
+					.format("Could not initialize digest for the '" + algorithm + "' algorithm:" + ex.getMessage());
 			throw new RuntimeException(message);
 		}
 	}
-	
+
+	/**
+	 * Write default object, then add a String with the used algorithm.
+	 *
+	 * @param out
+	 *            the out
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 */
 	private void writeObject(ObjectOutputStream out) throws IOException {
 		out.defaultWriteObject();
 		out.writeObject(new String(this.digest.getAlgorithm()));
 	}
-	
+
+	/**
+	 * Read object and initialize the digest with the found algorithm.
+	 *
+	 * @param in
+	 *            the ObjectInputStream containing the object and algorithm
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 * @throws ClassNotFoundException
+	 *             the class not found exception
+	 */
 	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
 		in.defaultReadObject();
-		String algorithm = (String)in.readObject();
+		String algorithm = (String) in.readObject();
 		setAlgorithm(algorithm);
 	}
 }
