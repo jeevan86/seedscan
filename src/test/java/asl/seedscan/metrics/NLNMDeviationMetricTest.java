@@ -5,8 +5,6 @@ import static org.junit.Assert.assertEquals;
 import java.io.ObjectInputStream;
 import java.util.HashMap;
 
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -26,10 +24,6 @@ public class NLNMDeviationMetricTest {
 		}
 	}
 
-	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
-	}
-
 	@Before
 	public void setUp() throws Exception {
 		metric = new NLNMDeviationMetric();
@@ -38,10 +32,6 @@ public class NLNMDeviationMetricTest {
 		metric.setData(data1);
 
 		
-	}
-
-	@After
-	public void tearDown() throws Exception {
 	}
 
 	@Test
@@ -66,7 +56,6 @@ public class NLNMDeviationMetricTest {
 			/*If this is too stingy, try rounding 7 places like the metric injector does*/
 			assertEquals(id +" result: ", expect.get(id), result.getResult(id));
 		}
-		
 	}
 
 	@Test
