@@ -687,31 +687,6 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 	}
 
 	/**
-	 * Reports whether two Sequences have the same frequency, start time, and
-	 * data point count (does not compare individual values).
-	 * 
-	 * @param obj
-	 *            The reference Sequence with which to compare this Sequence.
-	 * @return A boolean value: true if Sequences are the same, otherwise false.
-	 */
-	public boolean equals(Object obj) {
-		if(!(obj instanceof Sequence)) return false;
-		if(obj == this) return true;
-		boolean result = true;
-		Sequence seq = (Sequence)obj;
-		if (m_interval != seq.m_interval) {
-			result = false;
-		} else if (m_startTime != seq.m_startTime) {
-			result = false;
-			// We check length instead of endTime because getEndTime requires a
-			// calculation for both Sequences.
-		} else if (m_length != seq.m_length) {
-			result = false;
-		}
-		return result;
-	}
-
-	/**
 	 * Reports whether this Sequence is a sub-sequence of the supplied reference
 	 * Sequence.
 	 * 
