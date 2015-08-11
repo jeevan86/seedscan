@@ -799,9 +799,6 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 	 * 
 	 * It compares the start and end times. If they all match then returns 0.
 	 * The priority is with starts. If these match it compares end times.
-	 * 
-	 * Unlike the equals comparison it doesn't take into account frequency.
-	 * 
 	 *
 	 * @param other
 	 *            the sequence to compare to
