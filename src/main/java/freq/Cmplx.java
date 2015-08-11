@@ -1,9 +1,12 @@
-// added by HPC to put in a package
-// package net.alomax.freq;
-// change package
 package freq;
 
-/*
+/**
+ * 
+ * There is now a standard Complex class in Apache Commons (already in the
+ * project). If we find any reason that needs to add functionality to this code,
+ * we should split the FFTs out and use the standard Complex class.
+ * 
+ * 
  * This file is part of the Anthony Lomax Java Library. Copyright (C) 1999
  * Anthony Lomax <lomax@faille.unice.fr> This program is free software; you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -21,9 +24,9 @@ public class Cmplx implements java.io.Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	public double r; // real part
+	private double r; // real part
 
-	public double i; // imaginary part
+	private double i; // imaginary part
 
 	private static final double TWOPI = 2.0 * Math.PI;
 
@@ -35,28 +38,11 @@ public class Cmplx implements java.io.Serializable {
 		this.i = im;
 	}
 
-	/* class methods */
-	public static final Cmplx add(double a, Cmplx b) {
-		return add(new Cmplx(a, 0), b);
-	}
-
-	public static final Cmplx add(Cmplx a, double b) {
-		return add(a, new Cmplx(b, 0));
-	}
-
 	public static final Cmplx add(Cmplx a, Cmplx b) {
 		Cmplx c = new Cmplx();
 		c.r = a.r + b.r;
 		c.i = a.i + b.i;
 		return c;
-	}
-
-	public static final Cmplx sub(double a, Cmplx b) {
-		return Cmplx.sub(new Cmplx(a, 0), b);
-	}
-
-	public static final Cmplx sub(Cmplx a, double b) {
-		return Cmplx.sub(a, new Cmplx(b, 0));
 	}
 
 	public static final Cmplx sub(Cmplx a, Cmplx b) {
@@ -79,10 +65,6 @@ public class Cmplx implements java.io.Serializable {
 		c.r = a.r * b.r - a.i * b.i;
 		c.i = a.i * b.r + a.r * b.i;
 		return c;
-	}
-
-	public static final Cmplx div(double a, Cmplx b) {
-		return div(new Cmplx(a, 0), b);
 	}
 
 	public static final Cmplx div(Cmplx a, double b) {
@@ -119,25 +101,6 @@ public class Cmplx implements java.io.Serializable {
 		return (Math.sqrt(this.r * this.r + this.i * this.i));
 	}
 
-	/**
-	 * creates a unit mag complex number. zero is assigned (1,0)
-	 */
-	public final Cmplx unitVector() {
-		double mag = mag();
-		if (mag != 0) {
-			return Cmplx.div(this, mag);
-		} else {
-			return new Cmplx(1, 0);
-		}
-	}
-
-	public final Cmplx zeroOrUnitVector() {
-		if (r == 0 && i == 0) {
-			return new Cmplx(0, 0);
-		}
-		return unitVector();
-	}
-
 	public final double phs() {
 		if (this.r == 0.0) {
 			if (this.i == 0.0)
@@ -154,42 +117,6 @@ public class Cmplx implements java.io.Serializable {
 		c.r = this.r;
 		c.i = -this.i;
 		return c;
-	}
-
-	public static final Cmplx exp(Cmplx arg) {
-		Cmplx c = new Cmplx();
-		c.r = Math.exp(arg.r) * Math.cos(arg.i);
-		c.i = Math.exp(arg.r) * Math.sin(arg.i);
-		return c;
-	}
-
-	public final Cmplx sqrt() {
-		Cmplx c = new Cmplx();
-		double x, y, w, r;
-		if ((this.r == 0.0) && (this.i == 0.0)) {
-			c.r = (c.i = 0.0);
-			return (c);
-		} else {
-			x = Math.abs(this.r);
-			y = Math.abs(this.i);
-			if (x >= y) {
-				r = y / x;
-				w = Math.sqrt(x)
-						* Math.sqrt(0.5 * (1.0 + Math.sqrt(1.0 + r * r)));
-			} else {
-				r = x / y;
-				w = Math.sqrt(y)
-						* Math.sqrt(0.5 * (r + Math.sqrt(1.0 + r * r)));
-			}
-			if (this.r >= 0.0) {
-				c.r = w;
-				c.i = this.i / (2.0 * w);
-			} else {
-				c.i = (this.i >= 0.0) ? w : -w;
-				c.r = this.i / (2.0 * c.i);
-			}
-			return (c);
-		}
 	}
 
 	public boolean isNaN() {
@@ -242,54 +169,12 @@ public class Cmplx implements java.io.Serializable {
 		return (fdata);
 	}
 
-	public static final float[] convolve(float[] fdata, float[] gdata,
-			float delta) throws IllegalArgumentException {
-		if (fdata.length != gdata.length) {
-			throw new IllegalArgumentException(
-					"fdata and gdata must have same length. " + fdata.length
-							+ " " + gdata.length);
-		}
-		Cmplx[] fTrans = fft(fdata);
-		Cmplx[] gTrans = fft(gdata);
-		for (int i = 0; i < fTrans.length; i++) {
-			fTrans[i] = Cmplx.mul(fTrans[i], gTrans[i]);
-		} // end of for (int i=0; i<gdata.length; i++)
-		float[] ans = fftInverse(fTrans, fdata.length);
-		for (int i = 0; i < ans.length; i++) {
-			ans[i] *= delta;
-		}
-		return ans;
-	}
-
-	/**
-	 * Computes the correlation of fdata with gdata. The value of the output at
-	 * index i is the sum over j of fdata[i+j]*gdata[j], although using the FFT
-	 * is much faster than direct sum.
-	 * 
-	 * @see <a href="http://hebb.mit.edu/courses/9.29/2002/readings/c13-2.pdf"> Numerical Recipes Section 13-2</a>
-	 *      
-	 */
-	public static final float[] correlate(float[] fdata, float[] gdata)
-			throws IllegalArgumentException {
-		if (fdata.length != gdata.length) {
-			throw new IllegalArgumentException(
-					"fdata and gdata must have same length. " + fdata.length
-							+ " " + gdata.length);
-		}
-		Cmplx[] fTrans = fft(fdata);
-		Cmplx[] gTrans = fft(gdata);
-		for (int i = 0; i < fTrans.length; i++) {
-			fTrans[i] = Cmplx.mul(fTrans[i], gTrans[i].conjg());
-		} // end of for (int i=0; i<gdata.length; i++)
-		return fftInverse(fTrans, fdata.length);
-	}
-
 	/**
 	 * Fast Fourier Transform (adapted from Numerical Recipies in C) isign = 1
 	 * replace data by FFT = -1 replace data by inverse FFT data pseudo-complex
 	 * array of length nn input as real pairs nn integer power of 2
 	 */
-	public static final double[] four1(double[] data, int isign) {
+	private static final double[] four1(double[] data, int isign) {
 		int nn = data.length / 2;
 		int n, m, j;
 		double temp;
@@ -393,37 +278,4 @@ public class Cmplx implements java.io.Serializable {
 			cdata[i] = new Cmplx(data[j], data[j + 1]);
 		return (cdata);
 	}
-
-	/**
-	 * FFT of a real valued function. Adapted from Numerial Recipes in C by
-	 * M.Hagerty
-	 * 
-	 * Calculates the Fourier transform of a set of n real-valued data points.
-	 * Replaces this data (which is stored in array data[0..n-1] by the positive
-	 * frequency half of its complex Fourier transform. The real-valued first
-	 * (=DC) and last (=Nyq) components of the complex transform are returned as
-	 * elements data[0] and data[1]. n must be a power of 2. This routine also
-	 * calculates the inverse transform of a complex data array if it is the
-	 * transform of real data. **Results in this case must be multiplied by 2/n!
-	 */
-
-	/**
-	 * public static void realft(double[] data, int isign) { int n =
-	 * data.length; int nn= n>>1; double theta = PI/(double)(nn); double c2;
-	 * 
-	 * if (isign == 1){ c2 = -0.5; four1(data,nn,1); // The forward transform }
-	 * else{ c2 = 0.5; theta = -theta; }
-	 * 
-	 * double wtemp= sin(0.5*theta); double wpr= -2.0*wtemp*wtemp; double wpi=
-	 * sin(theta); double wr= 1.0+wpr; double wi= wpi; //int np3=n+3; int
-	 * np3=n+2;
-	 * 
-	 * for(int i = 1; i < (n>>2); i ++) { i4=1+(i3=np3-(i2=1+(i1=i+i-1)));
-	 * h1r=c1*(data[i1]+data[i3]); h1i=c1*(data[i2]-data[i4]); h2r=
-	 * -c2*(data[i2]+data[i4]); h2i= c2*(data[i1]-data[i3]);
-	 * data[i1]=h1r+wr*h2r-wi*h2i; data[i2]=h1i+wr*h2i+wi*h2r;
-	 * data[i3]=h1r-wr*h2r+wi*h2i; data[i4]= -h1i+wr*h2i+wi*h2r;
-	 * wr=(wtemp=wr)*wpr-wi*wpi+wr; wi=wi*wpr+wtemp*wpi+wi; } if (isign == 1){
-	 * data[1] = (h1r=data[i]) + data[2]; data[2] = h1r - data[2]; }
-	 **/
-} // End class Cmplx
+}
