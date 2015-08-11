@@ -469,19 +469,19 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 	/**
 	 * The Class NoiseModel.
 	 */
-	public static class NoiseModel {
+	static class NoiseModel {
 
 		/** The periods. */
-		double[] periods = null;
+		private double[] periods = null;
 
 		/** The powers. */
-		double[] powers = null;
+		private double[] powers = null;
 
 		/**
 		 * True if valid, False if not. Set in
 		 * {@link asl.seedscan.metrics.NLNMDeviationMetric#readNoiseModel(URL, NoiseModel)}
 		 */
-		boolean valid = false;
+		private boolean valid = false;
 
 		/**
 		 * Gets the periods.
@@ -510,4 +510,4 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 			return valid;
 		}
 	}
-} // end class
+}

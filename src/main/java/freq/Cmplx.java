@@ -1,5 +1,7 @@
 package freq;
 
+import java.io.Serializable;
+
 /**
  * 
  * There is now a standard Complex class in Apache Commons (already in the
@@ -20,7 +22,7 @@ package freq;
  * Boston, MA 02111-1307, USA.
  */
 
-public class Cmplx implements java.io.Serializable {
+public class Cmplx implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 

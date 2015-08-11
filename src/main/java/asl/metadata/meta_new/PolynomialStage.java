@@ -19,17 +19,17 @@
 
 package asl.metadata.meta_new;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 import freq.Cmplx;
 
-public class PolynomialStage extends ResponseStage {
+public class PolynomialStage extends ResponseStage implements Serializable {
 	private static final long serialVersionUID = 1L;
 	private double lowerFrequencyBound;
 	private double upperFrequencyBound;
 	private double lowerApproximationBound;
 	private double upperApproximationBound;
-	private String polynomialApproximationType;
 	private ArrayList<Cmplx> coefficients;
 
 	// private static final long serialVersionUID = 1L;
@@ -39,22 +39,18 @@ public class PolynomialStage extends ResponseStage {
 	}
 
 	// constructor(s)
-	public PolynomialStage(int stageNumber, char stageType, double stageGain,
+	PolynomialStage(int stageNumber, char stageType, double stageGain,
 			double stageFrequency) {
 		super(stageNumber, stageType, stageGain, stageFrequency);
 		coefficients = new ArrayList<Cmplx>();
 	}
 
-	public void addCoefficient(Cmplx coefficient) {
+	void addCoefficient(Cmplx coefficient) {
 		coefficients.add(coefficient);
 	}
 
 	public int getNumberOfCoefficients() {
 		return coefficients.size();
-	}
-
-	public void setPolynomialApproximationType(String type) {
-		this.polynomialApproximationType = type;
 	}
 
 	public void setLowerFrequencyBound(double lowerBound) {
@@ -105,21 +101,5 @@ public class PolynomialStage extends ResponseStage {
 		 * values[++i] = getUpperFrequencyBound();
 		 **/
 		return values;
-	}
-
-	public void print() {
-		super.print();
-		System.out.println("-This is a [Polynomial] stage-");
-		System.out.format("%30s:\t%s\n", "Polynomial Approximation Type",
-				polynomialApproximationType);
-		System.out.format("%30s:\t%f\n", "Lower Approximation Bound",
-				lowerApproximationBound);
-		System.out.format("%30s:\t%f\n", "Upper Approximation Bound",
-				upperApproximationBound);
-		System.out.format(" Number of Coefficients=%d\n",
-				getNumberOfCoefficients());
-		for (int j = 0; j < getNumberOfCoefficients(); j++) {
-			System.out.println(coefficients.get(j));
-		}
 	}
 }

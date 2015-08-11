@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.ObjectInputStream;
 import java.util.HashMap;
+import java.util.zip.GZIPInputStream;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -16,7 +17,7 @@ public class NLNMDeviationMetricTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		ObjectInputStream serialIn = new ObjectInputStream(NLNMDeviationMetricTest.class.getResourceAsStream("/data/IU.ANMO.2015.206.MetricData.ser"));
+		ObjectInputStream serialIn = new ObjectInputStream(new GZIPInputStream(NLNMDeviationMetricTest.class.getResourceAsStream("/data/IU.ANMO.2015.206.MetricData.ser.gz")));
 		try{
 		data1 = (MetricData)serialIn.readObject();
 		}catch(Exception e){

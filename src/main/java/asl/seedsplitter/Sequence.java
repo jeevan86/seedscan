@@ -24,7 +24,7 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 	/**
 	 * Serial Version UID
 	 */
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 2L;
 
 	/** The Constant logger. */
 	private static final Logger logger = LoggerFactory
@@ -42,8 +42,8 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 	/** The m_blocks. */
 	private ArrayList<int[]> m_blocks = null;
 
-	/** The m_block. */
-	private int[] m_block = null;
+	/** The m_block. This appears to be used as a temporary hold member and is thus transient.*/
+	private transient int[] m_block = null;
 
 	/** The m_length. */
 	private int m_length = 0;

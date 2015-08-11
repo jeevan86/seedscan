@@ -305,12 +305,7 @@ public class SeedSplitProcessor implements Runnable {
 							interval = DataSet.sampleRateToInterval(sampleRate);
 						} catch (IllegalSampleRateException e) {
 							MiniSeed ms = new MiniSeed(recordBytes);
-							logger
-									.error(String
-											.format("Illegal Sample Rate: sequence #%d, rate = %f",
-													ms.getSequence(),
-													sampleRate), e);
-							// logger.fatal("This is a fatal error");
+							logger.error("Illegal Sample Rate: sequence #{}, rate = {}", ms.getSequence(), sampleRate);
 							discarded++;
 							break progress;
 						}

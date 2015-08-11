@@ -15,8 +15,7 @@ import java.io.Serializable;
  * 
  * @author Mike Hagerty hagertmb@bc.edu
  */
-public abstract class ResponseStage implements Comparable<ResponseStage>,
-		Serializable {
+public abstract class ResponseStage implements Comparable<ResponseStage>, Serializable {
 
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
@@ -35,11 +34,6 @@ public abstract class ResponseStage implements Comparable<ResponseStage>,
 	
 	/** The input units. */
 	private int inputUnits;
-	
-	/** The output units.
-	 * TODO: Never used in code Consider removal. 
-	 */
-	protected int outputUnits;
 	
 	/** The input units string. */
 	protected String inputUnitsString;
@@ -207,7 +201,6 @@ public abstract class ResponseStage implements Comparable<ResponseStage>,
 	@Override
 	public String toString() {
 		StringBuilder result = new StringBuilder();
-		String NEW_LINE = System.getProperty("line.separator");
 		result.append(String.format(
 				"Stage:%d  [Type='%1s'] Gain=%.2f FreqOfGain=%.2f\n",
 				stageNumber, stageType, stageGain, stageGainFrequency));

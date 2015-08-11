@@ -1,19 +1,21 @@
-
 package seed;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 /**
- * This class represents the Blockette 1000 from the SEED standard V2.4
+ * This class represents the generic blockette from the SEED standard V2.4
  * Blockette.java * All blockettes start with 0 UWORD - blockette type 2 UWORD -
  * offset of next blockette within record (offset to next blockette)
  * 
  * Created on October 3, 2012, 10:38 UTC
  * 
  * 
- * @author Joel D. Edwards
+ * @author Joel D. Edwards - USGS
+ * @author James Holland - USGS
  */
 public abstract class Blockette  implements Serializable {
 	/**
@@ -24,7 +26,7 @@ public abstract class Blockette  implements Serializable {
 	private ByteOrder byteOrder = DEFAULT_BYTE_ORDER;
 
 	protected byte[] buf;
-	protected ByteBuffer bb;
+	protected transient ByteBuffer bb;
 
 	public Blockette() {
 		this(4);
@@ -82,14 +84,6 @@ public abstract class Blockette  implements Serializable {
 		}
 	}
 
-// TODO: Evaluate if this method is both valid and needed. It has zero references.
-	public void yieldBuffer(Blockette b) {
-		b.buf = buf;
-		b.bb = bb;
-		buf = null;
-		bb = null;
-	}
-
 	public byte[] getBytes() {
 		return buf;
 	}
@@ -107,5 +101,20 @@ public abstract class Blockette  implements Serializable {
 	public short getNextOffset() {
 		bb.position(2);
 		return bb.getShort();
+	}
+	
+	/**
+	 * Read default blockette then reallocates the ByteBuffer bb.
+	 *
+	 * @param in
+	 *            the ObjectInputStream containing the Blockette
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 * @throws ClassNotFoundException
+	 *             the class not found exception
+	 */
+	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+		in.defaultReadObject();
+		reallocateBuffer(this.buf.length);
 	}
 }

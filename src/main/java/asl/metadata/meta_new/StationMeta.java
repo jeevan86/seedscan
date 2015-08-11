@@ -21,7 +21,6 @@ package asl.metadata.meta_new;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.TreeSet;
@@ -191,7 +190,7 @@ public class StationMeta implements Serializable {
 	 * @param chanKey the channel key
 	 * @return the channel metadata
 	 */
-	public ChannelMeta getChannelMetadata(ChannelKey chanKey) {
+	private ChannelMeta getChannelMetadata(ChannelKey chanKey) {
 		if (channels.containsKey(chanKey)) {
 			return channels.get(chanKey);
 		} else {
@@ -216,53 +215,6 @@ public class StationMeta implements Serializable {
 	 */
 	public Hashtable<ChannelKey, ChannelMeta> getChannelHashTable() {
 		return channels;
-	}
-
-	/**
-	 * Return ordered primary + secondary seismic channels that have matching
-	 * band
-	 * 
-	 * e.g., if band = "LH" then return channels[0] = "00-LHZ" channels[1] =
-	 * "00-LH1" -or- "00-LHN" channels[2] = "00-LH2" -or- "00-LHE" channels[3] =
-	 * "10-LHZ" channels[4] = "10-LH1" -or- "10-LHN" channels[5] = "10-LH2" -or-
-	 * "10-LHE"
-	 *
-	 * @param band the band
-	 * @return the ZNE channel array
-	 */
-	public List<Channel> getZNEChannelArray(String band) {
-		if (!Channel.validBandCode(band.substring(0, 1))
-				|| !Channel.validInstrumentCode(band.substring(1, 2))) {
-			return null;
-		}
-		TreeSet<ChannelKey> keys = new TreeSet<ChannelKey>();
-		keys.addAll(channels.keySet());
-
-		ArrayList<Channel> channelArrayList = new ArrayList<Channel>();
-
-		String[] location = { "00", "10" };
-		String[] chan = { band + "Z", band + "1", band + "2", band + "Z",
-				band + "N", band + "E" };
-
-		// Add found Primary + Secondary seismic channels to channel array in
-		// order:
-		for (int i = 0; i < 2; i++) {
-			for (int j = 0; j < 3; j++) {
-				if (keys.contains(new ChannelKey(location[i], chan[j]))) {
-					channelArrayList.add(new Channel(location[i], chan[j]));
-				} else if (keys.contains(new ChannelKey(location[i],
-						chan[j + 3]))) {
-					channelArrayList.add(new Channel(location[i], chan[j + 3]));
-				} else {
-					logger.error(
-							"Error: CAN'T find Channel=[{}-{}] OR Channel=[{}-{}] for date=[{}] in metadata",
-							location[i], chan[j], location[i], chan[j + 3],
-							this.getDate());
-				}
-			}
-		}
-
-		return channelArrayList;
 	}
 
 	/**
@@ -293,40 +245,6 @@ public class StationMeta implements Serializable {
 			// the derived channels (e.g., LHND, LHED)
 			if (channel.getChannel().contains(band)
 					&& channel.getChannel().length() == 3) {
-				channelArrayList.add(channel);
-			}
-		}
-		return channelArrayList;
-	}
-	
-	/**
-	 * Gets the channel array.
-	 * Same as above but limit return channels to those containing the specified
-	 * location as well as the specified band
-	 * @see asl.metadata.meta_new.StationMeta#getChannelArray(String)
-	 *
-	 * @param location the location code
-	 * @param band the frequency band
-	 * @return the channel array
-	 */
-	public List<Channel> getChannelArray(String location, String band) {
-		if (!Channel.validLocationCode(location)) {
-			return null;
-		}
-		if (!Channel.validBandCode(band.substring(0, 1))
-				|| !Channel.validInstrumentCode(band.substring(1, 2))) {
-			return null;
-		}
-		TreeSet<ChannelKey> keys = new TreeSet<ChannelKey>();
-		keys.addAll(channels.keySet());
-
-		ArrayList<Channel> channelArrayList = new ArrayList<Channel>();
-
-		for (ChannelKey channelKey : keys) {
-			Channel channel = channelKey.toChannel();
-
-			if (channel.getChannel().contains(band)
-					&& channel.getLocation().equals(location)) {
 				channelArrayList.add(channel);
 			}
 		}
@@ -409,7 +327,7 @@ public class StationMeta implements Serializable {
 	 * @param channelKey the channel key
 	 * @return true, if successful
 	 */
-	public boolean hasChannel(ChannelKey channelKey) {
+	private boolean hasChannel(ChannelKey channelKey) {
 		return channels.containsKey(channelKey);
 	}
 
@@ -431,7 +349,7 @@ public class StationMeta implements Serializable {
 	 * @param name the name
 	 * @return true, if the channel has metadata
 	 */
-	public boolean hasChannel(String location, String name) {
+	private boolean hasChannel(String location, String name) {
 		return hasChannel(new ChannelKey(location, name));
 	}
 
@@ -448,25 +366,6 @@ public class StationMeta implements Serializable {
 			}
 		}
 		return true; // If we made it to here then it must've found all channels
-	}
-
-	/**
-	 * Checks for channels.
-	 *
-	 * @param location the location
-	 * @param chan1 the chan1
-	 * @param chan2 the chan2
-	 * @param chan3 the chan3
-	 * @return true, if successful
-	 */
-	public boolean hasChannels(String location, String chan1, String chan2,
-			String chan3) {
-		if (hasChannel(location, chan1) && hasChannel(location, chan2)
-				&& hasChannel(location, chan3)) {
-			return true;
-		} else {
-			return false;
-		}
 	}
 
 	/**
@@ -524,7 +423,7 @@ public class StationMeta implements Serializable {
 	 * @param location the location
 	 * @param derivedChannelName the derived channel name
 	 */
-	public void addRotatedChannel(String location, String derivedChannelName) {
+	private void addRotatedChannel(String location, String derivedChannelName) {
 
 		String origChannelName = null;
 		double azimuth;
@@ -589,19 +488,6 @@ public class StationMeta implements Serializable {
 			this.addChannel(new ChannelKey(derivedChannel), derivedChannelMeta);
 		} catch (RuntimeException e) {
 			logger.error("RuntimeException:", e);
-		}
-	}
-
-	/**
-	 * Prints the Station metadata and channels to System.out.
-	 */
-	public void print() {
-		System.out.print(this);
-		ArrayList<ChannelKey> chanKeys = new ArrayList<ChannelKey>();
-		chanKeys.addAll(channels.keySet());
-		Collections.sort(chanKeys);
-		for (ChannelKey chanKey : chanKeys) {
-			channels.get(chanKey).print();
 		}
 	}
 

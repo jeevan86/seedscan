@@ -18,14 +18,14 @@
  */
 package asl.metadata;
 
+import java.io.Serializable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ChannelKey extends Key implements Comparable<ChannelKey>,
-		java.io.Serializable {
+public class ChannelKey extends Key implements Comparable<ChannelKey>, Serializable {
 	private static final long serialVersionUID = 1L;
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.metadata.ChannelKey.class);
@@ -34,7 +34,6 @@ public class ChannelKey extends Key implements Comparable<ChannelKey>,
 	private String location = null;
 	private String name = null;
 
-	// constructor(s)
 	public ChannelKey(Blockette blockette) throws WrongBlocketteException {
 		if (blockette.getNumber() != CHANNEL_EPOCH_BLOCKETTE_NUMBER) {
 			throw new WrongBlocketteException();
@@ -63,6 +62,15 @@ public class ChannelKey extends Key implements Comparable<ChannelKey>,
 		this(channel.getLocation(), channel.getChannel());
 	}
 
+	/**
+	 * Sets the location code.
+	 * 
+	 * If the location code is -- or "" it is changed to 00.
+	 * If the location code is HR it is changed to 10.
+	 * 
+	 * @param location valid codes include --, "", HR, 00, 10, etc
+	 * @throws ChannelKeyException
+	 */
 	private void setLocation(String location) throws ChannelKeyException {
 
 		String validCodes = "\"--\", \"00\", \"10\", etc.";
@@ -84,7 +92,7 @@ public class ChannelKey extends Key implements Comparable<ChannelKey>,
 		 **/
 
 		// Set Default location codes:
-		if (location.equals("--") || location.equals("") || location == null) {
+		if (location == null || location.equals("--") || location.equals("")) {
 			logger.debug(
 					"metadata name=[{}] location=[{}] was changed to [00]",
 					name, location);

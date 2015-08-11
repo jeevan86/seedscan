@@ -78,15 +78,6 @@ public class MetricData implements Serializable {
 		this.nextMetricData = null;
 	}
 
-	// constructor(s)
-
-	public MetricData(MetricReader metricReader,
-			Hashtable<String, ArrayList<DataSet>> data, StationMeta metadata) {
-		this.metricReader = metricReader;
-		this.data = data;
-		this.metadata = metadata;
-	}
-
 	public MetricData(MetricReader metricReader,
 			Hashtable<String, ArrayList<DataSet>> data,
 			Hashtable<String, ArrayList<Integer>> qualityData,

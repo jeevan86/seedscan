@@ -649,8 +649,6 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 																					// "P [Polynomial]"
 					String ResponseInUnits = blockette.getFieldValue(5, 0);
 					String ResponseOutUnits = blockette.getFieldValue(6, 0);
-					String PolynomialApproximationType = blockette
-							.getFieldValue(7, 0); // e.g., "M [MacLaurin]"
 					Double lowerFrequencyBound = Double.parseDouble(blockette
 							.getFieldValue(9, 0));
 					Double upperFrequencyBound = Double.parseDouble(blockette
@@ -678,8 +676,6 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 							.setLowerApproximationBound(lowerApproximationBound);
 					polyStage
 							.setUpperApproximationBound(upperApproximationBound);
-					polyStage
-							.setPolynomialApproximationType(PolynomialApproximationType);
 					for (int i = 0; i < numberOfCoefficients; i++) {
 						Double coeff_re = Double.parseDouble(RealCoefficients
 								.get(i));
@@ -769,23 +765,6 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 			logger.error("PoleZeroStageException:", e);
 		}
 	} // end plotResp
-
-	void print() {
-		System.out
-				.println("####### ChannelMeta.print() -- START ################################");
-		System.out.println(this);
-		for (Integer stageID : stages.keySet()) {
-			ResponseStage stage = stages.get(stageID);
-			stage.print();
-			if (stage instanceof PoleZeroStage) {
-				// PoleZeroStage pz = (PoleZeroStage)stage;
-				// pz.print();
-			}
-		}
-		System.out
-				.println("####### ChannelMeta.print() -- STOP  ################################");
-		// System.out.println();
-	}
 
 	@Override
 	public String toString() {
