@@ -698,23 +698,28 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 					String ResponseInUnits = null;
 					String ResponseOutUnits = null;
 
-					String TransferFunctionType = blockette.getFieldValue(3, 0);
-					TransferFunctionType.toCharArray();
+					String transferFunctionType = blockette.getFieldValue(3, 0);
+					char[] stageType = transferFunctionType.toCharArray();
 					ResponseInUnits = blockette.getFieldValue(5, 0);
 					ResponseOutUnits = blockette.getFieldValue(6, 0);
 
-					/*This assumes that the response type is always a digital response*/
-					DigitalStage digitalStage = new DigitalStage(stageNumber,
-							'D', Gain, frequencyOfGain);
+					/*
+					 * Check if it is a digital stage. Throw warning if not, but
+					 * still continue.
+					 */
+					if (stageType[0] != 'D') {
+						logger.warn("Non digital stage being processed as digital stage.");
+					}
+					DigitalStage digitalStage = new DigitalStage(stageNumber, stageType[0], Gain, frequencyOfGain);
 					digitalStage.setInputUnits(ResponseInUnits);
 					digitalStage.setOutputUnits(ResponseOutUnits);
 
 					this.addStage(stageNumber, digitalStage);
-				} // end B054
+				}
 
 			} else { // No Stage stageNumber: What we do here ...
 			}
-		} // end Loop stageNumber
+		}
 
 		this.setAzimuth(epochData.getAzimuth());
 		this.setDepth(epochData.getDepth());
