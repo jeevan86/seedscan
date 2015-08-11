@@ -18,6 +18,8 @@
  */
 package asl.metadata;
 
+import java.io.Serializable;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +28,7 @@ import org.slf4j.LoggerFactory;
  * They are the fundamental building blocks of StationKey, ChannelKey and ChannelArray
  */
 
-public class Station implements java.io.Serializable {
+public class Station implements Serializable {
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.metadata.Station.class);
 	private static final long serialVersionUID = 1L;

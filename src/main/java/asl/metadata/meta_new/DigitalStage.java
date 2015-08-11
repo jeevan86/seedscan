@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DigitalStage extends ResponseStage implements Cloneable {
+class DigitalStage extends ResponseStage implements Cloneable {
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.metadata.meta_new.DigitalStage.class);
 	private static final long serialVersionUID = 1L;
@@ -80,7 +80,7 @@ public class DigitalStage extends ResponseStage implements Cloneable {
 	 **/
 
 	// constructor(s)
-	public DigitalStage(int stageNumber, char stageType, double stageGain,
+	DigitalStage(int stageNumber, char stageType, double stageGain,
 			double stageFrequency) {
 		super(stageNumber, stageType, stageGain, stageFrequency);
 	}

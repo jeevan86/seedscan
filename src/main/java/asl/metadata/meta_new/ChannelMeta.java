@@ -95,29 +95,17 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 		stages = new Hashtable<Integer, ResponseStage>();
 	}
 
-	public ChannelMeta(ChannelKey channel, Calendar metaTimestamp)
+	private ChannelMeta(ChannelKey channel, Calendar metaTimestamp)
 			throws RuntimeException {
 		this(channel, metaTimestamp, null);
 	}
 
-	public ChannelMeta(String location, String channel, Calendar metaTimestamp)
+	private ChannelMeta(String location, String channel, Calendar metaTimestamp)
 			throws RuntimeException {
 		this(new ChannelKey(location, channel), metaTimestamp);
 	}
 
-	/**
-	 * Deep copy method(s)
-	 */
-	public ChannelMeta copy() throws RuntimeException {
-		try {
-			ChannelMeta copyName = copy(this.name);
-			return copyName;
-		} catch (RuntimeException e) {
-			throw e;
-		}
-	}
-
-	public ChannelMeta copy(Channel channel) throws RuntimeException {
+	ChannelMeta copy(Channel channel) throws RuntimeException {
 		try {
 			ChannelMeta copyChan = copy(channel.getChannel());
 			return copyChan;
@@ -126,7 +114,7 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 		}
 	}
 
-	public ChannelMeta copy(String name) throws RuntimeException {
+	private ChannelMeta copy(String name) throws RuntimeException {
 		String useName = null;
 		if (name != null) {
 			useName = name;
@@ -273,10 +261,6 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 		return channelFlags;
 	}
 
-	public boolean hasDayBreak() {
-		return dayBreak;
-	}
-
 	public Calendar getTimestamp() {
 		return (Calendar) metaTimestamp.clone();
 	}
@@ -286,11 +270,11 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 	}
 
 	// Stages
-	public void addStage(Integer stageID, ResponseStage responseStage) {
+	private void addStage(Integer stageID, ResponseStage responseStage) {
 		stages.put(stageID, responseStage);
 	}
 
-	public boolean hasStage(Integer stageID) {
+	private boolean hasStage(Integer stageID) {
 		return stages.containsKey(stageID);
 	}
 
@@ -311,7 +295,7 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 	}
 
 	// Return true if any errors found in loaded ResponseStages
-	public boolean invalidResponse() {
+	private boolean invalidResponse() {
 		// If we have a seismic channel we need to ensure a valid response
 
 		boolean isSeismicChannel = false;
@@ -719,6 +703,7 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 					ResponseInUnits = blockette.getFieldValue(5, 0);
 					ResponseOutUnits = blockette.getFieldValue(6, 0);
 
+					/*This assumes that the response type is always a digital response*/
 					DigitalStage digitalStage = new DigitalStage(stageNumber,
 							'D', Gain, frequencyOfGain);
 					digitalStage.setInputUnits(ResponseInUnits);
@@ -780,7 +765,7 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 		}
 	} // end plotResp
 
-	public void print() {
+	void print() {
 		System.out
 				.println("####### ChannelMeta.print() -- START ################################");
 		System.out.println(this);

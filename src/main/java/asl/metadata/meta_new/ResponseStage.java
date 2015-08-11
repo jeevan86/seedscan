@@ -34,7 +34,7 @@ public abstract class ResponseStage implements Comparable<ResponseStage>,
 	protected double stageGainFrequency;
 	
 	/** The input units. */
-	protected int inputUnits;
+	private int inputUnits;
 	
 	/** The output units.
 	 * TODO: Never used in code Consider removal. 
@@ -63,7 +63,7 @@ public abstract class ResponseStage implements Comparable<ResponseStage>,
 	 * @param gain the gain
 	 * @param frequency the frequency
 	 */
-	public ResponseStage(int number, char type, double gain, double frequency) {
+	ResponseStage(int number, char type, double gain, double frequency) {
 		stageNumber = number;
 		stageType = type;
 		stageGain = gain;
