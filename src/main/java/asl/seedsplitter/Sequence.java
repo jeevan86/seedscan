@@ -3,7 +3,6 @@ package asl.seedsplitter;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
@@ -32,7 +31,7 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 			.getLogger(asl.seedsplitter.Sequence.class);
 
 	/** The Constant BLOCK_SIZE. */
-	public static final int BLOCK_SIZE = 4096;
+	private static final int BLOCK_SIZE = 4096;
 
 	/** The m_tz. */
 	private static TimeZone m_tz = TimeZone.getTimeZone("GMT");
@@ -60,28 +59,6 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 
 	/** The m_interval. */
 	private long m_interval = 0;
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#clone()
-	 */
-	public Object clone() throws CloneNotSupportedException {
-		try {
-			Sequence sequence = new Sequence();
-			sequence.m_startTime = m_startTime;
-			sequence.m_sampleRate = m_sampleRate;
-			sequence.m_interval = m_interval;
-			for (int[] block : m_blocks) {
-				sequence.extend(block, 0, block.length);
-			}
-			sequence.m_length = m_length;
-			sequence.m_remainder = m_remainder;
-			return sequence;
-		} catch (CloneNotSupportedException e) {
-			throw e;
-		}
-	}
 
 	/**
 	 * Creates a new instance of this object.
@@ -166,7 +143,7 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 	/**
 	 * Resets the time-series, flushing all data.
 	 */
-	public void clear() {
+	private void clear() {
 		_reset();
 		m_startTime = 0;
 		m_sampleRate = 0.0;
@@ -221,7 +198,7 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 	 * @param endTime
 	 *            The new ending data point is at or earlier than this point.
 	 */
-	public void trim(long startTime, long endTime) {
+	private void trim(long startTime, long endTime) {
 		if (startTime > endTime) {
 			clear();
 		} else if (startTime > this.getEndTime()) {
@@ -262,19 +239,8 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 	 * @param startTime
 	 *            The new starting data point is at or later than this point.
 	 */
-	public void trimStart(long startTime) {
+	void trimStart(long startTime) {
 		this.trim(startTime, this.getEndTime());
-	}
-
-	/**
-	 * Trims the sequence such that its data ends at or before the specified
-	 * time.
-	 * 
-	 * @param endTime
-	 *            The new ending data point is at or earlier than this point.
-	 */
-	public void trimEnd(long endTime) {
-		this.trim(m_startTime, endTime);
 	}
 
 	/**
@@ -286,7 +252,7 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 	 * @param seq
 	 *            The Sequence with which this Sequence's data will be swapped.
 	 */
-	public void swapData(Sequence seq) {
+	private void swapData(Sequence seq) {
 		ArrayList<int[]> tempBlocks = m_blocks;
 		int[] tempBlock = m_block;
 		int tempLength = m_length;
@@ -545,40 +511,6 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 	}
 
 	/**
-	 * Returns a reference the block at the specified index.
-	 * 
-	 * @param index
-	 *            The index of the desired block
-	 * 
-	 * @return reference to the int array at the specified index.
-	 * @throws ArrayIndexOutOfBoundsException
-	 *             {@literal index out of range (index < 0 || index >= getLength())}
-	 */
-	public int[] getBlock(int index) throws ArrayIndexOutOfBoundsException {
-		return m_blocks.get(index);
-	}
-
-	/**
-	 * Returns the number of valid data points in the block located at this
-	 * index.
-	 * 
-	 * @param index
-	 *            The index of the desired block
-	 * 
-	 * @return reference the number of valid data points in the block located at
-	 *         this index.
-	 * @throws ArrayIndexOutOfBoundsException
-	 *             {@literal index out of range (index < 0 || index >= getLength())}
-	 */
-	public int getBlockSize(int index) throws ArrayIndexOutOfBoundsException {
-		if (index > m_blocks.size()) {
-			throw new ArrayIndexOutOfBoundsException();
-		}
-		return ((index <= m_blocks.size()) ? BLOCK_SIZE - m_remainder
-				: BLOCK_SIZE);
-	}
-
-	/**
 	 * Returns the number of blocks contained within this Sequence.
 	 * 
 	 * @return Returns the number of blocks contained within this Sequence.
@@ -611,7 +543,7 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 	 * @throws SequenceRangeException
 	 *             the sequence range exception
 	 */
-	public int[] getSeries(int index, int count)
+	private int[] getSeries(int index, int count)
 			throws IndexOutOfBoundsException, SequenceRangeException {
 		if (index >= m_length) {
 			throw new IndexOutOfBoundsException();
@@ -671,42 +603,6 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 	}
 
 	/**
-	 * Returns a new Array containing the specified number of data points
-	 * starting at the specified timestamp.
-	 *
-	 * @param startTime
-	 *            The first returned data point must start at or after this
-	 *            timestamp.
-	 * @param count
-	 *            The number of data points to return.
-	 * @return Returns a new Array containing all of the data points in this
-	 *         sequence.
-	 * @throws SequenceRangeException
-	 *             the sequence range exception
-	 * @throws IndexOutOfBoundsException
-	 *             the index out of bounds exception
-	 */
-	public int[] getSeries(long startTime, int count)
-			throws SequenceRangeException, IndexOutOfBoundsException {
-		int[] series = null;
-		int index = 0;
-		if (startTime < m_startTime) {
-			throw new SequenceRangeException();
-		} else {
-			long diff = startTime - m_startTime;
-			index = (int) (diff / m_interval + (((diff % m_interval) > 0) ? 1
-					: 0));
-		}
-
-		try {
-			series = this.getSeries(index, count);
-		} catch (IndexOutOfBoundsException e) {
-			throw e;
-		}
-		return series;
-	}
-
-	/**
 	 * Returns an array of integer values that falls within the specified range.
 	 * The specified start and end times must be within the range of the actual
 	 * data.
@@ -754,34 +650,8 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 	 * @return A boolean value; true if this Sequence starts before the start of
 	 *         the reference Sequence, otherwise false.
 	 */
-	public boolean startsBefore(Sequence seq) {
+	private boolean startsBefore(Sequence seq) {
 		return (this.m_startTime < seq.m_startTime);
-	}
-
-	/**
-	 * Determines if this Sequence has a start time which is later than the end
-	 * time of the supplied reference Sequence (no overlap if true).
-	 * 
-	 * @param seq
-	 *            The reference Sequence with which to compare this Sequence.
-	 * @return A boolean value; true if this Sequence starts after the end of
-	 *         the reference Sequence, otherwise false.
-	 */
-	public boolean startsAfter(Sequence seq) {
-		return (this.m_startTime > seq.getEndTime());
-	}
-
-	/**
-	 * Determines if this Sequence has an end time which is earlier than the
-	 * start time of the supplied reference Sequence (no overlap if true).
-	 * 
-	 * @param seq
-	 *            The reference Sequence with which to compare this Sequence.
-	 * @return A boolean value; true if this Sequence ends before the start time
-	 *         of the reference Sequence, otherwise false.
-	 */
-	public boolean endsBefore(Sequence seq) {
-		return (this.getEndTime() < seq.m_startTime);
 	}
 
 	/**
@@ -793,21 +663,8 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 	 * @return A boolean value; true if this Sequence ends after the end time of
 	 *         the reference Sequence, otherwise false.
 	 */
-	public boolean endsAfter(Sequence seq) {
+	private boolean endsAfter(Sequence seq) {
 		return (this.getEndTime() > seq.getEndTime());
-	}
-
-	/**
-	 * Determines if this Sequence has any overlap with the supplied reference
-	 * Sequence.
-	 * 
-	 * @param seq
-	 *            The reference Sequence with which to compare this Sequence.
-	 * @return A boolean value; true if this Sequence overlaps with the
-	 *         suppplied sequence.
-	 */
-	public boolean overlaps(Sequence seq) {
-		return !(this.endsBefore(seq) || this.startsAfter(seq));
 	}
 
 	/**
@@ -866,7 +723,7 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 	 *             if the reference Sequence's frequency does not match that of
 	 *             this Sequence.
 	 */
-	public Boolean subSequenceOf(Sequence seq)
+	private Boolean subSequenceOf(Sequence seq)
 			throws SequenceIntervalMismatchException {
 		if (seq.m_interval != m_interval) {
 			throw new SequenceIntervalMismatchException();
@@ -887,7 +744,7 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 	 *             if the supplied sample rate is not one of the accpeted
 	 *             values.
 	 */
-	public static long sampleRateToInterval(double sampleRate)
+	static long sampleRateToInterval(double sampleRate)
 			throws IllegalSampleRateException {
 		long interval;
 		if (sampleRate == 0.001)
@@ -947,7 +804,7 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 	 * @return Returns the timestamp as a human readable string of the format
 	 *         YYYY/MM/DD HH:MM:SS.mmmmmm
 	 */
-	public static String timestampToString(long timestamp) {
+	static String timestampToString(long timestamp) {
 		TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
 		String result = null;
 		GregorianCalendar cal = new GregorianCalendar(m_tz);
@@ -960,65 +817,6 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 				cal.get(Calendar.MINUTE), cal.get(Calendar.SECOND),
 				(cal.get(Calendar.MILLISECOND) * 1000 + (timestamp % 10)));
 		return result;
-	}
-
-	/**
-	 * Returns the timestamp of the first data point.
-	 *
-	 * @param sequences
-	 *            - a Collection of Sequences which will be collapsed into a
-	 *            single sequence, disregarding gaps and removing duplicates
-	 * @return new sequence containing
-	 * @throws SequenceIntervalMismatchException
-	 *             the sequence interval mismatch exception
-	 * @throws SequenceMergeRangeException
-	 *             the sequence merge range exception
-	 * @throws SequenceTimingException
-	 *             the sequence timing exception
-	 * @throws CloneNotSupportedException
-	 *             the clone not supported exception
-	 * @throws RuntimeException
-	 *             the runtime exception
-	 */
-	public static Sequence collapse(Collection<Sequence> sequences)
-			throws SequenceIntervalMismatchException,
-			SequenceMergeRangeException, SequenceTimingException,
-			CloneNotSupportedException, RuntimeException {
-		Sequence collapsed = null;
-		try {
-			for (Sequence sequence : sequences) {
-				if (collapsed == null) {
-					collapsed = (Sequence) sequence.clone();
-				} else if (collapsed.overlaps(sequence)) {
-					try {
-						((Sequence) sequence.clone()).mergeInto(collapsed);
-					} catch (BlockSizeMismatchException e) {
-						logger.error("BlockSizeMismatchException:", e);
-					}
-				} else {
-					if (collapsed.getInterval() != sequence.getInterval()) {
-						throw new SequenceIntervalMismatchException();
-					}
-					Sequence source = sequence;
-					if (collapsed.startsAfter(sequence)) {
-						source = collapsed;
-						collapsed = (Sequence) sequence.clone();
-					}
-					// append newSeq to collapsed
-					int remaining = source.m_blocks.size();
-					for (int[] block : source.m_blocks) {
-						int numSamples = (--remaining > 0) ? BLOCK_SIZE
-								: (BLOCK_SIZE - source.m_remainder);
-						collapsed.extend(block, 0, numSamples);
-					}
-				}
-			}
-			return collapsed;
-		} catch (CloneNotSupportedException e) {
-			throw e;
-		} catch (RuntimeException e) {
-			throw e;
-		}
 	}
 
 	/**
