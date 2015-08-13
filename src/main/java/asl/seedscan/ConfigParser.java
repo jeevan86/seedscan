@@ -25,16 +25,37 @@ import org.xml.sax.SAXException;
 
 import asl.seedscan.config.ConfigT;
 
-public class ConfigParser {
-	private static final Logger logger = LoggerFactory
-			.getLogger(asl.seedscan.ConfigParser.class);
+/**
+ * The Class ConfigParser.
+ * 
+ * Reads the XSD schema used by JAXB and confirms that config.xml is properly
+ * formatted.
+ */
+class ConfigParser {
 
+	/** The Constant logger. */
+	private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.ConfigParser.class);
+
+	/** The schema. */
 	private Schema schema = null;
 
-	public ConfigParser(Collection<URL> schemaFiles) {
+	/**
+	 * Instantiates a new config parser.
+	 *
+	 * @param schemaFiles
+	 *            the schema files
+	 */
+	ConfigParser(Collection<URL> schemaFiles) {
 		schema = makeSchema(schemaFiles);
 	}
 
+	/**
+	 * Make schema from a list of file URLs.
+	 *
+	 * @param files
+	 *            the files
+	 * @return the schema
+	 */
 	private Schema makeSchema(Collection<URL> files) {
 		Schema schema = null;
 		StreamSource[] sources = new StreamSource[files.size()];
@@ -43,15 +64,14 @@ public class ConfigParser {
 		for (URL fileURL : files) {
 			try {
 				sources[i] = new StreamSource(fileURL.openStream());
-				
+
 			} catch (IOException e) {
 				logger.error("Unable to read file: {}", e.getMessage());
 			}
 			i++;
 		}
 
-		SchemaFactory factory = SchemaFactory
-				.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+		SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
 		try {
 			schema = factory.newSchema(sources);
 		} catch (SAXException ex) {
@@ -62,19 +82,23 @@ public class ConfigParser {
 		return schema;
 	}
 
-	public ConfigT parseConfig(File configFile) {
+	/**
+	 * Parses the config.
+	 *
+	 * @param configFile
+	 *            the config file
+	 * @return the config t
+	 */
+	ConfigT parseConfig(File configFile) {
 		ConfigT cfg = null;
 
 		try {
-			JAXBContext context = JAXBContext
-					.newInstance("asl.seedscan.config");
+			JAXBContext context = JAXBContext.newInstance("asl.seedscan.config");
 			Unmarshaller unmarshaller = context.createUnmarshaller();
 			unmarshaller.setSchema(schema);
-			InputStream stream = new BufferedInputStream(new DataInputStream(
-					new FileInputStream(configFile)));
+			InputStream stream = new BufferedInputStream(new DataInputStream(new FileInputStream(configFile)));
 			StreamSource source = new StreamSource(stream);
-			JAXBElement<ConfigT> cfgRoot = unmarshaller
-					.unmarshal(source, ConfigT.class);
+			JAXBElement<ConfigT> cfgRoot = unmarshaller.unmarshal(source, ConfigT.class);
 			cfg = cfgRoot.getValue();
 		} catch (FileNotFoundException ex) {
 			String message = "FileNotFoundException: Could not locate config file:";
