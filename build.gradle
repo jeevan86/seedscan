@@ -40,7 +40,7 @@ dependencies {
 }
 
 jaxb {
-    xsdDir = "schemas"
+    xsdDir = "src/main/resources/schemas"
         xjc {
             destinationDir = 'src/main/java'
                 removeOldOutput = 'yes'
