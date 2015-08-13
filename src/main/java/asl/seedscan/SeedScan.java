@@ -2,7 +2,9 @@ package asl.seedscan;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -50,8 +52,8 @@ public class SeedScan {
 	public static void main(String args[]) {
 		// Default locations of config and schema files
 		File configFile = new File("config.xml");
-		File schemaFile = new File("schemas/SeedScanConfig.xsd");
-		ArrayList<File> schemaFiles = new ArrayList<File>();
+		URL schemaFile = SeedScan.class.getResource("/schemas/SeedScanConfig.xsd");
+		ArrayList<URL> schemaFiles = new ArrayList<URL>();
 		schemaFiles.add(schemaFile);
 
 		// ==== Command Line Parsing ====
@@ -89,7 +91,11 @@ public class SeedScan {
 			if (opt.getOpt().equals("c")) {
 				configFile = new File(opt.getValue());
 			} else if (opt.getOpt().equals("s")) {
-				schemaFile = new File(opt.getValue());
+				try {
+					schemaFile = new URL(opt.getValue());
+				} catch (MalformedURLException e) {
+					logger.error("Invalid schema file.");
+				}
 			}
 		}
 
