@@ -428,7 +428,7 @@ public class SeedSplitProcessor implements Runnable {
 									MiniSeed ms = new MiniSeed(recordBytes);
 									logger.error(String.format(
 											"Invalid Start Time: sequence #%d",
-											ms.getSequence()), e);
+											ms.getSequence()), e.getMessage());
 									tempData = null;
 									break progress;
 								} catch (IllegalSampleRateException e) {
@@ -437,16 +437,16 @@ public class SeedSplitProcessor implements Runnable {
 											.error(String
 													.format("Invalid Sample Rate: sequence #%d, rate = %f",
 															ms.getSequence(),
-															ms.getRate()), e);
+															ms.getRate()), e.getMessage());
 									tempData = null;
 									break progress;
 								}
 								temps.put(key, tempData);
 							} // replaceDataSet
 						} catch (CloneNotSupportedException e) {
-							logger.error("CloneNotSupportedException:", e);
+							logger.error("CloneNotSupportedException:", e.getMessage());
 						} catch (RuntimeException e) {
-							logger.error("RuntimeException:", e);
+							logger.error("RuntimeException:", e.getMessage());
 						}
 
 						record = new MiniSeed(recordBytes);
@@ -516,26 +516,22 @@ public class SeedSplitProcessor implements Runnable {
 								// key, kept, discarded);
 							}
 
-						} // end else samples != null
+						}
 
-					} // end else MTH
+					}
 
 				} catch (SteimException e) {
-					// logger.warn("SteimException:", e);
-					logger.error("SteimException:", e);
+					logger.error("SteimException:", e.getMessage());
 				} catch (BlockSizeException e) {
-					// logger.warn("BlockSizeException:", e);
-					logger.error("BlockSizeException:", e);
+					logger.error("BlockSizeException:", e.getMessage());
 				} catch (InterruptedException e) {
-					// logger.warn("InterruptedException:", e);
-					logger.error("InterruptedException:", e);
+					logger.error("InterruptedException:", e.getMessage());
 				} catch (IllegalSeednameException e) {
-					// logger.warn("IllegalSeednameException:", e);
-					logger.error("IllegalSeednameException:", e);
-				} // end try
+					logger.error("IllegalSeednameException:", e.getMessage());
+				}
 			}
 			m_progressQueue.put(progress);
-		} // end while(m_running)
+		}
 		for (String tempKey : temps.keySet()) {
 			tempData = null;
 			tree = null;
@@ -548,14 +544,7 @@ public class SeedSplitProcessor implements Runnable {
 			if ((tempData != null) && (tree != null)) {
 				tree.add(tempData);
 				tree.size();
-				/*
-				 * try { Iterator<DataSet> itr = tree.iterator(); DataSet tmpval
-				 * = new DataSet(); double SR = 0.0; while(itr.hasNext()) {
-				 * tmpval = itr.next(); SR = tmpval.getSampleRate();
-				 * System.out.format("Key: %s SampleRate: %s\n", tempKey, SR); }
-				 * } catch (CloneNotSupportedException e) {
-				 * logger.warn("Test Exception: ", e); }
-				 */
+				
 				logger.debug("Adding DataSet to TreeSet.");
 				logger.debug(String.format(
 						"  Range: %s - %s (%d data points {CHECK: %d})",
@@ -624,14 +613,14 @@ public class SeedSplitProcessor implements Runnable {
 						throw new RuntimeException(
 								"Interval Mismatch. This should never happen!");
 					} catch (SequenceMergeRangeException e) {
-						logger.error("SequenceMergeRangeException:", e);
+						logger.error("SequenceMergeRangeException:", e.getMessage());
 						list.add(lastDataSet);
 						lastDataSet = currDataSet;
 						currDataSet = null;
 					} catch (SequenceTimingException e) {
 						logger
 								.error("SequenceTimingException: Sequences could not be correctly paired!",
-										e);
+										e.getMessage());
 						list.add(lastDataSet);
 						currDataSet.trimStart(lastDataSet.getStartTime());
 						lastDataSet = currDataSet;
@@ -641,7 +630,7 @@ public class SeedSplitProcessor implements Runnable {
 					} catch (BlockSizeMismatchException e) {
 						logger
 								.error("BlockSizeMismatchException: BlockPool.addBlock() Impossible situation!",
-										e);
+										e.getMessage());
 					}
 				}
 				list.add(lastDataSet);
@@ -668,17 +657,6 @@ public class SeedSplitProcessor implements Runnable {
 			progress = new SeedSplitProgress(byteTotal, true);
 			m_progressQueue.put(progress);
 		}
-
-		// Print out m_qualityTable to see what we got ...
-		// TreeSet<String> keys = new TreeSet<String>();
-		// keys.addAll(m_qualityTable.keySet());
-		// for (String qkey : keys){
-		// ArrayList<Integer> qualities = m_qualityTable.get(qkey);
-		// System.out.format("== [key=%s] --> nQuality=%d\n", qkey,
-		// qualities.size() );
-		// }
-		// System.exit(0);
-
-	} // run()
+	}
 
 }
