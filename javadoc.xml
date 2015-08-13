@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project default="javadoc">
-    <target name="javadoc">
-        <javadoc access="private" author="true" classpath="lib/jcommon-1.0.23.jar:lib/jfreechart-1.0.19.jar:lib/slf4j-api-1.7.8.jar:lib/commons-cli-1.2.jar:lib/logback-core-1.1.2.jar:lib/TauP-2.1.0.jar:lib/logback-classic-1.1.2.jar:lib/postgresql-9.3-1102.jdbc41.jar" destdir="doc" doctitle="seedscan" nodeprecated="false" nodeprecatedlist="false" noindex="false" nonavbar="false" notree="false" packagenames="asl.seedscan,seed,asl.seedsplitter,asl.security,freq,asl.seedscan.metrics,asl.metadata.meta_new,asl.seedscan.event,timeutils,asl.seedscan.database,sac,asl.concurrent,asl.metadata,asl.worker,asl.util" source="1.7" sourcepath="src" splitindex="true" use="true" version="true">
-            <link href="https://docs.oracle.com/javase/8/docs/api/"/>
-        </javadoc>
-    </target>
-</project>
