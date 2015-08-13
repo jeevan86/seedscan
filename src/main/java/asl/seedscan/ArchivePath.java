@@ -21,7 +21,6 @@ package asl.seedscan;
 
 import java.util.GregorianCalendar;
 
-import asl.metadata.Channel;
 import asl.metadata.Station;
 
 /**
@@ -31,7 +30,6 @@ public class ArchivePath {
 
 	private GregorianCalendar timestamp;
 	private Station station = null;
-	private Channel channel = null;
 
 	public ArchivePath(Station station) {
 		this.station = station;
@@ -57,12 +55,7 @@ public class ArchivePath {
 			}
 			pattern = pattern.replace("${STATION}", station.getStation());
 		}
-		if (channel != null) {
-			if (channel.getLocation() != null) {
-				pattern = pattern.replace("${LOCATION}", channel.getLocation());
-			}
-			pattern = pattern.replace("${CHANNEL}", channel.getChannel());
-		}
+
 		pattern = pattern.replace("${YEAR}", String.format("%1$tY", timestamp));
 		pattern = pattern
 				.replace("${MONTH}", String.format("%1$tm", timestamp));
