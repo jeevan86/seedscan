@@ -7,7 +7,6 @@ import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -100,16 +99,6 @@ public abstract class MemberDigest implements Serializable {
 	}
 
 	/**
-	 * Adds a String to digest.
-	 *
-	 * @param data
-	 *            the data
-	 */
-	protected void addToDigest(String data) {
-		addToDigest(data.getBytes());
-	}
-
-	/**
 	 * Adds a ByteBuffer to digest.
 	 *
 	 * @param data
@@ -157,21 +146,6 @@ public abstract class MemberDigest implements Serializable {
 	 */
 	protected void addToDigest(Double data) {
 		addToDigest(ByteBuffer.allocate(8).putDouble(data));
-	}
-
-	/**
-	 * Combines multiple MemberDigests into a ByteBuffer
-	 *
-	 * @param digests
-	 *            the MemberDigest collection
-	 * @return the combined ByteBuffer
-	 */
-	public static ByteBuffer multiDigest(Collection<MemberDigest> digests) {
-		ArrayList<ByteBuffer> buffers = new ArrayList<ByteBuffer>(digests.size());
-		for (MemberDigest digest : digests) {
-			buffers.add(digest.getDigestBytes());
-		}
-		return multiBuffer(buffers);
 	}
 
 	/**
