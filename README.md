@@ -108,13 +108,29 @@ SeedScan
 </cfg:metric>
 ```
 
+######NLNM Deviation Metric Setup
+    Previously, nlnm.ascii and nhnm.ascii needed to be specified. But now leaving these settings off will cause seedscan to use default noise models. If different noise models need to be specified, they can be set in the metric.
+    
+```xml
+ <cfg:metric>
+     <cfg:class_name>asl.seedscan.metrics.NLNMDeviationMetric</cfg:class_name>
+     <cfg:argument cfg:name="lower-limit">4</cfg:argument>
+     <cfg:argument cfg:name="upper-limit">8</cfg:argument>
+     <cfg:argument cfg:name="nlnm-modelfile">resources/NLNM.ascii/</cfg:argument>
+     <cfg:argument cfg:name="nhnm-modelfile">resources/NHNM.ascii/</cfg:argument>
+     <cfg:argument cfg:name="makeplots">true</cfg:argument>
+ </cfg:metric>
+```
+
 ###Usage
 
+######Compilation
+    To compile execute "gradle build". This will download required dependencies, compile, and test the source code against current unit tests.
+    
 ######Basic Execution  
-    To simply compile and execute seedscan run "ant seedscan" in the seedscan folder.
-    If you wish to log the output to a file, run "ant seedscan | tee filename". This will both print
+    To simply compile and execute seedscan run "gradle run" in the seedscan folder.
+    If you wish to log the output to a file, run "gradle run | tee filename". This will both print
     to the screen and write to the file.
 
 ######Creating a JAR
-    The ant build is capable of creating a jar file, but currently the jar has errors when executing.
-    Use "ant jar" to create a jar file.
+    Executing "gradle jar" will create a jar file within build/libs/. The jar will create a logs folder wherever it is run, it looks for config.xml file in the folder it is located.
