@@ -1,22 +1,3 @@
-/*
- * Copyright 2011, United States Geological Survey or
- * third-party contributors as indicated by the @author tags.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
- *
- */
-
 package asl.seedscan;
 
 import java.util.GregorianCalendar;
@@ -24,30 +5,61 @@ import java.util.GregorianCalendar;
 import asl.metadata.Station;
 
 /**
- * 
+ * The Class ArchivePath.
+ * This class generates file paths for seed files from a pattern set in the config.xml file.
  */
 public class ArchivePath {
 
+	/** The timestamp. */
 	private GregorianCalendar timestamp;
+	
+	/** The station. */
 	private Station station = null;
 
+	/**
+	 * Instantiates a new archive path based on a Station
+	 *
+	 * @param station the station
+	 */
 	public ArchivePath(Station station) {
 		this.station = station;
 	}
 
+	/**
+	 * Instantiates a new archive path based on a GregorianCalendar and Station
+	 *
+	 * @param timestamp the timestamp
+	 * @param station the station
+	 */
 	ArchivePath(GregorianCalendar timestamp, Station station) {
 		this.timestamp = timestamp;
 		this.station = station;
 	}
 
+	/**
+	 * Sets the timestamp.
+	 *
+	 * @param timestamp the new timestamp
+	 */
 	public void setTimestamp(GregorianCalendar timestamp) {
 		this.timestamp = timestamp;
 	}
 
+	/**
+	 * Sets the station.
+	 *
+	 * @param station the new station
+	 */
 	public void setStation(Station station) {
 		this.station = station;
 	}
 
+	/**
+	 * Make path.
+	 *
+	 * @param pattern the pattern
+	 * @return the pattern after appropriate replacements
+	 */
 	public String makePath(String pattern) {
 		if (station != null) {
 			if (station.getNetwork() != null) {
