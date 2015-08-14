@@ -92,7 +92,7 @@ public class SeedScan {
 				configFile = new File(opt.getValue());
 			} else if (opt.getOpt().equals("s")) {
 				try {
-					schemaFile = new URL(opt.getValue());
+					schemaFile = new File(opt.getValue()).toURI().toURL();
 				} catch (MalformedURLException e) {
 					logger.error("Invalid schema file.");
 				}
