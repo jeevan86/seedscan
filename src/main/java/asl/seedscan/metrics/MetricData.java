@@ -1109,7 +1109,13 @@ public class MetricData implements Serializable {
 		if (newDigest == null) {
 			logger.warn("New digest is null!");
 		}
-
+		
+		/**This can occur if MetricData was loaded from a serialized file.*/
+		if(metricReader == null)
+		{
+			return newDigest; //Go ahead and recompute the metric.
+		}
+		
 		if (metricReader.isConnected()) { // Retrieve old Digest from Database
 			// and compare to new Digest
 			// System.out.println("=== MetricData.metricReader *IS* connected");
