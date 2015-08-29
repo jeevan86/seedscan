@@ -253,9 +253,13 @@ public class Scanner implements Runnable {
 					Metric metric = wrapper.getNewInstance();
 					metric.setBaseOutputDir(scan.getPlotsDir());
 	
-					if (currentMetricData != null) {
+					if (currentMetricData == null) {
+						metric.setData(new MetricData(this.reader, stnMeta));
+					}
+					else {
 						metric.setData(currentMetricData);
-	
+					}
+					
 						if (eventCMTs != null) {
 							metric.setEventTable(eventCMTs);
 							if (eventSynthetics != null) {
@@ -271,14 +275,6 @@ public class Scanner implements Runnable {
 						metric.process();
 						// Save the current crossPowerMap for the next metric:
 						crossPowerMap = metric.getCrossPowerMap();
-					} else if ((currentMetricData == null)
-							&& (metric.getClass().getName()
-									.contains("AvailabilityMetric"))) {
-						metric.setData(new MetricData(stnMeta));
-						metric.process();
-					} else { // No data for this station + day
-						continue;
-					}
 	
 					// This is a little convoluted: calibration.getResult()
 					// returns a MetricResult, which may contain many values

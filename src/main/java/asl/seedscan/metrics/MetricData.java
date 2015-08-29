@@ -92,8 +92,9 @@ public class MetricData implements Serializable {
 
 	// MTH: Added simple constructor for AvailabilityMetric when there is NO
 	// data
-	public MetricData(StationMeta metadata) {
+	public MetricData(MetricReader metricReader, StationMeta metadata) {
 		this.metadata = metadata;
+		this.metricReader = metricReader;
 	}
 
 	public StationMeta getMetaData() {
@@ -1120,12 +1121,6 @@ public class MetricData implements Serializable {
 			logger.warn("New digest is null!");
 		}
 
-		if (metricReader == null) { // This could be the case if we are
-			// computing AvailabilityMetric and there is
-			// no data
-			return newDigest;
-		}
-
 		if (metricReader.isConnected()) { // Retrieve old Digest from Database
 			// and compare to new Digest
 			// System.out.println("=== MetricData.metricReader *IS* connected");
@@ -1144,6 +1139,10 @@ public class MetricData implements Serializable {
 				} else {
 					newDigest = null;
 				}
+			} else if(!hasChannelArrayData(channelArray))
+			{
+				//This should catch availability metrics without data, but have precomputed values.
+				return null;
 			}
 			logger.info(String
 					.format("valueDigestChanged() --> oldDigest = getMetricValueDigest(%s, %s, %s, %s)",
