@@ -1,21 +1,3 @@
-/*
- * Copyright 2012, United States Geological Survey or
- * third-party contributors as indicated by the @author tags.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
- *
- */
 package asl.seedscan.metrics;
 
 import java.io.Serializable;
@@ -28,8 +10,6 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import seed.Blockette320;
-import timeutils.Timeseries;
 import asl.metadata.Channel;
 import asl.metadata.ChannelArray;
 import asl.metadata.ChannelException;
@@ -48,40 +28,71 @@ import asl.seedsplitter.DataSet;
 import asl.seedsplitter.IllegalSampleRateException;
 import asl.seedsplitter.SequenceRangeException;
 import freq.Cmplx;
+import seed.Blockette320;
+import timeutils.Timeseries;
 
+/**
+ * The Class MetricData. This class can be serialized for implementation in unit
+ * tests.
+ */
 public class MetricData implements Serializable {
-	/**
-	 * 
-	 */
+
+	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
 
-	private static final Logger logger = LoggerFactory
-			.getLogger(asl.seedscan.metrics.MetricData.class);
+	/** The Constant logger. */
+	private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.metrics.MetricData.class);
 
+	/** The data. */
 	private Hashtable<String, ArrayList<DataSet>> data;
+
+	/** The quality data. */
 	private Hashtable<String, ArrayList<Integer>> qualityData;
+
+	/** The random calibration. */
 	private Hashtable<String, ArrayList<Blockette320>> randomCal;
+
+	/** The metadata. */
 	private StationMeta metadata;
+
+	/** The metric reader. */
 	private transient MetricReader metricReader;
+
+	/** The next metric data. */
 	private transient MetricData nextMetricData;
 
-	// Attach nextMetricData here for windows that span into next day
-	public void setNextMetricData(MetricData nextMetricData) {
-		this.nextMetricData = nextMetricData;
-	}
-
+	/**
+	 * Gets the next metric data.
+	 *
+	 * @return the next metric data
+	 */
 	public MetricData getNextMetricData() {
 		return nextMetricData;
 	}
 
+	/**
+	 * Sets the next metric data to null.
+	 */
 	public void setNextMetricDataToNull() {
 		this.nextMetricData = null;
 	}
 
-	public MetricData(MetricReader metricReader,
-			Hashtable<String, ArrayList<DataSet>> data,
-			Hashtable<String, ArrayList<Integer>> qualityData,
-			StationMeta metadata,
+	/**
+	 * Instantiates a new metric data.
+	 *
+	 * @param metricReader
+	 *            the metric reader
+	 * @param data
+	 *            the data
+	 * @param qualityData
+	 *            the quality data
+	 * @param metadata
+	 *            the metadata
+	 * @param randomCal
+	 *            the random cal
+	 */
+	public MetricData(MetricReader metricReader, Hashtable<String, ArrayList<DataSet>> data,
+			Hashtable<String, ArrayList<Integer>> qualityData, StationMeta metadata,
 			Hashtable<String, ArrayList<Blockette320>> randomCal) {
 		this.metricReader = metricReader;
 		this.data = data;
@@ -90,20 +101,37 @@ public class MetricData implements Serializable {
 		this.metadata = metadata;
 	}
 
-	// MTH: Added simple constructor for AvailabilityMetric when there is NO
-	// data
+	/**
+	 * Instantiates a new metric data.
+	 *
+	 * @param metricReader
+	 *            the metric reader
+	 * @param metadata
+	 *            the metadata
+	 */
 	public MetricData(MetricReader metricReader, StationMeta metadata) {
 		this.metadata = metadata;
 		this.metricReader = metricReader;
 	}
 
+	/**
+	 * Gets the metadata.
+	 *
+	 * @return the metadata
+	 */
 	public StationMeta getMetaData() {
 		return metadata;
 	}
 
-	// ----------------- boolean hasChannel(s) methods
-	// ----------------------------------------- //
-
+	/**
+	 * Checks for channels.
+	 *
+	 * @param location
+	 *            the location
+	 * @param band
+	 *            the band
+	 * @return true, if successful
+	 */
 	boolean hasChannels(String location, String band) {
 		/**
 		 * Not sure why this is here: if (!Channel.validLocationCode(location))
@@ -111,14 +139,12 @@ public class MetricData implements Serializable {
 		 * !Channel.validInstrumentCode(band.substring(1,2)) ) { return false; }
 		 **/
 		// First try kcmp = "Z", "1", "2"
-		ChannelArray chanArray = new ChannelArray(location, band + "Z", band
-				+ "1", band + "2");
+		ChannelArray chanArray = new ChannelArray(location, band + "Z", band + "1", band + "2");
 		if (hasChannelArrayData(chanArray)) {
 			return true;
 		}
 		// Then try kcmp = "Z", "N", "E"
-		chanArray = new ChannelArray(location, band + "Z", band + "N", band
-				+ "E");
+		chanArray = new ChannelArray(location, band + "Z", band + "N", band + "E");
 		if (hasChannelArrayData(chanArray)) {
 			return true;
 		}
@@ -126,6 +152,13 @@ public class MetricData implements Serializable {
 		return false;
 	}
 
+	/**
+	 * Checks for channel array data.
+	 *
+	 * @param channelArray
+	 *            the channel array
+	 * @return true, if successful
+	 */
 	private boolean hasChannelArrayData(ChannelArray channelArray) {
 		for (Channel channel : channelArray.getChannels()) {
 			if (!hasChannelData(channel))
@@ -134,10 +167,26 @@ public class MetricData implements Serializable {
 		return true;
 	}
 
+	/**
+	 * Checks for channel data.
+	 *
+	 * @param channel
+	 *            the channel
+	 * @return true, if successful
+	 */
 	boolean hasChannelData(Channel channel) {
 		return hasChannelData(channel.getLocation(), channel.getChannel());
 	}
 
+	/**
+	 * Checks for channel data.
+	 *
+	 * @param location
+	 *            the location
+	 * @param name
+	 *            the name
+	 * @return true, if successful
+	 */
 	private boolean hasChannelData(String location, String name) {
 		if (data == null) {
 			return false;
@@ -152,8 +201,14 @@ public class MetricData implements Serializable {
 		return false;
 	}
 
-	// Same as above but only checks keys against channel name (doesn't look at
-	// location)
+	/**
+	 * Checks for channel data. Same as above but only checks keys against
+	 * channel name (doesn't look at location)
+	 *
+	 * @param name
+	 *            the name
+	 * @return true, if successful
+	 */
 	private boolean hasChannelData(String name) {
 		if (data == null) {
 			return false;
@@ -168,16 +223,22 @@ public class MetricData implements Serializable {
 		return false;
 	}
 
-	// ----------------- get ChannelData methods
-	// ----------------------------------------- //
 	/**
+	 * Gets the metric value.
+	 *
+	 * @param date
+	 *            the date
+	 * @param metricName
+	 *            the metric name
+	 * @param station
+	 *            the station
+	 * @param channel
+	 *            the channel
 	 * @return Double = metric value for given channel, station and date
 	 */
-	Double getMetricValue(Calendar date, String metricName,
-			Station station, Channel channel) {
+	Double getMetricValue(Calendar date, String metricName, Station station, Channel channel) {
 		Double metricVal = null;
-		MetricValueIdentifier id = new MetricValueIdentifier(date, metricName,
-				station, channel);
+		MetricValueIdentifier id = new MetricValueIdentifier(date, metricName, station, channel);
 
 		// Retrieve metric value from Database
 		if (metricReader.isConnected()) {
@@ -191,10 +252,14 @@ public class MetricData implements Serializable {
 	}
 
 	/**
-	 * 
-	 * @return {@code ArrayList<DataSet>} = All DataSets for a given channel (e.g.,
-	 *         "00-BHZ")
-	 * 
+	 * Gets the channel data.
+	 *
+	 * @param location
+	 *            the location
+	 * @param name
+	 *            the name
+	 * @return {@code ArrayList<DataSet>} = All DataSets for a given channel
+	 *         (e.g., "00-BHZ")
 	 */
 	private ArrayList<DataSet> getChannelData(String location, String name) {
 		String locationName = location + "-" + name;
@@ -209,36 +274,57 @@ public class MetricData implements Serializable {
 		return null;
 	}
 
+	/**
+	 * Gets the channel data.
+	 *
+	 * @param channel
+	 *            the channel
+	 * @return the channel data
+	 */
 	ArrayList<DataSet> getChannelData(Channel channel) {
 		return getChannelData(channel.getLocation(), channel.getChannel());
 	}
-
-	// ----- Random CalibrationData ------------------//
 
 	/**
 	 * Note we don't rely on the metadata to contain any info about calibration
 	 * channels. We simply look for the presence of random calibration
 	 * blockettes (320's) for the IU stations, or miniseed channels like "LC0"
 	 * or "LC1" for the II stations.
+	 *
+	 * @return true, if successful
 	 */
 	boolean hasCalibrationData() {
 		if (randomCal != null) {
 			return true;
 		} else if (metadata.getNetwork().equals("II")) {
-			if (hasChannelData("BC0") || hasChannelData("BC1")
-					|| hasChannelData("LC0") || hasChannelData("LC1")) {
+			if (hasChannelData("BC0") || hasChannelData("BC1") || hasChannelData("LC0") || hasChannelData("LC1")) {
 				return true;
 			}
 		}
 		return false;
 	}
 
+	/**
+	 * Gets the channel cal data.
+	 *
+	 * @param channel
+	 *            the channel
+	 * @return the channel cal data
+	 */
 	ArrayList<Blockette320> getChannelCalData(Channel channel) {
 		return getChannelCalData(channel.getLocation(), channel.getChannel());
 	}
 
-	private ArrayList<Blockette320> getChannelCalData(String location,
-			String name) {
+	/**
+	 * Gets the channel cal data.
+	 *
+	 * @param location
+	 *            the location
+	 * @param name
+	 *            the name
+	 * @return the channel cal data
+	 */
+	private ArrayList<Blockette320> getChannelCalData(String location, String name) {
 		if (!hasCalibrationData())
 			return null; // randomCal was never created --> Probably not a
 		// calibration day
@@ -252,13 +338,26 @@ public class MetricData implements Serializable {
 		return null;
 	}
 
-	// ----- Timing Quality ------------------//
-
+	/**
+	 * Gets the channel quality data.
+	 *
+	 * @param channel
+	 *            the channel
+	 * @return the channel quality data
+	 */
 	ArrayList<Integer> getChannelQualityData(Channel channel) {
-		return getChannelQualityData(channel.getLocation(),
-				channel.getChannel());
+		return getChannelQualityData(channel.getLocation(), channel.getChannel());
 	}
 
+	/**
+	 * Gets the channel quality data.
+	 *
+	 * @param location
+	 *            the location
+	 * @param name
+	 *            the name
+	 * @return the channel quality data
+	 */
 	private ArrayList<Integer> getChannelQualityData(String location, String name) {
 		String locationName = location + "-" + name;
 		Set<String> keys = qualityData.keySet();
@@ -270,17 +369,38 @@ public class MetricData implements Serializable {
 		return null;
 	}
 
-	// ----- return double[] Waveform methods ------------------//
-
 	/**
 	 * Return the 3 component rotated (ZNE) displacement/velocity/acceleration
 	 * in MICRONS for this location + band (e.g., "00-LH") for this time+freq
 	 * window Return null if ANY of the requested channels of data are not found
+	 *
+	 * @param responseUnits
+	 *            the response units
+	 * @param location
+	 *            the location
+	 * @param band
+	 *            the band
+	 * @param windowStartEpoch
+	 *            the window start epoch
+	 * @param windowEndEpoch
+	 *            the window end epoch
+	 * @param f1
+	 *            the f1
+	 * @param f2
+	 *            the f2
+	 * @param f3
+	 *            the f3
+	 * @param f4
+	 *            the f4
+	 * @return the zne rotated channel values in microns
+	 * @throws ChannelMetaException
+	 *             the channel meta exception
+	 * @throws MetricException
+	 *             the metric exception
 	 */
-	ArrayList<double[]> getZNE(ResponseUnits responseUnits,
-			String location, String band, long windowStartEpoch,
+	ArrayList<double[]> getZNE(ResponseUnits responseUnits, String location, String band, long windowStartEpoch,
 			long windowEndEpoch, double f1, double f2, double f3, double f4)
-			throws ChannelMetaException, MetricException {
+					throws ChannelMetaException, MetricException {
 		ArrayList<double[]> dispZNE = new ArrayList<double[]>();
 
 		Channel vertChannel = new Channel(location, (band + "Z")); // e.g.,
@@ -288,8 +408,8 @@ public class MetricData implements Serializable {
 		// depending on responseUnits, we can be working with DISP, VEL or ACC
 		// below
 		try {
-			double[] z = getFilteredDisplacement(responseUnits, vertChannel,
-					windowStartEpoch, windowEndEpoch, f1, f2, f3, f4);
+			double[] z = getFilteredDisplacement(responseUnits, vertChannel, windowStartEpoch, windowEndEpoch, f1, f2,
+					f3, f4);
 			dispZNE.add(z);
 
 			Channel channel1 = metadata.getChannel(location, band, "1"); // e.g.,
@@ -313,14 +433,15 @@ public class MetricData implements Serializable {
 			// Metadata: <channel1, channel2> --> Data: <x, y> ===> Get displ
 			// and rotate <x,y> to <N,E>
 
-			double[] x = getFilteredDisplacement(responseUnits, channel1,
-					windowStartEpoch, windowEndEpoch, f1, f2, f3, f4);
-			double[] y = getFilteredDisplacement(responseUnits, channel2,
-					windowStartEpoch, windowEndEpoch, f1, f2, f3, f4);
+			double[] x = getFilteredDisplacement(responseUnits, channel1, windowStartEpoch, windowEndEpoch, f1, f2, f3,
+					f4);
+			double[] y = getFilteredDisplacement(responseUnits, channel2, windowStartEpoch, windowEndEpoch, f1, f2, f3,
+					f4);
 
 			if (x == null || y == null || z == null) {
-				logger.error("== getZNE (date:[{}]): getFilteredDisplacement returned null --> There is probably something wrong with this station\n",
-								metadata.getDate());
+				logger.error(
+						"== getZNE (date:[{}]): getFilteredDisplacement returned null --> There is probably something wrong with this station\n",
+						metadata.getDate());
 				return null;
 			}
 
@@ -333,8 +454,7 @@ public class MetricData implements Serializable {
 
 			if (srate1 != srate2) {
 				StringBuilder message = new StringBuilder();
-				message.append(String
-						.format("createRotatedChannels: srate1 != srate2!!\n"));
+				message.append(String.format("createRotatedChannels: srate1 != srate2!!\n"));
 				throw new MetricException(message.toString());
 			}
 
@@ -358,28 +478,59 @@ public class MetricData implements Serializable {
 	}
 
 	/**
-	 * The name is a little misleading: getFilteredDisplacement will return
-	 * whatever output units are requested: DISPLACEMENT, VELOCITY, ACCELERATION
+	 * Attach nextMetricData here for windows that span into next day
+	 *
+	 * @param nextMetricData
+	 *            the new next metric data
 	 */
-	private double[] getFilteredDisplacement(ResponseUnits responseUnits,
-			Channel channel, long windowStartEpoch, long windowEndEpoch,
-			double f1, double f2, double f3, double f4)
-			throws ChannelMetaException, MetricException {
+	public void setNextMetricData(MetricData nextMetricData) {
+		this.nextMetricData = nextMetricData;
+	}
+
+	/**
+	 * The name is a little misleading: getFilteredDisplacement will return
+	 * whatever output units are requested: DISPLACEMENT, VELOCITY,
+	 * ACCELERATION.
+	 *
+	 * @param responseUnits
+	 *            the response units
+	 * @param channel
+	 *            the channel
+	 * @param windowStartEpoch
+	 *            the window start epoch
+	 * @param windowEndEpoch
+	 *            the window end epoch
+	 * @param f1
+	 *            the f1
+	 * @param f2
+	 *            the f2
+	 * @param f3
+	 *            the f3
+	 * @param f4
+	 *            the f4
+	 * @return the filtered displacement
+	 * @throws ChannelMetaException
+	 *             the channel meta exception
+	 * @throws MetricException
+	 *             the metric exception
+	 */
+	private double[] getFilteredDisplacement(ResponseUnits responseUnits, Channel channel, long windowStartEpoch,
+			long windowEndEpoch, double f1, double f2, double f3, double f4)
+					throws ChannelMetaException, MetricException {
 		if (!metadata.hasChannel(channel)) {
 			logger.error("Metadata NOT found for station=[{}-{}] channel=[{}] date=[{}] --> Can't return Displacement",
 					metadata.getNetwork(), metadata.getStation(), channel, metadata.getDate());
 			return null;
 		}
-		double[] timeseries = getWindowedData(channel, windowStartEpoch,
-				windowEndEpoch);
+		double[] timeseries = getWindowedData(channel, windowStartEpoch, windowEndEpoch);
 		if (timeseries == null) {
-			logger.warn("Did not get requested window for station=[{}-{}] channel=[{}] date=[{}] --> Can't return Displacement",
-							metadata.getNetwork(), metadata.getStation(), channel, metadata.getDate());
+			logger.warn(
+					"Did not get requested window for station=[{}-{}] channel=[{}] date=[{}] --> Can't return Displacement",
+					metadata.getNetwork(), metadata.getStation(), channel, metadata.getDate());
 			return null;
 		}
 		try {
-			double filtered[] = removeInstrumentAndFilter(responseUnits,
-					channel, timeseries, f1, f2, f3, f4);
+			double filtered[] = removeInstrumentAndFilter(responseUnits, channel, timeseries, f1, f2, f3, f4);
 			return filtered;
 		} catch (ChannelMetaException e) {
 			throw e;
@@ -388,6 +539,21 @@ public class MetricData implements Serializable {
 		}
 	}
 
+	/**
+	 * Bpass Needs documentation,
+	 *
+	 * @param n
+	 *            the n
+	 * @param n1
+	 *            the n1
+	 * @param n2
+	 *            the n2
+	 * @param n3
+	 *            the n3
+	 * @param n4
+	 *            the n4
+	 * @return the double
+	 */
 	private double bpass(int n, int n1, int n2, int n3, int n4) {
 
 		if (n <= n1 || n >= n4)
@@ -402,14 +568,35 @@ public class MetricData implements Serializable {
 			return (-9999999.);
 	}
 
-	private double[] removeInstrumentAndFilter(ResponseUnits responseUnits,
-			Channel channel, double[] timeseries, double f1, double f2,
-			double f3, double f4) throws ChannelMetaException, MetricException {
+	/**
+	 * Removes the instrument and filter. Needs documentation.
+	 *
+	 * @param responseUnits
+	 *            the response units
+	 * @param channel
+	 *            the channel
+	 * @param timeseries
+	 *            the timeseries
+	 * @param f1
+	 *            the f1
+	 * @param f2
+	 *            the f2
+	 * @param f3
+	 *            the f3
+	 * @param f4
+	 *            the f4
+	 * @return the filtered timeseries
+	 * @throws ChannelMetaException
+	 *             the channel meta exception
+	 * @throws MetricException
+	 *             the metric exception
+	 */
+	private double[] removeInstrumentAndFilter(ResponseUnits responseUnits, Channel channel, double[] timeseries,
+			double f1, double f2, double f3, double f4) throws ChannelMetaException, MetricException {
 
 		if (!(f1 < f2 && f2 < f3 && f3 < f4)) {
-			logger.error(String
-					.format("removeInstrumentAndFilter: invalid freq: range: [%f-%f ----- %f-%f]",
-							f1, f2, f3, f4));
+			logger.error(String.format("removeInstrumentAndFilter: invalid freq: range: [%f-%f ----- %f-%f]", f1, f2,
+					f3, f4));
 			return null;
 		}
 
@@ -419,9 +606,8 @@ public class MetricData implements Serializable {
 
 		if (srate == 0) {
 			StringBuilder message = new StringBuilder();
-			message.append(String.format(
-					"channel=[%s] date=[%s] Got srate=0\n", channel.toString(),
-					metadata.getDate()));
+			message.append(
+					String.format("channel=[%s] date=[%s] Got srate=0\n", channel.toString(), metadata.getDate()));
 			throw new MetricException(message.toString());
 		}
 
@@ -452,8 +638,7 @@ public class MetricData implements Serializable {
 
 		try {
 			// Get the instrument response for requested ResponseUnits
-			Cmplx[] instrumentResponse = chanMeta.getResponse(freq,
-					responseUnits);
+			Cmplx[] instrumentResponse = chanMeta.getResponse(freq, responseUnits);
 
 			// fft2 returns just the (nf = nfft/2 + 1) positive frequencies
 			Cmplx[] xfft = Cmplx.fft2(data);
@@ -503,20 +688,25 @@ public class MetricData implements Serializable {
 	}
 
 	/**
+	 * Gets the windowed data.
 	 *
+	 * @param channel
+	 *            the channel
+	 * @param windowStartEpoch
+	 *            the window start epoch
+	 * @param windowEndEpoch
+	 *            the window end epoch
+	 * @return the windowed data
 	 */
-	double[] getWindowedData(Channel channel, long windowStartEpoch,
-			long windowEndEpoch) {
+	double[] getWindowedData(Channel channel, long windowStartEpoch, long windowEndEpoch) {
 		if (windowStartEpoch > windowEndEpoch) {
-			logger.error(
-					"Requested window Epoch (ms timestamp) [{} - {}] is NOT VALID (start > end)",
-					windowStartEpoch, windowEndEpoch);
+			logger.error("Requested window Epoch (ms timestamp) [{} - {}] is NOT VALID (start > end)", windowStartEpoch,
+					windowEndEpoch);
 			return null;
 		}
 
 		if (!hasChannelData(channel)) {
-			logger.warn("We have NO data for channel=[{}] date=[{}]", channel,
-					metadata.getDate());
+			logger.warn("We have NO data for channel=[{}] date=[{}]", channel, metadata.getDate());
 			return null;
 		}
 		ArrayList<DataSet> datasets = getChannelData(channel);
@@ -535,10 +725,10 @@ public class MetricData implements Serializable {
 		}
 
 		if (!windowFound) {
-			logger.warn("Requested window Epoch (ms timestamp) [{} - {}] was NOT FOUND "
-					+ "within DataSet for channel=[{}] date=[{}]",
-					windowStartEpoch, windowEndEpoch, channel,
-					metadata.getDate());
+			logger.warn(
+					"Requested window Epoch (ms timestamp) [{} - {}] was NOT FOUND "
+							+ "within DataSet for channel=[{}] date=[{}]",
+					windowStartEpoch, windowEndEpoch, channel, metadata.getDate());
 			return null;
 		}
 
@@ -551,13 +741,11 @@ public class MetricData implements Serializable {
 		double srate1 = data.getSampleRate();
 
 		// Requested Window must start in Day 1 (taken from current dataset(0))
-		if (windowStartEpoch < dataStartEpoch
-				|| windowStartEpoch > dataEndEpoch) {
+		if (windowStartEpoch < dataStartEpoch || windowStartEpoch > dataEndEpoch) {
 			logger.warn(
 					"Requested window Epoch (ms timestamp) [{} - {}] does NOT START "
 							+ "in current day data window Epoch [{} - {}] for channel=[{}] date=[{}]",
-					windowStartEpoch, windowEndEpoch, dataStartEpoch,
-					dataEndEpoch, channel, metadata.getDate());
+					windowStartEpoch, windowEndEpoch, dataStartEpoch, dataEndEpoch, channel, metadata.getDate());
 			return null;
 		}
 
@@ -567,18 +755,15 @@ public class MetricData implements Serializable {
 		if (windowEndEpoch > dataEndEpoch) { // Window appears to span into next
 			// day
 			if (nextMetricData == null) {
-				logger.warn(String
-						.format("== getWindowedData: Requested Epoch window[%d-%d] spans into next day, but we have NO data "
+				logger.warn(String.format(
+						"== getWindowedData: Requested Epoch window[%d-%d] spans into next day, but we have NO data "
 								+ "for channel=[%s] date=[%s] for next day\n",
-								windowStartEpoch, windowEndEpoch, channel,
-								metadata.getDate()));
+						windowStartEpoch, windowEndEpoch, channel, metadata.getDate()));
 				return null;
 			}
 			if (!nextMetricData.hasChannelData(channel)) {
-				logger.warn(
-						"Requested Epoch window spans into next day, but we have NO data "
-								+ "for channel=[{}] date=[{}] for next day",
-						channel, metadata.getDate());
+				logger.warn("Requested Epoch window spans into next day, but we have NO data "
+						+ "for channel=[{}] date=[{}] for next day", channel, metadata.getDate());
 				return null;
 			}
 
@@ -593,12 +778,11 @@ public class MetricData implements Serializable {
 			double srate2 = nextData.getSampleRate();
 
 			if (srate2 != srate1) {
-				logger.warn(String
-						.format("== getWindowedData: Requested window Epoch [%d - %d] extends into "
+				logger.warn(String.format(
+						"== getWindowedData: Requested window Epoch [%d - %d] extends into "
 								+ "nextData window Epoch [%d - %d] for channel=[%s] date=[%s] but srate1[%f] != srate2[%f]\n",
-								windowStartEpoch, windowEndEpoch,
-								nextDataStartEpoch, nextDataEndEpoch, channel,
-								metadata.getDate(), srate1, srate2));
+						windowStartEpoch, windowEndEpoch, nextDataStartEpoch, nextDataEndEpoch, channel,
+						metadata.getDate(), srate1, srate2));
 				return null;
 			}
 
@@ -606,12 +790,11 @@ public class MetricData implements Serializable {
 			// dataset(0))
 
 			if (windowEndEpoch > nextDataEndEpoch) {
-				logger.warn(String
-						.format("== getWindowedData: Requested window Epoch [%d - %d] extends BEYOND "
+				logger.warn(String.format(
+						"== getWindowedData: Requested window Epoch [%d - %d] extends BEYOND "
 								+ "found nextData window Epoch [%d - %d] for channel=[%s] date=[%s]\n",
-								windowStartEpoch, windowEndEpoch,
-								nextDataStartEpoch, nextDataEndEpoch, channel,
-								metadata.getDate()));
+						windowStartEpoch, windowEndEpoch, nextDataStartEpoch, nextDataEndEpoch, channel,
+						metadata.getDate()));
 				return null;
 			}
 
@@ -647,17 +830,20 @@ public class MetricData implements Serializable {
 
 		return dataArray;
 
-	} // end getWindowedData
+	}
 
 	/**
 	 * Return a full day (86400 sec) array of data assembled from a channel's
-	 * DataSets Zero pad any gaps between DataSets
+	 * DataSets Zero pad any gaps between DataSets.
+	 *
+	 * @param channel
+	 *            the channel
+	 * @return the padded day data
 	 */
 	double[] getPaddedDayData(Channel channel) {
 		if (!hasChannelData(channel)) {
-			logger.warn(String
-					.format("== getPaddedDayData(): We have NO data for channel=[%s] date=[%s]\n",
-							channel, metadata.getDate()));
+			logger.warn(String.format("== getPaddedDayData(): We have NO data for channel=[%s] date=[%s]\n", channel,
+					metadata.getDate()));
 			return null;
 		}
 		ArrayList<DataSet> datasets = getChannelData(channel);
@@ -681,7 +867,8 @@ public class MetricData implements Serializable {
 			// 1970
 			long endTime = dataset.getEndTime();
 			int length = dataset.getLength();
-			// System.out.format("== getPaddedDayData: channel=[%s] dataset #%d startTime=%d endTime=%d length=%d\n",
+			// System.out.format("== getPaddedDayData: channel=[%s] dataset #%d
+			// startTime=%d endTime=%d length=%d\n",
 			// channel, i, startTime, endTime, length);
 			int[] series = dataset.getSeries();
 
@@ -705,32 +892,38 @@ public class MetricData implements Serializable {
 
 			lastEndTime = endTime;
 		}
-		// System.out.format("== fullDayData: nDataSets=%d interval=%d nPointsPerDay%d k=%d\n",
+		// System.out.format("== fullDayData: nDataSets=%d interval=%d
+		// nPointsPerDay%d k=%d\n",
 		// datasets.size(),
 		// interval, nPointsPerDay, k );
 		return data;
 	}
 
-	/*
+	/**
+	 * Creates the rotated channel data.
+	 * 
 	 * Rotate/Create new derived channels: (chan1, chan2) --> (chanN, chanE) And
 	 * add these to StationData Channels we can derive end in H1,H2 (e.g.,
 	 * LH1,LH2 or HH1,HH2) --> LHND,LHED or HHND,HHED or N1,N2 (e.g., LN1,LN2 or
 	 * HN1,HN2) --> LNND,LNED or HNND,HNED
+	 *
+	 * @param location
+	 *            the location
+	 * @param channelPrefix
+	 *            the channel prefix
+	 * @throws MetricException
+	 *             the metric exception
 	 */
-	private void createRotatedChannelData(String location, String channelPrefix)
-			throws MetricException {
+	private void createRotatedChannelData(String location, String channelPrefix) throws MetricException {
 		boolean use12 = true; // Use ?H1,?H2 to rotate, else use ?HN,?HE
 
 		// Raw horizontal channels used for rotation
-		Channel channel1 = new Channel(location, String.format("%s1",
-				channelPrefix));
-		Channel channel2 = new Channel(location, String.format("%s2",
-				channelPrefix));
+		Channel channel1 = new Channel(location, String.format("%s1", channelPrefix));
+		Channel channel2 = new Channel(location, String.format("%s2", channelPrefix));
 
 		try {
 			// If we can't find ?H1,?H2 --> try for ?HN,?HE
-			if (hasChannelData(channel1) == false
-					|| hasChannelData(channel2) == false) {
+			if (hasChannelData(channel1) == false || hasChannelData(channel2) == false) {
 				channel1.setChannel(String.format("%sN", channelPrefix));
 				channel2.setChannel(String.format("%sE", channelPrefix));
 				use12 = false;
@@ -740,30 +933,26 @@ public class MetricData implements Serializable {
 		}
 
 		// If we still can't find 2 horizontals to rotate then give up
-		if (hasChannelData(channel1) == false
-				|| hasChannelData(channel2) == false) {
-			logger.warn(String
-					.format("== createRotatedChannelData: -- Unable to find data "
+		if (hasChannelData(channel1) == false || hasChannelData(channel2) == false) {
+			logger.warn(String.format(
+					"== createRotatedChannelData: -- Unable to find data "
 							+ "for channel1=[%s] and/or channel2=[%s] date=[%s] --> Unable to Rotate!\n",
-							channel1, channel2, metadata.getDate()));
+					channel1, channel2, metadata.getDate()));
 			return;
 		}
 
-		if (metadata.hasChannel(channel1) == false
-				|| metadata.hasChannel(channel2) == false) {
-			logger.warn(String
-					.format("== createRotatedChannelData: -- Unable to find metadata "
+		if (metadata.hasChannel(channel1) == false || metadata.hasChannel(channel2) == false) {
+			logger.warn(String.format(
+					"== createRotatedChannelData: -- Unable to find metadata "
 							+ "for channel1=[%s] and/or channel2=[%s] date=[%s] --> Unable to Rotate!\n",
-							channel1, channel2, metadata.getDate()));
+					channel1, channel2, metadata.getDate()));
 			return;
 		}
 
 		// Rotated (=derived) channels (e.g., 00-LHND,00-LHED -or-
 		// 10-BHND,10-BHED, etc.)
-		Channel channelN = new Channel(location, String.format("%sND",
-				channelPrefix));
-		Channel channelE = new Channel(location, String.format("%sED",
-				channelPrefix));
+		Channel channelN = new Channel(location, String.format("%sND", channelPrefix));
+		Channel channelE = new Channel(location, String.format("%sED", channelPrefix));
 
 		// Get overlapping data for 2 horizontal channels and confirm equal
 		// sample rate, etc.
@@ -783,9 +972,9 @@ public class MetricData implements Serializable {
 		double srate2 = getChannelData(channel2).get(0).getSampleRate();
 		if (srate1 != srate2) {
 			StringBuilder message = new StringBuilder();
-			message.append(String
-					.format("createRotatedChannels: channel1=[%s] and/or channel2=[%s] date=[%s]: srate1 != srate2 !!\n",
-							channel1, channel2, metadata.getDate()));
+			message.append(String.format(
+					"createRotatedChannels: channel1=[%s] and/or channel2=[%s] date=[%s]: srate1 != srate2 !!\n",
+					channel1, channel2, metadata.getDate()));
 			throw new MetricException(message.toString());
 		}
 
@@ -795,8 +984,7 @@ public class MetricData implements Serializable {
 		double az1 = (metadata.getChannelMetadata(channel1)).getAzimuth();
 		double az2 = (metadata.getChannelMetadata(channel2)).getAzimuth();
 
-		Timeseries.rotate_xy_to_ne(az1, az2, chan1Data, chan2Data, chanNData,
-				chanEData);
+		Timeseries.rotate_xy_to_ne(az1, az2, chan1Data, chan2Data, chanNData, chanEData);
 		/**
 		 * // az1 = azimuth of the H1 channel/vector. az2 = azimuth of the H2
 		 * channel/vector // Find the smallest (<= 180) angle between them -->
@@ -840,9 +1028,11 @@ public class MetricData implements Serializable {
 				eastKey = key.replaceAll(lookupString, eastString);
 			}
 		}
-		// System.out.format("== MetricData.createRotatedChannels(): channel1=%s, channelPrefex=%s\n",
+		// System.out.format("== MetricData.createRotatedChannels():
+		// channel1=%s, channelPrefex=%s\n",
 		// channel1, channelPrefix);
-		// System.out.format("== MetricData.createRotatedChannels(): northKey=[%s] eastKey=[%s]\n",
+		// System.out.format("== MetricData.createRotatedChannels():
+		// northKey=[%s] eastKey=[%s]\n",
 		// northKey, eastKey);
 
 		DataSet ch1Temp = getChannelData(channel1).get(0);
@@ -860,8 +1050,7 @@ public class MetricData implements Serializable {
 			try {
 				northDataSet.setSampleRate(srate1);
 			} catch (IllegalSampleRateException e) {
-				logger.error("createRotatedChannels: Invalid Sample Rate = {} date={}",
-								srate1, metadata.getDate());
+				logger.error("createRotatedChannels: Invalid Sample Rate = {} date={}", srate1, metadata.getDate());
 			}
 
 			int[] intArray = new int[ndata];
@@ -883,8 +1072,7 @@ public class MetricData implements Serializable {
 			try {
 				eastDataSet.setSampleRate(srate1);
 			} catch (IllegalSampleRateException e) {
-				logger.error("createRotatedChannels: Invalid Sample Rate = {} date={}",
-								srate1, metadata.getDate());
+				logger.error("createRotatedChannels: Invalid Sample Rate = {} date={}", srate1, metadata.getDate());
 			}
 
 			for (int i = 0; i < ndata; i++) {
@@ -903,20 +1091,30 @@ public class MetricData implements Serializable {
 
 	}
 
-	private double[][] getChannelOverlap(Channel channelX, Channel channelY,
-			long[] startTime) {
+	/**
+	 * Gets the channel overlap.
+	 *
+	 * @param channelX
+	 *            the channel x
+	 * @param channelY
+	 *            the channel y
+	 * @param startTime
+	 *            the start time
+	 * @return the channel overlap
+	 */
+	private double[][] getChannelOverlap(Channel channelX, Channel channelY, long[] startTime) {
 
 		ArrayList<ArrayList<DataSet>> dataLists = new ArrayList<ArrayList<DataSet>>();
 
 		ArrayList<DataSet> channelXData = getChannelData(channelX);
 		ArrayList<DataSet> channelYData = getChannelData(channelY);
 		if (channelXData == null) {
-			logger.warn("== getChannelOverlap: Warning --> No DataSets found for Channel={} Date={}\n",
-							channelX, metadata.getDate());
+			logger.warn("== getChannelOverlap: Warning --> No DataSets found for Channel={} Date={}\n", channelX,
+					metadata.getDate());
 		}
 		if (channelYData == null) {
-			logger.warn("== getChannelOverlap: Warning --> No DataSets found for Channel={} Date={}\n",
-							channelY, metadata.getDate());
+			logger.warn("== getChannelOverlap: Warning --> No DataSets found for Channel={} Date={}\n", channelY,
+					metadata.getDate());
 		}
 		dataLists.add(channelXData);
 		dataLists.add(channelYData);
@@ -935,17 +1133,15 @@ public class MetricData implements Serializable {
 		ContiguousBlock largestBlock = null;
 		ContiguousBlock lastBlock = null;
 		for (ContiguousBlock block : blocks) {
-			if ((largestBlock == null)
-					|| (largestBlock.getRange() < block.getRange())) {
+			if ((largestBlock == null) || (largestBlock.getRange() < block.getRange())) {
 				largestBlock = block;
 			}
 			if (lastBlock != null) {
-				logger.error("Gap: {} data points ({} microseconds)", ((block
-						.getStartTime() - lastBlock.getEndTime()) / block
-						.getInterval()), (block.getStartTime() - lastBlock
-						.getEndTime()));
+				logger.error("Gap: {} data points ({} microseconds)",
+						((block.getStartTime() - lastBlock.getEndTime()) / block.getInterval()),
+						(block.getStartTime() - lastBlock.getEndTime()));
 			}
-			// System.out.println("  Time Range: " +
+			// System.out.println(" Time Range: " +
 			// Sequence.timestampToString(block.getStartTime()) + " - " +
 			// Sequence.timestampToString(block.getEndTime()) + " (" +
 			// ((block.getEndTime() - block.getStartTime()) /
@@ -959,17 +1155,14 @@ public class MetricData implements Serializable {
 		for (int i = 0; i < 2; i++) {
 			boolean found = false;
 			for (DataSet set : dataLists.get(i)) {
-				if ((!found)
-						&& set.containsRange(largestBlock.getStartTime(),
-								largestBlock.getEndTime())) {
+				if ((!found) && set.containsRange(largestBlock.getStartTime(), largestBlock.getEndTime())) {
 					try {
-						// System.out.println("  DataSet[" +i+ "]: " +
+						// System.out.println(" DataSet[" +i+ "]: " +
 						// Sequence.timestampToString(set.getStartTime()) +
 						// " - " + Sequence.timestampToString(set.getEndTime())
 						// + " (" + ((set.getEndTime() - set.getStartTime()) /
 						// set.getInterval() + 1) + " data points)");
-						channel = set.getSeries(largestBlock.getStartTime(),
-								largestBlock.getEndTime());
+						channel = set.getSeries(largestBlock.getStartTime(), largestBlock.getEndTime());
 						channels[i] = intArrayToDoubleArray(channel);
 					} catch (SequenceRangeException e) {
 						logger.error("SequenceRangeException:", e);
@@ -984,11 +1177,8 @@ public class MetricData implements Serializable {
 
 		// See if we have a problem with the channel data we are about to
 		// return:
-		if (channels[0].length == 0 || channels[1].length == 0
-				|| channels[0].length != channels[1].length) {
-			logger.warn(
-					"== getChannelOverlap: WARNING date=[{}] --> Something has gone wrong!",
-					metadata.getDate());
+		if (channels[0].length == 0 || channels[1].length == 0 || channels[0].length != channels[1].length) {
+			logger.warn("== getChannelOverlap: WARNING date=[{}] --> Something has gone wrong!", metadata.getDate());
 		}
 
 		// MTH: hack to return the startTime of the overlapping length of data
@@ -997,7 +1187,7 @@ public class MetricData implements Serializable {
 
 		return channels;
 
-	} // end getChannelOverlap
+	}
 
 	/**
 	 * Converts an array of type int into an array of type double.
@@ -1020,38 +1210,69 @@ public class MetricData implements Serializable {
 	 * valueDigestChanged - Determine if the current digest computed for a
 	 * channel or channelArray has changed from the value stored in the
 	 * database.
-	 * 
+	 *
+	 * @param channel
+	 *            the channel
+	 * @param id
+	 *            the id
 	 * @return null - If the digest has NOT changed or if unable to compute a
 	 *         digest (e.g., because the channels don't exist or we are unable
 	 *         to compute rotated channels, etc.) null - Will cause the Metric
-	 *         that called valueDigestChanged to skip to the next channel
-	 * 		   digest - If the digest has changed (OR if the database is NOT
-	 *         connected so that we couldn't get an old digest to compare).
-	 *         digest - Will cause the Metric that called valueDigestChanged to
-	 *         execute its computeMetric().
+	 *         that called valueDigestChanged to skip to the next channel digest
+	 *         - If the digest has changed (OR if the database is NOT connected
+	 *         so that we couldn't get an old digest to compare). digest - Will
+	 *         cause the Metric that called valueDigestChanged to execute its
+	 *         computeMetric().
 	 */
-
-	ByteBuffer valueDigestChanged(Channel channel,
-			MetricValueIdentifier id) {
-		ChannelArray channelArray = new ChannelArray(channel.getLocation(),
-				channel.getChannel());
+	ByteBuffer valueDigestChanged(Channel channel, MetricValueIdentifier id) {
+		ChannelArray channelArray = new ChannelArray(channel.getLocation(), channel.getChannel());
 		return valueDigestChanged(channelArray, id);
 	}
 
-	private ByteBuffer valueDigestChanged(ChannelArray channelArray,
-			MetricValueIdentifier id) {
+	/**
+	 * Value digest changed.
+	 *
+	 * @param channelArray
+	 *            the channel array
+	 * @param id
+	 *            the id
+	 * @return the byte buffer
+	 */
+	private ByteBuffer valueDigestChanged(ChannelArray channelArray, MetricValueIdentifier id) {
 		return valueDigestChanged(channelArray, id, false);
 	}
 
-	ByteBuffer valueDigestChanged(Channel channel,
-			MetricValueIdentifier id, boolean forceUpdate) {
-		ChannelArray channelArray = new ChannelArray(channel.getLocation(),
-				channel.getChannel());
+	/**
+	 * Value digest changed.
+	 *
+	 * @param channel
+	 *            the channel
+	 * @param id
+	 *            the id
+	 * @param forceUpdate
+	 *            the force update
+	 * @return the byte buffer
+	 */
+	ByteBuffer valueDigestChanged(Channel channel, MetricValueIdentifier id, boolean forceUpdate) {
+		ChannelArray channelArray = new ChannelArray(channel.getLocation(), channel.getChannel());
 		return valueDigestChanged(channelArray, id, forceUpdate);
 	}
 
-	ByteBuffer valueDigestChanged(ChannelArray channelArray,
-			MetricValueIdentifier id, boolean forceUpdate) {
+	/**
+	 * Returns the ByteBuffer containing the data and metadata digest.
+	 * 
+	 * @param channelArray
+	 *            Array of 3 component channels for a single location.
+	 * @param id
+	 *            contains Network, Station, Location, Channel information for
+	 *            identification.
+	 * @param forceUpdate
+	 *            set in config.xml. True forces a recompute if old and new
+	 *            digests match.
+	 * @return hashed digest in a ByteBuffer or null if computation isn't
+	 *         warranted.
+	 */
+	ByteBuffer valueDigestChanged(ChannelArray channelArray, MetricValueIdentifier id, boolean forceUpdate) {
 		String metricName = id.getMetricName();
 		Station station = id.getStation();
 		Calendar date = id.getDate();
@@ -1071,7 +1292,8 @@ public class MetricData implements Serializable {
 		if (!metadata.hasChannels(channelArray)) {
 			logger.warn(
 					"valueDigestChanged (date=[{}]): We don't have metadata to compute the digest for this channelArray "
-							+ " --> return null digest\n", strdate);
+							+ " --> return null digest\n",
+					strdate);
 			return null;
 		}
 
@@ -1087,21 +1309,8 @@ public class MetricData implements Serializable {
 			availabilityMetric = true;
 		}
 
+		/** Return null to skip non availability metric. */
 		if (!hasChannelArrayData(channelArray) && !availabilityMetric) { // Return
-			// null
-			// digest
-			// so
-			// Metric
-			// will
-			// be
-			// skipped
-			/**
-			 * logger.error(String.format(
-			 * "valueDigestChanged: <Metric=%s> We do NOT have data for station=[%s] "
-			 * + "channel(s)=[%s] date=[%s]--> return null digest",
-			 * id.getMetricName(), station, channelId,
-			 * EpochData.epochToDateString(date) ) );
-			 **/
 			return null;
 		}
 
@@ -1109,13 +1318,12 @@ public class MetricData implements Serializable {
 		if (newDigest == null) {
 			logger.warn("New digest is null!");
 		}
-		
-		/**This can occur if MetricData was loaded from a serialized file.*/
-		if(metricReader == null)
-		{
-			return newDigest; //Go ahead and recompute the metric.
+
+		/** This can occur if MetricData was loaded from a serialized file. */
+		if (metricReader == null) {
+			return newDigest; // Go ahead and recompute the metric.
 		}
-		
+
 		if (metricReader.isConnected()) { // Retrieve old Digest from Database
 			// and compare to new Digest
 			// System.out.println("=== MetricData.metricReader *IS* connected");
@@ -1128,27 +1336,33 @@ public class MetricData implements Serializable {
 					// force the metric computation
 					String msg = String
 							.format("== valueDigestChanged: metricName=%s date=%s Digests are Equal BUT forceUpdate=[%s]"
-									+ " so compute the metric anyway!\n",
-									metricName, strdate, forceUpdate);
+									+ " so compute the metric anyway!\n", metricName, strdate, forceUpdate);
 					logger.info(msg);
 				} else {
 					newDigest = null;
 				}
-			} else if(!hasChannelArrayData(channelArray))
-			{
-				//This should catch availability metrics without data, but have precomputed values.
+			} else if (!hasChannelArrayData(channelArray)) {
+				// This should catch availability metrics without data, but have
+				// precomputed values.
 				return null;
 			}
-			logger.info(String
-					.format("valueDigestChanged() --> oldDigest = getMetricValueDigest(%s, %s, %s, %s)",
-							strdate, metricName, station, channelId));
+			logger.info(String.format("valueDigestChanged() --> oldDigest = getMetricValueDigest(%s, %s, %s, %s)",
+					strdate, metricName, station, channelId));
 		} else {
-			// System.out.println("=== MetricData.metricReader *IS NOT* connected");
+			// System.out.println("=== MetricData.metricReader *IS NOT*
+			// connected");
 		}
 
 		return newDigest;
 	}
 
+	/**
+	 * Gets the hash.
+	 *
+	 * @param channelArray
+	 *            the channel array
+	 * @return the hash
+	 */
 	private ByteBuffer getHash(ChannelArray channelArray) {
 		ArrayList<ByteBuffer> digests = new ArrayList<ByteBuffer>();
 
@@ -1156,9 +1370,8 @@ public class MetricData implements Serializable {
 		for (Channel channel : channels) {
 			ChannelMeta chanMeta = getMetaData().getChannelMetadata(channel);
 			if (chanMeta == null) {
-				logger.warn(String
-						.format("getHash: metadata not found for requested channel:%s date:%s\n",
-								channel, metadata.getDate()));
+				logger.warn(String.format("getHash: metadata not found for requested channel:%s date:%s\n", channel,
+						metadata.getDate()));
 				return null;
 			} else {
 				digests.add(chanMeta.getDigestBytes());
@@ -1171,9 +1384,8 @@ public class MetricData implements Serializable {
 			} else { // Add in the data digests
 				ArrayList<DataSet> datasets = getChannelData(channel);
 				if (datasets == null) {
-					logger.warn(String
-							.format("getHash(): Data not found for requested channel:%s date:%s\n",
-									channel, metadata.getDate()));
+					logger.warn(String.format("getHash(): Data not found for requested channel:%s date:%s\n", channel,
+							metadata.getDate()));
 					return null;
 				} else {
 					for (int i = 0; i < datasets.size(); i++) {
@@ -1191,11 +1403,15 @@ public class MetricData implements Serializable {
 	 * unable to find metadata. We want to go through the channels and see if
 	 * any are rotated-derived channels (e.g., "00-LHND"). If so, then try to
 	 * create the rotated channel data + metadata
+	 *
+	 * @param channelArray
+	 *            the channel array
 	 */
 	private void checkForRotatedChannels(ChannelArray channelArray) {
 		ArrayList<Channel> channels = channelArray.getChannels();
 		for (Channel channel : channels) {
-			// System.out.format("== checkForRotatedChannels: request channel=%s\n",
+			// System.out.format("== checkForRotatedChannels: request
+			// channel=%s\n",
 			// channel);
 
 			// channelPrefix = channel band + instrument code e.g., 'L' + 'H' =
@@ -1206,7 +1422,8 @@ public class MetricData implements Serializable {
 			} else if (channel.getChannel().contains("ED")) {
 				channelPrefix = channel.getChannel().replace("ED", "");
 			} else {
-				// System.out.format("== MetricData.checkForRotatedChannels: Request for UNKNOWN channel=%s\n",
+				// System.out.format("== MetricData.checkForRotatedChannels:
+				// Request for UNKNOWN channel=%s\n",
 				// channel);
 				return;
 			}
@@ -1216,16 +1433,14 @@ public class MetricData implements Serializable {
 			// Rotated channel *pairs* ("00-LHND" AND "00-LHED") so we don't
 			// need to repeat it
 			if (!metadata.hasChannel(channel)) {
-				metadata.addRotatedChannelMeta(channel.getLocation(),
-						channelPrefix);
+				metadata.addRotatedChannelMeta(channel.getLocation(), channelPrefix);
 			}
 			// MTH: Only try to add rotated channel data if we were successful
 			// in adding the rotated channel
 			// metadata above since createRotatedChannelData requires it
 			try {
 				if (!hasChannelData(channel) && metadata.hasChannel(channel)) {
-					createRotatedChannelData(channel.getLocation(),
-							channelPrefix);
+					createRotatedChannelData(channel.getLocation(), channelPrefix);
 				}
 			} catch (MetricException e) {
 				logger.error("MetricException:", e);
