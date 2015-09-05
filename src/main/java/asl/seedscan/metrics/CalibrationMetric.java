@@ -97,8 +97,8 @@ public class CalibrationMetric extends Metric {
 				continue;
 			}
 
-			ByteBuffer digest = metricData.valueDigestChanged(channel,
-					createIdentifier(channel));
+			ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel),
+					this.getForceUpdate());
 
 			if (digest == null) { // means oldDigest == newDigest and we don't
 				// need to recompute the metric
