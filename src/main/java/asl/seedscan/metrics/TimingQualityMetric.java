@@ -83,7 +83,7 @@ public class TimingQualityMetric extends Metric {
 			return NO_RESULT;
 		}
 
-		List<Integer> qualities = metricData.getChannelQualityData(channel);
+		List<Integer> qualities = metricData.getChannelTimingQualityData(channel);
 
 		if (qualities == null) {
 			return NO_RESULT;

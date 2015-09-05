@@ -58,6 +58,14 @@ public class MetricData implements Serializable {
 	/** The metric reader. */
 	private transient MetricReader metricReader;
 
+	/**
+	 * Used exclusively in unit testing to plugin a reader after importing data from file
+	 * @param metricReader the metricReader to set
+	 */
+	protected void setMetricReader(MetricReader metricReader) {
+		this.metricReader = metricReader;
+	}
+
 	/** The next metric data. */
 	private transient MetricData nextMetricData;
 
@@ -125,12 +133,15 @@ public class MetricData implements Serializable {
 
 	/**
 	 * Checks for channels.
+	 * Only Z, 1, 2, N, E channels are checked.
+	 * 
+	 * Channels such as VMU or LDO will return false.
 	 *
 	 * @param location
-	 *            the location
+	 *            the location code "00" or "35"
 	 * @param band
-	 *            the band
-	 * @return true, if successful
+	 *            the band in the form "LH" or "VH
+	 * @return true, if channel data exists, false if it does not.
 	 */
 	boolean hasChannels(String location, String band) {
 		/**
@@ -290,13 +301,15 @@ public class MetricData implements Serializable {
 	 * channels. We simply look for the presence of random calibration
 	 * blockettes (320's) for the IU stations, or miniseed channels like "LC0"
 	 * or "LC1" for the II stations.
+	 * 
+	 * This hard codes
 	 *
-	 * @return true, if successful
+	 * @return true, if either the calibration blockette exists or Calibration channels exist
 	 */
 	boolean hasCalibrationData() {
 		if (randomCal != null) {
 			return true;
-		} else if (metadata.getNetwork().equals("II")) {
+		} else if (metadata.getNetwork().equals("II")) { //This hardcoded station needs to be address (Ticket 9727)
 			if (hasChannelData("BC0") || hasChannelData("BC1") || hasChannelData("LC0") || hasChannelData("LC1")) {
 				return true;
 			}
@@ -339,26 +352,26 @@ public class MetricData implements Serializable {
 	}
 
 	/**
-	 * Gets the channel quality data.
+	 * Gets the channel timing quality data.
 	 *
 	 * @param channel
 	 *            the channel
-	 * @return the channel quality data
+	 * @return the channel timing quality data
 	 */
-	ArrayList<Integer> getChannelQualityData(Channel channel) {
-		return getChannelQualityData(channel.getLocation(), channel.getChannel());
+	ArrayList<Integer> getChannelTimingQualityData(Channel channel) {
+		return getChannelTimingQualityData(channel.getLocation(), channel.getChannel());
 	}
 
 	/**
-	 * Gets the channel quality data.
+	 * Gets the channel timing quality data.
 	 *
 	 * @param location
 	 *            the location
 	 * @param name
 	 *            the name
-	 * @return the channel quality data
+	 * @return the channel timing quality data
 	 */
-	private ArrayList<Integer> getChannelQualityData(String location, String name) {
+	private ArrayList<Integer> getChannelTimingQualityData(String location, String name) {
 		String locationName = location + "-" + name;
 		Set<String> keys = qualityData.keySet();
 		for (String key : keys) { // key looks like "IU_ANMO 00-BHZ (20.0 Hz)"
@@ -1207,51 +1220,20 @@ public class MetricData implements Serializable {
 	}
 
 	/**
-	 * valueDigestChanged - Determine if the current digest computed for a
+	 * Determine if the current digest computed for a
 	 * channel or channelArray has changed from the value stored in the
 	 * database.
 	 *
 	 * @param channel
-	 *            the channel
+	 *            the channel is translated into a ChannelArray
 	 * @param id
-	 *            the id
-	 * @return null - If the digest has NOT changed or if unable to compute a
-	 *         digest (e.g., because the channels don't exist or we are unable
-	 *         to compute rotated channels, etc.) null - Will cause the Metric
-	 *         that called valueDigestChanged to skip to the next channel digest
-	 *         - If the digest has changed (OR if the database is NOT connected
-	 *         so that we couldn't get an old digest to compare). digest - Will
-	 *         cause the Metric that called valueDigestChanged to execute its
-	 *         computeMetric().
-	 */
-	ByteBuffer valueDigestChanged(Channel channel, MetricValueIdentifier id) {
-		ChannelArray channelArray = new ChannelArray(channel.getLocation(), channel.getChannel());
-		return valueDigestChanged(channelArray, id);
-	}
-
-	/**
-	 * Value digest changed.
-	 *
-	 * @param channelArray
-	 *            the channel array
-	 * @param id
-	 *            the id
-	 * @return the byte buffer
-	 */
-	private ByteBuffer valueDigestChanged(ChannelArray channelArray, MetricValueIdentifier id) {
-		return valueDigestChanged(channelArray, id, false);
-	}
-
-	/**
-	 * Value digest changed.
-	 *
-	 * @param channel
-	 *            the channel
-	 * @param id
-	 *            the id
+	 *            contains Network, Station, Location, Channel information for
+	 *            identification.
 	 * @param forceUpdate
-	 *            the force update
-	 * @return the byte buffer
+	 *            set in config.xml. True forces a recompute if old and new
+	 *            digests match.
+	 * @return hashed digest in a ByteBuffer or null if computation isn't
+	 *         warranted.
 	 */
 	ByteBuffer valueDigestChanged(Channel channel, MetricValueIdentifier id, boolean forceUpdate) {
 		ChannelArray channelArray = new ChannelArray(channel.getLocation(), channel.getChannel());
@@ -1259,7 +1241,9 @@ public class MetricData implements Serializable {
 	}
 
 	/**
-	 * Returns the ByteBuffer containing the data and metadata digest.
+	 * Determine if the current digest computed for a
+	 * channel or channelArray has changed from the value stored in the
+	 * database.
 	 * 
 	 * @param channelArray
 	 *            Array of 3 component channels for a single location.
@@ -1341,9 +1325,9 @@ public class MetricData implements Serializable {
 				} else {
 					newDigest = null;
 				}
-			} else if (!hasChannelArrayData(channelArray)) {
+			} else if (!hasChannelArrayData(channelArray) && !forceUpdate) {
 				// This should catch availability metrics without data, but have
-				// precomputed values.
+				// precomputed values. If forceUpdate then drop out to the returnnewDigest
 				return null;
 			}
 			logger.info(String.format("valueDigestChanged() --> oldDigest = getMetricValueDigest(%s, %s, %s, %s)",
