@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
  * @author Mike Hagerty
  * @author James Holland
  */
-public class NetworkKey extends Key {
+class NetworkKey extends Key {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.metadata.NetworkKey.class);
@@ -19,7 +19,7 @@ public class NetworkKey extends Key {
 	 * The Constant DATALESS_VOLUME_BLOCKETTE_NUMBER. Volume info blockettes are
 	 * always blockette 10
 	 */
-	public static final int DATALESS_VOLUME_BLOCKETTE_NUMBER = 10;
+	private static final int DATALESS_VOLUME_BLOCKETTE_NUMBER = 10;
 
 	/** The network code e.g. IU, CU, IC. */
 	private String network = null;
@@ -32,7 +32,7 @@ public class NetworkKey extends Key {
 	 * @throws WrongBlocketteException
 	 *             the blockette passed was not blockette 10
 	 */
-	public NetworkKey(Blockette blockette) throws WrongBlocketteException {
+	NetworkKey(Blockette blockette) throws WrongBlocketteException {
 		if (blockette.getNumber() != DATALESS_VOLUME_BLOCKETTE_NUMBER) {
 			throw new WrongBlocketteException();
 		}
@@ -57,7 +57,7 @@ public class NetworkKey extends Key {
 	 * @param network
 	 *            the network code e.g. IU
 	 */
-	public NetworkKey(String network) {
+	NetworkKey(String network) {
 		this.network = network;
 	}
 
@@ -70,7 +70,44 @@ public class NetworkKey extends Key {
 		return network;
 	}
 
-	/**
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((network == null) ? 0 : network.hashCode());
+		return result;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		NetworkKey other = (NetworkKey) obj;
+		if (network == null) {
+			if (other.network != null)
+				return false;
+		} else if (!network.equals(other.network))
+			return false;
+		return true;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see asl.metadata.Key#toString()
 	 */
 	public String toString() {

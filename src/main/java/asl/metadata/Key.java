@@ -1,32 +1,19 @@
-/*
- * Copyright 2012, United States Geological Survey or
- * third-party contributors as indicated by the @author tags.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
- *
- */
 package asl.metadata;
 
-public abstract class Key {
+/**
+ * This class exists only to force toString, equals, and hashCode on children
+ * Key classes.
+ * 
+ * @author James Holland - USGS
+ * 
+ */
+abstract class Key {
+	@Override
 	public abstract String toString();
 
-	public boolean equals(Object obj) {
-		Key other = (Key) obj;
-		return toString().equals(other.toString());
-	}
+	@Override
+	public abstract boolean equals(Object obj);
 
-	public int hashCode() {
-		return toString().hashCode();
-	}
+	@Override
+	public abstract int hashCode();
 }

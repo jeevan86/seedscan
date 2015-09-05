@@ -1,17 +1,18 @@
-
 package asl.metadata;
 
 /**
  * The Class StationKey.
+ * This is basically a copy of {@link asl.metadata.Station}
  * This is used to tie stations in {@link asl.metadata.SeedVolume#stations}
  * 
- * @author Joel Edwards
+ * @author James Holland - USGS
+ * @author Joel Edwards - USGS
  * @author Mike Hagerty
  */
-public class StationKey extends Key implements Comparable<StationKey> {
+class StationKey extends Key implements Comparable<StationKey> {
 	
 	/** The Constant STATION_EPOCH_BLOCKETTE_NUMBER. Blockette 50*/
-	public static final int STATION_EPOCH_BLOCKETTE_NUMBER = 50;
+	private static final int STATION_EPOCH_BLOCKETTE_NUMBER = 50;
 
 	/** The network code. */
 	private String network = null;
@@ -25,7 +26,7 @@ public class StationKey extends Key implements Comparable<StationKey> {
 	 * @param blockette the blockette
 	 * @throws WrongBlocketteException the wrong blockette exception
 	 */
-	public StationKey(Blockette blockette) throws WrongBlocketteException {
+	StationKey(Blockette blockette) throws WrongBlocketteException {
 		if (blockette.getNumber() != STATION_EPOCH_BLOCKETTE_NUMBER) {
 			throw new WrongBlocketteException();
 		}
@@ -38,7 +39,7 @@ public class StationKey extends Key implements Comparable<StationKey> {
 	 *
 	 * @param station the station
 	 */
-	public StationKey(Station station) {
+	StationKey(Station station) {
 		this.network = station.getNetwork();
 		this.name = station.getStation();
 	}
@@ -62,7 +63,9 @@ public class StationKey extends Key implements Comparable<StationKey> {
 		return new String(name);
 	}
 
-	/**
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see asl.metadata.Key#toString()
 	 * 
 	 * @return [network code]_[station name]
@@ -71,7 +74,50 @@ public class StationKey extends Key implements Comparable<StationKey> {
 		return new String(network + "_" + name);
 	}
 
-	/**
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + ((network == null) ? 0 : network.hashCode());
+		return result;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		StationKey other = (StationKey) obj;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
+		if (network == null) {
+			if (other.network != null)
+				return false;
+		} else if (!network.equals(other.network))
+			return false;
+		return true;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)
 	 */
 	@Override
@@ -80,5 +126,4 @@ public class StationKey extends Key implements Comparable<StationKey> {
 		String thatCombo = stnKey.getNetwork() + stnKey.getName();
 		return thisCombo.compareTo(thatCombo);
 	}
-
 }
