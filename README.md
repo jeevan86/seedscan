@@ -4,6 +4,15 @@ SeedScan
 ###Purpose
     SeedScan is used to analyze miniSEED data and quantify data quality. This is done by processing
     various metrics that analyze the data.
+    
+###Requirements
+######Software
+Java 1.8
+Gradle 2.5
+######Hardware
+This is dependent upon the quantity of data that is scanned.  
+Each thread takes between 1 to 5 GB of RAM depending on the station's data for the day.  
+One thread can run an entire day of data for one station in 30 minutes to 1 hour.  
 
 ###Configuration
     The main configuration is found in config.xml file. This file is not under source control, but

@@ -2,7 +2,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'application'
 
-version = '1.0'
+version = '1.0.1'
 
 mainClassName = 'asl.seedscan.SeedScan'
 applicationDefaultJvmArgs = ["-Xms64m", "-Xmx30g", "-Djava.awt.headless=true"]
