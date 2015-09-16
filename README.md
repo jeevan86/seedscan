@@ -49,6 +49,15 @@ One thread can run an entire day of data for one station in 30 minutes to 1 hour
     <cfg:station_subset>YLE,ANMO,FURI</cfg:station_subset>
 ```
 
+    The available quality flags are {All, D, Q, R, M}. Logic is set up such that:
+    	If "All" then scan will try and process all data qualities. 
+    	If "D,M" then scan will only process data with quality types D, Q, R, and M.
+    	If "Q" then scan will only process data with quality type Q
+    To restrict to certain quality flags use the following: 
+```xml
+    <cfg:qualityflags>All</cfg:qualityflags>  
+```
+
 ######Database Setup  
     SeedScan connects to a PostgreSQL database. The configuration is at the base level of the
     config.xml. The database drivers are found in the lib directory. If an upgrade is required,
