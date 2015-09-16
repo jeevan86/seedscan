@@ -24,11 +24,13 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Formatter;
+import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import asl.seedscan.Global;
 import seed.BlockSizeException;
 import seed.IllegalSeednameException;
 import seed.MiniSeed;
@@ -190,14 +192,14 @@ public class SeedInputStream implements Runnable {
 						// or the NEIC post processed data indicator 'Q'
 						// or the one mentioned on the IRIS website 'M'
 						/* 'D' 'M' 'Q' 'R' */
-						if ((indicator != 0x44) && (indicator != 0x4D)
-								&& (indicator != 0x51) && (indicator != 0x52)) {
-							m_skippedBytes += m_bufferBytes;
-							m_bufferBytes = 0;
-							logger.error(formatter
-									.format("Skipping bad indicator: 0x%x\n",
-											indicator).toString());
-						} else {
+						String qualityFlagsStr = Global.config.getQualityflags();
+						List<String> qualityFlags = (List<String>)Arrays.asList(qualityFlagsStr.split(","));
+						
+						if(qualityFlags.contains("All") || 
+						  (qualityFlags.containsAll(Arrays.asList("D", "M")) && 
+						  (indicator == 0x44 || indicator == 0x51 || indicator == 0x52|| indicator == 0x4D)) ||
+						  (qualityFlags.contains("Q") && indicator == 0x51))
+						{
 							try {
 								recordLength = MiniSeed
 										.crackBlockSize(m_buffer);
@@ -225,6 +227,14 @@ public class SeedInputStream implements Runnable {
 							 * (int)(java.lang.Math.pow(2,
 							 * m_buffer[firstBlockette + 6])); }
 							 */
+						}
+						else
+						{
+							m_skippedBytes += m_bufferBytes;
+							m_bufferBytes = 0;
+							logger.error(formatter
+									.format("Skipping bad indicator: 0x%x\n",
+											indicator).toString());
 						}
 					}
 				} else {

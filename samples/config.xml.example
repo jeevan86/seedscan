@@ -5,6 +5,9 @@
 
 <cfg:lockfile>seedscan.lock</cfg:lockfile>
 
+<!-- Choose from the following quality flags: {All, Q, M, D} -->
+<cfg:qualityflags>All</cfg:qualityflags>
+
 <cfg:database>
         <cfg:uri>jdbc:postgresql://136.177.123.35:5432/dataq_dev</cfg:uri>
         <cfg:username>devwrite</cfg:username>

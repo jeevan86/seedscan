@@ -12,13 +12,17 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.GregorianCalendar;
+import java.util.List;
 
 import org.slf4j.Logger;
 //import org.apache.log4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import asl.seedscan.Global;
 
 
 /**
@@ -891,67 +895,79 @@ public class MiniSeed implements MiniSeedOutputHandler {
 	 */
 	public static Boolean swapNeeded(byte[] buf, ByteBuffer bb)
 			throws IllegalSeednameException {
+		
+		String qualityFlagsStr = Global.config.getQualityflags();
+		List<String> qualityFlags = (List<String>)Arrays.asList(qualityFlagsStr.split(","));
+		
 		boolean swap = false;
-		if (buf[0] < '0' || buf[0] > '9' || buf[1] < '0' || buf[1] > '9'
-				|| buf[2] < '0' || buf[2] > '9' || buf[3] < '0' || buf[3] > '9'
-				|| buf[4] < '0' || buf[4] > '9' || buf[5] < '0' || buf[5] > '9'
-				|| (buf[6] != 'D' && buf[6] != 'R' && buf[6] != 'Q' && buf[6] != 'M')
-				|| buf[7] != ' ') {
+
+		if( (buf[0] >= '0' && buf[0] <= '9') && (buf[1] >= '0' && buf[1] <= '9') && (buf[2] >= '0' && buf[2] <= '9') && (buf[3] >= '0' && buf[3] <= '9') && buf[7] == ' ' &&
+		  (
+				  qualityFlags.contains("All") || 
+				  (qualityFlags.containsAll(Arrays.asList("D", "M")) && (buf[6] == 'D' || buf[6] == 'Q' || buf[6] == 'R'|| buf[6] == 'M'))  ||
+				  (qualityFlags.contains("Q") && buf[6] == 'Q')
+		  )
+		)
+		{
+			
+			bb.position(39); // position # of blockettes that follow
+			int nblks = bb.get(); // get it
+			int offset = 0;
+			if (nblks > 0) {
+				bb.position(46); // position offset to first blockette
+				offset = bb.getShort();
+				if (offset > 64 || offset < 48) { // This looks like swap is needed
+					bb.order(ByteOrder.LITTLE_ENDIAN);
+					bb.position(46);
+					offset = bb.getShort(); // get byte swapped version
+					if (offset > 200 || offset < 0) {
+						datalogger.error("MiniSEED: cannot figure out if this is swapped or not!!! Assume not. offset="
+								+ offset + " " + toStringRaw(buf));
+						RuntimeException e = new RuntimeException(
+								"Cannot figure swap from offset ");
+						datalogger.error("RuntimeException:", e);
+					} else
+						swap = true;
+				}
+				for (int i = 0; i < nblks; i++) {
+					if (offset < 48 || offset > 64) {
+						logger.error("Illegal offset trying to figure swapping off="
+								+ Util.toHex(offset) + " nblks=" + nblks
+								+ " seedname="
+								+ Util.toAllPrintable(crackSeedname(buf)) + " "
+								+ toStringRaw(buf));
+						break;
+					}
+					bb.position(offset);
+					int type = bb.getShort();
+					int oldoffset = offset;
+					offset = bb.getShort();
+					// ByteOrder order=null;
+					if (type == 1000) {
+						bb.position(oldoffset + 5); // this should be word order
+						if (bb.get() == 0) {
+							if (swap)
+								return swap;
+							logger.error("Offset said swap but order byte in b1000 said not to! "
+									+ toStringRaw(buf));
+							return false;
+						} else
+							return false;
+					}
+				}
+			} else { // This block does not have blockette 1000, so make decision
+						// based on where the data starts!
+				bb.position(44);
+				offset = bb.getShort();
+				if (offset < 0 || offset > 512)
+					return true;
+				return false;
+			}
+		}
+		else
+		{
 			throw new IllegalSeednameException("Bad seq # or [DQR] "
 					+ toStringRaw(buf));
-		}
-		bb.position(39); // position # of blockettes that follow
-		int nblks = bb.get(); // get it
-		int offset = 0;
-		if (nblks > 0) {
-			bb.position(46); // position offset to first blockette
-			offset = bb.getShort();
-			if (offset > 64 || offset < 48) { // This looks like swap is needed
-				bb.order(ByteOrder.LITTLE_ENDIAN);
-				bb.position(46);
-				offset = bb.getShort(); // get byte swapped version
-				if (offset > 200 || offset < 0) {
-					datalogger.error("MiniSEED: cannot figure out if this is swapped or not!!! Assume not. offset="
-							+ offset + " " + toStringRaw(buf));
-					RuntimeException e = new RuntimeException(
-							"Cannot figure swap from offset ");
-					datalogger.error("RuntimeException:", e);
-				} else
-					swap = true;
-			}
-			for (int i = 0; i < nblks; i++) {
-				if (offset < 48 || offset > 64) {
-					logger.error("Illegal offset trying to figure swapping off="
-							+ Util.toHex(offset) + " nblks=" + nblks
-							+ " seedname="
-							+ Util.toAllPrintable(crackSeedname(buf)) + " "
-							+ toStringRaw(buf));
-					break;
-				}
-				bb.position(offset);
-				int type = bb.getShort();
-				int oldoffset = offset;
-				offset = bb.getShort();
-				// ByteOrder order=null;
-				if (type == 1000) {
-					bb.position(oldoffset + 5); // this should be word order
-					if (bb.get() == 0) {
-						if (swap)
-							return swap;
-						logger.error("Offset said swap but order byte in b1000 said not to! "
-								+ toStringRaw(buf));
-						return false;
-					} else
-						return false;
-				}
-			}
-		} else { // This block does not have blockette 1000, so make decision
-					// based on where the data starts!
-			bb.position(44);
-			offset = bb.getShort();
-			if (offset < 0 || offset > 512)
-				return true;
-			return false;
 		}
 		return swap;
 	}
