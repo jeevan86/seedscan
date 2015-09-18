@@ -192,7 +192,7 @@ public class SeedInputStream implements Runnable {
 						// or the NEIC post processed data indicator 'Q'
 						// or the one mentioned on the IRIS website 'M'
 						/* 'D' 'M' 'Q' 'R' */
-						String qualityFlagsStr = Global.config.getQualityflags();
+						String qualityFlagsStr = Global.CONFIG.getQualityflags();
 						List<String> qualityFlags = (List<String>)Arrays.asList(qualityFlagsStr.split(","));
 						
 						if(qualityFlags.contains("All") || 

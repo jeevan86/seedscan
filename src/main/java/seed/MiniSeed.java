@@ -896,7 +896,7 @@ public class MiniSeed implements MiniSeedOutputHandler {
 	public static Boolean swapNeeded(byte[] buf, ByteBuffer bb)
 			throws IllegalSeednameException {
 		
-		String qualityFlagsStr = Global.config.getQualityflags();
+		String qualityFlagsStr = Global.CONFIG.getQualityflags();
 		List<String> qualityFlags = (List<String>)Arrays.asList(qualityFlagsStr.split(","));
 		
 		boolean swap = false;
