@@ -105,7 +105,6 @@ class ConfigParser {
 			logger.error(message, ex);
 
 		} catch (JAXBException ex) {
-			System.out.println("ERROR ---- " + ex);
 			String message = "JAXBException: Could not unmarshal config file:";
 			logger.error(message, ex);
 		}
