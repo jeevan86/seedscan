@@ -48,12 +48,12 @@ public class SeedScan {
 
 		// ===== CONFIG: SCANS =====
 		Hashtable<String, Scan> scans = new Hashtable<String, Scan>();
-		if (Global.config.getScans().getScan() == null) {
+		if (Global.CONFIG.getScans().getScan() == null) {
 			logger.error("No scans in configuration.");
 			System.exit(1);
 		} 
 		else {
-			for (ScanT scanCfg : Global.config.getScans().getScan()) {
+			for (ScanT scanCfg : Global.CONFIG.getScans().getScan()) {
 				String name = scanCfg.getName();
 				if (scans.containsKey(name)) {
 					logger.error("Duplicate scan name '" + name
@@ -197,10 +197,10 @@ public class SeedScan {
 		// at this point, is configured on a per scan basis ... so we need to
 		// know what scan we're doing
 		MetaServer metaServer = null;
-		if (Global.config.getMetaserver() != null) {
-			if (Global.config.getMetaserver().getUseRemote().equals("yes")
-					|| Global.config.getMetaserver().getUseRemote().equals("true")) {
-				String remoteServer = Global.config.getMetaserver().getRemoteUri();
+		if (Global.CONFIG.getMetaserver() != null) {
+			if (Global.CONFIG.getMetaserver().getUseRemote().equals("yes")
+					|| Global.CONFIG.getMetaserver().getUseRemote().equals("true")) {
+				String remoteServer = Global.CONFIG.getMetaserver().getRemoteUri();
 				try {
 					metaServer = new MetaServer(new URI(remoteServer));
 				} catch (Exception e) {
@@ -214,13 +214,13 @@ public class SeedScan {
 		}
 
 		List<Station> stations = null;
-		if (Global.config.getStationList() == null) { // get StationList from
+		if (Global.CONFIG.getStationList() == null) { // get StationList from
 												// MetaServer
 			logger.info("Get StationList from MetaServer");
 			stations = metaServer.getStationList();
 		} else { // read StationList from config.xml
 			logger.info("Read StationList from config.xml");
-			List<String> stationList = Global.config.getStationList().getStation();
+			List<String> stationList = Global.CONFIG.getStationList().getStation();
 			if (stationList.size() > 0) {
 				stations = new ArrayList<Station>();
 				for (String station : stationList) {
@@ -245,8 +245,8 @@ public class SeedScan {
 		}
 		
 		// ===== CONFIG: DATABASE =====
-		MetricDatabase readDB = new MetricDatabase(Global.config.getDatabase());
-		MetricDatabase writeDB = new MetricDatabase(Global.config.getDatabase());
+		MetricDatabase readDB = new MetricDatabase(Global.CONFIG.getDatabase());
+		MetricDatabase writeDB = new MetricDatabase(Global.CONFIG.getDatabase());
 		MetricReader reader = new MetricReader(readDB);
 		MetricInjector injector = new MetricInjector(writeDB);
 

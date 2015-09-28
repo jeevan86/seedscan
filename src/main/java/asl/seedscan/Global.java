@@ -29,7 +29,7 @@ public abstract class Global {
 	public static String[] args;
 	
 	/**Contains the getters and setters for xml structures defined as children to the ConfigT complex type in SeedScanConfig.xsd**/
-	public static final ConfigT config; 
+	public static final ConfigT CONFIG; 
 	
 	/** Object that prevents two Seedscan processes from running at the same time **/
 	public static LockFile lock;  
@@ -91,10 +91,10 @@ public abstract class Global {
 
 				// ==== Configuration Read and Parse Actions ====
 				ConfigParser parser = new ConfigParser(schemaFiles);
-				config = parser.parseConfig(configFile);
+				CONFIG = parser.parseConfig(configFile);
 
 				// ===== CONFIG: LOCK FILE =====
-				File lockFile = new File(config.getLockfile());
+				File lockFile = new File(CONFIG.getLockfile());
 				logger.info("SeedScan lock file is '" + lockFile + "'");
 				lock = new LockFile(lockFile);
 				if (!lock.acquire()) {
@@ -103,12 +103,9 @@ public abstract class Global {
 				}
 				
 				// ===== CONFIG: QUALITY FLAGS =====
-				if(config.getQualityflags() == null){
+				if(CONFIG.getQualityflags() == null){
 					logger.error("No quality flags in configuration.");
 					System.exit(1);
-				}
-				else{
-					config.setQualityflags(config.getQualityflags());
 				}
 				
 	}
