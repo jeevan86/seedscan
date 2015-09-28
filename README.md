@@ -51,7 +51,7 @@ One thread can run an entire day of data for one station in 30 minutes to 1 hour
 
 ######Data Quality Restrictions
     The available quality flags are {All, D, Q, R, M}. The program will
-    only sun a scan on data that has a quality flag that matches one of entries listed in the
+    only run a scan on data that has a quality flag that matches one of entries listed in the
     configuration file. 
 ```xml
     <cfg:qualityflags>All</cfg:qualityflags>  
