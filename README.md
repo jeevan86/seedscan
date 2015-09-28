@@ -50,11 +50,9 @@ One thread can run an entire day of data for one station in 30 minutes to 1 hour
 ```
 
 ######Data Quality Restrictions
-    The available quality flags are {All, D, Q, R, M}. Logic is setup such that:
-    	If "All" then scan will try and process all data qualities. 
-    	If "D,M" then scan will only process data with quality types D, Q, R, and M.
-    	If "Q" then scan will only process data with quality type Q.
-    To restrict to certain quality flags use the following: 
+    The available quality flags are {All, D, Q, R, M}. The program will
+    only sun a scan on data that has a quality flag that matches one of entries listed in the
+    configuration file. 
 ```xml
     <cfg:qualityflags>All</cfg:qualityflags>  
 ```

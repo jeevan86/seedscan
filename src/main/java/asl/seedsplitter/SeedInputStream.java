@@ -195,10 +195,10 @@ public class SeedInputStream implements Runnable {
 						String qualityFlagsStr = Global.config.getQualityflags();
 						List<String> qualityFlags = (List<String>)Arrays.asList(qualityFlagsStr.split(","));
 						
-						if(qualityFlags.contains("All") || 
-						  (qualityFlags.containsAll(Arrays.asList("D", "M")) && 
-						  (indicator == 0x44 || indicator == 0x51 || indicator == 0x52|| indicator == 0x4D)) ||
-						  (qualityFlags.contains("Q") && indicator == 0x51))
+						if(
+								  qualityFlags.contains("All") || 
+								  qualityFlags.contains(indicator - '0') // converts from int to hex
+						  )
 						{
 							try {
 								recordLength = MiniSeed
@@ -224,7 +224,7 @@ public class SeedInputStream implements Runnable {
 							 * "First record should be of type 1000, not type "
 							 * + (m_buffer[firstBlockette] & 0xFF));
 							 * m_bufferBytes = 0; } else { recordLength =
-							 * (int)(java.lang.Math.pow(2,
+							 * (int)(java.lang.Math.pow(2,s
 							 * m_buffer[firstBlockette + 6])); }
 							 */
 						}

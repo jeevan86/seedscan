@@ -904,8 +904,7 @@ public class MiniSeed implements MiniSeedOutputHandler {
 		if( (buf[0] >= '0' && buf[0] <= '9') && (buf[1] >= '0' && buf[1] <= '9') && (buf[2] >= '0' && buf[2] <= '9') && (buf[3] >= '0' && buf[3] <= '9') && buf[7] == ' ' &&
 		  (
 				  qualityFlags.contains("All") || 
-				  (qualityFlags.containsAll(Arrays.asList("D", "M")) && (buf[6] == 'D' || buf[6] == 'Q' || buf[6] == 'R'|| buf[6] == 'M'))  ||
-				  (qualityFlags.contains("Q") && buf[6] == 'Q')
+				  qualityFlags.contains((char)buf[6])
 		  )
 		)
 		{
