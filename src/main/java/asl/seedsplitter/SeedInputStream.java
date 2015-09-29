@@ -193,11 +193,11 @@ public class SeedInputStream implements Runnable {
 						// or the one mentioned on the IRIS website 'M'
 						/* 'D' 'M' 'Q' 'R' */
 						String qualityFlagsStr = Global.CONFIG.getQualityflags();
+						//System.out.println((char)indicator);
 						List<String> qualityFlags = (List<String>)Arrays.asList(qualityFlagsStr.split(","));
-						
 						if(
 								  qualityFlags.contains("All") || 
-								  qualityFlags.contains(indicator - '0') // converts from int to hex
+								  qualityFlags.contains((char)indicator) // converts from int to hex
 						  )
 						{
 							try {
