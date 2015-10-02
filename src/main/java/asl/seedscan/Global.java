@@ -107,7 +107,6 @@ public abstract class Global {
 					logger.error("No quality flags in configuration.");
 					System.exit(1);
 				}
-				
 	}
 	
 }

@@ -46,11 +46,9 @@ public class CoherencePBMTest {
 		expect.put("00-10,LHZ-LHZ", 0.99997471849571);
 		expect.put("00-10,LHND-LHND", 0.9997343078305163);
 		expect.put("00-10,LHED-LHED", 0.9976266947968053);
-		//expect.put("00,LH2", 6.94984340838684);
-		//expect.put("00,LHZ", 9.502837498158087);
-		//expect.put("10,LH1", 7.126248440694965);
-		//expect.put("10,LH2", 6.701346629427542);
-		//expect.put("10,LHZ", 9.473855204418532);
+		expect.put("00-10,LH1-LH1", 0.5667547040224983);
+		expect.put("00-10,LH2-LH2", 0.557422800339938);
+		//expect.put("00-10,BH1-BH1", 0.99997471849571);
 
 		metric.process();
 		MetricResult result = metric.getMetricResult();
@@ -59,6 +57,7 @@ public class CoherencePBMTest {
 			 * If this is too stingy, try rounding 7 places like the metric
 			 * injector does
 			 */
+			System.out.println(id + " result: " + expect.get(id) + " " + result.getResult(id));
 			assertEquals(id + " result: ", expect.get(id), result.getResult(id));
 		}
 	}

@@ -16,6 +16,7 @@
     <xsd:element name="scans"       type="cfg:scans_T" />        
     <xsd:element name="station_list" type="cfg:station_list_T" />
     <xsd:element name="qualityflags" type="xsd:string" />
+    <xsd:element name="basecoherence" type="xsd:string" />
     
     <!-- sub elements -->
     <xsd:element name="scan"        type="cfg:scan_T" />
@@ -59,6 +60,7 @@
             <xsd:element ref="cfg:metaserver"   minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="cfg:station_list"  minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="cfg:qualityflags"  minOccurs="0" maxOccurs="1"/>
+        	<xsd:element ref="cfg:basecoherence"  minOccurs="1" maxOccurs="1"/>
         </xsd:all>
     </xsd:complexType>
 

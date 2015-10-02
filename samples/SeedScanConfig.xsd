@@ -59,6 +59,7 @@
             <xsd:element ref="cfg:metaserver"   minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="cfg:station_list"  minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="cfg:qualityflags"  minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="cfg:basecoherence_loc"  minOccurs="1" maxOccurs="1"/>
         </xsd:all>
     </xsd:complexType>
 

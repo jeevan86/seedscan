@@ -22,12 +22,16 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.nio.ByteBuffer;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import asl.metadata.Channel;
 import asl.metadata.ChannelArray;
+import asl.seedscan.Global;
 import asl.util.PlotMaker2;
 import asl.util.PlotMakerException;
 import asl.util.Trace;
@@ -59,65 +63,73 @@ public class CoherencePBM extends PowerBandMetric {
 		// plotting.
 		boolean completeCompute = true;
 
-		if (!weHaveChannels("00", "LH") || !weHaveChannels("10", "LH")) {
-			logger.info(String
-					.format("== %s: Day=[%s] Stn=[%s] - metadata + data NOT found for EITHER loc=00 -OR- loc=10 + band=LH --> Skip Metric",
-							getName(), getDay(), getStation()));
-			return;
-		}
+		List<Channel> channels = stationMeta.getContinuousChannels();
+		String[] basechannel = Global.CONFIG.getBasecoherence().split("-");
 
-		for (int i = 0; i < 3; i++) {
-			Channel channelX = null;
-			Channel channelY = null;
+		for(Channel channel : channels)
+		{	
+			String channelLoc = channel.toString().split("-")[0];
+			String channelVal = channel.toString().split("-")[1];
+			String regex = "^"+basechannel[1]+".*";
+			if(channelVal.matches(regex) && !channelLoc.equals(basechannel[0]) && weHaveChannels(basechannel[0], basechannel[1]) && weHaveChannels(channelLoc, basechannel[1]))
+			{
+				Channel channelX = new Channel(basechannel[0], channelVal);
+				Channel channelY = new Channel(channelLoc, channelVal);
+				
+				ChannelArray channelArray = new ChannelArray(channelX, channelY);
 
-			if (i == 0) {
-				channelX = new Channel("00", "LHZ");
-				channelY = new Channel("10", "LHZ");
-			} else if (i == 1) {
-				channelX = new Channel("00", "LHND");
-				channelY = new Channel("10", "LHND");
-			} else if (i == 2) {
-				channelX = new Channel("00", "LHED");
-				channelY = new Channel("10", "LHED");
-			}
+				ByteBuffer digest = metricData.valueDigestChanged(channelArray,
+						createIdentifier(channelX, channelY), getForceUpdate());
 
-			ChannelArray channelArray = new ChannelArray(channelX, channelY);
-
-			ByteBuffer digest = metricData.valueDigestChanged(channelArray,
-					createIdentifier(channelX, channelY), getForceUpdate());
-
-			if (digest == null) { // means oldDigest == newDigest and we don't
-				// need to recompute the metric
-				logger.info(
-						"Digest unchanged station:[{}] day:[{}] channelX=[{}] channelY=[{}]--> Skip metric",
-						getStation(), getDay(), channelX, channelY);
-				completeCompute = false;
-				continue;
-			}
-
-			try { // computeMetric (MetricException)
-				double result = computeMetric(channelX, channelY, station, day,
-						metric);
-				if (result == NO_RESULT) {
-					// Do nothing --> skip to next channel
-				} else {
-					metricResult.addResult(channelX, channelY, result, digest);
+				double srateX = metricData.getChannelData(channelX).get(0).getSampleRate();
+				double srateY = metricData.getChannelData(channelY).get(0).getSampleRate();
+				
+				if(srateX == srateY)
+				{
+					if (digest == null) { // means oldDigest == newDigest and we don't
+						// need to recompute the metric
+						logger.info(
+								"Digest unchanged station:[{}] day:[{}] channelX=[{}] channelY=[{}]--> Skip metric",
+								getStation(), getDay(), channelX, channelY);
+						completeCompute = false;
+						continue;
+					}
+	
+					try { // computeMetric (MetricException)
+						double result = computeMetric(channelX, channelY, station, day,
+								metric);
+						if (result == NO_RESULT) {
+							// Do nothing --> skip to next channel
+						} else {
+							metricResult.addResult(channelX, channelY, result, digest);
+						}
+					} catch (MetricException e) {
+						logger.error("MetricException:", e);
+					} catch (PlotMakerException e) {
+						logger.error("PlotMakerException:", e);
+					} catch (TraceException e) {
+						logger.error("TraceException:", e);
+					}
+	
 				}
-			} catch (MetricException e) {
-				logger.error("MetricException:", e);
-			} catch (PlotMakerException e) {
-				logger.error("PlotMakerException:", e);
-			} catch (TraceException e) {
-				logger.error("TraceException:", e);
+				else
+				{
+					StringBuilder message = new StringBuilder();
+					message.append(String.format("computePSD(): srateX (=" + srateX
+							+ ") != srateY (=" + srateY + ")\n"));
+					logger.info(message.toString());
+					completeCompute = false; 
+					continue; 
+				}
+	
+				if (getMakePlots() && completeCompute) {
+					final String pngName = String.format("%s.%s.png", getOutputDir(),
+							"coher");
+					plotMaker.writePlot(pngName);
+				}
 			}
-
-		}// end foreach channel
-
-		if (getMakePlots() && completeCompute) {
-			final String pngName = String.format("%s.%s.png", getOutputDir(),
-					"coher");
-			plotMaker.writePlot(pngName);
 		}
+		
 	} // end process()
 
 	private double computeMetric(Channel channelX, Channel channelY,
