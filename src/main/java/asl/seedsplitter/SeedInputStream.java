@@ -187,17 +187,13 @@ public class SeedInputStream implements Runnable {
 
 					if (m_bufferBytes == BLOCK_SIZE) {
 						indicator = m_buffer[6] & 0xFF;
-						// Make sure we find either the SEED standard indicator
-						// 'D'
-						// or the NEIC post processed data indicator 'Q'
-						// or the one mentioned on the IRIS website 'M'
-						/* 'D' 'M' 'Q' 'R' */
+
+						//Restrict the data to the allowed quality flags. Typically 'D' 'M' 'Q' 'R' 
 						String qualityFlagsStr = Global.CONFIG.getQualityflags();
-						//System.out.println((char)indicator);
 						List<String> qualityFlags = (List<String>)Arrays.asList(qualityFlagsStr.split(","));
 						if(
 								  qualityFlags.contains("All") || 
-								  qualityFlags.contains((char)indicator) // converts from int to hex
+								  qualityFlags.contains(String.valueOf((char)indicator)) // converts from int to String
 						  )
 						{
 							try {
