@@ -320,6 +320,28 @@ public class StationMeta implements Serializable {
 		}
 		return channelArrayList;
 	}
+	
+	/**
+	 * Return a ArrayList of channels that are derived
+	 * @return the derived channels
+	 */
+	public List<Channel> getDerivedChannels() {
+		TreeSet<ChannelKey> keys = new TreeSet<ChannelKey>();
+		keys.addAll(channels.keySet());
+
+		ArrayList<Channel> channelArrayList = new ArrayList<Channel>();
+
+		for (ChannelKey channelKey : keys) {
+			Channel channel = channelKey.toChannel();
+			String channelName = channel.getChannel();
+			if (channelName.equals("LHZ") || channelName.equals("LHND") || channelName.equals("LHED") ||
+				channelName.equals("BHZ") || channelName.equals("BHND") || channelName.equals("BHED"))
+			{
+				channelArrayList.add(channel);
+			}
+		}
+		return channelArrayList;
+	}
 
 	/**
 	 * Checks for channel.

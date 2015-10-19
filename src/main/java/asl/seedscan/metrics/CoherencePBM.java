@@ -63,7 +63,7 @@ public class CoherencePBM extends PowerBandMetric {
 		// plotting.
 		boolean completeCompute = true;
 
-		List<Channel> channels = stationMeta.getContinuousChannels();
+		List<Channel> channels = stationMeta.getDerivedChannels();
 		String[] basechannel = Global.CONFIG.getBasecoherence().split("-");
 
 		for(Channel channel : channels)
