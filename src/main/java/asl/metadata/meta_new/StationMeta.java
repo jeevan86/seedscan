@@ -334,8 +334,7 @@ public class StationMeta implements Serializable {
 		for (ChannelKey channelKey : keys) {
 			Channel channel = channelKey.toChannel();
 			String channelName = channel.getChannel();
-			if (channelName.equals("LHZ") || channelName.equals("LHND") || channelName.equals("LHED") ||
-				channelName.equals("BHZ") || channelName.equals("BHND") || channelName.equals("BHED"))
+			if (channelName.endsWith("Z") || channelName.endsWith("ND") || channelName.endsWith("ED"))
 			{
 				channelArrayList.add(channel);
 			}
