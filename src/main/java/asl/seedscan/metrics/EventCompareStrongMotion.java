@@ -368,6 +368,10 @@ public class EventCompareStrongMotion extends Metric {
 		}
 
 		double result = numerator / denominator;
+        // If the result is too large cap it at 4.
+        if (result >= 4.){
+            result = 4.;
+        }
 
 
 		return result;

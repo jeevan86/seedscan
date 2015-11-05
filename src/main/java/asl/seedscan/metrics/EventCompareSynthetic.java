@@ -505,6 +505,9 @@ public class EventCompareSynthetic extends Metric {
 					getStation(), getDay());
 		}
 		double result = numerator / denomenator;
+        if (result > 4.){
+            result = 4.;
+        }
 
 		return result;
 	}
