@@ -43,7 +43,8 @@ public class SeedScan {
 	 * @param args command line arguments. 
 	 */
 	public static void main(String args[]) {
-		
+		//Some components like JFreeChart try to behave like a GUI, this should fix that
+		System.setProperty("java.awt.headless", "true");
 		Global.args = args; //Pass command line arguments to the Global class. 
 
 		// ===== CONFIG: SCANS =====
