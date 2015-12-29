@@ -84,8 +84,7 @@ public class StationDeviationMetric extends PowerBandMetric {
 				stationMeta.getNetwork(), stationMeta.getStation()));
 		ModelDir = pathEngine.makePath(pathPattern);
 
-		// Get all LH channels in metadata
-		List<Channel> channels = stationMeta.getChannelArray("LH");
+		List<Channel> channels = stationMeta.getContinuousChannels();
 
 		if (channels == null || channels.size() == 0) {
 			System.out.format(
@@ -242,7 +241,7 @@ public class StationDeviationMetric extends PowerBandMetric {
 			try {
 				makePlots(channel, ModelPeriods, psdInterp);
 			} catch (MetricException e) {
-				logger.error("MetricException:", e);
+				logger.info(e.getMessage());
 			} catch (PlotMakerException e) {
 				logger.error("PlotMakerException:", e);
 			} catch (TraceException e) {
