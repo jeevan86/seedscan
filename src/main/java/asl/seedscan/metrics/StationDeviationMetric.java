@@ -47,7 +47,7 @@ public class StationDeviationMetric extends PowerBandMetric {
 
 	@Override
 	public long getVersion() {
-		return 1;
+		return 2;
 	}
 
 	@Override
@@ -55,9 +55,9 @@ public class StationDeviationMetric extends PowerBandMetric {
 		return "StationDeviationMetric";
 	}
 
-	private double[] ModelPeriods;
-	private double[] ModelPowers;
-	private String ModelDir;
+	private double[] modelPeriods;
+	private double[] modelPowers;
+	private String modelDirectory;
 
 	private PlotMaker2 plotMaker = null;
 
@@ -82,7 +82,7 @@ public class StationDeviationMetric extends PowerBandMetric {
 		}
 		ArchivePath pathEngine = new ArchivePath(new Station(
 				stationMeta.getNetwork(), stationMeta.getStation()));
-		ModelDir = pathEngine.makePath(pathPattern);
+		modelDirectory = pathEngine.makePath(pathPattern);
 
 		List<Channel> channels = stationMeta.getContinuousChannels();
 
@@ -133,8 +133,8 @@ public class StationDeviationMetric extends PowerBandMetric {
 			BasicStroke stroke = new BasicStroke(4.0f);
 			for (int iPanel = 0; iPanel < 3; iPanel++) {
 				try {
-					plotMaker.addTraceToPanel(new Trace(ModelPeriods,
-							ModelPowers, "StnModel", Color.black, stroke),
+					plotMaker.addTraceToPanel(new Trace(modelPeriods,
+							modelPowers, "StnModel", Color.black, stroke),
 							iPanel);
 				} catch (PlotMakerException e) {
 					logger.error("PlotMakerException:", e);
@@ -200,7 +200,7 @@ public class StationDeviationMetric extends PowerBandMetric {
 
 		// Interpolate the smoothed psd to the periods of the Station/Channel
 		// Noise Model:
-		double psdInterp[] = Timeseries.interpolate(per, psdPer, ModelPeriods);
+		double psdInterp[] = Timeseries.interpolate(per, psdPer, modelPeriods);
 
 		PowerBand band = getPowerBand();
 		double lowPeriod = band.getLow();
@@ -216,11 +216,11 @@ public class StationDeviationMetric extends PowerBandMetric {
 		// Compute deviation from The Model within the requested period band:
 		double deviation = 0;
 		int nPeriods = 0;
-		for (int k = 0; k < ModelPeriods.length; k++) {
-			if (ModelPeriods[k] > highPeriod) {
+		for (int k = 0; k < modelPeriods.length; k++) {
+			if (modelPeriods[k] > highPeriod) {
 				break;
-			} else if (ModelPeriods[k] >= lowPeriod) {
-				double difference = psdInterp[k] - ModelPowers[k];
+			} else if (modelPeriods[k] >= lowPeriod) {
+				double difference = psdInterp[k] - modelPowers[k];
 				// deviation += Math.sqrt( Math.pow(difference, 2) );
 				deviation += difference;
 				nPeriods++;
@@ -239,7 +239,7 @@ public class StationDeviationMetric extends PowerBandMetric {
 
 		if (getMakePlots()) {
 			try {
-				makePlots(channel, ModelPeriods, psdInterp);
+				makePlots(channel, modelPeriods, psdInterp);
 			} catch (MetricException e) {
 				logger.info(e.getMessage());
 			} catch (PlotMakerException e) {
@@ -312,7 +312,7 @@ public class StationDeviationMetric extends PowerBandMetric {
 	private boolean readModel(String fName) throws MetricException {
 
 		// ../stationmodel/IU_ANMO/ANMO.00.LHZ.90
-		String fileName = ModelDir + fName;
+		String fileName = modelDirectory + fName;
 
 		// First see if the file exists
 		if (!(new File(fileName).exists())) {
@@ -365,12 +365,12 @@ public class StationDeviationMetric extends PowerBandMetric {
 		Double[] tmpPeriods = tmpPers.toArray(new Double[] {});
 		Double[] tmpPowers = tmpPows.toArray(new Double[] {});
 
-		ModelPeriods = new double[tmpPeriods.length];
-		ModelPowers = new double[tmpPowers.length];
+		modelPeriods = new double[tmpPeriods.length];
+		modelPowers = new double[tmpPowers.length];
 
 		for (int i = 0; i < tmpPeriods.length; i++) {
-			ModelPeriods[i] = tmpPeriods[i];
-			ModelPowers[i] = tmpPowers[i];
+			modelPeriods[i] = tmpPeriods[i];
+			modelPowers[i] = tmpPowers[i];
 		}
 
 		return true;
