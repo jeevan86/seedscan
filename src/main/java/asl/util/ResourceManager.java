@@ -45,7 +45,7 @@ public abstract class ResourceManager {
 	 * Loads a resource based on the passed name.
 	 * 
 	 * @param fileName
-	 * @return
+	 * @return decompressed object
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
@@ -64,5 +64,16 @@ public abstract class ResourceManager {
 			ois.close();
 		}
 
+	}
+	
+	/**
+	 * Returns the path of a resource directory. This assume the passed parameter is a directory.
+	 * 
+	 * @param directory the resource directory we want to get the path for
+	 * @return the path as a string with ending /
+	 */
+	public static String getDirectoryPath(String directory)
+	{
+		return ResourceManager.class.getResource(directory).getPath()+"/";
 	}
 }
