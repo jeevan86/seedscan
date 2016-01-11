@@ -66,11 +66,10 @@ public class StationDeviationMetricTest {
 		metric.process();
 		MetricResult result = metric.getMetricResult();
 		for (String id : result.getIdSet()) {
-			/*
-			 * If this is too stingy, try rounding 7 places like the metric
-			 * injector does
-			 */
-			assertEquals(id + " result: ", expect.get(id), result.getResult(id));
+			//Round to 7 places to match the Metric injector
+			Double expected = (double)Math.round(expect.get(id)       * 1000000d) / 1000000d;
+			Double resulted = (double)Math.round(result.getResult(id) * 1000000d) / 1000000d;
+			assertEquals(id + " result: ", expected, resulted);
 		}		
 	}
 	
@@ -79,17 +78,21 @@ public class StationDeviationMetricTest {
 		metric.setData(data2);
 		
 		HashMap<String, Double> expect = new HashMap<String, Double>();
-		expect.put("00,LH1", 16.486482398122135);
-		expect.put("00,LH2", 9.20595648333834);
+		expect.put("00,LH1", 14.257283986992178);
+		expect.put("00,LH2", 24.696306735105786);
 		
-		expect.put("00,HH1", 16.80422454042565);
-		expect.put("00,HH2", 8.336695304459255);
-		expect.put("00,HHZ", 3.496288934866328);
+		expect.put("00,HH1", 15.821418158610228);
+		expect.put("00,HH2", 25.1707731853566);
+		expect.put("00,HHZ", 25.399405846808705);
 
 		metric.process();
 		MetricResult result = metric.getMetricResult();
 		for (String id : result.getIdSet()) {
-			assertEquals(id + " result: ", expect.get(id), result.getResult(id));
+			//Round to 7 places to match the Metric injector
+			Double expected = (double)Math.round(expect.get(id)       * 1000000d) / 1000000d;
+			Double resulted = (double)Math.round(result.getResult(id) * 1000000d) / 1000000d;
+			//System.out.println(id + " Expected, Found  " + expected + ",   "+ result.getResult(id));
+			assertEquals(id + " result: ", expected, resulted);		
 		}	
 	}
 

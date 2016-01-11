@@ -113,8 +113,14 @@ public class MetricDataTest {
 		Station station = new Station("CU", "BCIP");
 		String metricName = "AvailabilityMetric";
 		Channel channel = new Channel("00", "LHZ");
+		
+		double value = metricData.getMetricValue(date, metricName, station, channel);
 
-		assertEquals((Double) 35.123456, metricData.getMetricValue(date, metricName, station, channel));
+		//Round to 7 places to match the Metric injector
+		Double expected = (double)Math.round(35.123456 * 1000000d) / 1000000d;
+		Double resulted = (double)Math.round(value     * 1000000d) / 1000000d;
+		assertEquals(expected, resulted);	
+		
 
 		// Check disconnected reader
 		reader.setConnected(false);

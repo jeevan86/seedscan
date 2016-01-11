@@ -59,11 +59,10 @@ public class NLNMDeviationMetricTest {
 		metric.process();
 		MetricResult result = metric.getMetricResult();
 		for (String id : result.getIdSet()) {
-			/*
-			 * If this is too stingy, try rounding 7 places like the metric
-			 * injector does
-			 */
-			assertEquals(id + " result: ", expect.get(id), result.getResult(id));
+			//Round to 7 places to match the Metric injector
+			Double expected = (double)Math.round(expect.get(id)       * 1000000d) / 1000000d;
+			Double resulted = (double)Math.round(result.getResult(id) * 1000000d) / 1000000d;
+			assertEquals(id + " result: ", expected, resulted);	
 		}
 	}
 
