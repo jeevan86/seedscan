@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Hashtable;
 
+import org.apache.commons.math3.complex.Complex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +36,6 @@ import asl.metadata.StageData;
 import asl.metadata.Station;
 import asl.security.MemberDigest;
 import asl.util.PlotMaker;
-import freq.Cmplx;
 
 /**
  * A ChannelMeta consists of a series of ResponseStages. Typically there will be
@@ -57,7 +57,7 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 		Cloneable {
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.metadata.meta_new.ChannelMeta.class);
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 2L;
 
 	private String name = null;
 	private String location = null;
@@ -159,15 +159,15 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 			if (stage instanceof PoleZeroStage) {
 				PoleZeroStage pz = (PoleZeroStage) stage;
 				addToDigest(pz.getNormalization());
-				ArrayList<Cmplx> poles = pz.getPoles();
+				ArrayList<Complex> poles = pz.getPoles();
 				for (int j = 0; j < poles.size(); j++) {
-					addToDigest(poles.get(j).real());
-					addToDigest(poles.get(j).imag());
+					addToDigest(poles.get(j).getReal());
+					addToDigest(poles.get(j).getImaginary());
 				}
-				ArrayList<Cmplx> zeros = pz.getZeros();
+				ArrayList<Complex> zeros = pz.getZeros();
 				for (int j = 0; j < zeros.size(); j++) {
-					addToDigest(zeros.get(j).real());
-					addToDigest(zeros.get(j).imag());
+					addToDigest(zeros.get(j).getReal());
+					addToDigest(zeros.get(j).getImaginary());
 				}
 			}
 			// Add Polynomial Stage to Digest
@@ -384,11 +384,11 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 	 * * Return complex PoleZero response computed at given freqs[]* If stage1
 	 * != PoleZero stage --> return null
 	 */
-	public Cmplx[] getPoleZeroResponse(double[] freqs) {
+	public Complex[] getPoleZeroResponse(double[] freqs) {
 		PoleZeroStage pz = (PoleZeroStage) this.getStage(1);
 		if (pz != null) {
 			try {
-				Cmplx[] pzresp = pz.getResponse(freqs);
+				Complex[] pzresp = pz.getResponse(freqs);
 				return pzresp;
 			} catch (PoleZeroStageException e) {
 				logger.error("PoleZeroStageException:", e);
@@ -401,7 +401,7 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 
 	// Return complex response computed at given freqs[0,...length]
 
-	public Cmplx[] getResponse(double[] freqs, ResponseUnits responseOut)
+	public Complex[] getResponse(double[] freqs, ResponseUnits responseOut)
 			throws ChannelMetaException {
 		int outUnits = 0;
 		switch (responseOut) {
@@ -425,7 +425,7 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 		if (invalidResponse()) {
 			throw new ChannelMetaException("getResponse: Invalid Response!");
 		}
-		Cmplx[] response = null;
+		Complex[] response = null;
 
 		// Set response = polezero response (with A0 factored in):
 		ResponseStage stage = stages.get(1);
@@ -491,19 +491,19 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 				// Here we integrate
 				if (n < 0) { // INTEGRATION RESPONSE I(w) x (iw)^n
 					for (int i = 0; i < freqs.length; i++) {
-						Cmplx iw = new Cmplx(0.0, s * freqs[i]);
+						Complex iw = new Complex(0.0, s * freqs[i]);
 						for (int j = 1; j < Math.abs(n); j++)
-							iw = Cmplx.mul(iw, iw);
-						response[i] = Cmplx.mul(iw, response[i]);
+							iw = iw.multiply(iw);
+						response[i] = iw.multiply(response[i]);
 					}
 				}
 				// Here we differentiate
 				else if (n > 0) { // DIFFERENTIATION RESPONSE I(w) / (iw)^n
 					for (int i = 0; i < freqs.length; i++) {
-						Cmplx iw = new Cmplx(0.0, -1.0 / (s * freqs[i]));
+						Complex iw = new Complex(0.0, -1.0 / (s * freqs[i]));
 						for (int j = 1; j < Math.abs(n); j++)
-							iw = Cmplx.mul(iw, iw);
-						response[i] = Cmplx.mul(iw, response[i]);
+							iw = iw.multiply(iw);
+						response[i] = iw.multiply(response[i]);
 					}
 				}
 			} // Convert
@@ -540,7 +540,7 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 		}
 
 		for (int i = 0; i < freqs.length; i++) {
-			response[i] = Cmplx.mul(scale, response[i]);
+			response[i] = response[i].multiply(scale);
 		}
 
 		return response;
@@ -625,13 +625,13 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 					for (int i = 0; i < numberOfPoles; i++) {
 						Double pole_re = Double.parseDouble(RealPoles.get(i));
 						Double pole_im = Double.parseDouble(ImagPoles.get(i));
-						Cmplx pole_complex = new Cmplx(pole_re, pole_im);
+						Complex pole_complex = new Complex(pole_re, pole_im);
 						pz.addPole(pole_complex);
 					}
 					for (int i = 0; i < numberOfZeros; i++) {
 						Double zero_re = Double.parseDouble(RealZeros.get(i));
 						Double zero_im = Double.parseDouble(ImagZeros.get(i));
-						Cmplx zero_complex = new Cmplx(zero_re, zero_im);
+						Complex zero_complex = new Complex(zero_re, zero_im);
 						pz.addZero(zero_complex);
 					}
 
@@ -681,7 +681,7 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 								.get(i));
 						Double coeff_im = Double.parseDouble(ImagCoefficients
 								.get(i));
-						Cmplx coefficient = new Cmplx(coeff_re, coeff_im);
+						Complex coefficient = new Complex(coeff_re, coeff_im);
 						polyStage.addCoefficient(coefficient);
 					}
 					this.addStage(stageNumber, polyStage);
@@ -748,13 +748,13 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 
 		PoleZeroStage pz = (PoleZeroStage) this.getStage(1);
 		try {
-			Cmplx[] instResponse = pz.getResponse(freq);
+			Complex[] instResponse = pz.getResponse(freq);
 
 			double[] instRespAmp = new double[nf];
 			double[] instRespPhs = new double[nf];
 			for (int k = 0; k < nf; k++) {
-				instRespAmp[k] = instResponse[k].mag();
-				instRespPhs[k] = instResponse[k].phs() * 180. / Math.PI;
+				instRespAmp[k] = instResponse[k].abs();
+				instRespPhs[k] = instResponse[k].getArgument() * 180. / Math.PI;
 			}
 
 			PlotMaker plotMaker = new PlotMaker(this.getStation(),

@@ -7,6 +7,7 @@ import java.util.Calendar;
 import java.util.Hashtable;
 import java.util.Set;
 
+import org.apache.commons.math3.complex.Complex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +28,7 @@ import asl.seedsplitter.ContiguousBlock;
 import asl.seedsplitter.DataSet;
 import asl.seedsplitter.IllegalSampleRateException;
 import asl.seedsplitter.SequenceRangeException;
-import freq.Cmplx;
+import asl.util.FFTUtils;
 import seed.Blockette320;
 import timeutils.Timeseries;
 
@@ -38,7 +39,7 @@ import timeutils.Timeseries;
 public class MetricData implements Serializable {
 
 	/** The Constant serialVersionUID. */
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 2L;
 
 	/** The Constant logger. */
 	private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.metrics.MetricData.class);
@@ -651,10 +652,10 @@ public class MetricData implements Serializable {
 
 		try {
 			// Get the instrument response for requested ResponseUnits
-			Cmplx[] instrumentResponse = chanMeta.getResponse(freq, responseUnits);
+			Complex[] instrumentResponse = chanMeta.getResponse(freq, responseUnits);
 
 			// fft2 returns just the (nf = nfft/2 + 1) positive frequencies
-			Cmplx[] xfft = Cmplx.fft2(data);
+			Complex[] xfft = FFTUtils.singleSidedFFT(data);
 
 			double fNyq = (double) (nf - 1) * df;
 
@@ -672,29 +673,22 @@ public class MetricData implements Serializable {
 				// Remove instrument: We use conjg() here since the SEED inst
 				// resp FFT convention F(w) ~ e^-iwt ****
 				// while the Numerical Recipes convention is F(w) ~ e^+iwt
-				xfft[k] = Cmplx.div(xfft[k], instrumentResponse[k].conjg()); // Remove
+				xfft[k] = xfft[k].divide(instrumentResponse[k].conjugate()); // Remove
 				// instrument
-				xfft[k] = Cmplx.mul(xfft[k], taper); // Bandpass
+				xfft[k] = xfft[k].multiply(taper); // Bandpass
 			}
 
-			Cmplx[] cfft = new Cmplx[nfft];
-			cfft[0] = new Cmplx(0.0, 0.0); // DC
+			Complex[] cfft = new Complex[nfft];
+			cfft[0] = Complex.ZERO; // DC
 			cfft[nf - 1] = xfft[nf - 1]; // Nyq
 			for (int k = 1; k < nf - 1; k++) { // Reflect spec about the Nyquist
 				// to get -ve freqs
 				cfft[k] = xfft[k];
-				cfft[2 * nf - 2 - k] = xfft[k].conjg();
+				cfft[2 * nf - 2 - k] = xfft[k].conjugate();
 			}
 
-			float[] foo = Cmplx.fftInverse(cfft, ndata);
-
-			double[] dfoo = new double[ndata];
-			for (int i = 0; i < foo.length; i++) {
-				// dfoo[i] = (double)foo[i] * 1000000.; // Convert meters -->
-				// micrometers (=microns)
-				dfoo[i] = (double) foo[i];
-			}
-			return dfoo;
+			Complex[] invertedFFT = FFTUtils.inverseFFT(cfft);
+			return FFTUtils.getRealArray(invertedFFT, ndata);
 		} catch (ChannelMetaException e) {
 			throw e;
 		}

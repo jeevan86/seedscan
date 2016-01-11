@@ -1,21 +1,3 @@
-/*
- * Copyright 2012, United States Geological Survey or
- * third-party contributors as indicated by the @author tags.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
- *
- */
 package asl.seedscan.metrics;
 
 import java.io.BufferedReader;
@@ -27,18 +9,18 @@ import java.util.Calendar;
 import java.util.Hashtable;
 import java.util.List;
 
+import org.apache.commons.math3.complex.Complex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import seed.Blockette320;
-import timeutils.PSD;
 import asl.metadata.Channel;
 import asl.metadata.EpochData;
 import asl.metadata.meta_new.ChannelMeta;
 import asl.metadata.meta_new.ResponseStage;
 import asl.seedsplitter.DataSet;
 import asl.util.PlotMaker;
-import freq.Cmplx;
+import seed.Blockette320;
+import timeutils.PSD;
 
 public class CalibrationMetric extends Metric {
 	private static final Logger logger = LoggerFactory
@@ -127,7 +109,6 @@ public class CalibrationMetric extends Metric {
 					// double) result value
 					// since everything is packed into a JSON String so we'll
 					// just directly call
-					double dummyValue = -999.;
 					/**
 					 * Temp disable in master branch until James tests the JSON
 					 * injections
@@ -290,7 +271,7 @@ public class CalibrationMetric extends Metric {
 
 		double dt = 1.0 / srate;
 		PSD psdX = new PSD(inData, inData, dt);
-		Cmplx[] Gx = psdX.getSpectrum();
+		Complex[] Gx = psdX.getSpectrum();
 		double df = psdX.getDeltaF();
 		double[] freq = psdX.getFreq();
 		int nf = freq.length;
@@ -311,11 +292,11 @@ public class CalibrationMetric extends Metric {
 		}
 
 		PSD psdXY = new PSD(inData, outData, dt);
-		Cmplx[] Gxy = psdXY.getSpectrum();
-		Cmplx[] Hf = new Cmplx[Gxy.length];
+		Complex[] Gxy = psdXY.getSpectrum();
+		Complex[] Hf = new Complex[Gxy.length];
 		double[] calAmp = new double[Gxy.length];
 		double[] calPhs = new double[Gxy.length];
-		Cmplx ic = new Cmplx(0.0, 1.0);
+		Complex ic = Complex.I;
 		for (int k = 0; k < Gxy.length; k++) {
 			// Cal coils generate an ACCERLATION but we want the intrument
 			// response to VELOCITY:
@@ -323,20 +304,20 @@ public class CalibrationMetric extends Metric {
 			// s=i*2pi*f
 			// most II stations have stage1 = 'B' [Analog Hz] and should use
 			// s=i*f
-			Cmplx iw = Cmplx.mul(ic, s * freq[k]);
-			Hf[k] = Cmplx.div(Gxy[k], Gx[k]);
-			Hf[k] = Cmplx.mul(Hf[k], iw);
+			Complex iw = ic.multiply(s * freq[k]);
+			Hf[k] = Gxy[k].divide(Gx[k]);
+			Hf[k] = Hf[k].multiply(iw);
 			// calAmp[k] = Hf[k].mag();
-			calAmp[k] = 20. * Math.log10(Hf[k].mag());
-			calPhs[k] = Hf[k].phs() * 180. / Math.PI;
+			calAmp[k] = 20. * Math.log10(Hf[k].abs());
+			calPhs[k] = Hf[k].getArgument() * 180. / Math.PI;
 		}
 
-		Cmplx[] instResponse = chanMeta.getPoleZeroResponse(freq);
+		Complex[] instResponse = chanMeta.getPoleZeroResponse(freq);
 		double[] ampResponse = new double[nf];
 		double[] phsResponse = new double[nf];
 		for (int k = 0; k < nf; k++) {
-			ampResponse[k] = 20. * Math.log10(instResponse[k].mag());
-			phsResponse[k] = instResponse[k].phs() * 180. / Math.PI;
+			ampResponse[k] = 20. * Math.log10(instResponse[k].abs());
+			phsResponse[k] = instResponse[k].getArgument() * 180. / Math.PI;
 		}
 
 		// Change of plans: Not clear that Tmin and Tmax are even going to be

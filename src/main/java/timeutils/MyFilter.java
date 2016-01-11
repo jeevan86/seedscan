@@ -18,12 +18,13 @@
  */
 package timeutils;
 
+import org.apache.commons.math3.complex.Complex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import asl.util.FFTUtils;
 import sac.SacHeader;
 import sac.SacTimeSeries;
-import freq.Cmplx;
 
 public class MyFilter {
 	private static final Logger logger = LoggerFactory
@@ -62,9 +63,7 @@ public class MyFilter {
 		int ndata = timeseries.length;
 
 		// Find smallest power of 2 >= ndata:
-		int nfft = 1;
-		while (nfft < ndata)
-			nfft = (nfft << 1);
+		int nfft = FFTUtils.getPaddedSize(ndata);
 
 		double df = 1. / (nfft * delta);
 
@@ -81,7 +80,7 @@ public class MyFilter {
 		Timeseries.costaper(data, .01);
 
 		// fft2 returns just the (nf = nfft/2 + 1) positive frequencies
-		Cmplx[] xfft = Cmplx.fft2(data);
+		Complex[] xfft = FFTUtils.singleSidedFFT(data);
 
 		double fNyq = (double) (nf - 1) * df;
 
@@ -95,20 +94,21 @@ public class MyFilter {
 
 		for (int k = 0; k < nf; k++) {
 			double taper = bpass(k, k1, k2, k3, k4);
-			xfft[k] = Cmplx.mul(xfft[k], taper); // Bandpass
+			xfft[k] = xfft[k].multiply(taper); // Bandpass
 		}
 
-		Cmplx[] cfft = new Cmplx[nfft];
-		cfft[0] = new Cmplx(0.0, 0.0); // DC
+		Complex[] cfft = new Complex[nfft];
+		cfft[0] = Complex.ZERO; // DC
 		cfft[nf - 1] = xfft[nf - 1]; // Nyq
 		for (int k = 1; k < nf - 1; k++) { // Reflect spec about the Nyquist to
 											// get -ve freqs
 			cfft[k] = xfft[k];
-			cfft[2 * nf - 2 - k] = xfft[k].conjg();
+			cfft[2 * nf - 2 - k] = xfft[k].conjugate();
 		}
-		float[] foo = Cmplx.fftInverse(cfft, ndata);
+		Complex[] inverted = FFTUtils.inverseFFT(cfft);
+		//Needed to do this outside of FFTUtils because it modifies the array in place.
 		for (int i = 0; i < ndata; i++) {
-			timeseries[i] = (double) foo[i];
+			timeseries[i] = inverted[i].getReal();
 		}
 
 	}
@@ -162,21 +162,11 @@ public class MyFilter {
 	 */
 	public static double[] filterdata(double[] timeseries, double delta,
 			double fl, double fh) {
-		float[] timeseriesFilter = new float[timeseries.length];
-		double[] timeseriesdouble = new double[timeseries.length];
+		Complex[] complexSeries = FFTUtils.singleSidedFFT(timeseries);
+		complexSeries = apply(delta, complexSeries, fl, fh);
+		Complex[] invertedSeries = FFTUtils.inverseFFT(complexSeries);
 
-		for (int ind = 0; ind < timeseries.length; ind++) {
-			timeseriesFilter[ind] = (float) timeseries[ind];
-		}
-
-		Cmplx[] timeseriesC = Cmplx.fft(timeseriesFilter);
-		timeseriesC = apply(delta, timeseriesC, fl, fh);
-		timeseriesFilter = Cmplx.fftInverse(timeseriesC, timeseries.length);
-
-		for (int ind = 0; ind < timeseries.length; ind++) {
-			timeseriesdouble[ind] = (double) timeseriesFilter[ind];
-		}
-		return timeseriesdouble;
+		return FFTUtils.getRealArray(invertedSeries, timeseries.length);
 	}
 
 	/**
@@ -192,7 +182,7 @@ public class MyFilter {
 	 *            High corner frequency
 	 * @return Complex form of filtered time series
 	 */
-	private static Cmplx[] apply(double dt, Cmplx[] cx, double fl, double fh) {
+	private static Complex[] apply(double dt, Complex[] cx, double fl, double fh) {
 		int npts = cx.length;
 		int npole = 6;
 		int numPoles = npole;
@@ -200,13 +190,13 @@ public class MyFilter {
 		double TWOPI = Math.PI * 2;
 		double PI = Math.PI;
 
-		Cmplx c0 = new Cmplx(0., 0.);
-		Cmplx c1 = new Cmplx(1., 0.);
+		Complex c0 = Complex.ZERO;
+		Complex c1 = Complex.ONE;
 
-		Cmplx[] sph = new Cmplx[numPoles];
-		Cmplx[] spl = new Cmplx[numPoles];
+		Complex[] sph = new Complex[numPoles];
+		Complex[] spl = new Complex[numPoles];
 
-		Cmplx cjw, cph, cpl;
+		Complex cjw, cph, cpl;
 		int nop, nepp, np;
 		double wch, wcl, ak, ai, ar, w, dw;
 		int i, j;
@@ -224,7 +214,7 @@ public class MyFilter {
 		np = -1;
 		if (nop > 0) {
 			np = np + 1;
-			sph[np] = new Cmplx(1., 0.);
+			sph[np] = Complex.ONE;
 		}
 		if (nepp > 0) {
 			for (i = 0; i < nepp; i++) {
@@ -233,15 +223,15 @@ public class MyFilter {
 				ar = ak * wch / 2.;
 				ai = wch * Math.sqrt(4. - ak * ak) / 2.;
 				np = np + 1;
-				sph[np] = new Cmplx(-ar, -ai);
+				sph[np] = new Complex(-ar, -ai);
 				np = np + 1;
-				sph[np] = new Cmplx(-ar, ai);
+				sph[np] = new Complex(-ar, ai);
 			}
 		}
 		np = -1;
 		if (nop > 0) {
 			np = np + 1;
-			spl[np] = new Cmplx(1., 0.);
+			spl[np] = Complex.ONE;
 		}
 		if (nepp > 0) {
 			for (i = 0; i < nepp; i++) {
@@ -250,9 +240,9 @@ public class MyFilter {
 				ar = ak * wcl / 2.;
 				ai = wcl * Math.sqrt(4. - ak * ak) / 2.;
 				np = np + 1;
-				spl[np] = new Cmplx(-ar, -ai);
+				spl[np] = new Complex(-ar, -ai);
 				np = np + 1;
-				spl[np] = new Cmplx(-ar, ai);
+				spl[np] = new Complex(-ar, ai);
 			}
 		}
 
@@ -261,18 +251,18 @@ public class MyFilter {
 		w = 0.;
 		for (i = 1; i < npts / 2 + 1; i++) {
 			w = w + dw;
-			cjw = new Cmplx(0., -w);
+			cjw = new Complex(0., -w);
 			cph = c1;
 			cpl = c1;
 			for (j = 0; j < npole; j++) {
-				cph = Cmplx.div(Cmplx.mul(cph, sph[j]), Cmplx.add(sph[j], cjw));
-				cpl = Cmplx.div(Cmplx.mul(cpl, cjw), Cmplx.add(spl[j], cjw));
+				cph = cph.multiply(sph[j]).divide(sph[j].add(cjw));
+				cpl = cpl.multiply(cjw).divide(spl[j].add(cjw));
 			}
-			cx[i] = Cmplx.mul(cx[i], (Cmplx.mul(cph, cpl)).conjg());
+			cx[i] = cx[i].multiply(cph.multiply(cpl).conjugate());
 			if (twopass == 2) {
-				cx[i] = Cmplx.mul(cx[i], Cmplx.mul(cph, cpl));
+				cx[i] = cx[i].multiply(cph.multiply(cpl));
 			}
-			cx[npts - i] = (cx[i]).conjg();
+			cx[npts - i] = cx[i].conjugate();
 		}
 
 		return (cx);

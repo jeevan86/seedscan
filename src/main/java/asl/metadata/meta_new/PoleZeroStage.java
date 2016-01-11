@@ -3,21 +3,20 @@ package asl.metadata.meta_new;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+import org.apache.commons.math3.complex.Complex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import freq.Cmplx;
 
 /**
  * Our internal representation of a PoleZero Stage includes the analog polezero
  * info + the stage gain and frequency of gain
  */
 public class PoleZeroStage extends ResponseStage implements Cloneable, Serializable {
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 2L;
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.metadata.meta_new.PoleZeroStage.class);
-	private ArrayList<Cmplx> poles;
-	private ArrayList<Cmplx> zeros;
+	private ArrayList<Complex> poles;
+	private ArrayList<Complex> zeros;
 	private double normalizationConstant;
 	private boolean poleAdded = false;
 	private boolean normalizationSet = false;
@@ -58,16 +57,16 @@ public class PoleZeroStage extends ResponseStage implements Cloneable, Serializa
 	PoleZeroStage(int stageNumber, char stageType, double stageGain,
 			double stageFrequency) {
 		super(stageNumber, stageType, stageGain, stageFrequency);
-		poles = new ArrayList<Cmplx>();
-		zeros = new ArrayList<Cmplx>();
+		poles = new ArrayList<Complex>();
+		zeros = new ArrayList<Complex>();
 	}
 
-	void addPole(Cmplx pole) {
+	void addPole(Complex pole) {
 		poles.add(pole);
 		poleAdded = true;
 	}
 
-	void addZero(Cmplx zero) {
+	void addZero(Complex zero) {
 		zeros.add(zero);
 	}
 
@@ -88,11 +87,11 @@ public class PoleZeroStage extends ResponseStage implements Cloneable, Serializa
 		return zeros.size();
 	}
 
-	public ArrayList<Cmplx> getZeros() {
+	public ArrayList<Complex> getZeros() {
 		return zeros;
 	}
 
-	public ArrayList<Cmplx> getPoles() {
+	public ArrayList<Complex> getPoles() {
 		return poles;
 	}
 
@@ -114,7 +113,7 @@ public class PoleZeroStage extends ResponseStage implements Cloneable, Serializa
 	 * Return complex response computed at given freqs[0,...length] Should
 	 * really check that length > 0
 	 */
-	Cmplx[] getResponse(double[] freqs) throws PoleZeroStageException {
+	Complex[] getResponse(double[] freqs) throws PoleZeroStageException {
 		// Some polezero responses (e.g., ANMO.IU.20.BN?) appear to have NO
 		// zeros
 		// if (poleAdded && zeroAdded && normalizationSet) {
@@ -128,7 +127,7 @@ public class PoleZeroStage extends ResponseStage implements Cloneable, Serializa
 			throw new PoleZeroStageException(
 					"[ PoleZeroStage-->getResponse Error: Input freqs[] has no zero length! ]");
 		}
-		Cmplx[] response = new Cmplx[freqs.length];
+		Complex[] response = new Complex[freqs.length];
 		for (int i = 0; i < freqs.length; i++) {
 			try {
 				response[i] = evalResp(freqs[i]);
@@ -168,29 +167,29 @@ public class PoleZeroStage extends ResponseStage implements Cloneable, Serializa
 	 * included, so that the response from this stage should be approx. 1 (flat)
 	 * at the mid range.
 	 */
-	private Cmplx evalResp(double f) throws PoleZeroStageException {
-		Cmplx numerator = new Cmplx(1, 0);
-		Cmplx denomenator = new Cmplx(1, 0);
-		Cmplx s;
-		Cmplx Gf;
+	private Complex evalResp(double f) throws PoleZeroStageException {
+		Complex numerator = Complex.ONE;
+		Complex denomenator = Complex.ONE;
+		Complex s;
+		Complex Gf;
 
 		if (getStageType() == 'A') {
-			s = new Cmplx(0.0, 2 * Math.PI * f);
+			s = new Complex(0.0, 2 * Math.PI * f);
 		} else if (getStageType() == 'B') {
-			s = new Cmplx(0.0, f);
+			s = new Complex(0.0, f);
 		} else {
 			throw new PoleZeroStageException(
 					"[ PoleZeroStage-->evalResponse Error: Cannot evalResp a non-PoleZero Stage!]");
 		}
 
 		for (int j = 0; j < getNumberOfZeros(); j++) {
-			numerator = Cmplx.mul(numerator, Cmplx.sub(s, zeros.get(j)));
+			numerator = numerator.multiply(s.subtract(zeros.get(j)));
 		}
 		for (int j = 0; j < getNumberOfPoles(); j++) {
-			denomenator = Cmplx.mul(denomenator, Cmplx.sub(s, poles.get(j)));
+			denomenator = denomenator.multiply(s.subtract(poles.get(j)));
 		}
-		Gf = Cmplx.mul(normalizationConstant, numerator);
-		Gf = Cmplx.div(Gf, denomenator);
+		Gf = numerator.multiply(normalizationConstant);
+		Gf = Gf.divide(denomenator);
 		return Gf;
 	}
 

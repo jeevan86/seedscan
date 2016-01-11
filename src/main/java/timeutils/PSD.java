@@ -1,12 +1,17 @@
 package timeutils;
 
-import freq.Cmplx;
+import org.apache.commons.math3.complex.Complex;
+import org.apache.commons.math3.transform.DftNormalization;
+import org.apache.commons.math3.transform.FastFourierTransformer;
+import org.apache.commons.math3.transform.TransformType;
+
+import asl.util.FFTUtils;
 
 /**
  * @author Mike Hagerty hagertmb@bc.edu
  */
 public class PSD {
-	Cmplx[] psd = null;
+	Complex[] psd = null;
 	double[] freq = null;
 	double[] dataX = null;
 	double[] dataY = null;
@@ -31,7 +36,7 @@ public class PSD {
 		computePSD();
 	}
 
-	public final Cmplx[] getSpectrum() {
+	public final Complex[] getSpectrum() {
 		return psd;
 	}
 
@@ -46,7 +51,7 @@ public class PSD {
 	public double[] getMagnitude() {
 		double[] specMag = new double[freq.length];
 		for (int k = 0; k < freq.length; k++) {
-			specMag[k] = psd[k].mag();
+			specMag[k] = psd[k].abs();
 		}
 		return specMag;
 	}
@@ -80,7 +85,7 @@ public class PSD {
 		// For 13 windows with 75% overlap, each window will contain ndata/4
 		// points
 		// TODO: Still need to handle the case of multiple datasets with gaps!
-
+		
 		int nseg_pnts = ndata / 4;
 		int noff = nseg_pnts / 4;
 
@@ -97,9 +102,9 @@ public class PSD {
 		double[] xseg = new double[nseg_pnts];
 		double[] yseg = new double[nseg_pnts];
 
-		Cmplx[] xfft = null;
-		Cmplx[] yfft = null;
-		psd = new Cmplx[nf];
+		Complex[] xfft = null;
+		Complex[] yfft = null;
+		psd = new Complex[nf];
 		double wss = 0.;
 
 		int iwin = 0;
@@ -107,9 +112,8 @@ public class PSD {
 		int ilst = nseg_pnts - 1;
 		int offset = 0;
 
-		// Initialize the Cmplx PSD
 		for (int k = 0; k < nf; k++) {
-			psd[k] = new Cmplx(0., 0.);
+			psd[k] = Complex.ZERO;
 		}
 
 		while (ilst < ndata) // ndata needs to come from largest dataset
@@ -126,14 +130,14 @@ public class PSD {
 			wss = Timeseries.costaper(yseg, .10);
 			// MTH: Maybe want to assert here that wss > 0 to avoid
 			// divide-by-zero below ??
-
-			// fft2 returns just the (nf = nfft/2 + 1) positive frequencies
-			xfft = Cmplx.fft2(xseg);
-			yfft = Cmplx.fft2(yseg);
+			
+			// fft returns just the (nf = nfft/2 + 1) positive frequencies
+			xfft = FFTUtils.singleSidedFFT(xseg);
+			yfft = FFTUtils.singleSidedFFT(yseg);
 
 			// Load up the 1-sided PSD:
 			for (int k = 0; k < nf; k++) {
-				psd[k] = Cmplx.add(psd[k], Cmplx.mul(xfft[k], yfft[k].conjg()));
+				psd[k] = psd[k].add(xfft[k].multiply(yfft[k].conjugate()));
 			}
 
 			iwin++;
@@ -158,7 +162,7 @@ public class PSD {
 		freq = new double[nf];
 
 		for (int k = 0; k < nf; k++) {
-			psd[k] = Cmplx.mul(psd[k], psdNormalization);
+			psd[k] = psd[k].multiply(psdNormalization);
 			freq[k] = (double) k * df;
 		}
 
@@ -167,7 +171,7 @@ public class PSD {
 		int nsmooth = 11;
 		int nhalf = 5;
 		int nw = nf - nsmooth;
-		Cmplx[] psdCFsmooth = new Cmplx[nf];
+		Complex[] psdCFsmooth = new Complex[nf];
 
 		int iw = 0;
 
@@ -180,11 +184,11 @@ public class PSD {
 			int k1 = iw - nhalf;
 			int k2 = iw + nhalf;
 
-			Cmplx sumC = new Cmplx(0., 0.);
+			Complex sumC = Complex.ZERO;
 			for (int k = k1; k < k2; k++) {
-				sumC = Cmplx.add(sumC, psd[k]);
+				sumC = sumC.add(psd[k]);
 			}
-			psdCFsmooth[iw] = Cmplx.div(sumC, (double) nsmooth);
+			psdCFsmooth[iw] = sumC.divide((double) nsmooth);
 		}
 
 		// Copy the remaining point into the smoothed array

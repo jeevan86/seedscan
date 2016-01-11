@@ -5,6 +5,7 @@ import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
+import org.apache.commons.math3.complex.Complex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +19,6 @@ import asl.metadata.meta_new.ChannelMetaException;
 import asl.metadata.meta_new.StationMeta;
 import asl.seedscan.database.MetricValueIdentifier;
 import asl.seedscan.event.EventCMT;
-import freq.Cmplx;
 
 /**
  * The basic class that all metrics extend.
@@ -503,7 +503,7 @@ public abstract class Metric {
 		double dt = 1. / srate;
 
 		PSD psdRaw = new PSD(chanXData, chanYData, dt);
-		Cmplx[] spec = psdRaw.getSpectrum();
+		Complex[] spec = psdRaw.getSpectrum();
 		double[] freq = psdRaw.getFreq();
 		double df = psdRaw.getDeltaF();
 		int nf = freq.length;
@@ -513,12 +513,12 @@ public abstract class Metric {
 		// Get the instrument response for Acceleration and remove it from the
 		// PSD
 		try {
-			Cmplx[] instrumentResponseX = chanMetaX.getResponse(freq,
+			Complex[] instrumentResponseX = chanMetaX.getResponse(freq,
 					ResponseUnits.ACCELERATION);
-			Cmplx[] instrumentResponseY = chanMetaY.getResponse(freq,
+			Complex[] instrumentResponseY = chanMetaY.getResponse(freq,
 					ResponseUnits.ACCELERATION);
 
-			Cmplx[] responseMagC = new Cmplx[nf];
+			Complex[] responseMagC = new Complex[nf];
 
 			double[] psd = new double[nf]; // Will hold the 1-sided PSD
 			// magnitude
@@ -529,17 +529,16 @@ public abstract class Metric {
 			// Start from k=1 to skip DC (k=0) where the response=0
 
 			for (int k = 1; k < nf; k++) {
-				responseMagC[k] = Cmplx.mul(instrumentResponseX[k],
-						instrumentResponseY[k].conjg());
-				if (responseMagC[k].mag() == 0) {
+				responseMagC[k] = instrumentResponseX[k].multiply(instrumentResponseY[k].conjugate());
+				if (responseMagC[k].abs() == 0) {
 					StringBuilder message = new StringBuilder();
 					message.append(String
 							.format("responseMagC[k]=0 --> divide by zero!\n"));
 					throw new MetricPSDException(message.toString());
 				} else { // Divide out (squared)instrument response & Convert to
 					// dB:
-					spec[k] = Cmplx.div(spec[k], responseMagC[k]);
-					psd[k] = spec[k].mag();
+					spec[k] = spec[k].divide(responseMagC[k]);
+					psd[k] = spec[k].abs();
 				}
 			}
 

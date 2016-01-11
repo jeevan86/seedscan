@@ -22,15 +22,15 @@ package asl.metadata.meta_new;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-import freq.Cmplx;
+import org.apache.commons.math3.complex.Complex;
 
 public class PolynomialStage extends ResponseStage implements Serializable {
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 2L;
 	private double lowerFrequencyBound;
 	private double upperFrequencyBound;
 	private double lowerApproximationBound;
 	private double upperApproximationBound;
-	private ArrayList<Cmplx> coefficients;
+	private ArrayList<Complex> coefficients;
 
 	// private static final long serialVersionUID = 1L;
 
@@ -42,10 +42,10 @@ public class PolynomialStage extends ResponseStage implements Serializable {
 	PolynomialStage(int stageNumber, char stageType, double stageGain,
 			double stageFrequency) {
 		super(stageNumber, stageType, stageGain, stageFrequency);
-		coefficients = new ArrayList<Cmplx>();
+		coefficients = new ArrayList<Complex>();
 	}
 
-	void addCoefficient(Cmplx coefficient) {
+	void addCoefficient(Complex coefficient) {
 		coefficients.add(coefficient);
 	}
 
@@ -91,7 +91,7 @@ public class PolynomialStage extends ResponseStage implements Serializable {
 		double[] values = new double[numberOfCoefficients];
 		int i = 0;
 		for (; i < numberOfCoefficients; i++) {
-			values[i] = coefficients.get(i).real(); // Only expecting REAL
+			values[i] = coefficients.get(i).getReal(); // Only expecting REAL
 													// coeffs for now ...
 		}
 		/**
