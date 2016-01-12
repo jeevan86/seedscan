@@ -6,6 +6,7 @@ import org.apache.commons.math3.transform.FastFourierTransformer;
 import org.apache.commons.math3.transform.TransformType;
 
 /**
+ * FFTUtils is a wrapper for the Apache FFT library.
  * 
  * @author James Holland - USGS
  *
@@ -13,9 +14,10 @@ import org.apache.commons.math3.transform.TransformType;
 public class FFTUtils {
 
 	/**
-	 * Returns the first half + 1 of the FFT
+	 * Returns the first half + 1 of the FFT.
 	 *
 	 * @param fullFFT
+	 *            the full fft
 	 * @return first half of the FFT
 	 */
 	private static Complex[] getFirstSide(Complex[] fullFFT) {
@@ -53,10 +55,8 @@ public class FFTUtils {
 	 * @return the new 0 padded double[]
 	 */
 	private static double[] getPaddedData(double[] data) {
-		double[] paddedData = new double[getPaddedSize(data.length)]; // Default
-																		// value
-																		// of
-		// double is 0 in java.
+		double[] paddedData = new double[getPaddedSize(data.length)];
+		// Default value of double is 0 in java.
 		System.arraycopy(data, 0, paddedData, 0, data.length);
 
 		return paddedData;
