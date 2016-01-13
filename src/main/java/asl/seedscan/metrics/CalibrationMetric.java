@@ -157,10 +157,7 @@ public class CalibrationMetric extends Metric {
 		// "BC1"
 
 		List<DataSet> data = metricData.getChannelData(channel);
-		long dataStartEpoch = data.get(0).getStartTime() / 1000; // Convert
-		// microsecs
-		// -->
-		// millisecs
+
 		long dataEndEpoch = data.get(0).getEndTime() / 1000; // ...
 		double srate = data.get(0).getSampleRate();
 
@@ -207,20 +204,11 @@ public class CalibrationMetric extends Metric {
 				blockette320 = calBlocks.get(0);
 				long nextCalStartEpoch = blockette320.getCalibrationEpoch();
 				long nextCalDuration = blockette320.getCalibrationDuration();
-				String nextChannelExtension = blockette320.getCalInputChannel(); // e.g.,
-				// "BC0"
+				
 				// Compare millisecs between end of previous cal and start of
 				// this cal
-				if (Math.abs(nextCalStartEpoch - calEndEpoch) < 1800000) { // They
-					// are
-					// within
-					// 1800
-					// (?)
-					// secs
-					// of
-					// each
-					// other
-					boolean calSpansNextDay = true;
+				if (Math.abs(nextCalStartEpoch - calEndEpoch) < 1800000) { 
+					// They are within 1800 (?) secs of each other
 					calDuration += nextCalDuration;
 				}
 				// logger.info("channel=[{}] calChannel=[{}] calStartDate=[{}] calDuration=[{}] sec",
