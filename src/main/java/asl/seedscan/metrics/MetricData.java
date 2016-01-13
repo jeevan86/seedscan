@@ -63,7 +63,7 @@ public class MetricData implements Serializable {
 	 * Used exclusively in unit testing to plugin a reader after importing data from file
 	 * @param metricReader the metricReader to set
 	 */
-	protected void setMetricReader(MetricReader metricReader) {
+	protected void setMetricReader(MetricReader metricReader) { // NO_UCD (test only)
 		this.metricReader = metricReader;
 	}
 

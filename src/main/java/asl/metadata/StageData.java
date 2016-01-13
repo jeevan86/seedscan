@@ -7,7 +7,7 @@ public class StageData {
 	private Hashtable<Integer, Blockette> blockettes;
 
 	// Constructor(s)
-	public StageData(int stageID) {
+	StageData(int stageID) {
 		this.stageID = stageID;
 		blockettes = new Hashtable<Integer, Blockette>();
 	}
@@ -18,7 +18,7 @@ public class StageData {
 	}
 
 	// blockettes
-	public int addBlockette(Blockette blockette)
+	int addBlockette(Blockette blockette)
 			throws DuplicateBlocketteException {
 		int blocketteNumber = blockette.getNumber();
 		if (blockettes.containsKey(blocketteNumber)) {
