@@ -33,8 +33,6 @@ import asl.seedscan.Global;
  * @author David Ketchum
  */
 public class MiniSeed implements MiniSeedOutputHandler {
-	// private static final Logger logger =
-	// LoggerFactory.getLogger(seed.MiniSeed.class);
 	/** The Constant datalogger. */
 	private static final Logger datalogger = LoggerFactory.getLogger("DataLog");
 	
@@ -405,7 +403,7 @@ public class MiniSeed implements MiniSeedOutputHandler {
 	 * @param hund            The hundreds of microseconds to set (adds to Millisecons in
 	 *            Gregorian Calendar)
 	 */
-	public void setTime(GregorianCalendar g, int hund) {
+	private void setTime(GregorianCalendar g, int hund) {
 		year = (short) g.get(Calendar.YEAR);
 		day = (short) g.get(Calendar.DAY_OF_YEAR);
 		hour = (byte) g.get(Calendar.HOUR_OF_DAY);
@@ -440,7 +438,7 @@ public class MiniSeed implements MiniSeedOutputHandler {
 	/**
 	 * Fix location code.
 	 */
-	public void fixLocationCode() {
+	private void fixLocationCode() {
 		if (seed[5] != ' ' && !Character.isUpperCase(seed[5])
 				&& !Character.isDigit(seed[5]))
 			seed[5] = ' ';
@@ -818,7 +816,7 @@ public class MiniSeed implements MiniSeedOutputHandler {
 	 * @param b the b
 	 * @return the string
 	 */
-	public static String safeLetter(byte b) {
+	private static String safeLetter(byte b) {
 		char c = (char) b;
 		return Character.isLetterOrDigit(c) || c == ' ' ? "" + c : Util
 				.toHex((byte) c);
@@ -830,7 +828,7 @@ public class MiniSeed implements MiniSeedOutputHandler {
 	 * @param buf the buf
 	 * @return the string
 	 */
-	public static String toStringRaw(byte[] buf) {
+	private static String toStringRaw(byte[] buf) {
 		ByteBuffer bb = ByteBuffer.wrap(buf);
 		StringBuilder tmp = new StringBuilder(100);
 		bb.position(0);
@@ -881,7 +879,7 @@ public class MiniSeed implements MiniSeedOutputHandler {
 	 * @return true, if successful
 	 * @throws IllegalSeednameException the illegal seedname exception
 	 */
-	public static boolean swapNeeded(byte[] buf)
+	private static boolean swapNeeded(byte[] buf)
 			throws IllegalSeednameException {
 		ByteBuffer bb = ByteBuffer.wrap(buf);
 		return swapNeeded(buf, bb);
@@ -895,7 +893,7 @@ public class MiniSeed implements MiniSeedOutputHandler {
 	 * @return the boolean
 	 * @throws IllegalSeednameException the illegal seedname exception
 	 */
-	public static Boolean swapNeeded(byte[] buf, ByteBuffer bb)
+	private static Boolean swapNeeded(byte[] buf, ByteBuffer bb)
 			throws IllegalSeednameException {
 		
 		String qualityFlagsStr = Global.CONFIG.getQualityflags();
@@ -2385,7 +2383,7 @@ public class MiniSeed implements MiniSeedOutputHandler {
 	/**
 	 * Fix reverse integration.
 	 */
-	public void fixReverseIntegration() {
+	private void fixReverseIntegration() {
 		try {
 			if (getBlockSize() > dataOffset) {
 				int framelen = getBlockSize() - dataOffset;
@@ -2740,7 +2738,7 @@ public class MiniSeed implements MiniSeedOutputHandler {
 	 * @return the nsamp from buf
 	 * @throws IllegalSeednameException the illegal seedname exception
 	 */
-	public static int getNsampFromBuf(byte[] bf, int encoding)
+	private static int getNsampFromBuf(byte[] bf, int encoding)
 			throws IllegalSeednameException {
 		ByteBuffer bb = ByteBuffer.wrap(bf);
 		bb.position(30);

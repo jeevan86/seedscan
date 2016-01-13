@@ -152,7 +152,7 @@ public class Steim2 {
 	 * @throws SteimException
 	 *             - encoded data length is not multiple of 64 bytes.
 	 */
-	public static int[] decode(byte[] b, int numSamples, boolean swapBytes,
+	static int[] decode(byte[] b, int numSamples, boolean swapBytes,
 			int bias) throws SteimException {
 		if (b.length % 64 != 0) {
 			throw new SteimException(
@@ -286,7 +286,7 @@ public class Steim2 {
 	/**
 	 * Abbreviated, zero-bias version of decode().
 	 */
-	public static int[] decode(byte[] b, int numSamples, boolean swapBytes)
+	private static int[] decode(byte[] b, int numSamples, boolean swapBytes)
 			throws SteimException {
 		try {
 			// zero-bias version of decode
@@ -296,10 +296,7 @@ public class Steim2 {
 		}
 	}
 
-	public static byte[] encode(int[] samples) {
-		byte[] b = new byte[0];
-		return b;
-	}
+	
 
 	/**
 	 * Extracts differences from the next 64 byte frame of the given compressed
@@ -316,7 +313,7 @@ public class Steim2 {
 	 *            reverse the endian-ness of the compressed bytes being read
 	 * @return integer array of difference (and constant) values
 	 */
-	protected static int[] extractSamples(byte[] bytes, int offset,
+	private static int[] extractSamples(byte[] bytes, int offset,
 			boolean swapBytes) {
 		/* get nibbles */
 		int nibbles = Utility.bytesToInt(bytes[offset], bytes[offset + 1],
