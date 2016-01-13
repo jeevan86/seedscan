@@ -9,8 +9,6 @@ import org.apache.commons.math3.complex.Complex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import sac.SacTimeSeries;
-import timeutils.PSD;
 import asl.metadata.Channel;
 import asl.metadata.EpochData;
 import asl.metadata.meta_new.ChannelMeta;
@@ -19,6 +17,8 @@ import asl.metadata.meta_new.ChannelMetaException;
 import asl.metadata.meta_new.StationMeta;
 import asl.seedscan.database.MetricValueIdentifier;
 import asl.seedscan.event.EventCMT;
+import sac.SacTimeSeries;
+import timeutils.PSD;
 
 /**
  * The basic class that all metrics extend.

@@ -32,7 +32,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import timeutils.Timeseries;
 import asl.metadata.Channel;
 import asl.metadata.Station;
 import asl.seedscan.ArchivePath;
@@ -40,6 +39,7 @@ import asl.util.PlotMaker2;
 import asl.util.PlotMakerException;
 import asl.util.Trace;
 import asl.util.TraceException;
+import timeutils.Timeseries;
 
 public class StationDeviationMetric extends PowerBandMetric {
 	private static final Logger logger = LoggerFactory

@@ -30,7 +30,6 @@ import java.util.TreeSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import sac.SacHeader;
 import asl.metadata.Channel;
 import asl.metadata.ChannelArray;
 import asl.metadata.meta_new.ChannelMeta.ResponseUnits;
@@ -43,6 +42,7 @@ import asl.util.TraceException;
 import edu.sc.seis.TauP.Arrival;
 import edu.sc.seis.TauP.SphericalCoords;
 import edu.sc.seis.TauP.TauP_Time;
+import sac.SacHeader;
 
 public class EventCompareStrongMotion extends Metric {
 	private static final Logger logger = LoggerFactory

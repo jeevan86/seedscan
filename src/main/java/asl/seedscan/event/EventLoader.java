@@ -34,8 +34,8 @@ import java.util.TreeSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import sac.SacTimeSeries;
 import asl.metadata.Station;
+import sac.SacTimeSeries;
 
 public class EventLoader {
 	private static final Logger logger = LoggerFactory

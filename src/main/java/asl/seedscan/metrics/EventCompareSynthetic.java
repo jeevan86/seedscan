@@ -14,9 +14,6 @@ import java.util.TreeSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import sac.SacHeader;
-import sac.SacTimeSeries;
-import timeutils.MyFilter;
 import asl.metadata.Channel;
 import asl.metadata.meta_new.ChannelMeta.ResponseUnits;
 import asl.metadata.meta_new.ChannelMetaException;
@@ -26,6 +23,9 @@ import asl.util.PlotMakerException;
 import asl.util.Trace;
 import asl.util.TraceException;
 import edu.sc.seis.TauP.SphericalCoords;
+import sac.SacHeader;
+import sac.SacTimeSeries;
+import timeutils.MyFilter;
 
 
 

@@ -31,13 +31,13 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import asl.concurrent.FallOffQueue;
 import seed.BlockSizeException;
 import seed.Blockette320;
 import seed.IllegalSeednameException;
 import seed.MiniSeed;
 import seed.SeedUtil;
 import seed.SteimException;
-import asl.concurrent.FallOffQueue;
 
 /**
  * @author Joel D. Edwards

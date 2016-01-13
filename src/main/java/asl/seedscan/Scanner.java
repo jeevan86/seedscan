@@ -38,8 +38,6 @@ import java.util.concurrent.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import sac.SacTimeSeries;
-import seed.Blockette320;
 import asl.concurrent.FallOffQueue;
 import asl.metadata.EpochData;
 import asl.metadata.MetaServer;
@@ -58,6 +56,8 @@ import asl.seedscan.metrics.MetricWrapper;
 import asl.seedsplitter.DataSet;
 import asl.seedsplitter.SeedSplitProgress;
 import asl.seedsplitter.SeedSplitter;
+import sac.SacTimeSeries;
+import seed.Blockette320;
 
 public class Scanner implements Runnable {
 	private static final Logger logger = LoggerFactory
