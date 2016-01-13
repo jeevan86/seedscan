@@ -1,21 +1,3 @@
-/*
- * Copyright 2012, United States Geological Survey or
- * third-party contributors as indicated by the @author tags.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
- *
- */
 package asl.metadata;
 
 /* 
@@ -95,20 +77,13 @@ public class Dataless {
 	private SeedVolume volume;
 	private Collection<String> rawDataless;
 	private ArrayList<Blockette> blockettes;
-	private boolean complete;
-
 	private double percent;
 	private double lastPercent;
 	private double count;
 	private double total;
-	private double skipped;
-	private double comments;
-	private String stage;
-	private String line;
-
+	
 	public Dataless(Collection<String> rawDataless) {
 		this.rawDataless = rawDataless;
-		complete = false;
 	}
 
 	// This should be the one we use until station/network masks are implemented
@@ -126,7 +101,6 @@ public class Dataless {
 		try {
 			parse();
 			assemble();
-			complete = true;
 			failed = false;
 		} catch (BlocketteFieldIdentifierFormatException exception) {
 			logger.warn("Malformed blocketted field identifier.", exception);
@@ -157,41 +131,25 @@ public class Dataless {
 
 		total = rawDataless.size();
 		count = 0.0;
-		skipped = 0.0;
-		comments = 0.0;
 		percent = 0.0;
 		lastPercent = 0.0;
-		stage = "Parsing Dataless";
-
 		for (String line : rawDataless) {
 			count++;
 			percent = Math.floor(count / total * 100.0);
 			if (percent > lastPercent) {
 				lastPercent = percent;
-				// TODO: call to update progress
-				// progress(stage, count, total)
 			}
 
 			line = line.trim();
-			this.line = line;
-			// System.out.format(" Dataless.parse(): line=%s\n",line);
-
-			// assume we are going to skip this line
-			skipped++;
-
 			if (line.equals("")) {
 				continue;
 			}
 			if (line.startsWith("#")) {
-				comments++;
 				continue;
 			}
 			if (!line.startsWith("B")) {
 				continue;
 			}
-
-			// we are not skipping this line, so revert the increment
-			skipped--;
 
 			String[] lineParts = line.split("\\s", 2);
 			String word = lineParts[0]; // e.g., word = "B010F13-18"
@@ -200,8 +158,6 @@ public class Dataless {
 
 			int blocketteNumber = Integer.parseInt(word.substring(1, 4));
 			String fieldIdentifier = word.substring(5, word.length());
-
-			// System.out.format("  Dataless.parse(): blocketteNumber=%d fieldIdentifier=%s lineData=%s\n",blocketteNumber,fieldIdentifier,lineData);
 
 			Blockette blockette;
 			// If the blockette does not exists, or the attempt to add field
@@ -235,14 +191,9 @@ public class Dataless {
 		}
 
 		total = blockettes.size();
-		// System.out.format("== assemble() blockettes.size() = %f\n", total);
 		count = 0.0;
-		skipped = 0.0;
-		comments = 0.0;
 		percent = 0.0;
 		lastPercent = 0.0;
-		stage = "Assembling Data";
-
 		StationData station = null;
 		ChannelData channel = null;
 		EpochData epoch = null;
@@ -252,8 +203,6 @@ public class Dataless {
 			percent = Math.floor(count / total * 100.0);
 			if (percent > lastPercent) {
 				lastPercent = percent;
-				// TODO: call to update progress
-				// progress(stage, count, total)
 			}
 
 			int blocketteNumber = blockette.getNumber();
@@ -287,16 +236,12 @@ public class Dataless {
 				try {
 					StationKey stationKey = new StationKey(blockette);
 
-					// System.out.format("  Dataless: blockette 50, stationKey=%s\n",stationKey);
 					if (!volume.hasStation(stationKey)) {
-						// System.out.format("  Dataless: call new StationData(%s,%s)\n",stationKey.getNetwork(),
-						// stationKey.getName() );
 						station = new StationData(stationKey.getNetwork(),
 								stationKey.getName());
 						volume.addStation(stationKey, station);
 					} else {
 						station = volume.getStation(stationKey);
-						// System.out.format("  Dataless: getStation, stationKey=%s station name=%s\n",stationKey,station.getName());
 					}
 				} catch (WrongBlocketteException e) {
 					throw e;
@@ -330,7 +275,6 @@ public class Dataless {
 				if (station == null) {
 					throw new BlocketteOutOfOrderException();
 				}
-				// ChannelKey channelKey = new ChannelKey(blockette);
 				ChannelKey channelKey = null;
 				try {
 					channelKey = new ChannelKey(blockette);
@@ -338,8 +282,6 @@ public class Dataless {
 					logger.error("WrongBlocketteException:", e);
 				}
 				if (!station.hasChannel(channelKey)) {
-					// channel = new ChannelData(channelKey.getLocation(),
-					// channelKey.getName());
 					channel = new ChannelData(channelKey);
 					station.addChannel(channelKey, channel);
 				} else {
@@ -387,15 +329,13 @@ public class Dataless {
 				if (epoch == null) {
 					throw new BlocketteOutOfOrderException();
 				}
-				/**
+				/*
 				 * MTH: I see the following output from rdseed -s: B053F04 Stage
 				 * Sequence Number: 1 B058F03 Stage Sequence Number: 1 B054F04
 				 * Stage Sequence Number: 2 B057F03 Stage Sequence Number: 2
 				 * B058F03 Stage Sequence Number: 2 B054F04 Stage Sequence
 				 * Number: 3
-				 **/
-				// int stageKey = Integer.parseInt(blockette.getFieldValue(3,
-				// 0));
+				 */
 				int stageKey;
 				if (blocketteNumber == 57 || blocketteNumber == 58) {
 					stageKey = Integer.parseInt(blockette.getFieldValue(3, 0));
