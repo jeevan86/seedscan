@@ -21,7 +21,6 @@ package asl.seedscan;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -38,7 +37,6 @@ import java.util.concurrent.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import asl.concurrent.FallOffQueue;
 import asl.metadata.EpochData;
 import asl.metadata.MetaServer;
 import asl.metadata.Station;
@@ -54,7 +52,6 @@ import asl.seedscan.metrics.MetricData;
 import asl.seedscan.metrics.MetricResult;
 import asl.seedscan.metrics.MetricWrapper;
 import asl.seedsplitter.DataSet;
-import asl.seedsplitter.SeedSplitProgress;
 import asl.seedsplitter.SeedSplitter;
 import sac.SacTimeSeries;
 import seed.Blockette320;
@@ -72,8 +69,6 @@ public class Scanner implements Runnable {
 
 	private MetricData currentMetricData = null;
 	private MetricData nextMetricData = null;
-
-	private FallOffQueue<SeedSplitProgress> progressQueue;
 	
 	// Class to assign seedplitter object and seedsplitter table
 	private static class SplitterObject {
@@ -105,7 +100,6 @@ public class Scanner implements Runnable {
 		this.injector = injector;
 		this.station = station;
 		this.scan = scan;
-		this.progressQueue = new FallOffQueue<SeedSplitProgress>(8);
 	}
 
 	public Scanner(MetricReader reader, MetricInjector injector,
@@ -116,7 +110,6 @@ public class Scanner implements Runnable {
 		// this.metaGen = metaGen;
 		this.metaServer = metaServer;
 		this.scan = scan;
-		this.progressQueue = new FallOffQueue<SeedSplitProgress>(8);
 	}
 
 	public void run() {
@@ -358,13 +351,13 @@ public class Scanner implements Runnable {
 	 * SeedSplitter function: processing times greater than 3
 	 * min. will move to the next day
 	 */
-	private SplitterObject executeSplitter(File[] files, FallOffQueue<SeedSplitProgress> queue, int timeout, GregorianCalendar timestamp) 
+	private SplitterObject executeSplitter(File[] files, int timeout, GregorianCalendar timestamp) 
 		throws TimeoutException,
 				ExecutionException,
 				InterruptedException 
 	{
 		Hashtable<String, ArrayList<DataSet>> table = null;
-		SeedSplitter splitter = new SeedSplitter(files, queue);
+		SeedSplitter splitter = new SeedSplitter(files);
 		ExecutorService executor = Executors.newSingleThreadExecutor();
 		Future<Hashtable<String, ArrayList<DataSet>>> future = executor.submit(new Task(splitter));
 		
@@ -456,12 +449,11 @@ public class Scanner implements Runnable {
 		}
 
 		logger.info(dir.getPath() + " contains " + files.length + " files.");
-		progressQueue.clear();
 
 		// execute SeedSplitter process (180 sec timer will be issued)
 		try {
 			int timeout = 180;
-			SplitterObject splitObj = executeSplitter(files, progressQueue, timeout, timestamp);
+			SplitterObject splitObj = executeSplitter(files, timeout, timestamp);
 			SeedSplitter splitter = splitObj.splitter;
 			Hashtable<String, ArrayList<DataSet>> table = splitObj.table;
 

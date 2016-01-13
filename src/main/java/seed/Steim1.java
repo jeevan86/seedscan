@@ -74,7 +74,7 @@ public class Steim1 {
 		int[] tempSamples;
 		int numFrames = b.length / 64;
 		int current = 0;
-		int start = 0, end;
+		int start = 0;
 		int firstData = 0;
 		int lastValue = 0;
 
@@ -92,7 +92,7 @@ public class Steim1 {
 				lastValue = bias; // assign our X(-1)
 				// x0 and xn are in 1 and 2 spots
 				start = tempSamples[1]; // X(0) is byte 1 for frame 0
-				end = tempSamples[2]; // X(n) is byte 2 for frame 0
+				 // X(n) is byte 2 for frame 0
 				firstData = 3; // d(0) is byte 3 for frame 0
 				// System.err.println("DEBUG: frame " + i + ", bias = " + bias +
 				// ", x(0) = " + start + ", x(n) = " + end);

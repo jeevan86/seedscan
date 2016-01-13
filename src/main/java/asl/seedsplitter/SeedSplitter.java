@@ -65,7 +65,6 @@ public class SeedSplitter extends
 	private Hashtable<String, ArrayList<DataSet>> m_table;
 	private LinkedBlockingQueue<ByteBlock> m_recordQueue;
 	private FallOffQueue<SeedSplitProgress> m_progressQueue;
-	private FallOffQueue<SeedSplitProgress> m_externalProgressQueue = null;
 	private SeedSplitProgress m_lastProgress = null;
 
 	private Pattern m_patternNetwork = null;
@@ -107,21 +106,6 @@ public class SeedSplitter extends
 	 */
 	public SeedSplitter(File[] fileList) {
 		super();
-		_construct(fileList);
-	}
-
-	/**
-	 * Constructor.
-	 * 
-	 * @param fileList
-	 *            List of files from which to read in the MiniSEED data.
-	 * @param externalProgressQueue
-	 *            Queue into which progress updates are pushed.
-	 */
-	public SeedSplitter(File[] fileList,
-			FallOffQueue<SeedSplitProgress> externalProgressQueue) {
-		super();
-		m_externalProgressQueue = externalProgressQueue;
 		_construct(fileList);
 	}
 
