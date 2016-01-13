@@ -26,9 +26,7 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 import javax.swing.SwingWorker;
 
@@ -51,11 +49,6 @@ public class SeedSplitter extends
 	private static final Logger datalogger = LoggerFactory.getLogger("DataLog");
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.seedsplitter.SeedSplitter.class);
-
-	public static final int NETWORK = 1;
-	public static final int STATION = 2;
-	public static final int LOCATION = 4;
-	public static final int CHANNEL = 8;
 
 	// Consider changing the T,V types
 	// T may be alright, but V should be some sort of progress indicator
@@ -107,49 +100,6 @@ public class SeedSplitter extends
 	public SeedSplitter(File[] fileList) {
 		super();
 		_construct(fileList);
-	}
-
-	/**
-	 * Sets a filter which determines whether a MiniSEED record should be passed
-	 * on to the SeedSplitProcessor.
-	 * 
-	 * @param filter
-	 *            Filter pattern to be used for this property.
-	 * @param which
-	 *            Property to which this filter pattern should be applied.
-	 * @throws InvalidFilterException
-	 *             If the supplied filter pattern is invalid.
-	 */
-	public void setFilter(String filter, int which)
-			throws InvalidFilterException {
-		Pattern pattern;
-		Pattern pVerify = Pattern.compile("^[A-Za-z0-9*?.]+$");
-		Matcher mVerify = pVerify.matcher(filter);
-		if (!mVerify.matches()) {
-			throw new InvalidFilterException("Invalid filter text: '" + filter
-					+ "' ");
-		}
-
-		String pText = filter.replaceAll("[*]", ".*");
-		pText = pText.replaceAll("[?]", ".?");
-
-		try {
-			pattern = Pattern.compile(pText);
-		} catch (PatternSyntaxException e) {
-			String message = "Invalid filter text: '" + filter + "'"
-					+ e.getMessage();
-			throw new InvalidFilterException(message);
-		}
-
-		if ((which & NETWORK) > 0) {
-			m_patternNetwork = pattern;
-		} else if ((which & STATION) > 0) {
-			m_patternStation = pattern;
-		} else if ((which & LOCATION) > 0) {
-			m_patternLocation = pattern;
-		} else if ((which & CHANNEL) > 0) {
-			m_patternChannel = pattern;
-		}
 	}
 
 	/**
