@@ -7,27 +7,53 @@ import org.apache.commons.math3.complex.Complex;
 import asl.util.FFTUtils;
 
 /**
+ * The Class PSD.
+ * This computes PSDs and stores their outputs.
+ *
  * @author Mike Hagerty  - hagertmb@bc.edu
  * @author James Holland - USGS
  */
 public class PSD {
+	
+	/** The powers of the PSD. */
 	private Complex[] psd = null;
-	private double[] freq = null;
+	
+	/** The frequencies that correspond with psd. */
+	private double[] frequencies = null;
+	
+	/** The data x. */
 	private double[] dataX = null;
+	
+	/** The data y. This is null if dataX and dataY were identical */
 	private double[] dataY = null;
-	private double df;
-	private double dt;
+	
+	/** The delta frequency. Each value in frequencies increments by this number. */
+	private double deltaFrequency;
+	
+	/** The period. */
+	private double period;
+	
+	/** The size of the data passed in. */
 	private int dataSize;
 
-	// constructor(s)
-	public PSD(double[] dataX, double[] dataY, double dt) throws RuntimeException {
+	/**
+	 * Instantiates a new PSD.
+	 * Also computes the PSD based on the passed data.
+	 *
+	 * @param dataX the x data array
+	 * @param dataY the y data array, if this is identical to dataX it is not stored. The PSD is computed using dataX only.
+	 * @param period the period, must be greater than 0.
+	 * @throws RuntimeException if dataX.length != dataY.length or period <= 0
+	 */
+	public PSD(double[] dataX, double[] dataY, double period) throws RuntimeException {
 		if (dataX.length != dataY.length) {
 			throw new RuntimeException("== ndataX != ndataY --> Can't create new PSD");
 		}
-		if (dt <= 0.) {
+		if (period <= 0.) {
 			throw new RuntimeException("== Invalid dt --> Can't create new PSD");
 		}
 		this.dataX = dataX;
+		
 		//Check if duplicate data was given.
 		if(Arrays.equals(dataX, dataY)){
 			this.dataY = null;
@@ -36,25 +62,46 @@ public class PSD {
 			this.dataY = dataY;
 		}
 		this.dataSize = dataX.length;
-		this.dt = dt;
+		this.period = period;
 		computePSD();
 	}
 
+	/**
+	 * Gets the spectrum.
+	 *
+	 * @return the spectrum
+	 */
 	public final Complex[] getSpectrum() {
 		return psd;
 	}
 
+	/**
+	 * Gets the frequencies for the spectrum.
+	 * This array increments each step by deltaF.
+	 *
+	 * @return the frequency array
+	 */
 	public final double[] getFreq() {
-		return freq;
+		return frequencies;
 	}
 
+	/**
+	 * Gets the frequency delta.
+	 *
+	 * @return the change in frequency between spectral densities.
+	 */
 	public final double getDeltaF() {
-		return df;
+		return deltaFrequency;
 	}
 
+	/**
+	 * Gets the magnitudes (or absolute values) of the spectrum.
+	 *
+	 * @return the magnitude
+	 */
 	public double[] getMagnitude() {
-		double[] specMag = new double[freq.length];
-		for (int k = 0; k < freq.length; k++) {
+		double[] specMag = new double[frequencies.length];
+		for (int k = 0; k < frequencies.length; k++) {
 			specMag[k] = psd[k].abs();
 		}
 		return specMag;
@@ -86,7 +133,7 @@ public class PSD {
 		// Average all 13 FFTs
 		// Remove response (not done in this routine)
 
-		// For 13 windows with 75% overlap, each window will contain ndata/4
+		// For 13 windows with 75% overlap, each window will contain dataSize/4
 		// points
 		// TODO: Still need to handle the case of multiple datasets with gaps!
 
@@ -97,10 +144,7 @@ public class PSD {
 		int paddedSegmentSize = FFTUtils.getPaddedSize(segmentSize);
 
 		int singleSideSize = paddedSegmentSize / 2 + 1;
-		df = 1. / (paddedSegmentSize * dt);
-
-		//double[] xseg = new double[segmentSize];
-		//double[] yseg = new double[segmentSize];
+		deltaFrequency = 1. / (paddedSegmentSize * period);
 
 		psd = new Complex[singleSideSize];
 		double wss = 0.;
@@ -118,13 +162,14 @@ public class PSD {
 			Complex[] xfft = null;
 			Complex[] yfft = null;
 			
+			//Using Arrays.copyOfRange() is better than a loop when dealing with HH data.
 			double[] xseg = Arrays.copyOfRange(dataX, offset, segmentLastIndex);
 			Timeseries.detrend(xseg);
 			Timeseries.debias(xseg);
 			wss = Timeseries.costaper(xseg, .10);
 			xfft = FFTUtils.singleSidedFFT(xseg);
 			
-			//Only use yseg if dataY actually exists.
+			//Only use yseg if dataY actually exists. Cuts computation time in half.
 			if(dataY != null){
 				double[] yseg = Arrays.copyOfRange(dataY, offset, segmentLastIndex);
 				Timeseries.detrend(yseg);
@@ -153,17 +198,17 @@ public class PSD {
 		// At same time, correct for loss of power in window due to 10% cosine
 		// taper
 
-		double psdNormalization = 2.0 * dt / (double) paddedSegmentSize;
+		double psdNormalization = 2.0 * period / (double) paddedSegmentSize;
 		double windowCorrection = wss / (double) segmentSize; // =.875 for 10%
 															// cosine taper
 		psdNormalization = psdNormalization / windowCorrection;
 		psdNormalization = psdNormalization / (double) numberSegmentsProcessed;
 
-		freq = new double[singleSideSize];
+		frequencies = new double[singleSideSize];
 
 		for (int k = 0; k < singleSideSize; k++) {
 			psd[k] = psd[k].multiply(psdNormalization);
-			freq[k] = (double) k * df;
+			frequencies[k] = (double) k * deltaFrequency;
 		}
 
 		// We have psdC[f] so this is a good point to do any smoothing over
