@@ -31,24 +31,50 @@ import java.nio.channels.FileLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * The Class LockFile.
+ */
 public class LockFile {
+	
+	/** The Constant logger. */
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.seedscan.LockFile.class);
 
+	/** The file. */
 	private File file;
+	
+	/** The FileChannel closed in release(). */
 	private FileChannel channel;
+	
+	/** The lock. */
 	private FileLock lock;
 
+	/**
+	 * Instantiates a new lock file.
+	 *
+	 * @param file the file
+	 */
 	public LockFile(File file) {
 		this.file = file;
 	}
 
+	/**
+	 * Instantiates a new lock file.
+	 *
+	 * @param file name of our lock file.
+	 */
 	public LockFile(String file) {
 		this.file = new File(file);
 		this.file.setReadable(true, false);
 		this.file.setWritable(true, false);
 	}
 
+	/**
+	 * Acquire a lock on the file.
+	 *
+	 * @return true, if a lock was acquired
+	 */
+	@SuppressWarnings("resource") //RandomAccessFile is closed when channel is closed in release()
 	public boolean acquire() {
 		boolean success = false;
 		try {
@@ -64,20 +90,45 @@ public class LockFile {
 			}
 		} catch (FileNotFoundException e) {
 			logger.error("FileNotFoundException:", e);
+			if(channel != null)
+			{
+				try {
+					channel.close();
+				} catch (IOException ignored) {
+				}
+			}
 		} catch (IOException e) {
 			logger.error("IOException:", e);
+			if(channel != null)
+			{
+				try {
+					channel.close();
+				} catch (IOException ignored) {
+				}
+			}
 		}
 		return success;
 	}
 
+	/**
+	 * Release the lock, truncate the lock file and close out the streams.
+	 *
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
 	public void release() throws IOException {
 		if (this.hasLock()) {
 			channel.truncate(0);
 			lock.release();
 			lock = null;
+			channel.close();
 		}
 	}
 
+	/**
+	 * Checks for lock.
+	 *
+	 * @return true, if there is a valid lock.
+	 */
 	public boolean hasLock() {
 		boolean locked = false;
 		if ((lock != null) && (lock.isValid())) {
