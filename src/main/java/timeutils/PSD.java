@@ -1,37 +1,41 @@
 package timeutils;
 
+import java.util.Arrays;
+
 import org.apache.commons.math3.complex.Complex;
-import org.apache.commons.math3.transform.DftNormalization;
-import org.apache.commons.math3.transform.FastFourierTransformer;
-import org.apache.commons.math3.transform.TransformType;
 
 import asl.util.FFTUtils;
 
 /**
- * @author Mike Hagerty hagertmb@bc.edu
+ * @author Mike Hagerty  - hagertmb@bc.edu
+ * @author James Holland - USGS
  */
 public class PSD {
-	Complex[] psd = null;
-	double[] freq = null;
-	double[] dataX = null;
-	double[] dataY = null;
-	double df;
-	double dt;
-	int ndata;
+	private Complex[] psd = null;
+	private double[] freq = null;
+	private double[] dataX = null;
+	private double[] dataY = null;
+	private double df;
+	private double dt;
+	private int dataSize;
 
 	// constructor(s)
-	public PSD(double[] dataX, double[] dataY, double dt)
-			throws RuntimeException {
+	public PSD(double[] dataX, double[] dataY, double dt) throws RuntimeException {
 		if (dataX.length != dataY.length) {
-			throw new RuntimeException(
-					"== ndataX != ndataY --> Can't create new PSD");
+			throw new RuntimeException("== ndataX != ndataY --> Can't create new PSD");
 		}
 		if (dt <= 0.) {
 			throw new RuntimeException("== Invalid dt --> Can't create new PSD");
 		}
 		this.dataX = dataX;
-		this.dataY = dataY;
-		this.ndata = dataX.length;
+		//Check if duplicate data was given.
+		if(Arrays.equals(dataX, dataY)){
+			this.dataY = null;
+		}
+		else{
+			this.dataY = dataY;
+		}
+		this.dataSize = dataX.length;
 		this.dt = dt;
 		computePSD();
 	}
@@ -63,12 +67,12 @@ public class PSD {
 	 * 
 	 * From Bendat &amp; Piersol p.328: time segment averaging reduces the
 	 * normalized standard error by sqrt (1 / nsegs) and increases the
-	 * resolution bandwidth to nsegs * df frequency smoothing has same
-	 * effect with nsegs replaced by nfrequencies to smooth The combination of
-	 * both will reduce error by sqrt(1 / nfreqs * nsegs)
+	 * resolution bandwidth to nsegs * df frequency smoothing has same effect
+	 * with nsegs replaced by nfrequencies to smooth The combination of both
+	 * will reduce error by sqrt(1 / nfreqs * nsegs)
 	 * 
 	 * psd[f] - Contains smoothed crosspower-spectral density computed for nf =
-	 *         nfft/2 + 1 frequencies (+ve freqs + DC + Nyq)
+	 * nfft/2 + 1 frequencies (+ve freqs + DC + Nyq)
 	 * 
 	 */
 	private void computePSD() {
@@ -85,67 +89,63 @@ public class PSD {
 		// For 13 windows with 75% overlap, each window will contain ndata/4
 		// points
 		// TODO: Still need to handle the case of multiple datasets with gaps!
-		
-		int nseg_pnts = ndata / 4;
-		int noff = nseg_pnts / 4;
 
-		// Find smallest power of 2 >= nseg_pnts:
-		int nfft = 1;
-		while (nfft < nseg_pnts)
-			nfft = (nfft << 1);
+		int segmentSize = dataSize / 4;
+		int segmentOffsetSize = segmentSize / 4;
 
-		// We are going to do an nfft point FFT which will return
-		// nfft/2+1 +ve frequencies (including DC + Nyq)
-		int nf = nfft / 2 + 1;
-		df = 1. / (nfft * dt);
+		// Find smallest power of 2 >= segmentSize:
+		int paddedSegmentSize = FFTUtils.getPaddedSize(segmentSize);
 
-		double[] xseg = new double[nseg_pnts];
-		double[] yseg = new double[nseg_pnts];
+		int singleSideSize = paddedSegmentSize / 2 + 1;
+		df = 1. / (paddedSegmentSize * dt);
 
-		Complex[] xfft = null;
-		Complex[] yfft = null;
-		psd = new Complex[nf];
+		//double[] xseg = new double[segmentSize];
+		//double[] yseg = new double[segmentSize];
+
+		psd = new Complex[singleSideSize];
 		double wss = 0.;
 
-		int iwin = 0;
-		int ifst = 0;
-		int ilst = nseg_pnts - 1;
+		int numberSegmentsProcessed = 0;
+		int segmentLastIndex = segmentSize;
 		int offset = 0;
 
-		for (int k = 0; k < nf; k++) {
+		for (int k = 0; k < singleSideSize; k++) {
 			psd[k] = Complex.ZERO;
 		}
 
-		while (ilst < ndata) // ndata needs to come from largest dataset
+		while (segmentLastIndex <= dataSize)
 		{
-			for (int k = 0; k < nseg_pnts; k++) { // Load current window
-				xseg[k] = dataX[k + offset];
-				yseg[k] = dataY[k + offset];
-			}
-			Timeseries.detrend(xseg);
-			Timeseries.detrend(yseg);
-			Timeseries.debias(xseg);
-			Timeseries.debias(yseg);
-			wss = Timeseries.costaper(xseg, .10);
-			wss = Timeseries.costaper(yseg, .10);
-			// MTH: Maybe want to assert here that wss > 0 to avoid
-			// divide-by-zero below ??
+			Complex[] xfft = null;
+			Complex[] yfft = null;
 			
-			// fft returns just the (nf = nfft/2 + 1) positive frequencies
+			double[] xseg = Arrays.copyOfRange(dataX, offset, segmentLastIndex);
+			Timeseries.detrend(xseg);
+			Timeseries.debias(xseg);
+			wss = Timeseries.costaper(xseg, .10);
 			xfft = FFTUtils.singleSidedFFT(xseg);
-			yfft = FFTUtils.singleSidedFFT(yseg);
+			
+			//Only use yseg if dataY actually exists.
+			if(dataY != null){
+				double[] yseg = Arrays.copyOfRange(dataY, offset, segmentLastIndex);
+				Timeseries.detrend(yseg);
+				Timeseries.debias(yseg);
+				wss = Timeseries.costaper(yseg, .10);
+				yfft = FFTUtils.singleSidedFFT(yseg);
+			}
+			else{
+				//Since dataY is null, dataY must have been equal to dataX
+				yfft = xfft;
+			}
 
 			// Load up the 1-sided PSD:
-			for (int k = 0; k < nf; k++) {
+			for (int k = 0; k < singleSideSize; k++) {
 				psd[k] = psd[k].add(xfft[k].multiply(yfft[k].conjugate()));
 			}
 
-			iwin++;
-			offset += noff;
-			ilst += noff;
-			ifst += noff;
-		} // end while
-		int nwin = iwin; // Should have nwin = 13
+			numberSegmentsProcessed++;
+			offset += segmentOffsetSize;
+			segmentLastIndex += segmentOffsetSize;
+		}
 
 		// Divide the summed psd[]'s by the number of windows (=13) AND
 		// Normalize the PSD ala Bendat & Piersol, to units of (time series)^2 /
@@ -153,15 +153,15 @@ public class PSD {
 		// At same time, correct for loss of power in window due to 10% cosine
 		// taper
 
-		double psdNormalization = 2.0 * dt / (double) nfft;
-		double windowCorrection = wss / (double) nseg_pnts; // =.875 for 10%
+		double psdNormalization = 2.0 * dt / (double) paddedSegmentSize;
+		double windowCorrection = wss / (double) segmentSize; // =.875 for 10%
 															// cosine taper
 		psdNormalization = psdNormalization / windowCorrection;
-		psdNormalization = psdNormalization / (double) nwin;
+		psdNormalization = psdNormalization / (double) numberSegmentsProcessed;
 
-		freq = new double[nf];
+		freq = new double[singleSideSize];
 
-		for (int k = 0; k < nf; k++) {
+		for (int k = 0; k < singleSideSize; k++) {
 			psd[k] = psd[k].multiply(psdNormalization);
 			freq[k] = (double) k * df;
 		}
@@ -170,8 +170,7 @@ public class PSD {
 		// neighboring frequencies:
 		int nsmooth = 11;
 		int nhalf = 5;
-		int nw = nf - nsmooth;
-		Complex[] psdCFsmooth = new Complex[nf];
+		Complex[] psdCFsmooth = new Complex[singleSideSize];
 
 		int iw = 0;
 
@@ -180,7 +179,7 @@ public class PSD {
 		}
 
 		// iw is really icenter of nsmooth point window
-		for (; iw < nf - nhalf; iw++) {
+		for (; iw < singleSideSize - nhalf; iw++) {
 			int k1 = iw - nhalf;
 			int k2 = iw + nhalf;
 
@@ -192,19 +191,15 @@ public class PSD {
 		}
 
 		// Copy the remaining point into the smoothed array
-		for (; iw < nf; iw++) {
+		for (; iw < singleSideSize; iw++) {
 			psdCFsmooth[iw] = psd[iw];
 		}
 
 		// Copy Frequency smoothed spectrum back into psd[f] and proceed as
 		// before
-		for (int k = 0; k < nf; k++) {
+		for (int k = 0; k < singleSideSize; k++) {
 			// psd[k] = psdCFsmooth[k].mag();
 			psd[k] = psdCFsmooth[k];
 		}
-		// psd[0]=0; // Reset DC
-
-	} // end computePSD
-
-} // end class
-
+	}
+}
