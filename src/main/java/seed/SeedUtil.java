@@ -28,17 +28,13 @@
 
 package seed;
 
-import java.text.DecimalFormat;
 import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.TimeZone;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This clas is all static methods for maniupulating julian days, day-of-year,
+ * This class is all static methods for manipulating julian days, day-of-year,
  * back and forth.
  * 
  * @author davidketchum
@@ -47,9 +43,9 @@ import org.slf4j.LoggerFactory;
 public class SeedUtil {
 	private static final Logger logger = LoggerFactory
 			.getLogger(seed.SeedUtil.class);
-	static int[] daytab = new int[] { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30,
+	private static final int[] DAY_TAB = new int[] { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30,
 			31, 30, 31 };
-	static int[] dayleap = new int[] { 0, 31, 29, 31, 30, 31, 30, 31, 31, 30,
+	private static final int[] DAY_LEAP = new int[] { 0, 31, 29, 31, 30, 31, 30, 31, 31, 30,
 			31, 30, 31 };
 
 	/**
@@ -60,7 +56,7 @@ public class SeedUtil {
 	 *            The year, month day as an array
 	 * @return The day of the year
 	 */
-	public static int doy_from_ymd(int[] ymd) {
+	static int doy_from_ymd(int[] ymd) {
 		int yr = sanitizeYear(ymd[0]);
 		boolean leap = yr % 4 == 0 && yr % 100 != 0 || yr % 400 == 0; /*
 																	 * is it a
@@ -70,81 +66,11 @@ public class SeedUtil {
 		int day = ymd[2];
 		if (leap)
 			for (int i = 1; i < ymd[1]; i++)
-				day += dayleap[i]; /* add up all the full months */
+				day += DAY_LEAP[i]; /* add up all the full months */
 		else
 			for (int i = 1; i < ymd[1]; i++)
-				day += daytab[i]; /* add up all the full months */
+				day += DAY_TAB[i]; /* add up all the full months */
 		return day;
-	}
-
-	/**
-	 * From a year, month, and day of the month calculate the Julian day of
-	 * year. Parts stolen from K&amp;R's C book.
-	 * 
-	 * @param yr
-	 *            The year
-	 * @param mon
-	 *            a three didget Man (first 3 letters of english month
-	 * @param day
-	 *            day of the monthe
-	 * @return The day of the year
-	 */
-	public static int doy_from_ymd(int yr, int mon, int day) {
-		yr = sanitizeYear(yr);
-		boolean leap = yr % 4 == 0 && yr % 100 != 0 || yr % 400 == 0; /*
-																	 * is it a
-																	 * leap year
-																	 */
-		/* printf("Mon=%s month=%d leap=%d\n",mn,month,leap); */
-		if (leap)
-			for (int i = 1; i < mon; i++)
-				day += dayleap[i]; /* add up all the full months */
-		else
-			for (int i = 1; i < mon; i++)
-				day += daytab[i]; /* add up all the full months */
-		return day;
-	}
-
-	/**
-	 * From a Unix 3 character month in ascii, a day of month, and year,
-	 * calculate the Julian day of year. Parts stolen from K&amp;R's C book.
-	 * 
-	 * @param yr
-	 *            The year
-	 * @param mon
-	 *            a three didget Man (first 3 letters of english month
-	 * @param day
-	 *            day of the monthe
-	 * @return The day of the year
-	 */
-	public static int doy_from_ymd(int yr, String mon, int day) {
-
-		int month = -1;
-		if (mon.equalsIgnoreCase("Jan"))
-			month = 1; /* calculate month of year */
-		if (mon.equalsIgnoreCase("Feb"))
-			month = 2;
-		if (mon.equalsIgnoreCase("Mar"))
-			month = 3;
-		if (mon.equalsIgnoreCase("Apr"))
-			month = 4;
-		if (mon.equalsIgnoreCase("May"))
-			month = 5;
-		if (mon.equalsIgnoreCase("Jun"))
-			month = 6;
-		if (mon.equalsIgnoreCase("Jul"))
-			month = 7;
-		if (mon.equalsIgnoreCase("Aug"))
-			month = 8;
-		if (mon.equalsIgnoreCase("Sep"))
-			month = 9;
-		if (mon.equalsIgnoreCase("Oct"))
-			month = 10;
-		if (mon.equalsIgnoreCase("Nov"))
-			month = 11;
-		if (mon.equalsIgnoreCase("Dec"))
-			month = 12;
-		return doy_from_ymd(yr, month, day);
 	}
 
 	/**
@@ -171,21 +97,21 @@ public class SeedUtil {
 		ymd[0] = yr;
 		if (leap) {
 			for (j = 1; j <= 12; j++) {
-				if (sum < doy && sum + dayleap[j] >= doy) {
+				if (sum < doy && sum + DAY_LEAP[j] >= doy) {
 					ymd[1] = j;
 					ymd[2] = doy - sum;
 					return ymd;
 				}
-				sum += dayleap[j];
+				sum += DAY_LEAP[j];
 			}
 		} else {
 			for (j = 1; j <= 12; j++) {
-				if (sum < doy && sum + daytab[j] >= doy) {
+				if (sum < doy && sum + DAY_TAB[j] >= doy) {
 					ymd[1] = j;
 					ymd[2] = doy - sum;
 					return ymd;
 				}
-				sum += daytab[j];
+				sum += DAY_TAB[j];
 			}
 		}
 		// System.out.println("ymd_from_doy: impossible drop through!   yr="+yr+" doy="+doy);
@@ -202,7 +128,7 @@ public class SeedUtil {
 	 *            The year to sanitize
 	 * @return the year sanitized by rule of 60.
 	 */
-	public static int sanitizeYear(int yr) {
+	private static int sanitizeYear(int yr) {
 		if (yr >= 100)
 			return yr;
 		if (yr >= 60 && yr < 100)
@@ -234,37 +160,9 @@ public class SeedUtil {
 	 *            The day of the year
 	 * @return The julian day
 	 */
-	public static int toJulian(int year, int doy) {
+	static int toJulian(int year, int doy) {
 		int[] ymd = ymd_from_doy(year, doy);
 		return toJulian(ymd[0], ymd[1], ymd[2]);
-	}
-
-	/**
-	 * create the julian day from a GregorianCalendar
-	 * 
-	 * @param now
-	 *            the GregorianCalendar to manipulate
-	 * @return the julian day
-	 */
-	public static int toJulian(GregorianCalendar now) {
-		return toJulian(now.get(Calendar.YEAR), now.get(Calendar.MONTH) + 1,
-				now.get(Calendar.DAY_OF_MONTH));
-	}
-
-	/**
-	 * Convert a Date to a Julian date.
-	 * 
-	 * @param date
-	 *            the date to convert
-	 * @return the Julian date
-	 */
-	public static int toJulian(Date date) {
-		GregorianCalendar cal;
-
-		cal = new GregorianCalendar(TimeZone.getTimeZone("GMT+0000"));
-		cal.setTime(date);
-
-		return toJulian(cal);
 	}
 
 	/**
@@ -278,7 +176,7 @@ public class SeedUtil {
 	 *            The day of the month.
 	 * @return the julian day
 	 */
-	public static int toJulian(int year, int month, int day) {
+	private static int toJulian(int year, int month, int day) {
 
 		int julianYear = sanitizeYear(year);
 		if (year < 0)
@@ -311,7 +209,7 @@ public class SeedUtil {
 	 * @return An array of 3 ints representing the year, month and day in that
 	 *         order
 	 */
-	public static int[] fromJulian(int injulian) {
+	static int[] fromJulian(int injulian) {
 
 		int jalpha, ja, jb, jc, jd, je, year, month, day;
 		// double julian = (double) injulian + HALFSECOND / 86400.0;
@@ -337,34 +235,6 @@ public class SeedUtil {
 			year--;
 
 		return new int[] { year, month, day };
-	}
-
-	/**
-	 * for a julian day, create the file stub yyyy_doy
-	 * 
-	 * @param julian
-	 *            day
-	 * @return a string with yyyy_ddd
-	 */
-	public static String fileStub(int julian) {
-		int[] ymd = fromJulian(julian);
-		int doy = doy_from_ymd(ymd[0], ymd[1], ymd[2]);
-		return fileStub(ymd[0], doy);
-	}
-
-	/**
-	 * for a year a doy, create the file stub yyyy_doy
-	 * 
-	 * @param year
-	 *            It will be put through rule of 60(sanitizeYear)
-	 * @param jday
-	 *            The day of year
-	 * @return a string with yyyy_ddd
-	 */
-	public static String fileStub(int year, int jday) {
-		DecimalFormat df4 = new DecimalFormat("0000");
-		return df4.format(sanitizeYear(year)) + "_"
-				+ df4.format(jday).substring(1, 4);
 	}
 
 	/**
@@ -397,16 +267,13 @@ public class SeedUtil {
 		results = fromJulian(todayJulian);
 		System.out.println("... back to calendar : " + results[0] + " "
 				+ results[1] + " " + results[2]);
-		int jday = doy_from_ymd(today.get(Calendar.YEAR),
-				today.get(Calendar.MONTH) + 1, today.get(Calendar.DATE));
-		System.out.println("Today is julian day " + jday);
-		System.out.println("Today is julian day "
-				+ toJulian(today.get(Calendar.YEAR), jday));
+
 		// THIRD TEST
 		int date1 = toJulian(2005, 1, 1);
 		int date2 = toJulian(2005, 1, 31);
 		System.out.println("Between 2005-01-01 and 2005-01-31 : "
 				+ (date2 - date1) + " days");
+				
 		/*
 		 * expected output :
 		 * 
@@ -414,17 +281,13 @@ public class SeedUtil {
 		 * 23 Julian date for today : 2453487.0 ... back to calendar 2005 4 26
 		 * Between 2005-01-01 and 2005-01-31 : 30.0 days
 		 */
-		jday = doy_from_ymd(2005, 12, 1);
-		System.out.println("2005-12-1 is julday=" + jday);
-		jday = doy_from_ymd(2004, 12, 1);
-		System.out.println("2004-12-1 is julday=" + jday);
+		
 		int[] ymd;
 		ymd = ymd_from_doy(2005, 335);
 		System.out.println("2005-335 is " + ymd[0] + "/" + ymd[1] + "/"
 				+ ymd[2]);
 		ymd = ymd_from_doy(2004, 335);
 		System.out.println("2004-335 is " + ymd[0] + "/" + ymd[1] + "/"
-				+ ymd[2]);
-		System.out.println("2004-35 is file=" + fileStub(2004, 35));
+				+ ymd[2]);		
 	}
 }
