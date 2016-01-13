@@ -42,13 +42,10 @@ import asl.util.TraceException;
 import edu.sc.seis.TauP.Arrival;
 import edu.sc.seis.TauP.SphericalCoords;
 import edu.sc.seis.TauP.TauP_Time;
-import sac.SacHeader;
 
 public class EventCompareStrongMotion extends Metric {
-	private static final Logger logger = LoggerFactory
-			.getLogger(asl.seedscan.metrics.EventCompareStrongMotion.class);
+	private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.metrics.EventCompareStrongMotion.class);
 
-	// private static Hashtable<String, EventCMT> eventCMTs = null;
 	private Hashtable<String, EventCMT> eventCMTs = null;
 
 	private static final double PERIOD1 = 25;
@@ -62,8 +59,6 @@ public class EventCompareStrongMotion extends Metric {
 	private static final double f4 = 1. / PERIOD4;
 
 	Channel[] channels = new Channel[9];
-
-	private SacHeader hdr = null;
 
 	private double xDist = 0.;
 
@@ -83,17 +78,16 @@ public class EventCompareStrongMotion extends Metric {
 
 		eventCMTs = getEventTable();
 		if (eventCMTs == null) {
-			logger.info(String
-					.format("No Event CMTs found for Day=[%s] --> Skip EventCompareStrongMotion Metric",
-							getDay()));
+			logger.info(String.format("No Event CMTs found for Day=[%s] --> Skip EventCompareStrongMotion Metric",
+					getDay()));
 			return;
 		}
 
 		// If station doesn't have a strongmotion sensor then don't try to
 		// compute this metric:
 		if (!weHaveChannels("20", "LN")) {
-			logger.info(String
-					.format("== Day=[%s] Stn=[%s] - metadata + data NOT found for loc=20 band=LN --> Skip Metric",
+			logger.info(
+					String.format("== Day=[%s] Stn=[%s] - metadata + data NOT found for loc=20 band=LN --> Skip Metric",
 							getDay(), getStation()));
 			return;
 		}
@@ -108,15 +102,13 @@ public class EventCompareStrongMotion extends Metric {
 		 * 10-LHZ v. channels[6] = 20-LNZ 4 channels[4] = 10-LHND v. channels[7]
 		 * = 20-LNND 5 channels[5] = 10-LHED v. channels[8] = 20-LNED
 		 **/
-		int nChannels = 9;
 		int nDigests = 6;
-        double corrVal = 0.;
+		double corrVal = 0.;
 
 		ByteBuffer[] digestArray = new ByteBuffer[nDigests];
-		// Channel[] channels = new Channel[nChannels];
-
+		
 		double[] results = new double[nDigests];
-        boolean[] returnResults = new boolean[nDigests];
+		boolean[] returnResults = new boolean[nDigests];
 
 		channels[0] = new Channel("00", "LHZ");
 		channels[1] = new Channel("00", "LHND");
@@ -133,8 +125,8 @@ public class EventCompareStrongMotion extends Metric {
 				Channel channelX = channels[i];
 				Channel channelY = channels[i + 6];
 				ChannelArray channelArray = new ChannelArray(channelX, channelY);
-				digestArray[i] = metricData.valueDigestChanged(channelArray,
-						createIdentifier(channelX, channelY), getForceUpdate());
+				digestArray[i] = metricData.valueDigestChanged(channelArray, createIdentifier(channelX, channelY),
+						getForceUpdate());
 				results[i] = 0.;
 			}
 		}
@@ -143,29 +135,27 @@ public class EventCompareStrongMotion extends Metric {
 				Channel channelX = channels[i];
 				Channel channelY = channels[i + 3];
 				ChannelArray channelArray = new ChannelArray(channelX, channelY);
-				digestArray[i] = metricData.valueDigestChanged(channelArray,
-						createIdentifier(channelX, channelY), getForceUpdate());
+				digestArray[i] = metricData.valueDigestChanged(channelArray, createIdentifier(channelX, channelY),
+						getForceUpdate());
 				results[i] = 0.;
 			}
 		}
 
 		if (compute00) {
-			if (digestArray[0] == null && digestArray[1] == null
-					&& digestArray[2] == null) {
+			if (digestArray[0] == null && digestArray[1] == null && digestArray[2] == null) {
 				compute00 = false;
 			}
 		}
 		if (compute10) {
-			if (digestArray[3] == null && digestArray[4] == null
-					&& digestArray[5] == null) {
+			if (digestArray[3] == null && digestArray[4] == null && digestArray[5] == null) {
 				compute10 = false;
 			}
 		}
 
 		if (!compute00 && !compute10) {
-			logger.info(String
-					.format("== Day=[%s] Stn=[%s] - digest==null (or missing)for BOTH 00-LH and 10-LH chans --> Skip Metric",
-							getDay(), getStation()));
+			logger.info(String.format(
+					"== Day=[%s] Stn=[%s] - digest==null (or missing)for BOTH 00-LH and 10-LH chans --> Skip Metric",
+					getDay(), getStation()));
 			return;
 		}
 
@@ -174,8 +164,7 @@ public class EventCompareStrongMotion extends Metric {
 
 		// Loop over Events for this day
 		try { // getZNE() method try/catch
-			SortedSet<String> eventKeys = new TreeSet<String>(
-					eventCMTs.keySet());
+			SortedSet<String> eventKeys = new TreeSet<String>(eventCMTs.keySet());
 			for (String key : eventKeys) {
 
 				EventCMT eventCMT = eventCMTs.get(key);
@@ -196,8 +185,9 @@ public class EventCompareStrongMotion extends Metric {
 				// comparison:
 				double[] arrivalTimes = getEventArrivalTimes(eventCMT);
 				if (arrivalTimes == null) {
-					logger.info("== {}: arrivalTimes==null for stn=[{}] day=[{}]: Distance to stn probably > 97-deg --> Don't compute metric\n",
-									getName(), getStation(), getDay());
+					logger.info(
+							"== {}: arrivalTimes==null for stn=[{}] day=[{}]: Distance to stn probably > 97-deg --> Don't compute metric\n",
+							getName(), getStation(), getDay());
 					continue;
 				}
 
@@ -206,17 +196,13 @@ public class EventCompareStrongMotion extends Metric {
 				int nend = (int) (arrivalTimes[1] + 60.); // S + 120 sec
 				if (nstart < 0)
 					nstart = 0;
-				// System.out.format("== %s: arrivalTimes[0]==%f arrivalTimes[1]=%f: nstart=%d nend=%d\n",
-				// getName(), arrivalTimes[0],
-				// arrivalTimes[1], nstart, nend);
 
 				ResponseUnits units = ResponseUnits.DISPLACEMENT;
 				ArrayList<double[]> dataDisp = new ArrayList<double[]>();
 
 				ArrayList<double[]> dataDisp00 = null;
 				if (compute00) {
-					dataDisp00 = metricData.getZNE(units, "00", "LH",
-							eventStartTime, eventEndTime, f1, f2, f3, f4);
+					dataDisp00 = metricData.getZNE(units, "00", "LH", eventStartTime, eventEndTime, f1, f2, f3, f4);
 					if (dataDisp00 != null) {
 						dataDisp.addAll(dataDisp00);
 					} else {
@@ -225,54 +211,47 @@ public class EventCompareStrongMotion extends Metric {
 				}
 				ArrayList<double[]> dataDisp10 = null;
 				if (compute10) {
-					dataDisp10 = metricData.getZNE(units, "10", "LH",
-							eventStartTime, eventEndTime, f1, f2, f3, f4);
+					dataDisp10 = metricData.getZNE(units, "10", "LH", eventStartTime, eventEndTime, f1, f2, f3, f4);
 					if (dataDisp10 != null) {
 						dataDisp.addAll(dataDisp10);
 					} else {
 						compute10 = false;
 					}
 				}
-				ArrayList<double[]> dataDisp20 = metricData.getZNE(units, "20",
-						"LN", eventStartTime, eventEndTime, f1, f2, f3, f4);
+				ArrayList<double[]> dataDisp20 = metricData.getZNE(units, "20", "LN", eventStartTime, eventEndTime, f1,
+						f2, f3, f4);
 				if (dataDisp20 != null) {
 					dataDisp.addAll(dataDisp20);
 				}
 
-				if ((dataDisp00 == null && dataDisp10 == null)
-						|| dataDisp20 == null) {
-					logger.info("== {}: day=[{}] getZNE returned null data --> skip this event\n",
-									getName(), getDay());
+				if ((dataDisp00 == null && dataDisp10 == null) || dataDisp20 == null) {
+					logger.info("== {}: day=[{}] getZNE returned null data --> skip this event\n", getName(), getDay());
 					continue;
 				}
 
 				if (getMakePlots()) {
-					makePlots(dataDisp00, dataDisp10, dataDisp20, nstart, nend,
-							key, eventNumber);
+					makePlots(dataDisp00, dataDisp10, dataDisp20, nstart, nend, key, eventNumber);
 				}
 
-				// switched from rmsDiff to scaleFac with 00/10 being the reference
+				// switched from rmsDiff to scaleFac with 00/10 being the
+				// reference
 
 				if (compute00) {
 					for (int i = 0; i < 3; i++) {
-                        corrVal = getCorr(dataDisp00.get(i),
-								dataDisp20.get(i), nstart, nend);
-                        if (corrVal >= 0.85){
-                            returnResults[i] = true;
-						    results[i] += scaleFac(dataDisp00.get(i),
-								    dataDisp20.get(i), nstart, nend);
-                        }
+						corrVal = getCorr(dataDisp00.get(i), dataDisp20.get(i), nstart, nend);
+						if (corrVal >= 0.85) {
+							returnResults[i] = true;
+							results[i] += scaleFac(dataDisp00.get(i), dataDisp20.get(i), nstart, nend);
+						}
 					}
 				}
 				if (compute10) {
 					for (int i = 0; i < 3; i++) {
-                        corrVal = getCorr(dataDisp10.get(i),
-								dataDisp20.get(i), nstart, nend);
-                        if (corrVal >= 0.85){
-                            returnResults[i + 3] = true;
-						    results[i + 3] += scaleFac(dataDisp10.get(i),
-								    dataDisp20.get(i), nstart, nend);
-                        }
+						corrVal = getCorr(dataDisp10.get(i), dataDisp20.get(i), nstart, nend);
+						if (corrVal >= 0.85) {
+							returnResults[i + 3] = true;
+							results[i + 3] += scaleFac(dataDisp10.get(i), dataDisp20.get(i), nstart, nend);
+						}
 					}
 				}
 
@@ -293,14 +272,11 @@ public class EventCompareStrongMotion extends Metric {
 					if (digest == null)
 						continue; // We don't want to try to inject a null
 									// digest if that channel is not updated
-                    if(returnResults[i]){
-					    metricResult.addResult(channelX, channelY, result, digest);
-                    }
-                    else{
-                        logger.info(
-					        "station=[{}] day=[{}]: Low correlation",
-					        getStation(), getDay());
-                    }
+					if (returnResults[i]) {
+						metricResult.addResult(channelX, channelY, result, digest);
+					} else {
+						logger.info("station=[{}] day=[{}]: Low correlation", getStation(), getDay());
+					}
 
 				}
 			}
@@ -313,15 +289,12 @@ public class EventCompareStrongMotion extends Metric {
 					if (digest == null)
 						continue; // We don't want to try to inject a null
 									// digest if that channel is not updated
-                
-					if(returnResults[i]){
-					    metricResult.addResult(channelX, channelY, result, digest);
-                    }
-                    else{
-                        logger.info(
-					        "station=[{}] day=[{}]: Low correlation",
-					        getStation(), getDay());
-                    }
+
+					if (returnResults[i]) {
+						metricResult.addResult(channelX, channelY, result, digest);
+					} else {
+						logger.info("station=[{}] day=[{}]: Low correlation", getStation(), getDay());
+					}
 				}
 			}
 		} catch (ChannelMetaException e) {
@@ -335,56 +308,34 @@ public class EventCompareStrongMotion extends Metric {
 		}
 	} // end process()
 
-	/**
-	 * compare 2 double[] arrays between array indices n1 and n2
-	 */
-	private double rmsDiff(double[] data1, double[] data2, int n1, int n2) {
-		// if n1 < n2 or nend < data.length ...
-		double rms = 0.;
-		int npts = n2 - n1 + 1;
-		for (int i = n1; i < n2; i++) {
-			rms += Math.pow((data1[i] - data2[i]), 2);
-		}
-		rms /= (double) npts;
-		rms = Math.sqrt(rms);
-
-		return rms;
-	}
-
-
 	private double scaleFac(double[] data1, double[] data2, int n1, int n2) {
 		// if n1 < n2 or nend < data.length ...
 		double numerator = 0.;
-        double denominator = 0.;
-		int npts = n2 - n1 + 1;
+		double denominator = 0.;
 		for (int i = n1; i < n2; i++) {
 			numerator += (data1[i] * data2[i]);
-            denominator += (data1[i] *data1[i]);
+			denominator += (data1[i] * data1[i]);
 		}
-        if (denominator == 0.) {
+		if (denominator == 0.) {
 			logger.error(
 					"station=[{}] day=[{}]: scaleFac: denominator==0 --> Divide by 0 --> Expect result = Infinity!",
 					getStation(), getDay());
 		}
 
 		double result = numerator / denominator;
-        // If the result is too large cap it at 4.
-        if (result >= 4.){
-            result = 4.;
-        }
-
+		// If the result is too large cap it at 4.
+		if (result >= 4.) {
+			result = 4.;
+		}
 
 		return result;
 	}
 
-
-
-    private double getCorr(double[] data1, double[] data2, int n1, int n2){
-		//This function computs the Pearson's correlation value for the two time series
+	private double getCorr(double[] data1, double[] data2, int n1, int n2) {
+		// This function computs the Pearson's correlation value for the two
+		// time series
 		if (n2 < n1) {
-			logger.error(
-					"station=[{}] day=[{}]: calcDiff: n2 < n1 --> Bad window",
-					getStation(), getDay());
+			logger.error("station=[{}] day=[{}]: calcDiff: n2 < n1 --> Bad window", getStation(), getDay());
 			return NO_RESULT;
 		}
 		if (n2 >= data1.length || n2 >= data2.length) {
@@ -394,24 +345,23 @@ public class EventCompareStrongMotion extends Metric {
 			return NO_RESULT;
 		}
 
-
-		//Calculate the mean of both data streams
+		// Calculate the mean of both data streams
 		double data1mean = 0.;
-		double data2mean = 0.;		
+		double data2mean = 0.;
 
 		for (int i = n1; i < n2; i++) {
 			data1mean += data1[i];
 			data2mean += data2[i];
 
-		}  
+		}
 		data1mean = data1mean / (double) data1.length;
 		data2mean = data2mean / (double) data2.length;
 
-		//Calculate the standard deviation of both data streams
+		// Calculate the standard deviation of both data streams
 		double std1 = 0.;
 		double std2 = 0.;
 
-		for (int i = n1; i < n2; i++){
+		for (int i = n1; i < n2; i++) {
 			std1 += (data1[i] - data1mean) * (data1[i] - data1mean);
 			std2 += (data2[i] - data2mean) * (data2[i] - data2mean);
 
@@ -419,27 +369,18 @@ public class EventCompareStrongMotion extends Metric {
 		std1 = std1 / (double) data1.length;
 		std2 = std2 / (double) data2.length;
 
-		//Calculate the r correlation
+		// Calculate the r correlation
 		double r = 0.;
 		for (int i = n1; i < n2; i++) {
-			r += (data1[i] - data1mean) * (data2[i] - data2mean) / (std1*std2);
+			r += (data1[i] - data1mean) * (data2[i] - data2mean) / (std1 * std2);
 
 		}
 		r = r / (double) (data1.length - 1);
-		
+
 		return r;
 	}
 
-
-
-
-
-
 	private double[] getEventArrivalTimes(EventCMT eventCMT) {
-
-		long eventStartTime = eventCMT.getTimeInMillis(); // Event origin epoch
-															// time in millisecs
-
 		double evla = eventCMT.getLatitude();
 		double evlo = eventCMT.getLongitude();
 		double evdep = eventCMT.getDepth();
@@ -460,20 +401,12 @@ public class EventCompareStrongMotion extends Metric {
 
 		List<Arrival> arrivals = timeTool.getArrivals();
 
-		// for (int i=0; i<arrivals.size(); i++){
-		// Arrival arrival = arrivals.get(i);
-		// System.out.println(arrival.getName()+" arrives at "+
-		// (arrival.getDist()*180.0/Math.PI)+" degrees after "+
-		// arrival.getTime()+" seconds.");
-		// }
 		// We could screen by max distance (e.g., 90 deg for P direct)
 		// or by counting arrivals (since you won't get a P arrival beyond about
 		// 97 deg or so)
 		if (arrivals.size() != 2) { // Either we don't have both P & S or we
 									// don't have just P & S
-			logger.info(String
-					.format("Expected P and/or S arrival times not found [gcarc=%8.4f]",
-							gcarc));
+			logger.info(String.format("Expected P and/or S arrival times not found [gcarc=%8.4f]", gcarc));
 			return null;
 		}
 
@@ -490,10 +423,9 @@ public class EventCompareStrongMotion extends Metric {
 			logger.info(String.format("Expected S arrival time not found"));
 		}
 
-		logger.info(String
-				.format("Event:%s <evla,evlo> = <%.2f, %.2f> Station:%s <%.2f, %.2f> gcarc=%.2f azim=%.2f tP=%.3f tS=%.3f\n",
-						eventCMT.getEventID(), evla, evlo, getStation(), stla,
-						stlo, gcarc, azim, arrivalTimeP, arrivalTimeS));
+		logger.info(String.format(
+				"Event:%s <evla,evlo> = <%.2f, %.2f> Station:%s <%.2f, %.2f> gcarc=%.2f azim=%.2f tP=%.3f tS=%.3f\n",
+				eventCMT.getEventID(), evla, evlo, getStation(), stla, stlo, gcarc, azim, arrivalTimeP, arrivalTimeS));
 
 		double[] arrivalTimes = new double[2];
 		arrivalTimes[0] = arrivalTimeP;
@@ -502,25 +434,19 @@ public class EventCompareStrongMotion extends Metric {
 		return arrivalTimes;
 	}
 
-	public void makePlots(ArrayList<double[]> d00, ArrayList<double[]> d10,
-			ArrayList<double[]> d20, int nstart, int nend, String key,
-			int eventNumber) throws PlotMakerException, TraceException {
+	public void makePlots(ArrayList<double[]> d00, ArrayList<double[]> d10, ArrayList<double[]> d20, int nstart,
+			int nend, String key, int eventNumber) throws PlotMakerException, TraceException {
 
 		PlotMaker2 plotMaker = null;
-		final String plotTitle = String.format(
-				"[ Event: %s ] [ Station: %s ] [ Dist: %.2f ] %s", key,
-				getStation(), xDist, getName());
+		final String plotTitle = String.format("[ Event: %s ] [ Station: %s ] [ Dist: %.2f ] %s", key, getStation(),
+				xDist, getName());
 
-		final String pngName = String.format("%s.strongmtn.ev-%d.png",
-				getOutputDir(), eventNumber);
+		final String pngName = String.format("%s.strongmtn.ev-%d.png", getOutputDir(), eventNumber);
 
 		if (plotMaker == null) {
 			plotMaker = new PlotMaker2(plotTitle);
 			plotMaker.initialize3Panels("LHZ", "LH1/LHN", "LH2/LHE");
 		}
-
-		int iPanel = 0;
-		Color color = Color.black;
 
 		BasicStroke stroke = new BasicStroke(2.0f);
 
@@ -536,12 +462,9 @@ public class EventCompareStrongMotion extends Metric {
 				for (int i = 0; i < d00.size(); i++) {
 					double[] dataIn = d00.get(i);
 					double[] dataOut = new double[npts];
-					// System.out.format("== d00 channels[%d]=[%s] dataIn=%d pnts dataOut=%d pnts npts=%d nstart=%d\n",
-					// i, channels[i].toString(),
-					// dataIn.length, dataOut.length, npts , nstart);
 					System.arraycopy(dataIn, nstart, dataOut, 0, npts);
-					plotMaker.addTraceToPanel(new Trace(xsecs, dataOut,
-							channels[i].toString(), Color.green, stroke), i);
+					plotMaker.addTraceToPanel(new Trace(xsecs, dataOut, channels[i].toString(), Color.green, stroke),
+							i);
 				}
 			}
 			if (d10 != null) {
@@ -549,10 +472,8 @@ public class EventCompareStrongMotion extends Metric {
 					double[] dataIn = d10.get(i);
 					double[] dataOut = new double[npts];
 					System.arraycopy(dataIn, nstart, dataOut, 0, npts);
-					// System.out.format("== d10 channels[%d]=[%s]\n", i+3,
-					// channels[i+3].toString() );
-					plotMaker.addTraceToPanel(new Trace(xsecs, dataOut,
-							channels[i + 3].toString(), Color.red, stroke), i);
+					plotMaker.addTraceToPanel(new Trace(xsecs, dataOut, channels[i + 3].toString(), Color.red, stroke),
+							i);
 				}
 			}
 			if (d20 != null) {
@@ -560,12 +481,8 @@ public class EventCompareStrongMotion extends Metric {
 					double[] dataIn = d20.get(i);
 					double[] dataOut = new double[npts];
 					System.arraycopy(dataIn, nstart, dataOut, 0, npts);
-					// System.out.format("== d20 channels[%d]=[%s]\n", i+6,
-					// channels[i+6].toString() );
-					plotMaker
-							.addTraceToPanel(new Trace(xsecs, dataOut,
-									channels[i + 6].toString(), Color.black,
-									stroke), i);
+					plotMaker.addTraceToPanel(
+							new Trace(xsecs, dataOut, channels[i + 6].toString(), Color.black, stroke), i);
 				}
 			}
 			plotMaker.writePlot(pngName);
