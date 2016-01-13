@@ -76,7 +76,7 @@ public class MyFilter {
 			data[i] = timeseries[i];
 		}
 		Timeseries.detrend(data);
-		Timeseries.debias(data);
+		Timeseries.demean(data);
 		Timeseries.costaper(data, .01);
 
 		// fft2 returns just the (nf = nfft/2 + 1) positive frequencies

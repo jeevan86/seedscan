@@ -165,7 +165,7 @@ public class PSD {
 			//Using Arrays.copyOfRange() is better than a loop when dealing with HH data.
 			double[] xseg = Arrays.copyOfRange(dataX, offset, segmentLastIndex);
 			Timeseries.detrend(xseg);
-			Timeseries.debias(xseg);
+			Timeseries.demean(xseg);
 			wss = Timeseries.costaper(xseg, .10);
 			xfft = FFTUtils.singleSidedFFT(xseg);
 			
@@ -173,7 +173,7 @@ public class PSD {
 			if(dataY != null){
 				double[] yseg = Arrays.copyOfRange(dataY, offset, segmentLastIndex);
 				Timeseries.detrend(yseg);
-				Timeseries.debias(yseg);
+				Timeseries.demean(yseg);
 				wss = Timeseries.costaper(yseg, .10);
 				yfft = FFTUtils.singleSidedFFT(yseg);
 			}

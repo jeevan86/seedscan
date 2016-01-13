@@ -642,7 +642,7 @@ public class MetricData implements Serializable {
 			data[i] = timeseries[i];
 		}
 		Timeseries.detrend(data);
-		Timeseries.debias(data);
+		Timeseries.demean(data);
 		Timeseries.costaper(data, .01);
 
 		double[] freq = new double[nf];
