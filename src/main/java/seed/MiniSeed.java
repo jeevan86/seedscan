@@ -118,6 +118,7 @@ public class MiniSeed implements MiniSeedOutputHandler {
 	private boolean cleared; // This one was last cleared
 	
 	/** The length. */
+	@SuppressWarnings("unused") //We want to keep this accessible for future use.
 	private int length;
 	
 	/** The int5. */
@@ -164,6 +165,7 @@ public class MiniSeed implements MiniSeedOutputHandler {
 	private byte nblockettes; // number of "data blockettes" in this record
 	
 	/** The time correction. */
+	@SuppressWarnings("unused") //We want to keep this accessible for future use.
 	private int timeCorrection; // Time Correction from fixed header
 	
 	/** The data offset. */

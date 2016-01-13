@@ -150,7 +150,7 @@ public class MetaGenerator extends UnicastRemoteObject implements MetaInterface 
 				while ((line = reader.readLine()) != null) {
 					strings.add(line);
 				}
-				int shellExitStatus = process.waitFor();
+				process.waitFor();
 			}
 			// Need to catch both IOException and InterruptedException
 			catch (IOException e) {
@@ -361,10 +361,6 @@ public class MetaGenerator extends UnicastRemoteObject implements MetaInterface 
 					// If the epoch is closed, check that the end time is at
 					// least 24 hours later than the requested time
 					if (epochData.getEndTime() != null) {
-						// Make sure this epoch end time is > requested time +
-						// 24 hours
-						long epochStart = epochData.getStartTime()
-								.getTimeInMillis();
 						long epochEnd = epochData.getEndTime()
 								.getTimeInMillis();
 						if (epochEnd < (timestamp.getTimeInMillis() + 24 * 3600 * 1000)) {

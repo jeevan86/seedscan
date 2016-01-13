@@ -31,7 +31,8 @@ public class EventCMT {
 	private final double eventLat;
 	private final double eventLon;
 	private final double eventDep;
-	private final double eventMw;
+	@SuppressWarnings("unused") //Don't want to obscure how to get this in the future
+	private final double eventMw; //Momentum Magnitude
 	private final Calendar eventCal;
 
 	public static class Builder {

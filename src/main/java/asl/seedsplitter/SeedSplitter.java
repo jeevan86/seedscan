@@ -64,7 +64,6 @@ public class SeedSplitter extends
 	private File[] m_files;
 	private Hashtable<String, ArrayList<DataSet>> m_table;
 	private LinkedBlockingQueue<ByteBlock> m_recordQueue;
-	private LinkedBlockingQueue<DataSet> m_dataQueue;
 	private FallOffQueue<SeedSplitProgress> m_progressQueue;
 	private FallOffQueue<SeedSplitProgress> m_externalProgressQueue = null;
 	private SeedSplitProgress m_lastProgress = null;

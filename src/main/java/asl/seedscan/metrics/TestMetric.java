@@ -19,16 +19,12 @@
 package asl.seedscan.metrics;
 
 import java.util.List;
-import java.util.logging.Logger;
 
 import asl.metadata.Channel;
 import asl.metadata.meta_new.ChannelMeta;
 import asl.metadata.meta_new.PoleZeroStage;
 
 public class TestMetric extends Metric {
-	private static final Logger logger = Logger
-			.getLogger("asl.seedscan.metrics.TestMetric");
-
 	@Override
 	public long getVersion() {
 		return 1;

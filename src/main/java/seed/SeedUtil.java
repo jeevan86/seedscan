@@ -223,8 +223,7 @@ public class SeedUtil {
 	 */
 
 	// Gregorian Calendar adopted Oct. 15, 1582 (2299161)
-	private static int JGREG = 15 + 31 * (10 + 12 * 1582);
-	private static double HALFSECOND = 0.5;
+	private static final int JGREG = 15 + 31 * (10 + 12 * 1582);
 
 	/**
 	 * Given a year and day of year, return the true julian day

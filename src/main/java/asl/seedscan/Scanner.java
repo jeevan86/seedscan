@@ -288,7 +288,6 @@ public class Scanner implements Runnable {
                     } else {
                         for (String id : results.getIdSortedSet()) {
                             double value = results.getResult(id);
-                            ByteBuffer digest = results.getDigest(id);
                             /* @formatter:off */
 							logger.info(
 								String.format(

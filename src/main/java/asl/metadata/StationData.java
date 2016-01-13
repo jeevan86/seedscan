@@ -128,8 +128,6 @@ public class StationData {
 	// Return the correct Blockette 050 for the requested epochTime
 	// Return null if epochTime not contained
 	public Blockette getBlockette(Calendar epochTime) {
-		boolean containsEpochTime = false;
-
 		ArrayList<Calendar> epochtimes = new ArrayList<Calendar>();
 		epochtimes.addAll(epochs.keySet());
 		Collections.sort(epochtimes);
@@ -138,7 +136,6 @@ public class StationData {
 
 		Calendar startTimeStamp = null;
 		Calendar endTimeStamp = null;
-		Calendar timestamp = null;
 
 		// Loop through Blockettes (B050) and pick out epoch end dates
 		for (int i = 0; i < nEpochs; i++) {
@@ -161,7 +158,6 @@ public class StationData {
 			if (endTimeStamp == null) { // This Epoch is open
 				if (epochTime.getTimeInMillis() >= startTimeStamp
 						.getTimeInMillis()) {
-					containsEpochTime = true;
 					return blockette;
 					// break;
 				}
@@ -170,29 +166,12 @@ public class StationData {
 					.getTimeInMillis()
 					&& epochTime.getTimeInMillis() <= endTimeStamp
 							.getTimeInMillis()) {
-				containsEpochTime = true;
 				return blockette;
 				// break;
 			}
 		} // for
 		return null; // If we made it to here than we are returning
 						// blockette==null
-
-		// These should be the latest ones we checked, so they are correct IF
-		// the epochTime was found
-		/**
-		 * String epochDateString = EpochData.epochToDateString(epochTime);
-		 * String startDateString = EpochData.epochToDateString(startTimeStamp);
-		 * String endDateString = EpochData.epochToDateString(endTimeStamp); if
-		 * (containsEpochTime){ System.out.format(
-		 * "----StationData %s-%s Epoch: [%s - %s] contains EpochTime=%s\n"
-		 * ,network,name,startDateString,endDateString,epochDateString); } else
-		 * { System.out.format("----StationData EpochTime=%s was NOT FOUND!!\n",
-		 * epochDateString); }
-		 * 
-		 * return containsEpochTime;
-		 **/
-
 	}
 
 	// Loop through all station (=Blockette 050) epochs and print summary
