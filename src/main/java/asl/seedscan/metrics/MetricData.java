@@ -670,10 +670,10 @@ public class MetricData implements Serializable {
 
 			for (int k = 0; k < nf; k++) {
 				double taper = bpass(k, k1, k2, k3, k4);
-				// Remove instrument: We use conjg() here since the SEED inst
-				// resp FFT convention F(w) ~ e^-iwt ****
-				// while the Numerical Recipes convention is F(w) ~ e^+iwt
-				xfft[k] = xfft[k].divide(instrumentResponse[k].conjugate()); // Remove
+				// Because Apache's FFT matches our imaginary sign, we don't
+				// need a conjugate. If we were using Numerical Recipes we would
+				// need to.
+				xfft[k] = xfft[k].divide(instrumentResponse[k]); // Remove
 				// instrument
 				xfft[k] = xfft[k].multiply(taper); // Bandpass
 			}
