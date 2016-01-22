@@ -124,11 +124,12 @@ public class ALNMDeviationMetric extends PowerBandMetric {
 			return;
 		}
 
-		// Get all LH channels in metadata
-		List<Channel> channels = stationMeta.getChannelArray("LH");
+		// Get all LN channels in metadata
+		List<Channel> channels = stationMeta.getChannelArray("LN");
+		channels.addAll(stationMeta.getChannelArray("HN"));
 
 		if (channels == null || channels.size() == 0) {
-			logger.warn("No LH? channels found for station={} day={}", getStation(), day);
+			logger.warn("No LN/HN channels found for station={} day={}", getStation(), day);
 			return;
 		}
 
@@ -469,7 +470,7 @@ public class ALNMDeviationMetric extends PowerBandMetric {
 	/**
 	 * The Class NoiseModel.
 	 */
-	static class NoiseModel {
+	private static class NoiseModel {
 
 		/** The periods. */
 		private double[] periods = null;
