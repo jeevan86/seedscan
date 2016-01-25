@@ -14,7 +14,7 @@ import java.util.zip.GZIPOutputStream;
  * @author James Holland - USGS
  *
  */
-public abstract class ResourceManager {
+public abstract class ResourceManager { // NO_UCD (test only)
 
 	/**
 	 * Compress using GZIPOutputStream and write to file specific in fileName.
