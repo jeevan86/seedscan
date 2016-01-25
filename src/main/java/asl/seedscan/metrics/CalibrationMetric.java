@@ -542,14 +542,14 @@ public class CalibrationMetric extends Metric {
 		return null;
 	}
 
-	public static class SensorInfo {
+	private static class SensorInfo {
 		private String sensorName = null;
 		private double Tmin;
 		private double Tmax;
 		private double Tnorm;
 
 		// constructor
-		public SensorInfo(String sensorName, double Tmin, double Tmax,
+		private SensorInfo(String sensorName, double Tmin, double Tmax,
 				double Tnorm) {
 			this.sensorName = sensorName;
 			this.Tmin = Tmin;
@@ -580,28 +580,28 @@ public class CalibrationMetric extends Metric {
 		}
 	}
 
-	public class BandAverageDiff {
-		double T1;
-		double T2;
-		double ampDiff;
-		double phsDiff;
+	private class BandAverageDiff {
+		private double T1;
+		private double T2;
+		private double ampDiff;
+		private double phsDiff;
 	}
 
-	public class CalibrationResult {
+	private class CalibrationResult {
 		private Channel channel;
 		private Channel calInputChannel;
 		private String calStartDate;
 		private long calDuration;
 
-		String sensorName;
-		double Tmin;
-		double Tmax;
-		double Tnorm;
-		double cornerFreq;
-		double cornerFreqCal;
-		Hashtable<String, BandAverageDiff> bandTable;
+		private String sensorName;
+		private double Tmin;
+		private double Tmax;
+		private double Tnorm;
+		private double cornerFreq;
+		private double cornerFreqCal;
+		private Hashtable<String, BandAverageDiff> bandTable;
 
-		public CalibrationResult(Channel channel, Channel calInputChannel,
+		private CalibrationResult(Channel channel, Channel calInputChannel,
 				String calStartDate, long calDuration) {
 			this.channel = channel;
 			this.calInputChannel = calInputChannel;
@@ -610,29 +610,29 @@ public class CalibrationMetric extends Metric {
 			bandTable = new Hashtable<String, BandAverageDiff>();
 		}
 
-		void setSensorName(String sensorName) {
+		private void setSensorName(String sensorName) {
 			this.sensorName = sensorName;
 		}
 
-		void setPeriods(double Tmin, double Tmax, double Tnorm) {
+		private void setPeriods(double Tmin, double Tmax, double Tnorm) {
 			this.Tmin = Tmin;
 			this.Tmax = Tmax;
 			this.Tnorm = Tnorm;
 		}
 
-		void setCornerFreq(double cornerFreq) {
+		private void setCornerFreq(double cornerFreq) {
 			this.cornerFreq = cornerFreq;
 		}
 
-		void setCornerFreqCal(double cornerFreq) {
+		private void setCornerFreqCal(double cornerFreq) {
 			this.cornerFreqCal = cornerFreq;
 		}
 
-		void addBand(String name, BandAverageDiff bandDiff) {
+		private void addBand(String name, BandAverageDiff bandDiff) {
 			bandTable.put(name, bandDiff);
 		}
 
-		public String toJSONString() {
+		private String toJSONString() {
 			BandAverageDiff bandDiff = bandTable.get("midBandDiff");
 			StringBuilder out = new StringBuilder();
 			out.append(String.format("{\"channelId\":\"%s\",\n", channel));
