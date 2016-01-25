@@ -31,16 +31,16 @@ import org.slf4j.LoggerFactory;
 public class Steim2 {
 	private static final Logger logger = LoggerFactory
 			.getLogger(seed.Steim2.class);
-	static int xminus1;
-	static boolean dbg;
-	static boolean strictRIC = false;
-	static boolean traceBackErrors;
-	static String reverseError;
-	static String sampleCountError;
-	static int[] frameNsamp = new int[63];
-	static int[] frameReverse = new int[63];
-	static int[] frameForward = new int[63];
-	static StringBuffer sb;
+	private static int xminus1;
+	private static boolean dbg;
+	private static boolean strictRIC = false;
+	private static boolean traceBackErrors;
+	private static String reverseError;
+	private static String sampleCountError;
+	private static int[] frameNsamp = new int[63];
+	private static int[] frameReverse = new int[63];
+	private static int[] frameForward = new int[63];
+	private static StringBuffer sb;
 
 	public static void setStrictRIC(boolean t) {
 		strictRIC = t;
