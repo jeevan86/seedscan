@@ -41,7 +41,7 @@ public class MyFilter {
 		sacSeries.setY(fdata);
 	}
 
-	public static void bandpass(double[] timeseries, double delta, double f1,
+	private static void bandpass(double[] timeseries, double delta, double f1,
 			double f2, double f3, double f4) {
 
 		if (!(f1 < f2 && f2 < f3 && f3 < f4)) {
@@ -131,7 +131,7 @@ public class MyFilter {
 			return (-9999999.);
 	}
 
-	public static double[] convertFloatsToDoubles(float[] input) {
+	private static double[] convertFloatsToDoubles(float[] input) {
 		if (input == null) {
 			return null; // Or throw an exception - your choice
 		}
@@ -142,7 +142,7 @@ public class MyFilter {
 		return output;
 	}
 
-	public static float[] convertDoublesToFloats(double[] input) {
+	private static float[] convertDoublesToFloats(double[] input) {
 		if (input == null) {
 			return null; // Or throw an exception - your choice
 		}
@@ -151,120 +151,5 @@ public class MyFilter {
 			output[i] = (float) input[i];
 		}
 		return output;
-	}
-
-	/**
-	 * Band pass filter around the microseismic peak
-	 * 
-	 * @param timeseries
-	 *            Input data
-	 * @return filtered time series
-	 */
-	public static double[] filterdata(double[] timeseries, double delta,
-			double fl, double fh) {
-		Complex[] complexSeries = FFTUtils.singleSidedFFT(timeseries);
-		complexSeries = apply(delta, complexSeries, fl, fh);
-		Complex[] invertedSeries = FFTUtils.inverseFFT(complexSeries);
-
-		return FFTUtils.getRealArray(invertedSeries, timeseries.length);
-	}
-
-	/**
-	 * Implementation for filterdata function
-	 * 
-	 * @param dt
-	 *            Time step
-	 * @param cx
-	 *            Complex number form of time series
-	 * @param fl
-	 *            Low corner frequency
-	 * @param fh
-	 *            High corner frequency
-	 * @return Complex form of filtered time series
-	 */
-	private static Complex[] apply(double dt, Complex[] cx, double fl, double fh) {
-		int npts = cx.length;
-		int npole = 6;
-		int numPoles = npole;
-		int twopass = 2;
-		double TWOPI = Math.PI * 2;
-		double PI = Math.PI;
-
-		Complex c0 = Complex.ZERO;
-		Complex c1 = Complex.ONE;
-
-		Complex[] sph = new Complex[numPoles];
-		Complex[] spl = new Complex[numPoles];
-
-		Complex cjw, cph, cpl;
-		int nop, nepp, np;
-		double wch, wcl, ak, ai, ar, w, dw;
-		int i, j;
-
-		if (npole % 2 != 0) {
-			// System.out.println("WARNING - Number of poles not a multiple of 2!");
-			logger.warn("WARNING - Number of poles not a multiple of 2!");
-		}
-
-		nop = npole - 2 * (npole / 2);
-		nepp = npole / 2;
-		wch = TWOPI * fh;
-		wcl = TWOPI * fl;
-
-		np = -1;
-		if (nop > 0) {
-			np = np + 1;
-			sph[np] = Complex.ONE;
-		}
-		if (nepp > 0) {
-			for (i = 0; i < nepp; i++) {
-				ak = 2. * Math.sin((2. * (double) i + 1.0) * PI
-						/ (2. * (double) npole));
-				ar = ak * wch / 2.;
-				ai = wch * Math.sqrt(4. - ak * ak) / 2.;
-				np = np + 1;
-				sph[np] = new Complex(-ar, -ai);
-				np = np + 1;
-				sph[np] = new Complex(-ar, ai);
-			}
-		}
-		np = -1;
-		if (nop > 0) {
-			np = np + 1;
-			spl[np] = Complex.ONE;
-		}
-		if (nepp > 0) {
-			for (i = 0; i < nepp; i++) {
-				ak = 2. * Math.sin((2. * (double) i + 1.0) * PI
-						/ (2. * (double) npole));
-				ar = ak * wcl / 2.;
-				ai = wcl * Math.sqrt(4. - ak * ak) / 2.;
-				np = np + 1;
-				spl[np] = new Complex(-ar, -ai);
-				np = np + 1;
-				spl[np] = new Complex(-ar, ai);
-			}
-		}
-
-		cx[0] = c0;
-		dw = TWOPI / ((double) npts * dt);
-		w = 0.;
-		for (i = 1; i < npts / 2 + 1; i++) {
-			w = w + dw;
-			cjw = new Complex(0., -w);
-			cph = c1;
-			cpl = c1;
-			for (j = 0; j < npole; j++) {
-				cph = cph.multiply(sph[j]).divide(sph[j].add(cjw));
-				cpl = cpl.multiply(cjw).divide(spl[j].add(cjw));
-			}
-			cx[i] = cx[i].multiply(cph.multiply(cpl).conjugate());
-			if (twopass == 2) {
-				cx[i] = cx[i].multiply(cph.multiply(cpl));
-			}
-			cx[npts - i] = cx[i].conjugate();
-		}
-
-		return (cx);
 	}
 }
