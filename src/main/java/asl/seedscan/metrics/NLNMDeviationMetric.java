@@ -469,7 +469,7 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 	/**
 	 * The Class NoiseModel.
 	 */
-	private static class NoiseModel {
+	static class NoiseModel {
 
 		/** The periods. */
 		private double[] periods = null;
