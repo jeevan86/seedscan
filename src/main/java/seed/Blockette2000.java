@@ -61,7 +61,7 @@ import java.util.Collection;
  * 
  * @author Joel Edwards
  */
-public class Blockette2000 extends Blockette implements Serializable{
+class Blockette2000 extends Blockette implements Serializable{
 	/**
 	 * Serial Version UID
 	 */
@@ -106,7 +106,7 @@ public class Blockette2000 extends Blockette implements Serializable{
 	 * @param b
 	 *            - The raw bytes from an existing blockette 2000
 	 */
-	public Blockette2000(byte[] b) {
+	Blockette2000(byte[] b) {
 		super(b);
 	}
 
@@ -273,7 +273,7 @@ public class Blockette2000 extends Blockette implements Serializable{
 		return (short) (getHeaderLength() - FIXED_LENGTH);
 	}
 
-	static String tagsToTagString(Collection<String> tags) {
+	private static String tagsToTagString(Collection<String> tags) {
 		String tagString = "";
 		for (String tag : tags) {
 			tagString += tag + "~";
@@ -281,28 +281,8 @@ public class Blockette2000 extends Blockette implements Serializable{
 		return tagString;
 	}
 
-	static byte[] tagStringToByteArray(String tagString) {
+	private static byte[] tagStringToByteArray(String tagString) {
 		return tagString.getBytes(TAG_CHARSET);
-	}
-//TODO: Evaluate if this method is still needed, it has 0 references.
-	public static byte[] tagsToByteArray(Collection<String> tags) {
-		return tagStringToByteArray(tagsToTagString(tags));
-	}
-
-	// === Opaque Data ===
-	void setOpaqueData(byte[] data, int offset, int length) {
-		short headerLength = getHeaderLength();
-		short oldBlocketteLength = getBlocketteLength();
-		short oldOpaqueLength = (short) (oldBlocketteLength - headerLength);
-		short adjustment = (short) (length - oldOpaqueLength);
-
-		if (adjustment != 0) {
-			short newBlocketteLength = (short) (oldBlocketteLength + adjustment);
-			bb.position(4);
-			bb.putShort(newBlocketteLength);
-			reallocateBuffer(newBlocketteLength);
-		}
-		System.arraycopy(data, offset, buf, headerLength, length);
 	}
 
 	public byte[] getOpaqueData() {

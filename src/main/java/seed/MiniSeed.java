@@ -172,12 +172,6 @@ public class MiniSeed implements MiniSeedOutputHandler {
 	/** The blockette offset. */
 	private short blocketteOffset; // Offset in bytes to first byte of first
 									// data blockette
-	/** The has blk1000. */
-									private boolean hasBlk1000; // derived flag on whether a blockette 1000 was
-								// decoded
-	/** The has blk1001. */
-								private boolean hasBlk1001; // derived flag on whether a blockette 1001 was
-								// decoded
 	/** The husec. */
 								private short year, day, husec; // Portions of time broken out from fixed
 									// header
@@ -323,58 +317,12 @@ public class MiniSeed implements MiniSeedOutputHandler {
 	private static boolean dbg = false;
 
 	/**
-	 * If this mini-seed block is a duplicate of the one passed, return true.
-	 *
-	 * @param ms            The mini-seed block for comparison
-	 * @return true if the blocks have the same time, data rate, number of
-	 *         samples, and compression payload
-	 */
-	public boolean isDuplicate(MiniSeed ms) {
-		crack();
-		if (ms == null)
-			logger.error("Null");
-		if (time.getTimeInMillis() - ms.getTimeInMillis() < 500. / getRate()
-				&& getNsamp() == ms.getNsamp()
-				&& buf.length == ms.getBuf().length) {
-			byte[] obuf = ms.getBuf();
-			for (int i = 64; i < buf.length; i++)
-				if (buf[i] != obuf[i])
-					return false;
-			return true;
-		}
-		return false;
-	}
-
-	/**
-	 * Clear.
-	 */
-	public void clear() {
-		cracked = false;
-		for (int i = 0; i < buf.length; i++)
-			buf[i] = 0;
-		for (int i = 0; i < 12; i++)
-			seed[i] = 'Z';
-
-		cleared = true;
-	}
-
-	/**
 	 * Gets the blk2000s.
 	 *
 	 * @return the blk2000s
 	 */
 	public Collection<Blockette2000> getBlk2000s() {
 		return b2000s;
-	}
-
-	/**
-	 * Checks for blk1000.
-	 *
-	 * @return true, if successful
-	 */
-	public boolean hasBlk1000() {
-		crack();
-		return hasBlk1000;
 	}
 
 	/**
@@ -385,41 +333,6 @@ public class MiniSeed implements MiniSeedOutputHandler {
 	 */
 	public boolean isClear() {
 		return cleared;
-	}
-
-	/**
-	 * set the debug output flag.
-	 *
-	 * @param t            True for lots of output
-	 */
-	public static void setDebug(boolean t) {
-		dbg = t;
-	}
-
-	/**
-	 * set time to given GregorianCalendar.
-	 *
-	 * @param g            The time to set
-	 * @param hund            The hundreds of microseconds to set (adds to Millisecons in
-	 *            Gregorian Calendar)
-	 */
-	private void setTime(GregorianCalendar g, int hund) {
-		year = (short) g.get(Calendar.YEAR);
-		day = (short) g.get(Calendar.DAY_OF_YEAR);
-		hour = (byte) g.get(Calendar.HOUR_OF_DAY);
-		minute = (byte) g.get(Calendar.MINUTE);
-		sec = (byte) g.get(Calendar.SECOND);
-		husec = (short) (g.get(Calendar.MILLISECOND) * 10 + hund);
-		ms.position(20);
-		ms.putShort(year);
-		ms.putShort(day);
-		ms.put(hour);
-		ms.put(minute);
-		ms.put(sec);
-		ms.put((byte) 0);
-		ms.putShort(husec);
-		ms.position(20);
-		ms.get(startTime);
 	}
 
 	/**
@@ -448,29 +361,6 @@ public class MiniSeed implements MiniSeedOutputHandler {
 	}
 
 	/**
-	 * Fix huseconds q330.
-	 */
-	public void fixHusecondsQ330() {
-		if (husec % 10 == 0)
-			if ((husec / 10) % 10 == 4 || (husec / 10) % 10 == 9) {
-				// Util.prt("Fix ms="+toString());
-				husec += 9;
-				ByteBuffer timebuf = ByteBuffer.wrap(startTime);
-				if (swap)
-					timebuf.order(ByteOrder.LITTLE_ENDIAN);
-				timebuf.position(8); // fix it in the startTime buffer
-				timebuf.putShort(husec);
-				ms.position(28);
-				ms.putShort(husec); // fix it in the main buffer
-				// Util.prt("aft ms="+toString());
-				// time.add(Calendar.MILLISECOND, 1); // add the extra
-				// millisecond to the gregorian timeCorrection
-			}
-		if (husec == 9 && sec == 0 && minute == 0 && hour == 0)
-			husec = 0;
-	}
-
-	/**
 	 * Gets the record number.
 	 *
 	 * @return the record number
@@ -494,63 +384,6 @@ public class MiniSeed implements MiniSeedOutputHandler {
 		blocketteOffsets = new int[4];
 		init(); // init will set swapping of ms
 		recordNumber = recordCount++;
-	}
-
-	/**
-	 * Creates a new instance of MiniSeed.
-	 *
-	 * @param inbuf            An array of binary miniseed data
-	 * @param off            the offset into inbuf to start
-	 * @param len            The length of the inbuf to convert (the payload length)
-	 * @throws IllegalSeednameException             if the name does not pass muster
-	 */
-	public MiniSeed(byte[] inbuf, int off, int len)
-			throws IllegalSeednameException {
-		buf = new byte[len];
-		System.arraycopy(inbuf, off, buf, 0, len);
-		ms = ByteBuffer.wrap(buf);
-		blockettes = new ByteBuffer[4];
-		blocketteList = new short[4];
-		blocketteOffsets = new int[4];
-		init(); // init will set swapping of ms
-		recordNumber = recordCount++;
-	}
-
-	/**
-	 * Load.
-	 *
-	 * @param inbuf the inbuf
-	 * @throws IllegalSeednameException the illegal seedname exception
-	 */
-	public void load(byte[] inbuf) throws IllegalSeednameException {
-		if (inbuf.length != buf.length) {
-			logger.debug("MiniSeed.load() change buffer length from " + buf.length
-					+ " to " + inbuf.length);
-			buf = new byte[inbuf.length];
-			ms = ByteBuffer.wrap(buf); // order will be set by init()
-		}
-		System.arraycopy(inbuf, 0, buf, 0, inbuf.length);
-		init();
-	}
-
-	/**
-	 * Load.
-	 *
-	 * @param inbuf the inbuf
-	 * @param off the off
-	 * @param len the len
-	 * @throws IllegalSeednameException the illegal seedname exception
-	 */
-	public void load(byte[] inbuf, int off, int len)
-			throws IllegalSeednameException {
-		if (buf.length != len) {
-			logger.debug("MiniSeed.load : change buffer length from " + buf.length
-					+ " to " + len);
-			buf = new byte[len];
-			ms = ByteBuffer.wrap(buf); // order will be set by init()
-		}
-		System.arraycopy(inbuf, off, buf, 0, len);
-		init();
 	}
 
 	/**
@@ -641,40 +474,6 @@ public class MiniSeed implements MiniSeedOutputHandler {
 	}
 
 	/**
-	 * This returns the Julian data from a raw miniseed buffer in buf. This
-	 * routine would be used to extract a bit of data from a raw buffer without
-	 * going to the full effort of creating a MiniSeed object from it.
-	 * 
-	 * @param buf
-	 *            A array with a miniseed block in raw form
-	 * @return The Julian day
-	 * @throws IllegalSeednameException
-	 *             if this is clearly not a miniseed buffer
-	 */
-	public static int crackJulian(byte[] buf) throws IllegalSeednameException {
-		ByteBuffer bb = ByteBuffer.wrap(buf);
-		if (swapNeeded(buf))
-			bb.order(ByteOrder.LITTLE_ENDIAN);
-		bb.position(20);
-		short year = bb.getShort();
-		short day = bb.getShort();
-		if (day <= 0 || day > 366)
-			logger.error("MiniSeed.crackJulian bad day "
-					+ MiniSeed.crackSeedname(buf) + " yr=" + year + " day="
-					+ day);
-		if (year <= 2000 || year > 2030)
-			logger.error("MiniSeed.crackJulian bad year "
-					+ MiniSeed.crackSeedname(buf) + " yr=" + year + " day="
-					+ day);
-		// short hour = bb.get();
-		// short minute = bb.get();
-		// short sec = bb.get();
-		// bb.get();
-		// husec=bb.getShort();
-		return SeedUtil.toJulian(year, day);
-	}
-
-	/**
 	 * This returns the time data as a 4 element array with hour,minute, sec,
 	 * and hsec from a raw miniseed buffer in buf. This routine would be used to
 	 * extract a bit of data from a raw buffer without going to the full effort
@@ -729,26 +528,6 @@ public class MiniSeed implements MiniSeedOutputHandler {
 		if (swapNeeded(buf))
 			bb.order(ByteOrder.LITTLE_ENDIAN);
 		bb.position(22);
-		return (int) bb.getShort();
-	}
-
-	/**
-	 * This returns the number of samples of data from a raw miniseed buffer in
-	 * buf. This routine would be used to extract a bit of data from a raw
-	 * buffer without going to the full effort of creating a MiniSeed object
-	 * from it.
-	 * 
-	 * @param buf
-	 *            A array with a miniseed block in raw form
-	 * @return The number of samples
-	 * @throws IllegalSeednameException
-	 *             If the buffer is not miniseed
-	 */
-	public static int crackNsamp(byte[] buf) throws IllegalSeednameException {
-		ByteBuffer bb = ByteBuffer.wrap(buf);
-		if (swapNeeded(buf))
-			bb.order(ByteOrder.LITTLE_ENDIAN);
-		bb.position(30);
 		return (int) bb.getShort();
 	}
 
@@ -1072,8 +851,6 @@ public class MiniSeed implements MiniSeedOutputHandler {
 			time.setTimeInMillis(millis + (husec + 5) / 10);
 			timeTruncated.setTimeInMillis(millis + husec / 10);
 
-			hasBlk1000 = false;
-			hasBlk1001 = false;
 			/*
 			 * prt("sq="+new String(seq)+" ind="+new String(indicator)+
 			 * " name="+new String(seed)+" ns="+nsamp+" nblk="+nblockettes+
@@ -1315,7 +1092,6 @@ public class MiniSeed implements MiniSeedOutputHandler {
 							logger.debug("MS: Blk 1000 length**2=" + recLength
 									+ " order=" + order + " next=" + next
 									+ " encoding=" + encoding);
-						hasBlk1000 = true;
 						break;
 					case 1001: // data extension (Quanterra only?)
 						if (buf1001 == null) {
@@ -1339,7 +1115,6 @@ public class MiniSeed implements MiniSeedOutputHandler {
 							logger.debug("MS: Blk 1001 next=" + next + " timing="
 									+ timingQuality + " uSecOff="
 									+ microSecOffset + " nframes=" + nframes);
-						hasBlk1001 = true;
 						break;
 					case 2000:
 						// duplicate the fixed portion of the header and load it
@@ -1379,42 +1154,6 @@ public class MiniSeed implements MiniSeedOutputHandler {
 
 			cracked = true;
 		} // end of synchronized on this!
-	}
-
-	/**
-	 * Delete blockette.
-	 *
-	 * @param type the type
-	 * @return true, if successful
-	 */
-	public boolean deleteBlockette(int type) {
-		for (int i = 0; i < nblockettes; i++) {
-			if (blocketteList[i] == type) {
-				// found it, take it out of the list and adjust the offsets
-				if (i == 0) {
-					ms.position(46);
-					if (nblockettes == 1)
-						ms.putShort((short) 0);
-					else
-						ms.putShort((short) blocketteOffsets[1]); // make 2nd
-																	// one the
-																	// first one
-					ms.putInt(0); // Wipe out the offset and type bytes
-				} else {
-					ms.position(blocketteOffsets[i - 1] + 2);
-					if (i + 1 < nblockettes)
-						ms.putShort((short) blocketteOffsets[i + 1]);
-					else
-						ms.putShort((short) 0); // End of chain
-				}
-				ms.position(39);
-				ms.put((byte) (nblockettes - 1));
-				cracked = false;
-				crack(); // recrack it with the block missing
-				return true;
-			}
-		}
-		return false;
 	}
 
 	/**
@@ -1504,37 +1243,6 @@ public class MiniSeed implements MiniSeedOutputHandler {
 	}
 
 	/**
-	 * Compare this MiniSeed object to another. First the two objects' SEED
-	 * names are compared, and if they are equal, their starting dates are
-	 * compared.
-	 * 
-	 * @param o
-	 *            the other MiniSeed object
-	 * @return -1 if this object is less than other, 0 if the two objects are
-	 *         equal, and +1 if this object is greater than other.
-	 */
-	public int compareTo(MiniSeed o) {
-		MiniSeed other;
-		int cmp;
-		if (o.isClear())
-			return -1; // Cleared MiniSeeds are always at end
-		if (isClear())
-			return 1;
-		other = o;
-		crack();
-		other.crack();
-		cmp = getSeedName().compareTo(other.getSeedName());
-		if (cmp != 0)
-			return cmp;
-		if (getGregorianCalendar().before(other.getGregorianCalendar()))
-			return -1;
-		else if (getGregorianCalendar().after(other.getGregorianCalendar()))
-			return 1;
-		else
-			return 0;
-	}
-
-	/**
 	 * return number of used data frames. We figure this by looking for all zero
 	 * frames from the end!
 	 * 
@@ -1589,34 +1297,6 @@ public class MiniSeed implements MiniSeedOutputHandler {
 	 */
 	public int getNBlockettes() {
 		return (int) nblockettes;
-	}
-
-	/**
-	 * return the offset of the ith blockette.
-	 *
-	 * @param i            The index of the block (should be less than return of
-	 *            getNBlockettes
-	 * @return The offset of the ith blockette or -1 if i is out or range
-	 */
-	public int getBlocketteOffset(int i) {
-		crack();
-		if (i < blocketteList.length)
-			return blocketteOffsets[i];
-		return -1;
-	}
-
-	/**
-	 * return the type of the ith blockette.
-	 *
-	 * @param i            The index of the block (should be less than return of
-	 *            getNBlockettes
-	 * @return The type of the ith blockette or -1 if i is out or range
-	 */
-	public int getBlocketteType(int i) {
-		crack();
-		if (i < blocketteList.length)
-			return (int) blocketteList[i];
-		return -1;
 	}
 
 	/**
@@ -1996,20 +1676,6 @@ public class MiniSeed implements MiniSeedOutputHandler {
 	}
 
 	/**
-	 * return the buffer with the data portion of the packet of length.
-	 * 
-	 * @param len
-	 *            The number of bytes to return
-	 * @return An array with the bytes
-	 */
-	public byte[] getData(int len) {
-		ms.position(dataOffset);
-		byte[] tmp = new byte[len];
-		ms.get(tmp);
-		return tmp;
-	}
-
-	/**
 	 * get the raw buffer representing this Miniseed-record. Beware you are
 	 * getting the actual buffer so changing it will change the underlying data
 	 * of this MiniSeed object. If this is done after crack, some of the
@@ -2380,326 +2046,6 @@ public class MiniSeed implements MiniSeedOutputHandler {
 		return samples;
 	}
 
-	/**
-	 * Fix reverse integration.
-	 */
-	private void fixReverseIntegration() {
-		try {
-			if (getBlockSize() > dataOffset) {
-				int framelen = getBlockSize() - dataOffset;
-				byte[] frames = new byte[framelen];
-				System.arraycopy(buf, dataOffset, frames, 0, framelen);
-
-				int[] samples = null;
-				int rev = 0;
-				if (getEncoding() == 10)
-					samples = Steim1.decode(frames, getNsamp(), swap, rev);
-				if (getEncoding() == 11)
-					samples = Steim2.decode(frames, getNsamp(), swap, rev);
-
-				// Would adding this block "as is" cause a reverse constant
-				// error (or steim error)? If so, set reverse
-				// integration constant from the decompressed data
-				if (Steim2.hadReverseError()) {
-					ms.position(dataOffset + 4); // position forward integration
-													// constant
-					// Util.prt("FixReverseIntegration: fwd="+forward+" "+samples[0]+" rev="+reverse+" "+samples[samples.length-1]);
-					if (reverse != samples[samples.length - 1]) {
-						ms.position(dataOffset + 8);
-						ms.putInt(samples[samples.length - 1]);
-						reverse = samples[samples.length - 1];
-						samples = decomp();
-						if (samples == null)
-							logger.error("MS.fixReverseIntegration() failed decomp returned null");
-						// else
-						// Util.prt("FixReverseIntegration: new rev="+samples[samples.length-1]);
-					}
-				}
-
-			} else {
-				StringBuilder message = new StringBuilder();
-				message.append(String
-						.format("BlockSizeException: (blockSize:[{%s}] > (dataOffset:[{%s}])\n",
-								getBlockSize(), dataOffset));
-				throw new BlockSizeException(message.toString());
-			}
-		} catch (SteimException e) {
-			datalogger.error("SteimException:", e);
-		} catch (BlockSizeException e) {
-			datalogger.error("BlockSizeException:", e);
-		}
-	}
-
-	/**
-	 * this routine splits a bigger miniseed block into multiple 512. It has two
-	 * algorithms depending on whether the input block is a agreegate of 512s or
-	 * not. If it is, the blocks are just disaggregated. If not, the block is
-	 * decompressed and recompressed into a series of blocks. In general the
-	 * block number of the output blocks is 500000+(orig sequ *10) + 512 block
-	 * number. So block number 1234 has 9 output sequences from 512340 to
-	 * 512348.
-	 *
-	 * @return An array with the 512 byte blocks.
-	 * @throws IllegalSeednameException             if the seedname does not pass muster
-	 */
-	public MiniSeed[] toMiniSeed512() throws IllegalSeednameException {
-		crack();
-		if (this.getBlockSize() == 512) {
-			MiniSeed[] mss = new MiniSeed[1];
-			mss[0] = this;
-			logger.info("Attempt to put 512 byte miniseed into 512 byte miniseed!");
-			return mss;
-		}
-		int nout = 0;
-		MiniSeed mshdr = null;
-		// Build a separate block with only the blockettes in them if the exceed
-		// the 16 bytes between 48 and 64
-		if (dataOffset > 64) {
-			byte[] bf = new byte[512];
-			System.arraycopy(buf, 0, bf, 0, 512);
-			ByteBuffer bb = ByteBuffer.wrap(bf);
-			bb.order(ms.order());
-			bb.position(30);
-			bb.putShort((short) 0); // zap the number of samples
-			bb.putShort((short) 0); // set the data rate to zero
-			for (int i = dataOffset; i < 512; i++)
-				bf[i] = 0; // zero remainder of buffer
-			mshdr = new MiniSeed(bf);
-			mshdr.setB1000Length(512);
-			mshdr.setB1001FrameCount(mshdr.getUsedFrameCount());
-		}
-
-		// Now prepare the new header that will fit in 64 bytes with B1000 and
-		// B1001
-		byte[] hdr = new byte[64];
-		System.arraycopy(buf, 0, hdr, 0, 64); // Save the header!
-		hdr[0] = '9';
-		for (int j = 1; j < 5; j++)
-			hdr[j] = hdr[j + 1]; // new seq = 900000+(oldseq*10)+blk#
-		hdr[5] = '0';
-
-		// We only want a B1000 and B1001 (if present), fix up this header
-		ByteBuffer bh = ByteBuffer.wrap(hdr);
-		bh.position(39);
-		bh.put((byte) 1); // Assume only B1000 will be put back
-		bh.position(44);
-		bh.putShort((short) 64); // data offset must be 64
-		bh.putShort((short) 48); // Blockettes now must start at 48
-		if (hasBlk1000) {
-			bh.put(buf1000);
-			bh.position(50);
-			bh.putShort((short) 0); // assume no b1001
-		} else {
-			logger.warn("Attempt to break up a block without a B1000 "
-					+ toString());
-			// SendEvent.debugSMEEvent("MS512Err", toString(), "MiniSeed");
-			return null;
-		}
-		if (hasBlk1001) {
-			bh.position(39);
-			bh.put((byte) 2); // now 2 blockettes B1000 and B1001
-			bh.position(50);
-			bh.putShort((short) 56); // link this to the B1000
-			bh.position(56);
-			bh.put(buf1001);
-			bh.position(58);
-			bh.putShort((short) 0);
-		}
-
-		// There are two types of 4096 point miniseed in the world so far, those
-		// built up from 512
-		// and those compressed whole as 4096. We can save the 512s by spliting
-		// them up if we find this
-		boolean ok = true;
-		for (int i = dataOffset; i < getBlockSize(); i = i + 7 * 64) { // for
-																		// each
-																		// key
-																		// in
-																		// each
-																		// 7th
-																		// frame
-			ms.position(i);
-			int key = ms.getInt(); // this is a Steim frame key for 1st block of
-									// 512
-			// int v = key & 0xF0000000; // if this is the start of an original
-			// frame, then 1st 2 keys are zero for ICs
-			// Util.prt(i+" "+Util.toHex(v));
-			if ((key & 0xF0000000) != 0) {
-				ok = false;
-				break; // no need to check more
-			}
-		}
-		if (ok && getSeedName().substring(0, 2).equals("IU")) { // This can be
-																// broken up
-																// into groups
-																// of 7 frames
-																// modifying the
-																// headers
-			logger.info("toMS512 DO IU ms=" + toString());
-			int nfrs = 100;
-			if (b1001 != null)
-				nfrs = b1001.getFrameCount();
-
-			MiniSeed[] mss = new MiniSeed[(getBlockSize() / (512 - dataOffset)) + 1];
-			if (mshdr != null)
-				mss[nout++] = mshdr; // Add the hdr only block
-			int totsamp = 0;
-
-			// Now build up blocks 7 frames long blocks long
-			int hund = husec % 10;
-			int i = dataOffset;
-			int nleft = 512 - 64;
-			int cntFrames = 0;
-			// how many bytes are left for data frames
-			while (i < getBlockSize()) {
-				// for(int i=64; i<getBlockSize(); i=i+7*64) {
-				byte[] bf = new byte[512];
-				// ByteBuffer bb = ByteBuffer.wrap(bf);
-				if (getBlockSize() - i < nleft)
-					for (int j = 0; j < 512; j++)
-						bf[j] = 0; // on the last short block add prezero
-				System.arraycopy(buf, i, bf, 64,
-						Math.min(nleft, getBlockSize() - i)); // Put the 7 or
-																// less frames
-																// in position
-				System.arraycopy(hdr, 0, bf, 0, 64); // Add the incorrect header
-				MiniSeed msrec = null;
-				int nsampbuf = MiniSeed.getNsampFromBuf(bf, getEncoding()); // get
-																			// number
-																			// of
-																			// samples
-																			// in
-																			// this
-																			// compression
-																			// frame
-				if (nsampbuf > 0) { // sometimes there really is no more data,
-									// do not build zero blocks
-					if (nfrs <= cntFrames)
-						logger.info(" ****** nfrs=" + nfrs + " count=" + cntFrames
-								+ " but more data=" + nsampbuf);
-					msrec = new MiniSeed(bf); // create a 512 miniseed for this
-					msrec.setNsamp(nsampbuf);
-					GregorianCalendar g = new GregorianCalendar();
-					g.setTimeInMillis(time.getTimeInMillis()
-							+ ((long) (totsamp / getRate() * 1000. + 0.0001)));
-					// Util.prt("nsb="+nsampbuf+" totsamp="+totsamp+" rate="+getRate()+" totms="+(totsamp/getRate()*1000.)+
-					// " time="+Util.asctime2(g)+" nout="+nout+" i="+i+" nleft="+nleft+" frms="+cntFrames+" of "+nfrs);
-					msrec.setTime(g, hund);
-					totsamp += nsampbuf;
-					msrec.setB1000Length(512);
-					msrec.setB1001FrameCount(msrec.getUsedFrameCount());
-					msrec.fixReverseIntegration();
-					mss[nout++] = msrec;
-					hdr[5]++;
-				}
-				cntFrames += 7;
-				i += nleft;
-			}
-			if (totsamp != getNsamp()) {
-				logger.error("Suspect break of 4096 miniseed to 512 nsamps do not agree. Use recompress method. nsamp="
-						+ getNsamp() + " found " + totsamp);
-				logger.error(toString());
-			} else {
-				if (nout < mss.length) {
-					MiniSeed[] tmp = new MiniSeed[nout];
-					for (i = 0; i < nout; i++)
-						tmp[i] = mss[i];
-					// for(i=0; i<tmp.length; i++)
-					// Util.prt("ms["+i+"]="+tmp[i].toString());
-					return tmp;
-				}
-				// for(i=0; i<mss.length; i++)
-				// Util.prt("ms["+i+"]="+mss[i].toString());
-				return mss;
-			}
-		}
-
-		// Decompress record to make new blocks.
-		try {
-			logger.info("toMS512 decomp/comp method input="
-					+ toString().substring(0, 60));
-			int rev = 0;
-			byte[] frames = new byte[getBlockSize() - dataOffset];
-			System.arraycopy(buf, dataOffset, frames, 0, getBlockSize()
-					- dataOffset);
-			int[] samples = null;
-			if (getEncoding() == 10)
-				samples = Steim1.decode(frames, getNsamp(), swap, rev);
-			if (getEncoding() == 11)
-				samples = Steim2.decode(frames, getNsamp(), swap, rev);
-
-			if (Steim2.hadReverseError() || Steim2.hadSampleCountError()) {
-				if (Steim2.hadReverseError())
-					logger.error("make512()  " + Steim2.getReverseError());
-				if (Steim2.hadSampleCountError())
-					logger.error("make512() " + Steim2.getSampleCountError());
-			}
-
-			// we now need to recompress the samples, we need to use a putbuf of
-			// our own.
-			GregorianCalendar sss = getGregorianCalendar();
-			int sq = 0;
-			for (int i = 1; i < 6; i++)
-				sq = sq * 10 + (buf[i] - '0');
-			sq = (sq * 10) % 100000;
-			sq += 910000;
-			RawToMiniSeed rtms = new RawToMiniSeed(getSeedName(), getRate(), 7,
-					sss.get(Calendar.YEAR), sss.get(Calendar.DAY_OF_YEAR),
-					sss.get(Calendar.HOUR_OF_DAY) * 3600
-							+ sss.get(Calendar.MINUTE) * 60
-							+ sss.get(Calendar.SECOND),
-					sss.get(Calendar.MILLISECOND) * 1000 + (husec % 10) * 100,
-					sq);
-			rtms.setOutputHandler(this); // This registers our putbuf
-
-			// if a blockette 1001 is present, update the useconds portion and
-			// clock quality.
-			int usec = 0;
-			int tq = 0;
-			if (b1001 != null) {
-				tq = b1001.getTimingQuality();
-				usec = b1001.getUSecs();
-			}
-			ms512 = null; // Insure this call to process makes a new array of
-							// 512s
-			rtms.process(
-					samples,
-					samples.length,
-					sss.get(Calendar.YEAR),
-					sss.get(Calendar.DAY_OF_YEAR),
-					sss.get(Calendar.HOUR_OF_DAY) * 3600
-							+ sss.get(Calendar.MINUTE) * 60
-							+ sss.get(Calendar.SECOND),
-					sss.get(Calendar.MILLISECOND) * 1000, 0, 0, 0, tq, 0, false);
-			rtms.forceOut();
-			int totsamp = 0;
-			for (int i = 0; i < ms512.length; i++) {
-				ms512[i].setB1001Usec(usec);
-				totsamp += ms512[i].getNsamp();
-				// Util.prt("ms512["+i+"]="+ms512[i].toString());
-			}
-			if (totsamp != getNsamp())
-				logger.warn("Suspicious 512 break up nsamp mismatch orig="
-						+ getNsamp() + " 512=" + totsamp);
-
-			// If there was a blockette only hdr record created, add it to the
-			// beginning.
-			if (mshdr != null) {
-				MiniSeed[] tmp = new MiniSeed[ms512.length + 1];
-				tmp[0] = mshdr;
-				for (int i = 0; i < ms512.length; i++)
-					tmp[i + 1] = ms512[i];
-				ms512 = tmp;
-			}
-			// for(int i=0; i<ms512.length; i++)
-			// Util.prt("ms512["+(i+1)+"] "+ms512[i].toString());
-			return ms512;
-		} catch (SteimException e) {
-			datalogger.error("SteimException:", e);
-			return null;
-		}
-	}
-
 	/* (non-Javadoc)
 	 * @see seed.MiniSeedOutputHandler#close()
 	 */
@@ -2730,257 +2076,5 @@ public class MiniSeed implements MiniSeedOutputHandler {
 
 	}
 
-	/**
-	 * Gets the nsamp from buf.
-	 *
-	 * @param bf the bf
-	 * @param encoding the encoding
-	 * @return the nsamp from buf
-	 * @throws IllegalSeednameException the illegal seedname exception
-	 */
-	private static int getNsampFromBuf(byte[] bf, int encoding)
-			throws IllegalSeednameException {
-		ByteBuffer bb = ByteBuffer.wrap(bf);
-		bb.position(30);
-		byte b1 = bb.get();
-		byte b2 = bb.get();
-		if (b1 == 0 && b2 == 0)
-			return 0; // no samples in this - must be ACE or LOG etc
-		b1 = bb.get();
-		b2 = bb.get();
-		if (b1 == 0 && b2 == 0)
-			return 0; // The rate is zero - must be ACE or LOG
-		if (swapNeeded(bf))
-			bb.order(ByteOrder.LITTLE_ENDIAN);
-		int nsamp = 0;
-		bb.position(44);
-		int datoff = bb.getShort(); // start at the data offset length
-		if (encoding == 11) {
-			for (int offset = datoff; offset < bf.length; offset += 64) {
-				bb.position(offset);
-				int keys = bb.getInt(); // Get "nibbles" or key word
-				for (int word = 1; word < 16; word++) {
-					int type = (keys >> (15 - word) * 2) & 3; // put the 2 bit
-																// nibble for
-																// 1st working
-																// word at
-																// bottom
-					int diffwork = bb.getInt();
-					int dnib = 0; // This is the upper two bits of working word
-									// for certain "type" values
-					// The number of bits in the difference is a determinted by
-					// the "nibble" in the key
-					// for this work (the type here) and possible the "dnib"
-					// from top two bits of differences
-					// word. Figure out how many bits from these two data and
-					// how much to left shift the working
-					// word to put the first difference sign bit in the 32 bit
-					// word sign bit.
-					switch (type) {
-					case 0:
-						if (dbg)
-							logger.debug("non data!"); // This should never happen'
-						continue;
-					case 1: // 4 one byte differences
-						nsamp += 4;
-						continue;
-					case 2:
-						dnib = diffwork >> 30 & 3;
-						switch (dnib) {
-						case 1:
-							nsamp++;
-							continue;
-						case 2:
-							nsamp += 2;
-							continue;
-						case 3:
-							nsamp += 3;
-							continue;
-						} // end of case on dnib for type=2
-						continue;
-					case 3:
-						dnib = diffwork >> 30 & 3;
-						switch (dnib) {
-						case 0:
-							nsamp += 5;
-							continue;
-						case 1:
-							nsamp += 6;
-							continue;
-						case 2:
-							nsamp += 7;
-							continue;
-
-						} // end of case on dnib for type=3;
-					} // end of case on type
-				} // end loop on each word in frame
-
-			} // end loop on ach frame
-		} // end of encoding 11
-		else if (encoding == 10) { // Steim I
-			for (int offset = datoff; offset < bf.length; offset += 64) {
-				bb.position(offset);
-				int keys = bb.getInt(); // Get "nibbles" or key word
-				for (int word = 1; word < 16; word++) {
-					int type = (keys >> (15 - word) * 2) & 3; // put the 2 bit
-																// nibble for
-																// 1st working
-																// word at
-																// bottom
-					// int diffwork = bb.getInt();
-					// int dnib=0; // This is the upper two bits of working word
-					// for certain "type" values
-					switch (type) {
-					case 0:
-						continue; // this is overhead words like integration
-									// constants
-					case 1:
-						nsamp += 4;
-						continue;
-					case 2:
-						nsamp += 2;
-						continue;
-					case 3:
-						nsamp++;
-					}
-				}
-				// Util.prt("at offset="+offset+" nsamp="+nsamp);
-
-			}
-		} else
-			logger.error("Encoding is unknown in getNsampFromBuf() =" + encoding
-					+ " " + toStringRaw(bf));
-		return nsamp;
-	}
-
-	/**
-	 * Simple fixes.
-	 *
-	 * @param buf the buf
-	 * @throws IllegalSeednameException the illegal seedname exception
-	 */
-	public static void simpleFixes(byte[] buf) throws IllegalSeednameException {
-		// If any nulls are fouind in the seedname, change them to spaces
-		if (buf[15] == 'L' && buf[16] == 'O' && buf[17] == 'G')
-			return;
-		for (int i = 8; i < 20; i++)
-			if (buf[i] == 0) {
-				buf[i] = ' ';
-				logger.info("Replace 0 with space in seedname at pos=" + i + " "
-						+ (new String(buf, 8, 12)));
-			}
-		for (int i = 0; i < 6; i++)
-			if (buf[i] == ' ')
-				buf[i] = '0';
-
-		// Look for a blockette 1000 and see if the swap agrees.
-		ByteBuffer bb = ByteBuffer.wrap(buf);
-		boolean swap = swapNeeded(buf);
-		if (swap)
-			bb.order(ByteOrder.LITTLE_ENDIAN);
-		bb.position(39); // position # of blockettes that follow
-		int nblks = bb.get(); // get it
-		int offset = 0;
-		if (nblks > 0) {
-			bb.position(46); // position offset to first blockette
-			offset = bb.getShort();
-			for (int i = 0; i < nblks; i++) {
-				if (offset <= 0 || offset > 512) {
-					logger.error("Problem with blockette " + i + " of " + nblks
-							+ " offset bad=" + offset + " skip rest ");
-					break;
-				}
-				bb.position(offset);
-				int type = bb.getShort();
-				int oldoffset = offset;
-				offset = bb.getShort();
-				if (type == 1000) {
-					bb.position(oldoffset + 5); // this should be word order
-					if (bb.get() == 0) {
-						if (!swap) {
-							bb.position(oldoffset + 5);
-							bb.put((byte) 1);
-							logger.info("B1000 say little endian, but swapNeeded() say its big endian. fixed");
-						}
-					} else { // blocket 1000 says big endian
-						if (swap) {
-							bb.position(oldoffset + 5);
-							bb.put((byte) 0);
-							logger.info("B1000 say big endian, but swapNeeded() say its little endian.fixed");
-						}
-					}
-				}
-			}
-		}
-	}
-
-	/**
-	 * Checks if is q680 header.
-	 *
-	 * @param buf the buf
-	 * @return true, if is q680 header
-	 */
-	public static boolean isQ680Header(byte[] buf) {
-		// Some Q680 "mini-seed" have a header. From 31-75 this is a time-span
-		// in ascii, look for this and skip it if found
-
-		boolean hdr = true;
-		for (int ii = 31; ii < 75; ii++)
-			if (!((buf[ii] >= 48 && buf[ii] <= 57) || buf[ii] == '.'
-					|| buf[ii] == ',' || buf[ii] == ':' || buf[ii] == 126)) {
-				hdr = false;
-				break;
-			}
-		return hdr;
-	}
-
-	/**
-	 * static method that insures a seedname makes some sense. 1) Name is 12
-	 * characters long nnssssscccll. 2) All characters are characters, digits,
-	 * spaces, question marks or dashes 3) Network code contain blanks 4)
-	 * Station code must be at least 3 characters long 5) Channel codes must be
-	 * characters in first two places
-	 * 
-	 * @param name
-	 *            A seed string to check
-	 * @throws IllegalSeednameException
-	 *             if any of the above rules are violated.
-	 */
-	public static void checkSeedName(String name)
-			throws IllegalSeednameException {
-		if (name.length() != 12)
-			throw new IllegalSeednameException("Length not 12 is "
-					+ name.length() + " in [" + Util.toAllPrintable(name) + "]");
-
-		char ch;
-		// char [] ch = name.toCharArray();
-		for (int i = 0; i < 12; i++) {
-			ch = name.charAt(i);
-			if (!(Character.isLetterOrDigit(ch) || ch == ' ' || ch == '?'
-					|| ch == '_' || ch == '-')) {
-				throw new IllegalSeednameException(
-						"A seedname character is not letter, digit, space or [?-] ("
-								+ Util.toAllPrintable(name) + ") at " + i);
-			}
-		}
-		if (name.charAt(0) == ' ' /* || name.charAt(1) == ' ' */) { // GEOS is
-																	// network
-																	// 'G'
-			throw new IllegalSeednameException(" network code blank (" + name
-					+ ")");
-		}
-		if (name.charAt(2) == ' ' || name.charAt(3) == ' '
-				|| name.charAt(4) == ' ') {
-			throw new IllegalSeednameException("Station code too short ("
-					+ name + ")");
-		}
-		if (!(Character.isLetter(name.charAt(7))
-				&& Character.isLetter(name.charAt(8)) && Character
-					.isLetterOrDigit(name.charAt(9)))) {
-			throw new IllegalSeednameException(
-					"Channel code not Letter, Letter, LetterOrDigit (" + name
-							+ ")");
-		}
-
-	}
+	
 }
