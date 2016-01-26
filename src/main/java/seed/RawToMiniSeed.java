@@ -30,9 +30,6 @@ import java.nio.ByteBuffer;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.Collections;
-//import java.io.*;
-//import gov.usgs.anss.edgehydra.*;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -78,9 +75,6 @@ public class RawToMiniSeed {
 			.synchronizedMap(new TreeMap<String, RawToMiniSeed>()); // The list
 																	// of known
 																	// channels
-	static private String debugChannel = "";
-	// static private boolean nohydra; // If true, nothing will generate hydra
-	// output
 
 	// Steim2 compressor working variables
 	private double rate;
@@ -112,20 +106,11 @@ public class RawToMiniSeed {
 	// Dead timer
 	private long lastUpdate;
 
-	// public static void setNoHydra(boolean t) {nohydra=t;}
 	@Override
 	public String toString() {
 		return seedname + " " + timeFromUSec(earliestTime) + " to "
 				+ timeFromUSec(difftime) + " ns=" + ns + " nxtDiff=" + nextDiff
 				+ " ndata=" + ndata + " rev=" + reverse;
-	}
-
-	public String toStringObject() {
-		String s = super.toString();
-		int beg = s.length() - 12;
-		if (beg < 0)
-			beg = 0;
-		return s.substring(beg);
 	}
 
 	private String lastTime() {
@@ -154,10 +139,6 @@ public class RawToMiniSeed {
 				+ df6.format(min).substring(4, 6) + ":"
 				+ df6.format(sec).substring(4, 6) + "."
 				+ df6.format(ms).substring(3, 6);
-	}
-
-	public static void setDebugChannel(String s) {
-		debugChannel = s;
 	}
 
 	public void setStartSequence(int i) {
@@ -201,16 +182,6 @@ public class RawToMiniSeed {
 	}
 
 	/**
-	 * return time since last thing happed on this channel
-	 * 
-	 * @return the time in millis since the last modification or creation of
-	 *         this channel
-	 */
-	private long lastAge() {
-		return (System.currentTimeMillis() - lastUpdate);
-	}
-
-	/**
 	 * return digitizing rate
 	 * 
 	 * @return The digitizing rate
@@ -228,504 +199,6 @@ public class RawToMiniSeed {
 	public void setRate(double rt) {
 		rate = rt;
 		hdr.setRate(rt);
-	}
-
-	/**
-	 * for debuging a string which represents the building of the RawToMiniSeed
-	 * details
-	 * 
-	 * @return The string representing the debugging detail
-	 */
-	static public String getDebugString() {
-		if (sb == null)
-			return "";
-		else
-			return sb.toString();
-	}
-
-	/**
-	 * set the debug flag
-	 * 
-	 * @param t
-	 *            The boolean value of the debug flag
-	 */
-	private static void setDebug(boolean t) {
-		dbg = t;
-	}
-
-	/**
-	 * check all RTMS on all 3 compression streams and force out if last update
-	 * older than ms
-	 * 
-	 * @param ms
-	 *            The number of milliseconds of age needed to cause forceout
-	 */
-	public synchronized static void forceStale(int ms) {
-		if (chans == null || secondChans == null || oob == null)
-			return;
-		Iterator<RawToMiniSeed> itr = null;
-		synchronized (chans) {
-			itr = chans.values().iterator();
-			while (itr.hasNext()) {
-				RawToMiniSeed rm = itr.next();
-				if (rm.lastAge() > ms) {
-					logger.error("RTMS: timeout stale primary age=" + rm.lastAge()
-							+ " " + rm);
-					rm.forceOut();
-					itr.remove();
-				}
-			}
-		}
-		synchronized (secondChans) {
-			itr = secondChans.values().iterator();
-			while (itr.hasNext()) {
-				RawToMiniSeed rm = itr.next();
-				if (rm.lastAge() > ms) {
-					logger.error("RTMS: timeout stale 2nd chans  age="
-							+ rm.lastAge() + " " + rm);
-					rm.forceOut();
-					itr.remove();
-				}
-			}
-		}
-		synchronized (oob) {
-			itr = oob.values().iterator();
-			while (itr.hasNext()) {
-				RawToMiniSeed rm = itr.next();
-				if (rm.lastAge() > ms) {
-					logger.error("RTMS: timeout stale OOB chans  age="
-							+ rm.lastAge() + " " + rm);
-					rm.forceOut();
-					itr.remove();
-				}
-			}
-		}
-	}
-
-	/**
-	 * Write out a time series for the given seed name, time series, time and
-	 * optional flags. This presumes no knowlege of the prior reverse
-	 * integration constant (the last data value of the previously compressed
-	 * block).
-	 * 
-	 * @param x
-	 *            Array of ints with time series
-	 * @param nsamp
-	 *            Number of samples in x
-	 * @param seedname
-	 *            Internal seedname as an ascii (NNSSSSSCCCLL)
-	 * @param year
-	 *            The year of the 1st sample
-	 * @param doy
-	 *            The day-of-year of first sample
-	 * @param sec
-	 *            Seconds since midnight of the first sample
-	 * @param micros
-	 *            Microseconds (fraction of a second) to add to seconds for
-	 *            first sample
-	 * @param rt
-	 *            The nominal digitizing rate in Hertz
-	 * @param activity
-	 *            The activity flags per SEED volume (ch 8 pg 93)
-	 * @param IOClock
-	 *            The I/O and clock flags per SEED volume
-	 * @param quality
-	 *            The clock quality as defined in SEED volume
-	 * @param timingQuality
-	 *            The clock quality as defined in SEED volume blockette1001
-	 */
-	public static void addTimeseries(int[] x, int nsamp, String seedname,
-			int year, int doy, int sec, int micros, double rt, int activity,
-			int IOClock, int quality, int timingQuality) {
-		addTimeseries(x, nsamp, seedname, year, doy, sec, micros, rt, activity,
-				IOClock, quality, timingQuality, 0);
-	}
-
-	/**
-	 * Write out a time series for the given seed name, time series, time and
-	 * optional flags. This presumes no knowlege of the prior reverse
-	 * integration constant (the last data value of the previously compressed
-	 * block).
-	 * 
-	 * @param x
-	 *            Array of ints with time series
-	 * @param nsamp
-	 *            Number of samples in x
-	 * @param seedname
-	 *            Internal seedname as an ascii (NNSSSSSCCCLL)
-	 * @param year
-	 *            The year of the 1st sample
-	 * @param doy
-	 *            The day-of-year of first sample
-	 * @param sec
-	 *            Seconds since midnight of the first sample
-	 * @param micros
-	 *            Microseconds (fraction of a second) to add to seconds for
-	 *            first sample
-	 * @param rt
-	 *            The nominal digitizing rate in Hertz
-	 * @param activity
-	 *            The activity flags per SEED volume (ch 8 pg 93)
-	 * @param IOClock
-	 *            The I/O and clock flags per SEED volume
-	 * @param quality
-	 *            The clock quality as defined in SEED volume
-	 * @param timingQuality
-	 *            The timint quality (0-100)
-	 * @param lastValue
-	 *            Only needed if exact match to existing seed is needed.
-	 */
-	// DEBUG: 7/26/2007 try this whole routine synchronized
-	private static void addTimeseries(int[] x, int nsamp, String seedname,
-			int year, int doy, int sec, int micros, double rt, int activity,
-			int IOClock, int quality, int timingQuality, int lastValue) {
-		if (nsamp == 0)
-			return; // nothing to do!
-		// if(!nohydra) Hydra.send(seedname, year, doy, sec, micros,nsamp, x,
-		// rt);
-		/*
-		 * if(chans == null) chans = (Map<String,RawToMiniSeed>)
-		 * Collections.synchronizedMap(new TreeMap<String, RawToMiniSeed>()); //
-		 * create tree map if first time if(secondChans == null) secondChans =
-		 * (Map<String,RawToMiniSeed>) Collections.synchronizedMap(new
-		 * TreeMap<String, RawToMiniSeed>()); // create tree map if first time
-		 * if(oob == null) oob = (Map<String,RawToMiniSeed>)
-		 * Collections.synchronizedMap(new TreeMap<String, RawToMiniSeed>()); //
-		 * create tree map if first time
-		 */
-		if (seedname.indexOf("IMGEA0 SHZ") >= 0
-				|| seedname.equals(debugChannel))
-			dbg = true; // force debug on for a single channel for DEBUG
-		else
-			dbg = false;
-		if (dbg) {
-			if (sb == null)
-				sb = new StringBuffer(10000);
-			else if (sb.length() > 0)
-				sb.delete(0, sb.length());
-			logger.info("RTMS: Add TS " + seedname + " "
-					+ timeFromUSec(sec * 1000000L + micros) + " rt=" + rt
-					+ " ns=" + nsamp + " lst=" + lastValue);
-		}
-		// Some input day used year doy and the offset may lap into next day, if
-		// so fix it here
-		while (micros > 1000000) {
-			micros -= 1000000;
-			sec++;
-		}
-		while (sec >= 86400) { // Do seconds say its a new day?
-			logger.info("RTMS: day adjust new yr=" + year + " doy=" + doy
-					+ " sec=" + sec + " usec=" + micros + " seedname="
-					+ seedname);
-			int jul = SeedUtil.toJulian(year, doy);
-			sec -= 86400;
-			jul++;
-			int[] ymd = SeedUtil.fromJulian(jul);
-			year = ymd[0];
-			doy = SeedUtil.doy_from_ymd(ymd);
-			logger.info("RTMS: day adjust new yr=" + year + " doy=" + doy
-					+ " sec=" + sec + " seedname=" + seedname);
-		}
-
-		// find this channel in tree map or create it, check for out-of-band or
-		// 2nd
-		// fill data as well.
-		RawToMiniSeed rm = (RawToMiniSeed) chans.get(seedname);
-		RawToMiniSeed rm2 = (RawToMiniSeed) secondChans.get(seedname);
-		RawToMiniSeed rm3 = (RawToMiniSeed) oob.get(seedname);
-		if (dbg)
-			logger.debug("RTMS: rm =" + rm + "\nrm2=" + rm2 + "\nrm3=" + rm3);
-
-		// If the oob or secondChans list has not been used lately, force out
-		// the data
-		if (rm != null) {
-			if (rm.lastAge() > 120000) {
-				if (dbg)
-					logger.debug("RTMS: timeout primary chans " + seedname
-							+ " age=" + rm.lastAge() + " now="
-							+ System.currentTimeMillis() + " " + rm);
-				rm.forceOut();
-				synchronized (chans) {
-					chans.remove(seedname);
-				}
-				rm = null;
-				if (rm2 != null) {
-					if (dbg)
-						logger.debug("RTMS: promote rm2 to rm for " + seedname);
-					chans.put(seedname, rm2);
-					synchronized (secondChans) {
-						secondChans.remove(seedname);
-					}
-					rm = rm2;
-					rm2 = null;
-					if (rm3 != null) {
-						if (dbg)
-							logger.debug("RTMS: promote rm3 to rm2 for "
-									+ seedname);
-						synchronized (secondChans) {
-							secondChans.put(seedname, rm3);
-						}
-						synchronized (oob) {
-							oob.remove(seedname);
-						}
-						rm2 = rm3;
-						rm3 = null;
-					}
-				}
-			}
-		}
-
-		// If the oob or secondChans list has not been used lately, force out
-		// the data
-		if (rm2 != null) {
-			if (rm2.lastAge() > 120000) {
-				if (dbg)
-					logger.debug("RTMS: timeout 2nd chans " + seedname + " age="
-							+ rm2.lastAge() + " now="
-							+ System.currentTimeMillis() + " " + rm2);
-				rm2.forceOut();
-				synchronized (secondChans) {
-					secondChans.remove(seedname);
-				}
-				rm2 = null;
-				if (rm3 != null) {
-					if (dbg)
-						logger.debug("RTMS: promote rm3 to rm2 for " + seedname);
-					synchronized (secondChans) {
-						secondChans.put(seedname, rm3);
-					}
-					synchronized (oob) {
-						oob.remove(seedname);
-					}
-					rm2 = rm3;
-					rm3 = null;
-				}
-			}
-		}
-		if (rm3 != null) {
-			if (rm3.lastAge() > 120000) {
-				if (dbg)
-					logger.debug("RTMS: timeout OOB chan " + seedname
-							+ " lastage=" + rm3.lastAge() + " now="
-							+ System.currentTimeMillis() + " " + rm3);
-				rm3.forceOut();
-				synchronized (oob) {
-					oob.remove(seedname);
-				}
-				rm3 = null;
-			}
-		}
-
-		// order the rms by getJulianUSec() (last sample time), done by 3
-		// comparison and then swaps
-		if (rm != null && rm2 != null) {
-			if (rm.getJulianUSec() < rm2.getJulianUSec()) { // switch these two
-				if (dbg)
-					logger.debug("RTMS: " + seedname + " Swap rm and rm2 "
-							+ seedname + " " + rm.lastTime() + " "
-							+ rm2.lastTime() + " df="
-							+ (rm2.getJulianUSec() - rm.getJulianUSec())
-							/ 1000000);
-				synchronized (chans) {
-					chans.remove(seedname);
-				}
-				synchronized (secondChans) {
-					secondChans.remove(seedname);
-				}
-				synchronized (chans) {
-					chans.put(seedname, rm2);
-				}
-				synchronized (secondChans) {
-					secondChans.put(seedname, rm);
-				}
-				RawToMiniSeed rmtmp = rm2;
-				rm2 = rm;
-				rm = rmtmp;
-			}
-		}
-		if (rm != null && rm3 != null) {
-			if (rm.getJulianUSec() < rm3.getJulianUSec()) { // switch these two
-				if (dbg)
-					logger.debug("RTMS: " + seedname + " Swap rm and rm3 "
-							+ seedname + " " + rm.lastTime() + " "
-							+ rm3.lastTime() + " df="
-							+ (rm3.getJulianUSec() - rm.getJulianUSec())
-							/ 1000000);
-				synchronized (chans) {
-					chans.remove(seedname);
-				}
-				synchronized (oob) {
-					oob.remove(seedname);
-				}
-				synchronized (chans) {
-					chans.put(seedname, rm3);
-				}
-				synchronized (oob) {
-					oob.put(seedname, rm);
-				}
-				RawToMiniSeed rmtmp = rm3;
-				rm3 = rm;
-				rm = rmtmp;
-			}
-		}
-		if (rm2 != null && rm3 != null) {
-			if (rm2.getJulianUSec() < rm3.getJulianUSec()) { // switch these two
-				if (dbg)
-					logger.debug("RTMS: " + seedname + " Swap rm2 and rm3 "
-							+ seedname + " " + rm2.lastTime() + " "
-							+ rm3.lastTime() + " df="
-							+ (rm3.getJulianUSec() - rm2.getJulianUSec())
-							/ 1000000);
-				synchronized (secondChans) {
-					secondChans.remove(seedname);
-				}
-				synchronized (oob) {
-					oob.remove(seedname);
-				}
-				synchronized (secondChans) {
-					secondChans.put(seedname, rm3);
-				}
-				synchronized (oob) {
-					oob.put(seedname, rm2);
-				}
-				RawToMiniSeed rmtmp = rm3;
-				rm3 = rm2;
-				rm2 = rmtmp;
-			}
-		}
-
-		// if(dbg) Util.prt("rm="+rm+" rm2="+rm2+" rm3="+rm3);
-		if (rm == null) {
-			logger.info("RTMS: create new channel for " + seedname + " rate="
-					+ rt + " rm=" + rm + " rm2=" + rm2 + " rm3=" + rm3);
-			rm = new RawToMiniSeed(seedname, rt, 7, year, doy, sec, micros, 0);
-			if (dbg)
-				RawToMiniSeed.setDebug(dbg);
-			synchronized (chans) {
-				chans.put(seedname, rm);
-			}
-		} else { // check to see if a OOB would be better
-			long gap = rm.gapCalc(year, doy, sec, micros);
-			// long gapb = rm.gapCalcBegin(year,doy,sec,micros,nsamp);
-			if (dbg)
-				logger.debug("RTMS: " + seedname + " ns=" + nsamp + " sc=" + sec
-						+ " gp=" + gap + "\nRTMS: rm =" + rm + "\nRTMS: rm2="
-						+ rm2 + "\nRTMS: rm3=" + rm3);
-
-			// check gap with main compression, if it continuous at end
-			// or later in time, stick with it (i.e. this is inverse, check
-			// others!)
-			if (Math.abs(gap) > 500000. / rm.getRate() /* && gap < 0 */) {
-				if (rm2 != null) {
-					long gap2 = rm2.gapCalc(year, doy, sec, micros);
-					// long gap2b = rm2.gapCalcBegin(year,doy,sec,micros,nsamp);
-					if (Math.abs(gap2) < 500000. / rm.getRate()) {
-						rm = rm2;
-						gap = gap2;
-						// if(gap2b < gap) gap=gap2b;
-					} else if (rm3 != null) {
-						long gap3 = rm3.gapCalc(year, doy, sec, micros);
-						rm = rm3;
-						gap = gap3;
-					} else { // rm3 is null use it for this one unless its close
-								// to rm2 or rm
-						if (dbg)
-							logger.debug("RTMS: create new OOB (3rd) channel for "
-									+ seedname
-									+ " rate="
-									+ rt
-									+ " "
-									+ RawToMiniSeed.timeFromUSec(sec * 1000000L
-											+ micros));
-						rm3 = new RawToMiniSeed(seedname, rt, 7, year, doy,
-								sec, micros, 800000);
-						if (dbg)
-							RawToMiniSeed.setDebug(dbg);
-						synchronized (oob) {
-							oob.put(seedname, rm3);
-						}
-						rm = rm3;
-						gap = 0;
-						// end rm3 is null
-					}
-				} else { // rm2 is null
-					if (dbg)
-						logger.debug("RTMS: create new second channel for "
-								+ seedname
-								+ " rate="
-								+ rt
-								+ " "
-								+ RawToMiniSeed.timeFromUSec(sec * 1000000L
-										+ micros));
-					// new
-					// RuntimeException("Create new second! ").printStackTrace(par.getPrintStream());
-					// //DEBUG: get stack trace!
-					rm2 = new RawToMiniSeed(seedname, rt, 7, year, doy, sec,
-							micros, 900000);
-					if (dbg)
-						RawToMiniSeed.setDebug(dbg);
-					synchronized (secondChans) {
-						secondChans.put(seedname, rm2);
-					}
-					rm = rm2;
-					gap = 0;
-				}
-
-			} // end if gap is continuous or in future
-		} // end else this is not a new channel
-		if (dbg)
-			logger.debug("RTMS: rm chosen is " + rm + " adding "
-					+ timeFromUSec(sec * 1000000L + micros) + " ns=" + nsamp);
-
-		if (dbg && rm == rm2)
-			logger.debug("RTMS: use 2ndChans " + seedname + " sec=" + sec);
-		if (dbg && rm == rm3)
-			logger.debug("RTMS: use OOB chan " + seedname + " sec=" + sec);
-
-		if (Math.abs(rm.getRate() - rt) / rt > 0.001) {
-			logger.debug("  *** ??? rate change on " + seedname + " from "
-					+ rm.getRate() + " to " + rt);
-			rm.setRate(rt);
-		}
-		if (dbg)
-			logger.debug("RTMS: enter process rm=" + rm + " ns=" + nsamp + " rt="
-					+ rm.getRate() + " " + rm.getSeedname());
-		// processes the time series, time and flags.
-		rm.process(x, nsamp, year, doy, sec, micros, activity, IOClock,
-				quality, timingQuality, lastValue, (rm == rm3));
-		if (dbg)
-			logger.debug("RTMS: exit process " + rm.getSeedname());
-
-	}
-
-	/**
-	 * Write out a time series for the tiven seed name, time series, time and
-	 * optional flags, etc.
-	 * 
-	 * @param seedname
-	 *            The Seed name of the channel that needs to be forced out
-	 * @return a copy of the buffer just sent through putbuf
-	 */
-	public static synchronized byte[] forceout(String seedname) {
-		// if(chans == null) chans = Collections.synchronizedMap( new
-		// TreeMap<String, RawToMiniSeed>()); // create tree map if first time
-
-		// find this channel in tree map or create it
-		RawToMiniSeed rm = chans.get(seedname);
-		if (rm == null) {
-			logger.error("forceout(): *** Call to forceout on non-existant channel="
-					+ seedname);
-			if (dbg)
-				sb.append("call to forceout on non-existing channel!! = "
-						+ seedname + "\n");
-			return null;
-		}
-
-		// processes the time series, time and flags.
-		rm.forceOut();
-		byte[] buf = rm.getLastPutbuf();
-		rm.clear();
-		return buf;
 	}
 
 	/**
@@ -760,7 +233,7 @@ public class RawToMiniSeed {
 	 * @param startSeq
 	 *            Start any compression with this sequence number
 	 */
-	public RawToMiniSeed(String name, double rt, int nFrames, int year,
+	RawToMiniSeed(String name, double rt, int nFrames, int year,
 			int doy, int sec, int micros, int startSeq) {
 		seedname = name;
 		numFrames = nFrames;
@@ -879,45 +352,6 @@ public class RawToMiniSeed {
 	 *            The data quality as defined in SEED volume
 	 * @param timingQuality
 	 *            The timing quality for blockette 1001
-	 * @param lastValue
-	 *            Only needed if exact match to existing seed is needed.
-	 * 
-	 */
-	public synchronized void process(int[] ts, int nsamp, int year, int doy,
-			int sec, int micros, int activity, int IOClock, int quality,
-			int timingQuality, int lastValue) {
-		process(ts, nsamp, year, doy, sec, micros, activity, IOClock, quality,
-				timingQuality, lastValue, false);
-	}
-
-	/**
-	 * process a time series into this RawToMiniSeed - used by static functions
-	 * addTimeSeries to actually modify the channel synchronized so this cannot
-	 * have two sets in process at same time. If this channel is configured as a
-	 * hydra bound channel, it is put in the HydraQueue for processing (if it is
-	 * latter in time than the last one!)
-	 * 
-	 * @param ts
-	 *            Array of ints with time series
-	 * @param nsamp
-	 *            Number of samples in x
-	 * @param year
-	 *            The year of the 1st sample
-	 * @param doy
-	 *            The day-of-year of first sample
-	 * @param sec
-	 *            Seconds since midnight of the first sample
-	 * @param micros
-	 *            Microseconds (fraction of a second) to add to seconds for
-	 *            first sample
-	 * @param activity
-	 *            The activity flags per SEED volume (ch 8 pg 93)
-	 * @param IOClock
-	 *            The I/O and clock flags per SEED volume
-	 * @param quality
-	 *            The data quality as defined in SEED volume
-	 * @param timingQuality
-	 *            The timing quality for blockette 1001
 	 * @param isRM3
 	 *            If true, this is expected to be hacked up so we do not put out
 	 *            any SendEvents.
@@ -925,7 +359,7 @@ public class RawToMiniSeed {
 	 *            Only needed if exact match to existing seed is needed.
 	 * 
 	 */
-	public synchronized void process(int[] ts, int nsamp, int year, int doy,
+	synchronized void process(int[] ts, int nsamp, int year, int doy,
 			int sec, int micros, int activity, int IOClock, int quality,
 			int timingQuality, int lastValue, boolean isRM3) {
 		// The time internally is of the first difference. We need to check that
@@ -1356,30 +790,6 @@ public class RawToMiniSeed {
 	private static byte[] lastbuf;
 	private static boolean newPutbuf;
 
-	/**
-	 * for debugging returns state of "newPutbuf" boolean which is set by
-	 * putbuf() whenever new output is written. User could monitor this for
-	 * change to "true" a and then use getLastBuf to retrieve the output.
-	 * 
-	 * @return Current falue of newPutbuf boolean
-	 */
-	static public boolean newPutbuf() {
-		return newPutbuf;
-	}
-
-	/**
-	 * reset the newPutbuf flag and zero the lastBuf for debugging use
-	 * 
-	 * @param t
-	 *            Value to set newPutbuf to
-	 */
-	static public void setNewPutbuf(boolean t) {
-		if (!newPutbuf && lastbuf != null)
-			for (int i = 0; i < lastbuf.length; i++)
-				lastbuf[i] = 0;
-		newPutbuf = t;
-	}
-
 	public byte[] getLastPutbuf() {
 		return lastputbuf;
 	}
@@ -1423,15 +833,6 @@ public class RawToMiniSeed {
 	}
 
 	/**
-	 * for debug purposes, get the last data buffer written out by putbuf
-	 * 
-	 * @return The last output of putbuf
-	 */
-	public static byte[] getLastbuf() {
-		return lastbuf;
-	}
-
-	/**
 	 * forceOut takes any remaining data in the data (ndata) and adds it to the
 	 * end of the current frame and then calls putbuf. If this is actually the
 	 * end of all of the data, the user must call clear() afterward to reset all
@@ -1440,7 +841,7 @@ public class RawToMiniSeed {
 	 * current context to be changed The reverse integration constant used is
 	 * the one stored in the object
 	 */
-	public synchronized void forceOut() {
+	synchronized void forceOut() {
 		forceOut(reverse);
 	}
 
@@ -1617,20 +1018,6 @@ public class RawToMiniSeed {
 		// increment the sequence number for the fixed header
 		hdr.incrementSequence();
 
-	}
-
-	/**
-	 * Get the RawToMiniSeed record for the given channel name from the static
-	 * tree of same
-	 * 
-	 * @param seedname
-	 *            The 12 character seed name for the channel
-	 * @return A RawToMiniSeed for the channel or null if one is not yet defined
-	 */
-	public static RawToMiniSeed getRawToMiniSeed(String seedname) {
-		if (chans == null)
-			return null;
-		return (RawToMiniSeed) chans.get(seedname);
 	}
 
 	/**
