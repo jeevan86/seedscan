@@ -57,7 +57,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author davidketchum
  */
-public class RawToMiniSeed {
+class RawToMiniSeed {
 	// Static variables
 	private static final Logger logger = LoggerFactory
 			.getLogger(seed.RawToMiniSeed.class);
@@ -102,9 +102,6 @@ public class RawToMiniSeed {
 	private MiniSeedOutputHandler overrideOutput;
 	private static boolean dbg;
 	private static StringBuffer sb = new StringBuffer(100);
-
-	// Dead timer
-	private long lastUpdate;
 
 	@Override
 	public String toString() {
@@ -262,7 +259,7 @@ public class RawToMiniSeed {
 		}
 		ndata = 0;
 		rate = rt;
-		lastUpdate = System.currentTimeMillis();
+
 		data = new int[8]; // Most difference which can be leftover
 		reverse = 2147000000;
 		currentWord = 0;
@@ -368,7 +365,6 @@ public class RawToMiniSeed {
 
 		long gap = gapCalc(year, doy, sec, micros);
 		boolean midnightProcess = false;
-		lastUpdate = System.currentTimeMillis();
 
 		// Check time for formal correctness and report if not
 		if ((!isRM3 && julian != SeedUtil.toJulian(year, doy) && !(julian + 1 == SeedUtil
@@ -788,7 +784,6 @@ public class RawToMiniSeed {
 
 	// These variables are used by the putbuf related routines
 	private static byte[] lastbuf;
-	private static boolean newPutbuf;
 
 	public byte[] getLastPutbuf() {
 		return lastputbuf;
@@ -808,7 +803,6 @@ public class RawToMiniSeed {
 		}
 
 		// This is what happens if no override output is set up, not much use
-		newPutbuf = true;
 		if (lastbuf == null)
 			lastbuf = new byte[size];
 		if (lastputbuf == null)

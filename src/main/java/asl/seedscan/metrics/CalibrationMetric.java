@@ -557,10 +557,6 @@ public class CalibrationMetric extends Metric {
 			this.Tnorm = Tnorm;
 		}
 
-		public String getSensorName() {
-			return sensorName;
-		}
-
 		public double getMinPeriod() {
 			return Tmin;
 		}
@@ -622,10 +618,6 @@ public class CalibrationMetric extends Metric {
 
 		private void setCornerFreq(double cornerFreq) {
 			this.cornerFreq = cornerFreq;
-		}
-
-		private void setCornerFreqCal(double cornerFreq) {
-			this.cornerFreqCal = cornerFreq;
 		}
 
 		private void addBand(String name, BandAverageDiff bandDiff) {
