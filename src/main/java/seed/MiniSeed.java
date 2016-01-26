@@ -19,7 +19,6 @@ import java.util.GregorianCalendar;
 import java.util.List;
 
 import org.slf4j.Logger;
-//import org.apache.log4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import asl.seedscan.Global;
@@ -32,7 +31,7 @@ import asl.seedscan.Global;
  * 
  * @author David Ketchum
  */
-public class MiniSeed implements MiniSeedOutputHandler {
+public class MiniSeed {
 	/** The Constant datalogger. */
 	private static final Logger datalogger = LoggerFactory.getLogger("DataLog");
 	
@@ -2045,36 +2044,4 @@ public class MiniSeed implements MiniSeedOutputHandler {
 		}
 		return samples;
 	}
-
-	/* (non-Javadoc)
-	 * @see seed.MiniSeedOutputHandler#close()
-	 */
-	public void close() {
-	} // needed to implement a miniseedoutputhandler
-
-	/** The ms512. */
-	private MiniSeed[] ms512;
-
-	/* (non-Javadoc)
-	 * @see seed.MiniSeedOutputHandler#putbuf(byte[], int)
-	 */
-	public void putbuf(byte[] b, int size) {
-		try {
-			MiniSeed msin = new MiniSeed(b);
-			if (ms512 == null)
-				ms512 = new MiniSeed[1];
-			else {
-				MiniSeed[] tmp = new MiniSeed[ms512.length + 1];
-				for (int i = 0; i < ms512.length; i++)
-					tmp[i] = ms512[i];
-				ms512 = tmp;
-			}
-			ms512[ms512.length - 1] = msin;
-		} catch (IllegalSeednameException e) {
-			datalogger.error("IllegalSeednameException:", e);
-		}
-
-	}
-
-	
 }

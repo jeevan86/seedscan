@@ -39,7 +39,6 @@ import org.slf4j.LoggerFactory;
  * 
  * @author davidketchum
  */
-@SuppressWarnings("cast")
 public class SeedUtil {
 	private static final Logger logger = LoggerFactory
 			.getLogger(seed.SeedUtil.class);
@@ -47,31 +46,6 @@ public class SeedUtil {
 			31, 30, 31 };
 	private static final int[] DAY_LEAP = new int[] { 0, 31, 29, 31, 30, 31, 30, 31, 31, 30,
 			31, 30, 31 };
-
-	/**
-	 * From a year, month, and day of the month calculate the Julian day of
-	 * year. Parts stolen from K&amp;R's C book.
-	 * 
-	 * @param ymd
-	 *            The year, month day as an array
-	 * @return The day of the year
-	 */
-	static int doy_from_ymd(int[] ymd) {
-		int yr = sanitizeYear(ymd[0]);
-		boolean leap = yr % 4 == 0 && yr % 100 != 0 || yr % 400 == 0; /*
-																	 * is it a
-																	 * leap year
-																	 */
-		/* printf("Mon=%s month=%d leap=%d\n",mn,month,leap); */
-		int day = ymd[2];
-		if (leap)
-			for (int i = 1; i < ymd[1]; i++)
-				day += DAY_LEAP[i]; /* add up all the full months */
-		else
-			for (int i = 1; i < ymd[1]; i++)
-				day += DAY_TAB[i]; /* add up all the full months */
-		return day;
-	}
 
 	/**
 	 * convert a year and day of year to an array in yr,mon,day order
