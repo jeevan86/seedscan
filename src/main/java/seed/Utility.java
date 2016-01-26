@@ -9,7 +9,7 @@ package seed;
  * @version 6/6/2002
  */
 
-public class Utility {
+class Utility {
 
 	/**
 	 * Convert a single byte to a 32-bit int, with sign extension.

@@ -60,8 +60,6 @@ import org.slf4j.LoggerFactory;
  * 
  * @author davidketchum
  */
-// MTH: getting a lot of redunduant cast warnings ...
-@SuppressWarnings("cast")
 public class RawToMiniSeed {
 	// Static variables
 	private static final Logger logger = LoggerFactory
@@ -85,36 +83,34 @@ public class RawToMiniSeed {
 	// output
 
 	// Steim2 compressor working variables
-	double rate;
-	long periodUSec;
-	int integration;
+	private double rate;
+	private long periodUSec;
 	// the next 3 must be correct before each return to maintain context
-	int reverse; // last sample of compression to date
-	int[] data; // up to 8 samples that might have been left over
-	int ndata; // number of left over samples
-	long earliestTime; // Time of first sample in this RTMS in micros
-	long difftime; // time of first difference in d in micros
-	int julian; // julian day of diff time
-	int currentFrame; // Current frame where data is going
-	int currentWord; // Current word in the frame where data goes
+	private int reverse; // last sample of compression to date
+	private int[] data; // up to 8 samples that might have been left over
+	private int ndata; // number of left over samples
+	private long earliestTime; // Time of first sample in this RTMS in micros
+	private long difftime; // time of first difference in d in micros
+	private int julian; // julian day of diff time
+	private int currentFrame; // Current frame where data is going
+	private int currentWord; // Current word in the frame where data goes
 
 	// Space for the mini-seed records
-	int numFrames; // number of Steim frames for one record
-	String seedname; // The seed name for this channel
-	FixedHeader hdr; // storage for fixed header
-	int startSequence;
-	SteimFrames[] frames; // storage for Steim 64 byte frames
-	int ns; // Number of samples compress in this group of frames
-	int nextDiff; // next difference to compress (index to data/diff)
+	private int numFrames; // number of Steim frames for one record
+	private String seedname; // The seed name for this channel
+	private FixedHeader hdr; // storage for fixed header
+	private int startSequence;
+	private SteimFrames[] frames; // storage for Steim 64 byte frames
+	private int ns; // Number of samples compress in this group of frames
+	private int nextDiff; // next difference to compress (index to data/diff)
 	// Internal variables
-	int backblk; // block number to write next
 	private byte[] lastputbuf;
-	MiniSeedOutputHandler overrideOutput;
-	static boolean dbg;
-	static StringBuffer sb = new StringBuffer(100);
+	private MiniSeedOutputHandler overrideOutput;
+	private static boolean dbg;
+	private static StringBuffer sb = new StringBuffer(100);
 
 	// Dead timer
-	long lastUpdate;
+	private long lastUpdate;
 
 	// public static void setNoHydra(boolean t) {nohydra=t;}
 	@Override
@@ -132,11 +128,11 @@ public class RawToMiniSeed {
 		return s.substring(beg);
 	}
 
-	public String lastTime() {
+	private String lastTime() {
 		return stringFromUSec((long) (difftime + ndata * periodUSec + 0.01));
 	}
 
-	public String earliestTime() {
+	private String earliestTime() {
 		return stringFromUSec(earliestTime);
 	}
 
@@ -168,7 +164,7 @@ public class RawToMiniSeed {
 		startSequence = i;
 	}
 
-	public static String timeFromUSec(long usec) {
+	private static String timeFromUSec(long usec) {
 		if (df6 == null)
 			df6 = new DecimalFormat("000000");
 		int ms = (int) (usec / 1000);
@@ -210,7 +206,7 @@ public class RawToMiniSeed {
 	 * @return the time in millis since the last modification or creation of
 	 *         this channel
 	 */
-	public long lastAge() {
+	private long lastAge() {
 		return (System.currentTimeMillis() - lastUpdate);
 	}
 
@@ -253,7 +249,7 @@ public class RawToMiniSeed {
 	 * @param t
 	 *            The boolean value of the debug flag
 	 */
-	public static void setDebug(boolean t) {
+	private static void setDebug(boolean t) {
 		dbg = t;
 	}
 
@@ -380,7 +376,7 @@ public class RawToMiniSeed {
 	 *            Only needed if exact match to existing seed is needed.
 	 */
 	// DEBUG: 7/26/2007 try this whole routine synchronized
-	public static void addTimeseries(int[] x, int nsamp, String seedname,
+	private static void addTimeseries(int[] x, int nsamp, String seedname,
 			int year, int doy, int sec, int micros, double rt, int activity,
 			int IOClock, int quality, int timingQuality, int lastValue) {
 		if (nsamp == 0)
@@ -796,7 +792,6 @@ public class RawToMiniSeed {
 		lastUpdate = System.currentTimeMillis();
 		data = new int[8]; // Most difference which can be leftover
 		reverse = 2147000000;
-		integration = 0;
 		currentWord = 0;
 		currentFrame = 0;
 		ns = 0;
@@ -817,7 +812,7 @@ public class RawToMiniSeed {
 	 *            Micros to add to seconds of first sample
 	 * @return The time difference in micros
 	 */
-	public long gapCalc(int year, int doy, int sec, int micros) {
+	private long gapCalc(int year, int doy, int sec, int micros) {
 		long time = SeedUtil.toJulian(year, doy) * 86400000000L + sec
 				* 1000000L + micros;
 		long gap = (long) (time - difftime - ndata * periodUSec - julian * 86400000000L);
@@ -840,7 +835,7 @@ public class RawToMiniSeed {
 	 *            Number of samples in packet
 	 * @return The time difference in micros
 	 */
-	public long gapCalcBegin(int year, int doy, int sec, int micros, int n) {
+	private long gapCalcBegin(int year, int doy, int sec, int micros, int n) {
 		long time = SeedUtil.toJulian(year, doy) * 86400000000L + sec
 				* 1000000L + micros;
 		long gap = (long) (julian * 86400000000L + earliestTime - (time + n
@@ -1460,7 +1455,7 @@ public class RawToMiniSeed {
 	 * @param reverse
 	 *            The data point before the beginning of this set of data frames
 	 */
-	public synchronized void forceOut(int reverse) {
+	private synchronized void forceOut(int reverse) {
 		// We must be done so position key to top of word before forcing out
 		if (currentFrame == 0 && currentWord <= 1) {
 			currentWord = 0;
@@ -1642,7 +1637,7 @@ public class RawToMiniSeed {
 	 * cause this channel to be clearred for a new compression buffer. ANy data
 	 * in progress is discarded.
 	 */
-	public void clear() {
+	private void clear() {
 
 		// Set up for new compression buffer
 		ns = 0;
@@ -1678,25 +1673,25 @@ public class RawToMiniSeed {
 	 * This internal class represents and implements translation to/from the
 	 * fixed 48 byte header of mini-seed blockettes.
 	 */
-	class FixedHeader {
-		int sequence;
-		int startSequence;
-		double rate; // Digitizing rate in hertz
-		String seedname; // 12 character seed name
-		int numFrames; // Number of 64 byte Steim Frames in a whole record (for
+	private class FixedHeader {
+		private int sequence;
+		private int startSequence;
+		private double rate; // Digitizing rate in hertz
+		private String seedname; // 12 character seed name
+		private int numFrames; // Number of 64 byte Steim Frames in a whole record (for
 						// blockette1000)
-		int actualFrames; // Number of frames in this particular one
-		short year;
-		short doy;
-		long time;
-		short rateFactor; // Rate converted to integer
-		short rateMultiplier; // Divisor if needed for rate
-		short nsamp;
-		byte activity, IOClock, quality, timingQuality;
-		byte usecs;
+		private int actualFrames; // Number of frames in this particular one
+		private short year;
+		private short doy;
+		private long time;
+		private short rateFactor; // Rate converted to integer
+		private short rateMultiplier; // Divisor if needed for rate
+		private short nsamp;
+		private byte activity, IOClock, quality, timingQuality;
+		private byte usecs;
 
 		/** increment the sequence number of this header */
-		public void incrementSequence() {
+		private void incrementSequence() {
 			sequence++;
 			if (sequence < 0 || sequence >= 1000000)
 				sequence = 0;
@@ -1721,7 +1716,7 @@ public class RawToMiniSeed {
 		 * @param micros
 		 *            Fractional Microseconds of 1st sample
 		 */
-		public FixedHeader(String name, double rt, int nFrames, int yr, int dy,
+		private FixedHeader(String name, double rt, int nFrames, int yr, int dy,
 				int sec, int micros, int startSeq) {
 			// rearrange the seed name to internal format
 			seedname = name;
@@ -1798,15 +1793,6 @@ public class RawToMiniSeed {
 			buf.put((byte) 0).put((byte) actualFrames);
 
 			return buf.array();
-		}
-
-		/**
-		 * return # of samples in data represented by this header
-		 * 
-		 * @return the # of samples in data represented by this header
-		 */
-		public int getNSamp() {
-			return (int) nsamp;
 		}
 
 		/**
@@ -1926,7 +1912,7 @@ public class RawToMiniSeed {
 		 * @param micros
 		 *            Fractional Microseconds of 1st sample
 		 */
-		public void setStartTime(int yr, int dy, int sec, long micros) {
+		private void setStartTime(int yr, int dy, int sec, long micros) {
 			year = (short) yr;
 			doy = (short) dy;
 			time = sec * 1000000L + micros;
