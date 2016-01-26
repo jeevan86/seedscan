@@ -28,10 +28,9 @@ import org.slf4j.LoggerFactory;
  * @version 10/23/2002
  */
 
-public class Steim2 {
+class Steim2 {
 	private static final Logger logger = LoggerFactory
 			.getLogger(seed.Steim2.class);
-	private static int xminus1;
 	private static boolean dbg;
 	private static boolean strictRIC = false;
 	private static boolean traceBackErrors;
@@ -41,22 +40,6 @@ public class Steim2 {
 	private static int[] frameReverse = new int[63];
 	private static int[] frameForward = new int[63];
 	private static StringBuffer sb;
-
-	public static void setStrictRIC(boolean t) {
-		strictRIC = t;
-	}
-
-	public static String getDebugString() {
-		return sb.toString();
-	}
-
-	static public void setTracebackErrors(boolean t) {
-		traceBackErrors = t;
-	}
-
-	static public void setDebug(boolean t) {
-		dbg = t;
-	}
 
 	/**
 	 * return if the last decode had a reverse integration error, this error
@@ -94,40 +77,6 @@ public class Steim2 {
 	 */
 	static public String getSampleCountError() {
 		return (sampleCountError == null ? "" : sampleCountError);
-	}
-
-	static public int getXminus1() {
-		return xminus1;
-	}
-
-	/**
-	 * return an array with the number of samples in each frame of the last
-	 * decode
-	 * 
-	 * @return An array with the number of samples in each of the last decode
-	 */
-	static public int[] getFrameNsamp() {
-		return frameNsamp;
-	}
-
-	/**
-	 * return an array with the value of the reverse integration constant for
-	 * each frame in last decode
-	 * 
-	 * @return An array with the reverse integration constants from last decode
-	 */
-	static public int[] getFrameReverse() {
-		return frameReverse;
-	}
-
-	/**
-	 * return an array with the value of the reverse integration constant for
-	 * each frame in last decode
-	 * 
-	 * @return An array with the reverse integration constants from last decode
-	 */
-	static public int[] getFrameForward() {
-		return frameForward;
 	}
 
 	/**
@@ -198,8 +147,7 @@ public class Steim2 {
 																// frame 0
 			firstData = 0; // d(0) is byte 0 by default
 			if (i == 0) { // special case for first frame
-				lastValue = bias; // assign our X(-1)
-				xminus1 = lastValue;
+				lastValue = bias;
 				// x0 and xn are in 1 and 2 spots
 				start = tempSamples[1]; // X(0) is byte 1 for frame 0
 				end = tempSamples[2]; // X(n) is byte 2 for frame 0
@@ -213,7 +161,6 @@ public class Steim2 {
 							+ tempSamples.length);
 				else if (bias == 0) {
 					lastValue = start - tempSamples[3]; // X(-1) = X(0) - d(0)
-					xminus1 = lastValue;
 				}
 			}
 			// System.err.print("DEBUG: ");
