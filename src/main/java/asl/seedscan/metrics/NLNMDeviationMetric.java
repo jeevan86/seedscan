@@ -365,7 +365,7 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 	 *
 	 * @return the new high NoiseModel
 	 */
-	static NoiseModel getNHNM() {
+	static synchronized NoiseModel getNHNM() {
 		if (NHNM == null)
 			initNHNM();
 		return NHNM;
@@ -391,7 +391,7 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 	 *
 	 * @return the new low NoiseModel
 	 */
-	static NoiseModel getNLNM() {
+	static synchronized NoiseModel getNLNM() {
 		if (NLNM == null)
 			initNLNM();
 		return NLNM;
