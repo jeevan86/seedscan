@@ -105,14 +105,14 @@ public class MiniSeed {
 	/** The ms. */
 	private ByteBuffer ms;
 	
-	/** The buf. */
-	private byte[] buf; // our copy of the input data wrapped by ms
+	/** Our copy of the input data wrapped by ms */
+	private byte[] buf;
 	
 	/** The cracked. */
 	private boolean cracked;
 	
-	/** The cleared. */
-	private boolean cleared; // This one was last cleared
+	/** This one was last cleared */
+	private boolean cleared;
 	
 	/** The length. */
 	@SuppressWarnings("unused") //We want to keep this accessible for future use.
@@ -121,96 +121,102 @@ public class MiniSeed {
 	/** The int5. */
 	private static DecimalFormat int5;
 	
-	/** The record count. */
-	private static int recordCount; // COunter as MiniSeed records are created.
+	/** Counter as MiniSeed records are created. */
+	private static int recordCount;
 	
-	/** The record number. */
-	private int recordNumber; // The serial number assigned this record
+	/** The serial number assigned this record */
+	private int recordNumber;
 
 	// components filled out by the crack() routine
-	/** The seed. */
-	private byte[] seed; // The 12 charname in fixed header order SSSSSLLCCCNN
-	
-	/** The seq. */
-	private byte[] seq; // 6 character with ascii of sequence
-	
-	/** The indicator. */
-	private byte[] indicator; // two character indicator normally "D " or "Q "
-	
-	/** The start time. */
-	private byte[] startTime; // Bytes with raw fixed header time
-	
-	/** The nsamp. */
-	private short nsamp; // Number of samples
-	
-	/** The rate factor. */
-	private short rateFactor; // Rate factor from fixed header
-	
-	/** The rate multiplier. */
-	private short rateMultiplier; // Rate multiplier from fixed header
-	
-	/** The activity flags. */
-	private byte activityFlags; // activity flags byte from fixed header
-	
-	/** The io clock flags. */
-	private byte ioClockFlags; // iod flags from fixed header
-	
-	/** The data quality flags. */
-	private byte dataQualityFlags; // Data quality flags from fixed header
-	
-	/** The nblockettes. */
-	private byte nblockettes; // number of "data blockettes" in this record
-	
-	/** The time correction. */
-	@SuppressWarnings("unused") //We want to keep this accessible for future use.
-	private int timeCorrection; // Time Correction from fixed header
-	
-	/** The data offset. */
-	private short dataOffset; // Offset in buffer of first byte of data
-	
-	/** The blockette offset. */
-	private short blocketteOffset; // Offset in bytes to first byte of first
-									// data blockette
-	/** The husec. */
-								private short year, day, husec; // Portions of time broken out from fixed
-									// header
-	/** The sec. */
-									private byte hour, minute, sec; // The byte portions of the time from fixed
-									// header
-	/** The time. */
-									private GregorianCalendar time; // This is the Java Gregorian representation
-									// of the time
-	/** The time truncated. */
-									private GregorianCalendar timeTruncated;// This does not round the ms
-	
-	/** The julian. */
-	private int julian; // julian day from year and doy
-	
-	/** The forward. */
-	private int forward; // forward integration constart (from first frame)
-	
-	/** The reverse. */
-	private int reverse; // reverse or ending integeration constant from end
+	/** The 12 charname in fixed header order SSSSSLLCCCNN */
+	private byte[] seed;
+
+	/** 6 character with ascii of sequence */
+	private byte[] seq;
+
+	/** Two character indicator normally "D " or "Q " */
+	private byte[] indicator;
+
+	/** Bytes with raw fixed header time */
+	private byte[] startTime;
+
+	/** Number of samples */
+	private short nsamp;
+
+	/** Rate factor from fixed header */
+	private short rateFactor;
+
+	/** Rate multiplier from fixed header */
+	private short rateMultiplier;
+
+	/** activity flags byte from fixed header */
+	private byte activityFlags;
+
+	/** iod flags from fixed header */
+	private byte ioClockFlags;
+
+	/** Data quality flags from fixed header */
+	private byte dataQualityFlags;
+
+	/** number of "data blockettes" in this record */
+	private byte nblockettes;
+
+	/** Time Correction from fixed header */
+	@SuppressWarnings("unused") // We want to keep this accessible for future
+								// use.
+	private int timeCorrection;
+
+	/** Offset in buffer of first byte of data */
+	private short dataOffset;
+
+	/** Offset in bytes to first byte of first data blockette */
+	private short blocketteOffset;
+
+	/** Portions of time broken out from fixed header */
+	private short year, day, husec;
+
+	/** The byte portions of the time from fixed header */
+	private byte hour, minute, sec;
+
+	/** This is the Java Gregorian representation of the time */
+	private GregorianCalendar time;
+
+	/** This does not round the ms */
+	private GregorianCalendar timeTruncated;
+
+	/** julian day from year and doy */
+	private int julian;
+
+	/** forward integration constant (from first frame) */
+	private int forward;
+
+	/** reverse or ending integration constant from end */
+	private int reverse; //
 
 	// These contain information about the "data blockettes" really meta-data
-	/** The blockettes. */
-	private ByteBuffer[] blockettes; // these wrap the bufnnn below for each
-										// blockette found
-										// in same order as the blocketteList
+	/**
+	 * these wrap the bufnnn below for each blockette found in same order as the
+	 * blocketteList
+	 */
+	private ByteBuffer[] blockettes;
+
 	/** The blockette offsets. */
-										private int[] blocketteOffsets;
-	
-	/** The blockette list. */
-	private short[] blocketteList; // List of the blockett types found
-	
-	/** The buf100. */
-	private byte[] buf100; // These bufnnn contain data from the various
+	private int[] blocketteOffsets;
+
+	/** List of the blockett types found */
+	private short[] blocketteList; //
+
+	/**
+	 * These bufnnn contain data from the various possible "data blockettes"
+	 * found. They are never all defined.
+	 */
+	private byte[] buf100;
 	
 	/** The buf200. */
-	private byte[] buf200; // possible "data blockettes" found. They are
+	private byte[] buf200;
 	
 	/** The buf201. */
-	private byte[] buf201; // never all defined.
+	private byte[] buf201;
 	
 	/** The buf300. */
 	private byte[] buf300;
