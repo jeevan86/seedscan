@@ -55,7 +55,7 @@ public abstract class PowerBandMetric extends Metric {
 						smartNumberFormat(band.getHigh(), 6));
 	}
 
-	protected static String smartNumberFormat(double value, int precision) {
+	private static String smartNumberFormat(double value, int precision) {
 		String formatted;
 		formatted = String.format(String.format("%%.%df", precision), value);
 		int clipCount = 0;

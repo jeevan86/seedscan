@@ -210,7 +210,7 @@ public class MetaGenerator extends UnicastRemoteObject implements MetaInterface 
 		return successfullyLoaded;
 	}
 
-	public void print() {
+	private void print() {
 		if (volumes == null) {
 			System.out
 					.format("== MetaGenerator.print() - No SeedVolumes have been loaded!\n");

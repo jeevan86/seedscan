@@ -209,7 +209,7 @@ public class SeedUtil {
 	 * @return An array of 3 ints representing the year, month and day in that
 	 *         order
 	 */
-	static int[] fromJulian(int injulian) {
+	private static int[] fromJulian(int injulian) {
 
 		int jalpha, ja, jb, jc, jd, je, year, month, day;
 		// double julian = (double) injulian + HALFSECOND / 86400.0;
