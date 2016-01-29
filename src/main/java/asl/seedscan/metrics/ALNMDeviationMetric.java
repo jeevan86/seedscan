@@ -59,6 +59,7 @@ public class ALNMDeviationMetric extends PowerBandMetric {
 		super();
 		addArgument("alnm-modelfile");
 		addArgument("ahnm-modelfile");
+		addArgument("channel-restriction");
 	}
 
 	/** The Constant DEFAULT_ALNM_PATH. */
@@ -470,7 +471,7 @@ public class ALNMDeviationMetric extends PowerBandMetric {
 	/**
 	 * The Class NoiseModel.
 	 */
-	private static class NoiseModel {
+	static class NoiseModel {
 
 		/** The periods. */
 		private double[] periods = null;
