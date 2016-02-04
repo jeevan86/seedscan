@@ -87,6 +87,16 @@ public class Channel {
 		}
 		return true;
 	}
+	
+	/**
+	 * Returns true if the channelFlags indicate a continuous channel
+	 * @param channelFlags
+	 * @return true if continuous, false otherwise
+	 */
+	public static boolean continousChannel(String channelFlags){
+		return channelFlags.substring(0, 1).equals("C")
+				|| channelFlags.equals("G") || channelFlags.equals("H");
+	}
 
 	public static boolean validOrientationCode(String orientation) {
 		if (orientation.length() != 1) {
