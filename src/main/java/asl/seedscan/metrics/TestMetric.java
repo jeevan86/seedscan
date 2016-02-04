@@ -42,7 +42,7 @@ public class TestMetric extends Metric {
 		// loop over:
 
 		// List<Channel> channels = stationMeta.getChannelArray("LH");
-		List<Channel> channels = stationMeta.getChannelArray("BH");
+		List<Channel> channels = stationMeta.getChannelArray("BH", false, true);
 
 		for (Channel channel : channels) {
 			System.out.format("== Channel:[%s]\n", channel);

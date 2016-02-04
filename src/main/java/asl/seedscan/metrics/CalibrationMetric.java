@@ -58,7 +58,7 @@ public class CalibrationMetric extends Metric {
 		}
 
 		// Get all BH? channels for this stationMeta:
-		List<Channel> channels = stationMeta.getChannelArray("BH");
+		List<Channel> channels = stationMeta.getChannelArray("BH", false, true);
 
 		for (Channel channel : channels) {
 

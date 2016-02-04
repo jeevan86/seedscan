@@ -94,11 +94,14 @@ public class ALNMDeviationMetric extends PowerBandMetric {
 		String station = getStation();
 		String day = getDay();
 		String metric = getName();
+		String bands = null;
 
 		try {
 
 			String alnmPath = get("alnm-modelfile");
 			String ahnmPath = get("ahnm-modelfile");
+			bands = get("channel-restriction");
+			
 			if (alnmPath == null) {
 				ALNMFile = this.getClass().getResource(DEFAULT_ALNM_PATH);
 			} else {
@@ -109,6 +112,10 @@ public class ALNMDeviationMetric extends PowerBandMetric {
 				AHNMFile = this.getClass().getResource(DEFAULT_AHNM_PATH);
 			} else {
 				AHNMFile = new File(get("ahnm-modelfile")).toURI().toURL();
+			}
+			
+			if(bands == null){
+				bands = "LN,HN";
 			}
 
 		} catch (Exception e) {
@@ -125,9 +132,8 @@ public class ALNMDeviationMetric extends PowerBandMetric {
 			return;
 		}
 
-		// Get all LN channels in metadata
-		List<Channel> channels = stationMeta.getChannelArray("LN");
-		channels.addAll(stationMeta.getChannelArray("HN"));
+		// Get all LN/HN channels in metadata
+		List<Channel> channels = stationMeta.getChannelArray(bands, true, true);
 
 		if (channels == null || channels.size() == 0) {
 			logger.warn("No LN/HN channels found for station={} day={}", getStation(), day);

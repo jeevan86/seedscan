@@ -84,7 +84,7 @@ public class DeadChannelMetric extends PowerBandMetric {
 		NLNMName = NLNMBaseName + ":" + period;
 
 		// Get NLNM Metric Value using name, date and channels
-		List<Channel> channels = stationMeta.getChannelArray("LH");
+		List<Channel> channels = stationMeta.getChannelArray("LH", false, true);
 
 		if (channels == null || channels.size() == 0) {
 			logger.warn("No LH? channels found for station={} day={}",

@@ -219,33 +219,47 @@ public class StationMeta implements Serializable {
 
 	/**
 	 * Return ArrayList of all channels contained in this stationMeta that match
-	 * the 2-char band e.g., if band = "LH" then return "00-LHZ", "00-LH1",
-	 * "00-LH2", "00-LHN", "00-LHE", "10-LHZ", "10-LH1", "10-LH2", .. -or-
-	 * "---LHZ", "---LH1", "---LH2", "---LHN", "---LHE",
+	 * the band e.g., if band = "LH" then return "00-LHZ", "00-LH1", "00-LH2",
+	 * "00-LHN", "00-LHE", "10-LHZ", "10-LH1", "10-LH2", .. -or- "---LHZ",
+	 * "---LH1", "---LH2", "---LHN", "---LHE"
+	 * 
+	 * This methods assumes that Non derived channels are always 3 chars in
+	 * length e.g. LH*
 	 *
-	 * @param band the frequency band
+	 * @param bands
+	 *            the frequency band
+	 * @param ignoreTriggered
+	 *            false includes triggered channels, true restricts it to
+	 *            continuous.
+	 * @param ignoreDerived
+	 *            false includes derived channels, true ignores derived
 	 * @return the channel array
 	 */
-	public List<Channel> getChannelArray(String band) {
-		if (!Channel.validBandCode(band.substring(0, 1))
-				|| !Channel.validInstrumentCode(band.substring(1, 2))) {
-			return null;
-		}
+	public List<Channel> getChannelArray(String bands, boolean ignoreTriggered, boolean ignoreDerived) {
 		TreeSet<ChannelKey> keys = new TreeSet<ChannelKey>();
 		keys.addAll(channels.keySet());
 
 		ArrayList<Channel> channelArrayList = new ArrayList<Channel>();
 
+		String[] bandArray = bands.split(",");
+
 		for (ChannelKey channelKey : keys) {
 			Channel channel = channelKey.toChannel();
+			String channelFlags = getChannelMetadata(channelKey).getChannelFlags();
 
-			// if (channel.getChannel().contains(band) ){
-			// We need to restrict ourselves to 3-char channels so we don't also
-			// return
-			// the derived channels (e.g., LHND, LHED)
-			if (channel.getChannel().contains(band)
-					&& channel.getChannel().length() == 3) {
-				channelArrayList.add(channel);
+			/*
+			 * Both conditions automatically pass if the flag is false. We need
+			 * to restrict ourselves to 3-char channels so we don't also return
+			 * the derived channels (e.g., LHND, LHED)
+			 */
+			if ((!ignoreDerived || channel.getChannel().length() == 3)
+					&& (!ignoreTriggered || Channel.continousChannel(channelFlags))) {
+				for (String band : bandArray) {
+					if (channel.getChannel().contains(band)) {
+						channelArrayList.add(channel);
+						break;
+					}
+				}
 			}
 		}
 		return channelArrayList;
@@ -313,8 +327,7 @@ public class StationMeta implements Serializable {
 			Channel channel = channelKey.toChannel();
 			String channelFlags = getChannelMetadata(channelKey).getChannelFlags();
 
-			if (channelFlags.substring(0, 1).equals("C")
-					|| channelFlags.equals("G") || channelFlags.equals("H")){
+			if (Channel.continousChannel(channelFlags)){
 				channelArrayList.add(channel);
 			}
 		}

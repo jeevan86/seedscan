@@ -137,7 +137,7 @@ public class MassPositionMetric extends Metric {
 		String day = this.getDay();
 
 		// Get all VM? channels in metadata to use for loop
-		List<Channel> channels = this.stationMeta.getChannelArray("VM");
+		List<Channel> channels = this.stationMeta.getChannelArray("VM", false, true);
 
 		// Loop over channels, get metadata & data for channel and Calculate
 		// Metric

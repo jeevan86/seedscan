@@ -125,7 +125,7 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 		}
 
 		// Get all LH channels in metadata
-		List<Channel> channels = stationMeta.getChannelArray("LH");
+		List<Channel> channels = stationMeta.getChannelArray("LH", false, true);
 
 		if (channels == null || channels.size() == 0) {
 			logger.warn("No LH? channels found for station={} day={}", getStation(), day);

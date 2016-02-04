@@ -48,12 +48,9 @@ public class ALNMDeviationMetricTest {
 	public final void testProcess() throws Exception {
 		/* The String key matches the MetricResult ids */
 		HashMap<String, Double> expect = new HashMap<String, Double>();
-		expect.put("00,LH1", 6.144156714847165);
-		expect.put("00,LH2", 6.94984340838684);
-		expect.put("00,LHZ", 9.502837498158087);
-		expect.put("10,LH1", 7.126248440694965);
-		expect.put("10,LH2", 6.701346629427542);
-		expect.put("10,LHZ", 9.473855204418532);
+		expect.put("20,LN1", 11.755173416833836);
+		expect.put("20,LN2", 12.908588992722896);
+		expect.put("20,LNZ", 12.920609888672088);
 
 		metric.process();
 		MetricResult result = metric.getMetricResult();
