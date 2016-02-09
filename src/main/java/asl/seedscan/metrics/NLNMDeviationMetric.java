@@ -59,6 +59,7 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 		super();
 		addArgument("nlnm-modelfile");
 		addArgument("nhnm-modelfile");
+		addArgument("channel-restriction");
 	}
 
 	/** The Constant DEFAULT_NLNM_PATH. */
@@ -93,11 +94,14 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 		String station = getStation();
 		String day = getDay();
 		String metric = getName();
+		String bands = null;
 
 		try {
 
 			String nlnmPath = get("nlnm-modelfile");
 			String nhnmPath = get("nhnm-modelfile");
+			bands = get("channel-restriction");
+
 			if (nlnmPath == null) {
 				NLNMFile = this.getClass().getResource(DEFAULT_NLNM_PATH);
 			} else {
@@ -108,6 +112,10 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 				NHNMFile = this.getClass().getResource(DEFAULT_NHNM_PATH);
 			} else {
 				NHNMFile = new File(get("nhnm-modelfile")).toURI().toURL();
+			}
+			
+			if(bands == null){
+				bands = "LH,BH,HH";
 			}
 
 		} catch (Exception e) {
@@ -125,10 +133,10 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 		}
 
 		// Get all LH channels in metadata
-		List<Channel> channels = stationMeta.getChannelArray("LH", false, true);
+		List<Channel> channels = stationMeta.getChannelArray(bands, true, true);
 
 		if (channels == null || channels.size() == 0) {
-			logger.warn("No LH? channels found for station={} day={}", getStation(), day);
+			logger.warn("No channels found for station={} day={}", getStation(), day);
 			return;
 		}
 
@@ -138,6 +146,13 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 		for (Channel channel : channels) {
 			if (!metricData.hasChannelData(channel)) {
 				logger.warn("No data found for channel:[{}] day:[{}] --> Skip metric", channel, day);
+				continue;
+			}
+			PowerBand band = getPowerBand();
+			double highFrequency = 1 / band.getLow();
+			
+			//Skip if channel not sampling above nyquist.
+			if(stationMeta.getChannelMetadata(channel).getSampleRate() < (2 * highFrequency)){
 				continue;
 			}
 
