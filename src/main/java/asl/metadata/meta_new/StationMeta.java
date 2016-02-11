@@ -255,7 +255,7 @@ public class StationMeta implements Serializable {
 			if ((!ignoreDerived || channel.getChannel().length() == 3)
 					&& (!ignoreTriggered || Channel.continousChannel(channelFlags))) {
 				for (String band : bandArray) {
-					if (channel.getChannel().contains(band)) {
+					if (channel.getChannel().startsWith(band)) {
 						channelArrayList.add(channel);
 						break;
 					}
