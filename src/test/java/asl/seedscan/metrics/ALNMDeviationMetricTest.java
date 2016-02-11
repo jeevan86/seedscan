@@ -1,6 +1,7 @@
 package asl.seedscan.metrics;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
@@ -46,6 +47,9 @@ public class ALNMDeviationMetricTest {
 
 	@Test
 	public final void testProcess() throws Exception {
+		
+		metric.add("channel-restriction", "LN,HN");
+		
 		/* The String key matches the MetricResult ids */
 		HashMap<String, Double> expect = new HashMap<String, Double>();
 		expect.put("20,LN1", 11.755173416833836);
@@ -54,6 +58,7 @@ public class ALNMDeviationMetricTest {
 
 		metric.process();
 		MetricResult result = metric.getMetricResult();
+		assertFalse(result.getIdSet().isEmpty());
 		for (String id : result.getIdSet()) {
 			//Round to 7 places to match the Metric injector
 			Double expected = (double)Math.round(expect.get(id)       * 1000000d) / 1000000d;
