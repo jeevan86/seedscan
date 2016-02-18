@@ -25,7 +25,7 @@ public class NLNMDeviationMetricTest {
 			e.printStackTrace();
 		}
 	}
-	
+
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 		data1 = null;
@@ -48,7 +48,7 @@ public class NLNMDeviationMetricTest {
 
 		metric.setData(data1);
 		metric.add("channel-restriction", "LH");
-		
+
 		/* The String key matches the MetricResult ids */
 		HashMap<String, Double> expect = new HashMap<String, Double>();
 		expect.put("00,LH1", 6.144156714847165);
@@ -61,55 +61,63 @@ public class NLNMDeviationMetricTest {
 		metric.process();
 		MetricResult result = metric.getMetricResult();
 		for (String id : result.getIdSet()) {
-			//Round to 7 places to match the Metric injector
-			Double expected = (double)Math.round(expect.get(id)       * 1000000d) / 1000000d;
-			Double resulted = (double)Math.round(result.getResult(id) * 1000000d) / 1000000d;
-			System.out.println(id + "   " +result.getResult(id));
-			assertEquals(id + " result: ", expected, resulted);	
+			// Round to 7 places to match the Metric injector
+			Double expected = (double) Math.round(expect.get(id) * 1000000d) / 1000000d;
+			Double resulted = (double) Math.round(result.getResult(id) * 1000000d) / 1000000d;
+			System.out.println(id + "   " + result.getResult(id));
+			assertEquals(id + " result: ", expected, resulted);
 		}
-		
-		
-//Consider adding this once memozing computePSD is done. Currently it pretends to, but doesn't really.
-		
-//		metric = new NLNMDeviationMetric();
-//		metric.add("lower-limit", "4");
-//		metric.add("upper-limit", "8");
-//		metric.setData(data1);
-//		//metric.add("channel-restriction", "LH");
-//		
-//		/* The String key matches the MetricResult ids */
-//		expect = new HashMap<String, Double>();
-//		expect.put("00,LH1", 6.144156714847165);
-//		expect.put("00,LH2", 6.94984340838684);
-//		expect.put("00,LHZ", 9.502837498158087);
-//		expect.put("10,LH1", 7.126248440694965);
-//		expect.put("10,LH2", 6.701346629427542);
-//		expect.put("10,LHZ", 9.473855204418532);
-//		expect.put("00,BH1", 7.190265405958664);
-//		expect.put("00,BH2", 8.080463692084166);
-//		expect.put("00,BHZ", 10.582575310053912);
-//		expect.put("10,BH1", 8.132530485497114);
-//		expect.put("10,BH2", 7.876391947428445);
-//		expect.put("10,BHZ", 10.551351503338514);
-//
-//		metric.process();
-//		result = metric.getMetricResult();
-//		for (String id : result.getIdSet()) {
-//			//Round to 7 places to match the Metric injector
-//			Double expected = (double)Math.round(expect.get(id)       * 1000000d) / 1000000d;
-//			Double resulted = (double)Math.round(result.getResult(id) * 1000000d) / 1000000d;
-//			System.out.println(id + "   " +result.getResult(id));
-//			assertEquals(id + " result: ", expected, resulted);	
-//		}
-		
-		//Test High frequency cases
-		//LH should be ignored by this metric since it is below our nyquist frequency.
-		
+
+		// Consider adding this once memozing computePSD is done. Currently it
+		// pretends to, but doesn't really.
+
+		// metric = new NLNMDeviationMetric();
+		// metric.add("lower-limit", "4");
+		// metric.add("upper-limit", "8");
+		// metric.setData(data1);
+		// //metric.add("channel-restriction", "LH");
+		//
+		// /* The String key matches the MetricResult ids */
+		// expect = new HashMap<String, Double>();
+		// expect.put("00,LH1", 6.144156714847165);
+		// expect.put("00,LH2", 6.94984340838684);
+		// expect.put("00,LHZ", 9.502837498158087);
+		// expect.put("10,LH1", 7.126248440694965);
+		// expect.put("10,LH2", 6.701346629427542);
+		// expect.put("10,LHZ", 9.473855204418532);
+		// expect.put("00,BH1", 7.190265405958664);
+		// expect.put("00,BH2", 8.080463692084166);
+		// expect.put("00,BHZ", 10.582575310053912);
+		// expect.put("10,BH1", 8.132530485497114);
+		// expect.put("10,BH2", 7.876391947428445);
+		// expect.put("10,BHZ", 10.551351503338514);
+		//
+		// metric.process();
+		// result = metric.getMetricResult();
+		// for (String id : result.getIdSet()) {
+		// //Round to 7 places to match the Metric injector
+		// Double expected = (double)Math.round(expect.get(id) * 1000000d) /
+		// 1000000d;
+		// Double resulted = (double)Math.round(result.getResult(id) * 1000000d)
+		// / 1000000d;
+		// System.out.println(id + " " +result.getResult(id));
+		// assertEquals(id + " result: ", expected, resulted);
+		// }
+
+		// Test High frequency cases
+		// LH should be ignored by this metric since it is below our nyquist
+		// frequency.
+
 		metric = new NLNMDeviationMetric();
 		metric.add("lower-limit", "0.125");
 		metric.add("upper-limit", "0.25");
+		/*
+		 * This should cause it to print a log message for failing to makePlots
+		 */
+		metric.add("makeplots", "true");
+
 		metric.setData(data1);
-		
+
 		/* The String key matches the MetricResult ids */
 		expect = new HashMap<String, Double>();
 
@@ -123,14 +131,14 @@ public class NLNMDeviationMetricTest {
 		metric.process();
 		result = metric.getMetricResult();
 		for (String id : result.getIdSet()) {
-			//Round to 7 places to match the Metric injector
-			Double expected = (double)Math.round(expect.get(id)       * 1000000d) / 1000000d;
-			Double resulted = (double)Math.round(result.getResult(id) * 1000000d) / 1000000d;
-			System.out.println(id + "   " +result.getResult(id));
+			// Round to 7 places to match the Metric injector
+			Double expected = (double) Math.round(expect.get(id) * 1000000d) / 1000000d;
+			Double resulted = (double) Math.round(result.getResult(id) * 1000000d) / 1000000d;
+			System.out.println(id + "   " + result.getResult(id));
 
-			assertEquals(id + " result: ", expected, resulted);	
+			assertEquals(id + " result: ", expected, resulted);
 		}
-		
+
 	}
 
 	@Test

@@ -355,7 +355,8 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 		} else { // ??
 			StringBuilder message = new StringBuilder();
 			message.append(String.format("day=%s makePlots(): Don't know how to plot channel=%s\n", day, channel));
-			throw new MetricException(message.toString());
+			logger.info(message.toString());
+			return;
 		}
 
 		if (channel.getLocation().equals("00")) {
