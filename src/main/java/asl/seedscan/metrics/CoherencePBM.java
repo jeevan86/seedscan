@@ -51,6 +51,12 @@ public class CoherencePBM extends PowerBandMetric {
 
 	private PlotMaker2 plotMaker = null;
 
+	public CoherencePBM()
+	{
+		super();
+		addArgument("base-channel");
+	}
+	
 	public void process() {
 		logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
 
@@ -62,7 +68,17 @@ public class CoherencePBM extends PowerBandMetric {
 		boolean completeCompute = true;
 
 		List<Channel> channels = stationMeta.getDerivedChannels();
-		String[] basechannel = Global.CONFIG.getBasecoherence().split("-");
+		String[] basechannel;
+		String basePreSplit = null;
+		try {
+			basePreSplit = get("base-channel");
+		} catch (NoSuchFieldException ignored) {
+		}
+		if(basePreSplit == null){
+			basePreSplit = "00-LH";
+			logger.info("No base channel for Coherence using: " + basePreSplit);
+		}
+		basechannel = basePreSplit.split("-");
 
 		for(Channel channel : channels)
 		{	
