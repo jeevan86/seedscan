@@ -45,9 +45,9 @@ public class DifferencePBMTest {
 		metric.add("upper-limit", "8");
 		metric.setData(data);
 		HashMap<String, Double> expect = new HashMap<String, Double>();
-		expect.put("00-10,LHZ-LHZ", 0.99997471849571);
-		expect.put("00-10,LHND-LHND", 0.9997343078305163);
-		expect.put("00-10,LHED-LHED", 0.9976266947968053);
+		expect.put("00-10,LHZ-LHZ", 0.0277901829800261);
+		expect.put("00-10,LHND-LHND", -0.7957964379263428);
+		expect.put("00-10,LHED-LHED", -0.052274342636852655);
 		testMetric(metric, expect);
 
 		//TEST 18 - 22
@@ -56,9 +56,9 @@ public class DifferencePBMTest {
 		metric.add("upper-limit", "22");
 		metric.setData(data);
 		expect = new HashMap<String, Double>();
-		expect.put("00-10,LHZ-LHZ", 0.9996693481353688);
-		expect.put("00-10,LHND-LHND", 0.997686279191404);
-		expect.put("00-10,LHED-LHED", 0.9983404620924748);
+		expect.put("00-10,LHZ-LHZ", -0.012528556291703559);
+		expect.put("00-10,LHND-LHND", -0.7353751350788797);
+		expect.put("00-10,LHED-LHED", -0.044778096414228245);
 		testMetric(metric, expect);
 		
 		//TEST 90 - 110
@@ -67,9 +67,9 @@ public class DifferencePBMTest {
 		metric.add("upper-limit", "110");
 		metric.setData(data);
 		expect = new HashMap<String, Double>();
-		expect.put("00-10,LHZ-LHZ", 0.8466037396390191);
-		expect.put("00-10,LHND-LHND", 0.5581889516577663);
-		expect.put("00-10,LHED-LHED", 0.659323426099024);
+		expect.put("00-10,LHZ-LHZ", -0.8565980848492304);
+		expect.put("00-10,LHND-LHND", -2.523363274250344);
+		expect.put("00-10,LHED-LHED", 1.964715975773799);
 		testMetric(metric, expect);
 
 		//TEST 200 - 500
@@ -78,9 +78,9 @@ public class DifferencePBMTest {
 		metric.add("upper-limit", "500");
 		metric.setData(data);
 		expect = new HashMap<String, Double>();
-		expect.put("00-10,LHZ-LHZ", 0.2937884614962967);
-		expect.put("00-10,LHND-LHND", 0.21167174950454593);
-		expect.put("00-10,LHED-LHED",  0.21227611120383297);
+		expect.put("00-10,LHZ-LHZ", 2.4820410648465976);
+		expect.put("00-10,LHND-LHND", -4.305281836191613);
+		expect.put("00-10,LHED-LHED",  6.142238640298331);
 		testMetric(metric, expect);
 
 	}
@@ -96,18 +96,21 @@ public class DifferencePBMTest {
 				//Round to 7 places to match the Metric injector
 				Double expected = (double)Math.round(expect.get(id)       * 1000000d) / 1000000d;
 				Double resulted = (double)Math.round(result.getResult(id) * 1000000d) / 1000000d;
+				System.out.println(id + " result: "+ result.getResult(id));
 				assertEquals(id + " result: ", expected, resulted);	
 			}
 	}
 
 	@Test
 	public final void testGetVersion() throws Exception {
-		throw new RuntimeException("not yet implemented");
+		metric = new DifferencePBM();
+		assertEquals(2, metric.getVersion());
 	}
 
 	@Test
 	public final void testGetBaseName() throws Exception {
-		throw new RuntimeException("not yet implemented");
+		metric = new DifferencePBM();
+		assertEquals("DifferencePBM", metric.getBaseName());
 	}
 
 }
