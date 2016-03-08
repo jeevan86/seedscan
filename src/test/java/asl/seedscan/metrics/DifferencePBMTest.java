@@ -96,7 +96,6 @@ public class DifferencePBMTest {
 				//Round to 7 places to match the Metric injector
 				Double expected = (double)Math.round(expect.get(id)       * 1000000d) / 1000000d;
 				Double resulted = (double)Math.round(result.getResult(id) * 1000000d) / 1000000d;
-				System.out.println(id + " result: "+ result.getResult(id));
 				assertEquals(id + " result: ", expected, resulted);	
 			}
 	}
