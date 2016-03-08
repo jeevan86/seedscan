@@ -39,6 +39,12 @@ public class DifferencePBM extends PowerBandMetric {
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.seedscan.metrics.DifferencePBM.class);
 
+	public DifferencePBM()
+	{
+		super();
+		addArgument("base-channel");
+	}
+	
 	@Override
 	public long getVersion() {
 		return 2;
