@@ -83,6 +83,19 @@ public class CoherencePBMTest {
 		expect.put("00-10,LHND-LHND", 0.21167174950454593);
 		expect.put("00-10,LHED-LHED",  0.21227611120383297);
 		testMetric(metric, expect);
+		
+		//TEST Change in base
+		//Results should match 00-10
+		metric = new CoherencePBM();
+		metric.add("lower-limit", "200");
+		metric.add("upper-limit", "500");
+		metric.add("base-channel", "10-LH");
+		metric.setData(data);
+		expect = new HashMap<String, Double>();
+		expect.put("10-00,LHZ-LHZ", 0.2937884614962967);
+		expect.put("10-00,LHND-LHND", 0.21167174950454593);
+		expect.put("10-00,LHED-LHED",  0.21227611120383297);
+		testMetric(metric, expect);
 
 	}
 	

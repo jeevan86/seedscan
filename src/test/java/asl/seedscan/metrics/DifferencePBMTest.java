@@ -82,6 +82,19 @@ public class DifferencePBMTest {
 		expect.put("00-10,LHND-LHND", -4.305281836191613);
 		expect.put("00-10,LHED-LHED",  6.142238640298331);
 		testMetric(metric, expect);
+		
+		//TEST Change in base
+		//Results should be negative of 00-10
+		metric = new DifferencePBM();
+		metric.add("lower-limit", "200");
+		metric.add("upper-limit", "500");
+		metric.add("base-channel", "10-LH");
+		metric.setData(data);
+		expect = new HashMap<String, Double>();
+		expect.put("10-00,LHZ-LHZ", -2.4820410648465976);
+		expect.put("10-00,LHND-LHND", 4.305281836191613);
+		expect.put("10-00,LHED-LHED",  -6.142238640298331);
+		testMetric(metric, expect);
 
 	}
 	
