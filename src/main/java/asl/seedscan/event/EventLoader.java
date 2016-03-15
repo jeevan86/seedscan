@@ -1,22 +1,3 @@
-/*
- * Copyright 2011, United States Geological Survey or
- * third-party contributors as indicated by the @author tags.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
- *
- */
-
 package asl.seedscan.event;
 
 import java.io.BufferedReader;
@@ -37,24 +18,47 @@ import org.slf4j.LoggerFactory;
 import asl.metadata.Station;
 import sac.SacTimeSeries;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class EventLoader.
+ */
 public class EventLoader {
-	private static final Logger logger = LoggerFactory
-			.getLogger(asl.seedscan.event.EventLoader.class);
 
+	/** The Constant logger. */
+	private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.event.EventLoader.class);
+
+	/** The events directory. */
 	private static String eventsDirectory = null;
-	
+
+	/** True if the events directory has been loaded. */
 	private static boolean eventsDirectoryLoaded = false;
+
+	/** The events directory valid. */
 	private static boolean eventsDirectoryValid = false;
 
+	/**
+	 * The CMT table. This table is two nested Hashtables. The keys are as
+	 * below: Hashtable<"C201510260909A", Hashtable<"SDCO.XX.LXN.modes.sac" ,
+	 * EventCMT>>
+	 */
 	private static Hashtable<String, Hashtable<String, EventCMT>> cmtTree = null;
 
+	/**
+	 * Instantiates a new event loader. This class is instantiated once per
+	 * scanner thread. This is why it is mostly static. It could probably be
+	 * converted to all static.
+	 *
+	 * @param directoryPath
+	 *            the directory path
+	 */
 	public EventLoader(String directoryPath) {
 		loadEventsDirectory(directoryPath);
 	}
-	
+
 	/**
 	 * This is used for testing purposes only.
-	 * @return the eventsDirectory
+	 * 
+	 * @return the events Directory
 	 */
 	public static String getEventsDirectory() {
 		return eventsDirectory;
@@ -62,14 +66,16 @@ public class EventLoader {
 
 	/**
 	 * We only want 1 (Scanner) thread at a time in here! And it should only
-	 * need to be entered one time for a given Scan
+	 * need to be entered one time for a given Scan.
+	 *
+	 * @param directoryPath
+	 *            path to events
 	 */
 	synchronized private static void loadEventsDirectory(String directoryPath) {
 
 		if (eventsDirectoryLoaded) {
-			logger.info(String.format(
-					"eventsDir already initialized to:%s [valid=%s]",
-					eventsDirectory, eventsDirectoryValid));
+			logger.info(String.format("eventsDir already initialized to:%s [valid=%s]", eventsDirectory,
+					eventsDirectoryValid));
 			return;
 		}
 
@@ -79,19 +85,13 @@ public class EventLoader {
 			logger.warn("eventsDir was NOT set in config.xml: <cfg:events_dir> --> Don't Compute Event Metrics");
 			return;
 		} else if (!(new File(directoryPath)).exists()) {
-			logger.warn(String.format(
-					"eventsDir=%s does NOT exist --> Skip Event Metrics",
-					directoryPath));
+			logger.warn(String.format("eventsDir=%s does NOT exist --> Skip Event Metrics", directoryPath));
 			return;
 		} else if (!(new File(directoryPath)).isDirectory()) {
-			logger.error(String.format(
-					"eventsDir=%s is NOT a directory --> Skip Event Metrics",
-					directoryPath));
+			logger.error(String.format("eventsDir=%s is NOT a directory --> Skip Event Metrics", directoryPath));
 			return;
 		} else {
-			logger.info(String
-					.format("eventsDir=%s DOES exist --> Compute Event Metrics if asked",
-							directoryPath));
+			logger.info(String.format("eventsDir=%s DOES exist --> Compute Event Metrics if asked", directoryPath));
 			eventsDirectory = directoryPath;
 			eventsDirectoryValid = true;
 			return;
@@ -99,6 +99,13 @@ public class EventLoader {
 
 	}
 
+	/**
+	 * Make key.
+	 *
+	 * @param timestamp
+	 *            the timestamp
+	 * @return the string
+	 */
 	private final String makeKey(Calendar timestamp) {
 		String yyyy = String.format("%4d", timestamp.get(Calendar.YEAR));
 		String mo = String.format("%02d", timestamp.get(Calendar.MONTH) + 1);
@@ -107,8 +114,18 @@ public class EventLoader {
 		return yyyymodd;
 	}
 
-	public Hashtable<String, Hashtable<String, SacTimeSeries>> getDaySynthetics(
-			Calendar timestamp, final Station station) {
+	/**
+	 * Gets the day synthetics. This method is dependent on getDayEvents() being
+	 * called first. If not will always return null.
+	 *
+	 * @param timestamp
+	 *            the timestamp
+	 * @param station
+	 *            the station
+	 * @return the day synthetics
+	 */
+	public Hashtable<String, Hashtable<String, SacTimeSeries>> getDaySynthetics(Calendar timestamp,
+			final Station station) {
 
 		final String key = makeKey(timestamp);
 
@@ -127,8 +144,7 @@ public class EventLoader {
 				File file = new File(dir + "/" + name);
 				// if (name.startsWith(station.getStation()) &&
 				// name.endsWith(".sac") && (file.length() != 0) ) {
-				if (name.startsWith(station.getStation())
-						&& name.contains(".sac") && (file.length() != 0)) {
+				if (name.startsWith(station.getStation()) && name.contains(".sac") && (file.length() != 0)) {
 					return true;
 				} else {
 					return false;
@@ -143,22 +159,20 @@ public class EventLoader {
 
 		SortedSet<String> keys = new TreeSet<String>(dayCMTs.keySet());
 		for (String idString : keys) {
-			// System.out.format("== getDaySynthetics: Got EventCMT idString=[%s] --> [%s]\n",idString,
+			// System.out.format("== getDaySynthetics: Got EventCMT
+			// idString=[%s] --> [%s]\n",idString,
 			// dayCMTs.get(idString) );
 			File eventDir = new File(yearDir + "/" + idString);
 
 			if (!eventDir.exists()) {
-				logger.warn(String.format(
-						"getDaySynthetics: eventDir=[%s] does NOT EXIST!",
-						eventDir));
+				logger.warn(String.format("getDaySynthetics: eventDir=[%s] does NOT EXIST!", eventDir));
 			}
 
 			File[] sacFiles = eventDir.listFiles(sacFilter);
 			Hashtable<String, SacTimeSeries> eventSynthetics = null;
 
 			for (File sacFile : sacFiles) {
-				logger.info(String.format("Found sacFile=%s [%s]", sacFile,
-						sacFile.getName()));
+				logger.info(String.format("Found sacFile=%s [%s]", sacFile, sacFile.getName()));
 				SacTimeSeries sac = new SacTimeSeries();
 				try {
 					sac.read(sacFile);
@@ -185,10 +199,14 @@ public class EventLoader {
 		return allEventSynthetics;
 	}
 
-	// public Hashtable<String, EventCMT> getDayEvents(Calendar timestamp) {
-
-	synchronized public Hashtable<String, EventCMT> getDayEvents(
-			Calendar timestamp) {
+	/**
+	 * Gets the day events.
+	 *
+	 * @param timestamp
+	 *            the timestamp
+	 * @return the day events formatted as Hashtable<"C201510260909A", EventCMT>
+	 */
+	synchronized public Hashtable<String, EventCMT> getDayEvents(Calendar timestamp) {
 
 		final String key = makeKey(timestamp);
 
@@ -201,7 +219,8 @@ public class EventLoader {
 
 		if (cmtTree != null) {
 			if (cmtTree.containsKey(key)) {
-				// System.out.format("== EventLoader.getDayEvents: key=[%s] FOUND --> Return the events\n",
+				// System.out.format("== EventLoader.getDayEvents: key=[%s]
+				// FOUND --> Return the events\n",
 				// key);
 				return cmtTree.get(key);
 			}
@@ -209,7 +228,8 @@ public class EventLoader {
 			cmtTree = new Hashtable<String, Hashtable<String, EventCMT>>();
 		}
 
-		// System.out.format("== EventLoader.getDayEvents: key=[%s] NOT FOUND --> Try to load it\n",
+		// System.out.format("== EventLoader.getDayEvents: key=[%s] NOT FOUND
+		// --> Try to load it\n",
 		// key);
 		Hashtable<String, EventCMT> dayCMTs = loadDayCMTs(key);
 
@@ -220,13 +240,20 @@ public class EventLoader {
 		return dayCMTs;
 	}
 
-	private Hashtable<String, EventCMT> loadDayCMTs(final String yyyymodd) {
+	/**
+	 * Load day's cmts.
+	 *
+	 * @param yyyymmdd
+	 *            a date in string format
+	 * @return the day events formatted as Hashtable<"C201510260909A", EventCMT>
+	 */
+	private Hashtable<String, EventCMT> loadDayCMTs(final String yyyymmdd) {
 
 		Hashtable<String, EventCMT> dayCMTs = null;
 
 		File[] events = null;
 
-		String yyyy = yyyymodd.substring(0, 4);
+		String yyyy = yyyymmdd.substring(0, 4);
 
 		File yearDir = new File(eventsDirectory + "/" + yyyy); // e.g.,
 																// ../xs0/events/2012
@@ -235,7 +262,7 @@ public class EventLoader {
 		FilenameFilter eventFilter = new FilenameFilter() {
 			public boolean accept(File dir, String name) {
 				File file = new File(dir + "/" + name);
-				if (name.contains(yyyymodd) && file.isDirectory()) {
+				if (name.contains(yyyymmdd) && file.isDirectory()) {
 					return true;
 				} else {
 					return false;
@@ -246,23 +273,17 @@ public class EventLoader {
 		// Check that yearDir exists and is a Directory:
 
 		if (!yearDir.exists()) {
-			logger.warn(String
-					.format("loadDayCMTs: eventsDir=%s does NOT exist --> Skip Event Metrics",
-							yearDir));
+			logger.warn(String.format("loadDayCMTs: eventsDir=%s does NOT exist --> Skip Event Metrics", yearDir));
 			return null;
 		} else if (!yearDir.isDirectory()) {
-			logger.error(String
-					.format("loadDayCMTs: eventsDir=%s is NOT a Directory --> Skip Event Metrics",
-							yearDir));
+			logger.error(String.format("loadDayCMTs: eventsDir=%s is NOT a Directory --> Skip Event Metrics", yearDir));
 			return null;
 		} else { // yearDir was found --> Scan for matching events
-			logger.info(String.format(
-					"loadDayCMTs: getEventData: FOUND eventsDir=%s", yearDir));
+			logger.info(String.format("loadDayCMTs: getEventData: FOUND eventsDir=%s", yearDir));
 			events = yearDir.listFiles(eventFilter);
 			if (events == null) {
-				logger.warn(String.format(
-						"No Matching events found for [yyyymodd=%s] "
-								+ "in eventsDir=%s", yyyymodd, yearDir));
+				logger.warn(String.format("No Matching events found for [yyyymodd=%s] " + "in eventsDir=%s", yyyymmdd,
+						yearDir));
 				return null;
 			}
 			// Loop over event dirs for this day and scan in CMT info, etc
@@ -270,13 +291,10 @@ public class EventLoader {
 			for (File event : events) { // Loop over event "file" (really a
 										// directory - e.g.,
 										// ../2012/C201204122255A/)
-				logger.info(String.format("Found matching event dir=[%s]",
-						event));
+				logger.info(String.format("Found matching event dir=[%s]", event));
 				File cmtFile = new File(event + "/" + "currCMTmineos");
 				if (!cmtFile.exists()) {
-					logger.error(String.format(
-							"Did NOT find cmtFile=currCMTmineos in dir=[%s]",
-							event));
+					logger.error(String.format("Did NOT find cmtFile=currCMTmineos in dir=[%s]", event));
 					continue;
 				} else {
 					BufferedReader br = null;
@@ -286,16 +304,12 @@ public class EventLoader {
 						String line = br.readLine();
 
 						if (line == null) {
-							logger.error(String
-									.format("cmtFile=currCMTmineos in dir=[%s] is EMPTY",
-											event));
+							logger.error(String.format("cmtFile=currCMTmineos in dir=[%s] is EMPTY", event));
 							continue;
 						} else {
 							String[] args = line.trim().split("\\s+");
 							if (args.length < 9) {
-								logger.error(String
-										.format("cmtFile=currCMTmineos in dir=[%s] is INVALID",
-												event));
+								logger.error(String.format("cmtFile=currCMTmineos in dir=[%s] is INVALID", event));
 								continue;
 							}
 
@@ -318,8 +332,7 @@ public class EventLoader {
 								double foo = 1000 * (xsec - sec);
 								int msec = (int) foo;
 
-								GregorianCalendar gcal = new GregorianCalendar(
-										TimeZone.getTimeZone("GMT"));
+								GregorianCalendar gcal = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
 								gcal.set(Calendar.YEAR, year);
 								gcal.set(Calendar.DAY_OF_YEAR, dayOfYear);
 								gcal.set(Calendar.HOUR_OF_DAY, hh);
@@ -327,8 +340,7 @@ public class EventLoader {
 								gcal.set(Calendar.SECOND, sec);
 								gcal.set(Calendar.MILLISECOND, msec);
 
-								EventCMT eventCMT = new EventCMT.Builder(
-										idString).calendar(gcal).latitude(lat)
+								EventCMT eventCMT = new EventCMT.Builder(idString).calendar(gcal).latitude(lat)
 										.longitude(lon).depth(dep).build();
 								// eventCMT.printCMT();
 								// Add EventCMT to this Day's event CMTs:
@@ -338,9 +350,8 @@ public class EventLoader {
 								dayCMTs.put(idString, eventCMT);
 							} catch (NumberFormatException e) {
 								StringBuilder message = new StringBuilder();
-								message.append(String
-										.format("Caught NumberFormatException while trying to read cmtFile=[%s]\n",
-												cmtFile));
+								message.append(String.format(
+										"Caught NumberFormatException while trying to read cmtFile=[%s]\n", cmtFile));
 								logger.error(message.toString(), e);
 							}
 						} // else line != null
@@ -348,9 +359,8 @@ public class EventLoader {
 					} // end try to read cmtFile
 					catch (IOException e) {
 						StringBuilder message = new StringBuilder();
-						message.append(String
-								.format("Caught IOException while trying to read cmtFile=[%s]\n",
-										cmtFile));
+						message.append(
+								String.format("Caught IOException while trying to read cmtFile=[%s]\n", cmtFile));
 						logger.error(message.toString(), e);
 					} finally {
 						try {
