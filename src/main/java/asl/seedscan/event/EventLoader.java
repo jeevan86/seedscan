@@ -42,6 +42,7 @@ public class EventLoader {
 			.getLogger(asl.seedscan.event.EventLoader.class);
 
 	private static String eventsDirectory = null;
+	
 	private static boolean eventsDirectoryLoaded = false;
 	private static boolean eventsDirectoryValid = false;
 
@@ -49,6 +50,14 @@ public class EventLoader {
 
 	public EventLoader(String directoryPath) {
 		loadEventsDirectory(directoryPath);
+	}
+	
+	/**
+	 * This is used for testing purposes only.
+	 * @return the eventsDirectory
+	 */
+	public static String getEventsDirectory() {
+		return eventsDirectory;
 	}
 
 	/**
