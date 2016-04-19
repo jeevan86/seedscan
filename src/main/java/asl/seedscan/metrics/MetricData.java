@@ -1235,9 +1235,11 @@ public class MetricData implements Serializable {
 	}
 
 	/**
-	 * Determine if the current digest computed for a
-	 * channel or channelArray has changed from the value stored in the
-	 * database.
+	 * Determine if the current digest computed for a channel or channelArray
+	 * has changed from the value stored in the database.
+	 * 
+	 * If a rotated channel is not located in the metadata, this method will
+	 * attempt to rotate the data.
 	 * 
 	 * @param channelArray
 	 *            Array of 3 component channels for a single location.
