@@ -32,6 +32,12 @@ public class Channel {
 	private String location = null;
 	private String channel = null;
 
+	/**
+	 * Instantiates a new channel.
+	 *
+	 * @param location the location
+	 * @param channel the channel
+	 */
 	public Channel(String location, String channel) {
 		setLocation(location);
 		try {
