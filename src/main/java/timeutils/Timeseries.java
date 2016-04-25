@@ -203,12 +203,33 @@ public class Timeseries {
 		return interpolatedValues;
 	}
 
+	
+	/**
+	 * Rotate orthogonal channels to North and East. This method returns
+	 * indeterminate results if either azimuth is < 0 or >=360 degrees
+	 * 
+	 * RT ticket 11466 exists for cleaning this method.
+	 *
+	 * @param az1
+	 *            the azimuth for x
+	 * @param az2
+	 *            the azimuth for y
+	 * @param x
+	 *            input data
+	 * @param y
+	 *            input data
+	 * @param n
+	 *            the rotated n data
+	 * @param e
+	 *            the rotated e data
+	 */
 	public static void rotate_xy_to_ne(double az1, double az2, double[] x, double[] y, double[] n, double[] e) {
 
-		// INITIALLY: Lets assume the horizontal channels are PERPENDICULAR and
-		// use a single azimuth to rotate
-		// We'll check the azimuths and flip signs to put channel1 to +N half
-		// and channel 2 to +E
+		/*
+		 * INITIALLY: Lets assume the horizontal channels are PERPENDICULAR and
+		 * use a single azimuth to rotate We'll check the azimuths and flip
+		 * signs to put channel1 to +N half and channel 2 to +E
+		 */
 
 		double azimuth = -999;
 		int sign1 = 1;
