@@ -335,10 +335,11 @@ public class StationMeta implements Serializable {
 	}
 	
 	/**
-	 * Return a ArrayList of channels that are derived
+	 * Return a ArrayList of channels that are able to be derived.
+	 * Actual rotation occurs in MetricData, when a hash digest fails to be computed.
 	 * @return the derived channels
 	 */
-	public List<Channel> getDerivedChannels() {
+	public List<Channel> getRotatableChannels() {
 		TreeSet<ChannelKey> keys = new TreeSet<ChannelKey>();
 		keys.addAll(channels.keySet());
 
@@ -347,9 +348,13 @@ public class StationMeta implements Serializable {
 		for (ChannelKey channelKey : keys) {
 			Channel channel = channelKey.toChannel();
 			String channelName = channel.getChannel();
-			if (channelName.endsWith("Z") || channelName.endsWith("ND") || channelName.endsWith("ED"))
+			String channelLocation = channel.getLocation();
+			String band = channelName.substring(0, 2);
+			if (channelName.endsWith("Z") && hasChannels(channel.getLocation(), band))
 			{
-				channelArrayList.add(channel);
+				channelArrayList.add(channel); //Only Z channels get here.
+				channelArrayList.add(new Channel(channelLocation, band+"ED"));
+				channelArrayList.add(new Channel(channelLocation, band+"ND"));
 			}
 		}
 		return channelArrayList;
@@ -403,10 +408,11 @@ public class StationMeta implements Serializable {
 	}
 
 	/**
-	 * Checks for channels.
+	 * Checks that a channel triplet exists.
+	 * E.G. LHZ, LHE, LHN  or LHZ,LH1,LH2
 	 *
 	 * @param location the location
-	 * @param band the band
+	 * @param band the band E.G. LH or BH
 	 * @return true, if successful
 	 */
 	public boolean hasChannels(String location, String band) {
