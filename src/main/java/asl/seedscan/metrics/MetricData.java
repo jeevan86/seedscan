@@ -425,19 +425,15 @@ public class MetricData implements Serializable {
 			double[] z = getFilteredDisplacement(responseUnits, vertChannel, windowStartEpoch, windowEndEpoch, f1, f2,
 					f3, f4);
 			dispZNE.add(z);
-
-			Channel channel1 = metadata.getChannel(location, band, "1"); // e.g.,
-			// could
-			// be
-			// "00-LH1"
-			// -or-
-			// "00-LHN"
-			Channel channel2 = metadata.getChannel(location, band, "2"); // e.g.,
-			// could
-			// be
-			// "00-LH2"
-			// -or-
-			// "00-LHE"
+			
+			/*
+			 * e.g., could be "00-LH1" -or- "00-LHN"
+			 */
+			Channel channel1 = metadata.findChannel(location, band, "1");
+			/*
+			 * e.g., could be "00-LH2" -or- "00-LHE"
+			 */
+			Channel channel2 = metadata.findChannel(location, band, "2");
 
 			if (channel1 == null) {
 			}

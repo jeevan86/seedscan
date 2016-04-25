@@ -266,20 +266,24 @@ public class StationMeta implements Serializable {
 	}
 	
 	/**
-	 * Handle horizontal naming conventions (e.g., LH1,2 versus LHN,E)
+	 * Convert 1/2 component descriptions to matching N/E or 1/2 channels
+	 * depending on which actually exists. All components except 1/2 are ignored
+	 * and return null.
 	 * 
-	 * "00" "LH" "1"
 	 *
-	 * @param location the location code EG 00
-	 * @param band the frequency band EG LH
-	 * @param comp the component EG N or 1
-	 * @return the channel
+	 * @param location
+	 *            the location code EG 00
+	 * @param band
+	 *            the frequency band EG LH
+	 * @param component
+	 *            the component restricted to 1/2. E/N are not allowed
+	 * @return the existing channel that corresponds to the passed 1 or 2
+	 *         component. Null if none exists or not 1/2 component.
 	 */
-	public Channel getChannel(String location, String band, String comp) {
+	public Channel findChannel(String location, String band, String component) {
 
 		String name = null;
-
-		if (comp.equals("1")) {
+		if (component.equals("1")) {
 			name = band + "1";
 			if (hasChannel(location, name)) { // Do we have LH1 ?
 				return new Channel(location, name);
@@ -289,9 +293,7 @@ public class StationMeta implements Serializable {
 					return new Channel(location, name);
 				}
 			}
-			return null;
-
-		} else if (comp.equals("2")) {
+		} else if (component.equals("2")) {
 			name = band + "2";
 			if (hasChannel(location, name)) { // Do we have LH2 ?
 				return new Channel(location, name);
@@ -301,14 +303,12 @@ public class StationMeta implements Serializable {
 					return new Channel(location, name);
 				}
 			}
-			return null;
-
-		} else {
-			logger.warn(
-					"== getChannel: Channel=[{}-{}{}] date=[{}] NOT FOUND\n",
-					location, band, comp, this.getDate());
-			return null;
 		}
+		
+		/* Everything else will fall through to here */
+		logger.warn("== getChannel: Channel=[{}-{}{}] date=[{}] NOT FOUND\n", location, band, component,
+				this.getDate());
+		return null;
 	}
 
 	/**
