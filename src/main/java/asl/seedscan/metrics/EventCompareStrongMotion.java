@@ -22,6 +22,7 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.SortedSet;
@@ -41,6 +42,7 @@ import asl.util.Trace;
 import asl.util.TraceException;
 import edu.sc.seis.TauP.Arrival;
 import edu.sc.seis.TauP.SphericalCoords;
+import edu.sc.seis.TauP.TauModelException;
 import edu.sc.seis.TauP.TauP_Time;
 
 public class EventCompareStrongMotion extends Metric {
@@ -61,6 +63,12 @@ public class EventCompareStrongMotion extends Metric {
 	Channel[] channels = new Channel[9];
 
 	private double xDist = 0.;
+	
+	public EventCompareStrongMotion() {
+		super();
+		addArgument("base-channel");
+		addArgument("channel-restriction");
+	}
 
 	@Override
 	public long getVersion() {
@@ -71,242 +79,132 @@ public class EventCompareStrongMotion extends Metric {
 	public String getName() {
 		return "EventCompareStrongMotion";
 	}
-
-	public void process() {
-
+	
+	public void process(){
 		logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
-
 		eventCMTs = getEventTable();
-		if (eventCMTs == null) {
-			logger.info(String.format("No Event CMTs found for Day=[%s] --> Skip EventCompareStrongMotion Metric",
-					getDay()));
-			return;
+
+		List<Channel> channels = stationMeta.getRotatableChannels();
+		String[] basechannel;
+		String basePreSplit = null;
+		List<String> bands;
+		String preSplitBands = null;
+		try {
+			basePreSplit = get("base-channel");
+
+		} catch (NoSuchFieldException ignored) {
 		}
-
-		// If station doesn't have a strongmotion sensor then don't try to
-		// compute this metric:
-		if (!weHaveChannels("20", "LN")) {
-			logger.info(
-					String.format("== Day=[%s] Stn=[%s] - metadata + data NOT found for loc=20 band=LN --> Skip Metric",
-							getDay(), getStation()));
-			return;
+		try {
+			preSplitBands = get("channel-restriction");
+		} catch (NoSuchFieldException ignored) {
 		}
-
-		boolean compute00 = weHaveChannels("00", "LH");
-		boolean compute10 = weHaveChannels("10", "LH");
-
-		/**
-		 * iDigest/ iMetric ChannelX v. ChannelY 0 channels[0] = 00-LHZ v.
-		 * channels[6] = 20-LNZ 1 channels[1] = 00-LHND v. channels[7] = 20-LNND
-		 * 2 channels[2] = 00-LHED v. channels[8] = 20-LNED 3 channels[3] =
-		 * 10-LHZ v. channels[6] = 20-LNZ 4 channels[4] = 10-LHND v. channels[7]
-		 * = 20-LNND 5 channels[5] = 10-LHED v. channels[8] = 20-LNED
-		 **/
-		int nDigests = 6;
-		double corrVal = 0.;
-
-		ByteBuffer[] digestArray = new ByteBuffer[nDigests];
+		if(basePreSplit == null){
+			basePreSplit = "20-LN";
+			logger.info("No base channel for EventCompare Strong Motion using: " + basePreSplit);
+		}
+		if(preSplitBands == null){
+			preSplitBands = "LH";
+			logger.info("No band restriction set for EventCompare Strong Motion using: " + preSplitBands);
+		}
 		
-		double[] results = new double[nDigests];
-		boolean[] returnResults = new boolean[nDigests];
-
-		channels[0] = new Channel("00", "LHZ");
-		channels[1] = new Channel("00", "LHND");
-		channels[2] = new Channel("00", "LHED");
-		channels[3] = new Channel("10", "LHZ");
-		channels[4] = new Channel("10", "LHND");
-		channels[5] = new Channel("10", "LHED");
-		channels[6] = new Channel("20", "LNZ");
-		channels[7] = new Channel("20", "LNND");
-		channels[8] = new Channel("20", "LNED");
-
-		if (compute00) {
-			for (int i = 0; i < 3; i++) {
-				Channel channelX = channels[i];
-				Channel channelY = channels[i + 6];
-				ChannelArray channelArray = new ChannelArray(channelX, channelY);
-				digestArray[i] = metricData.valueDigestChanged(channelArray, createIdentifier(channelX, channelY),
-						getForceUpdate());
-				results[i] = 0.;
-			}
-		}
-		if (compute10) {
-			for (int i = 3; i < 6; i++) {
-				Channel channelX = channels[i];
-				Channel channelY = channels[i + 3];
-				ChannelArray channelArray = new ChannelArray(channelX, channelY);
-				digestArray[i] = metricData.valueDigestChanged(channelArray, createIdentifier(channelX, channelY),
-						getForceUpdate());
-				results[i] = 0.;
-			}
-		}
-
-		if (compute00) {
-			if (digestArray[0] == null && digestArray[1] == null && digestArray[2] == null) {
-				compute00 = false;
-			}
-		}
-		if (compute10) {
-			if (digestArray[3] == null && digestArray[4] == null && digestArray[5] == null) {
-				compute10 = false;
-			}
-		}
-
-		if (!compute00 && !compute10) {
-			logger.info(String.format(
-					"== Day=[%s] Stn=[%s] - digest==null (or missing)for BOTH 00-LH and 10-LH chans --> Skip Metric",
-					getDay(), getStation()));
+		bands = Arrays.asList(preSplitBands.split(","));
+		basechannel = basePreSplit.split("-");
+		
+		//Check for basechannel actually existing.
+		if(!weHaveChannels(basechannel[0], basechannel[1])){
 			return;
 		}
 
-		int nEvents = 0;
-		int eventNumber = 0;
+		for(Channel channel : channels)
+		{	
+			String channelLoc = channel.toString().split("-")[0];
+			String channelVal = channel.toString().split("-")[1];
+			if(bands.contains(channelVal.substring(0,2)) && !channelLoc.equals(basechannel[0]))
+			{
+				/*
+				 * basechannel[1].substring(0,2) +channelVal.substring(2) => LN + ED, LN + Z, etc
+				 */
+				Channel baseChannel = new Channel(basechannel[0], basechannel[1].substring(0,2) + channelVal.substring(2));
+				Channel curChannel = new Channel(channelLoc, channelVal);
+				
+				ChannelArray channelArray = new ChannelArray(baseChannel, curChannel);
 
-		// Loop over Events for this day
-		try { // getZNE() method try/catch
-			SortedSet<String> eventKeys = new TreeSet<String>(eventCMTs.keySet());
-			for (String key : eventKeys) {
+				ByteBuffer digest = metricData.valueDigestChanged(channelArray,
+						createIdentifier(baseChannel, curChannel), getForceUpdate());
+				if(digest == null) continue; //Skip since not out of date or missing.
 
-				EventCMT eventCMT = eventCMTs.get(key);
+				double srateX = metricData.getChannelData(baseChannel).get(0).getSampleRate();
+				double srateY = metricData.getChannelData(curChannel).get(0).getSampleRate();
+				
+				double result = 0;
+				boolean correlated = false;
+				
+				if(srateX == srateY)
+				{
+					int nEvents = 0;
+					// Loop over Events for this day
+					try { // getFilteredDisplacement
+						SortedSet<String> eventKeys = new TreeSet<String>(eventCMTs.keySet());
+						for (String key : eventKeys) {
 
-				// Window the data from the Event (PDE) Origin.
-				// Use larger time window to do the instrument decons and trim
-				// it down later:
+							EventCMT eventCMT = eventCMTs.get(key);
 
-				long duration = 8000000L; // 8000 sec = 8000000 msecs
-				long eventStartTime = eventCMT.getTimeInMillis(); // Event
-																	// origin
-																	// epoch
-																	// time in
-																	// millisecs
-				long eventEndTime = eventStartTime + duration;
+							// Window the data from the Event (PDE) Origin.
+							// Use larger time window to do the instrument decons and trim
+							// it down later:
 
-				// Use P and S arrival times to trim the window down for
-				// comparison:
-				double[] arrivalTimes = getEventArrivalTimes(eventCMT);
-				if (arrivalTimes == null) {
-					logger.info(
-							"== {}: arrivalTimes==null for stn=[{}] day=[{}]: Distance to stn probably > 97-deg --> Don't compute metric\n",
-							getName(), getStation(), getDay());
-					continue;
-				}
+							long duration = 8000000L; // 8000 sec = 8000000 msecs
+							/*
+							 * Event origin epoch time in millisecs
+							 */
+							long eventStartTime = eventCMT.getTimeInMillis();
+							long eventEndTime = eventStartTime + duration;
 
-				eventNumber++;
-				int nstart = (int) (arrivalTimes[0] - 120.); // P - 120 sec
-				int nend = (int) (arrivalTimes[1] + 60.); // S + 120 sec
-				if (nstart < 0)
-					nstart = 0;
+							/* Use P and S arrival times to trim the window down for
+							 comparison:*/
+							double[] arrivalTimes = getEventArrivalTimes(eventCMT);
+							if (arrivalTimes == null) {
+								logger.info(
+										"== {}: arrivalTimes==null for stn=[{}] day=[{}]: Distance to stn probably > 97-deg --> Don't compute metric\n",
+										getName(), getStation(), getDay());
+								continue;
+							}
 
-				ResponseUnits units = ResponseUnits.DISPLACEMENT;
-				ArrayList<double[]> dataDisp = new ArrayList<double[]>();
+							int nstart = (int) (arrivalTimes[0] - 120.); // P - 120 sec
+							int nend = (int) (arrivalTimes[1] + 60.); // S + 120 sec
+							if (nstart < 0)
+							{
+								nstart = 0;
+							}
 
-				ArrayList<double[]> dataDisp00 = null;
-				if (compute00) {
-					dataDisp00 = metricData.getZNE(units, "00", "LH", eventStartTime, eventEndTime, f1, f2, f3, f4);
-					if (dataDisp00 != null) {
-						dataDisp.addAll(dataDisp00);
-					} else {
-						compute00 = false;
-					}
-				}
-				ArrayList<double[]> dataDisp10 = null;
-				if (compute10) {
-					dataDisp10 = metricData.getZNE(units, "10", "LH", eventStartTime, eventEndTime, f1, f2, f3, f4);
-					if (dataDisp10 != null) {
-						dataDisp.addAll(dataDisp10);
-					} else {
-						compute10 = false;
-					}
-				}
-				ArrayList<double[]> dataDisp20 = metricData.getZNE(units, "20", "LN", eventStartTime, eventEndTime, f1,
-						f2, f3, f4);
-				if (dataDisp20 != null) {
-					dataDisp.addAll(dataDisp20);
-				}
+							ResponseUnits units = ResponseUnits.DISPLACEMENT;
 
-				if ((dataDisp00 == null && dataDisp10 == null) || dataDisp20 == null) {
-					logger.info("== {}: day=[{}] getZNE returned null data --> skip this event\n", getName(), getDay());
-					continue;
-				}
-
-				if (getMakePlots()) {
-					makePlots(dataDisp00, dataDisp10, dataDisp20, nstart, nend, key, eventNumber);
-				}
-
-				// switched from rmsDiff to scaleFac with 00/10 being the
-				// reference
-
-				if (compute00) {
-					for (int i = 0; i < 3; i++) {
-						corrVal = getCorr(dataDisp00.get(i), dataDisp20.get(i), nstart, nend);
-						if (corrVal >= 0.85) {
-							returnResults[i] = true;
-							results[i] += scaleFac(dataDisp00.get(i), dataDisp20.get(i), nstart, nend);
+							double[] baseData = metricData.getFilteredDisplacement(units, baseChannel, eventStartTime, eventEndTime, f1, f2, f3,f4);
+							double[] channelData = metricData.getFilteredDisplacement(units, curChannel, eventStartTime, eventEndTime, f1, f2, f3,f4);
+							double corrVal = getCorr(channelData, baseData, nstart, nend);
+							if (Math.abs(corrVal) >= 0.85) {
+								correlated = true;
+								result += scaleFac(channelData, baseData, nstart, nend);
+								nEvents++;
+							}
 						}
-					}
-				}
-				if (compute10) {
-					for (int i = 0; i < 3; i++) {
-						corrVal = getCorr(dataDisp10.get(i), dataDisp20.get(i), nstart, nend);
-						if (corrVal >= 0.85) {
-							returnResults[i + 3] = true;
-							results[i + 3] += scaleFac(dataDisp10.get(i), dataDisp20.get(i), nstart, nend);
-						}
-					}
-				}
-
-				nEvents++;
-
-			} // eventKeys: end loop over events
-
-			if (nEvents == 0) { // Didn't make any measurements for this station
-				return;
-			}
-
-			if (compute00) {
-				for (int i = 0; i < 3; i++) {
-					Channel channelX = channels[i];
-					Channel channelY = channels[i + 6];
-					double result = results[i] / (double) nEvents;
-					ByteBuffer digest = digestArray[i];
-					if (digest == null)
-						continue; // We don't want to try to inject a null
-									// digest if that channel is not updated
-					if (returnResults[i]) {
-						metricResult.addResult(channelX, channelY, result, digest);
+						if(correlated){
+						metricResult.addResult(curChannel, baseChannel, result/nEvents, digest);
 					} else {
 						logger.info("station=[{}] day=[{}]: Low correlation", getStation(), getDay());
 					}
 
-				}
-			}
-			if (compute10) {
-				for (int i = 3; i < 6; i++) {
-					Channel channelX = channels[i];
-					Channel channelY = channels[i + 3];
-					double result = results[i] / (double) nEvents;
-					ByteBuffer digest = digestArray[i];
-					if (digest == null)
-						continue; // We don't want to try to inject a null
-									// digest if that channel is not updated
-
-					if (returnResults[i]) {
-						metricResult.addResult(channelX, channelY, result, digest);
-					} else {
-						logger.info("station=[{}] day=[{}]: Low correlation", getStation(), getDay());
 					}
+				 catch (ChannelMetaException e) {
+					logger.error("ChannelMetaException:", e);
+				} catch (MetricException e) {
+					logger.error("MetricException:", e);
 				}
 			}
-		} catch (ChannelMetaException e) {
-			logger.error("ChannelMetaException:", e);
-		} catch (MetricException e) {
-			logger.error("MetricException:", e);
-		} catch (PlotMakerException e) {
-			logger.error("PlotMakerException:", e);
-		} catch (TraceException e) {
-			logger.error("TraceException:", e);
 		}
-	} // end process()
+			
+	}
+	}
 
 	private double scaleFac(double[] data1, double[] data2, int n1, int n2) {
 		// if n1 < n2 or nend < data.length ...
@@ -326,6 +224,9 @@ public class EventCompareStrongMotion extends Metric {
 		// If the result is too large cap it at 4.
 		if (result >= 4.) {
 			result = 4.;
+		}
+		if (result <= -4.) {
+			result = -4.;
 		}
 
 		return result;
@@ -395,8 +296,9 @@ public class EventCompareStrongMotion extends Metric {
 			timeTool.parsePhaseList("P,S");
 			timeTool.depthCorrect(evdep);
 			timeTool.calculate(gcarc);
-		} catch (Exception e) {
-			logger.error("Exception:", e);
+		} catch (TauModelException e) {
+			logger.error(e.getMessage());
+			return null; //Return null since arrival times are not determinable.
 		}
 
 		List<Arrival> arrivals = timeTool.getArrivals();
