@@ -524,7 +524,7 @@ public class MetricData implements Serializable {
 	 * @throws MetricException
 	 *             the metric exception
 	 */
-	private double[] getFilteredDisplacement(ResponseUnits responseUnits, Channel channel, long windowStartEpoch,
+	double[] getFilteredDisplacement(ResponseUnits responseUnits, Channel channel, long windowStartEpoch,
 			long windowEndEpoch, double f1, double f2, double f3, double f4)
 					throws ChannelMetaException, MetricException {
 		if (!metadata.hasChannel(channel)) {
