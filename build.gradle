@@ -79,4 +79,8 @@ javadoc {
     options.memberLevel = JavadocMemberLevel.PRIVATE
 }
 
+compileJava {
+    options.incremental = true
+}
+
 tasks.compileJava.dependsOn('xjc')
