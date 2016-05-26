@@ -32,8 +32,22 @@ public class TimeseriesTest {
 	}
 
 	@Test
-	public final void testDemean() throws Exception {
-		//throw new RuntimeException("not yet implemented");
+	public final void testDemean0s() throws Exception {
+		double[] x = {1,1,1,1,1,1,1,1,1};
+		Timeseries.demean(x);
+		for(int i = 0; i < x.length; i++){
+			assertEquals(new Double((double)Math.round(x[i] * 10000000d) / 10000000d), new Double(0.0));
+		}
+	}
+	
+	@Test
+	public final void testDemean1to9() throws Exception {
+		double[] x = {1,2,3,4,5,6,7,8,9};
+		Double[] expected = {-4d,-3d,-2d,-1d,0d,1d,2d,3d,4d};
+		Timeseries.demean(x);
+		for(int i = 0; i < x.length; i++){
+			assertEquals(new Double((double)Math.round(x[i] * 10000000d) / 10000000d), expected[i]);
+		}
 	}
 
 	@Test
