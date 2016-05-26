@@ -23,7 +23,7 @@ public class EventCompareStrongMotionTest {
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		try {
-			data = (MetricData) ResourceManager.loadCompressedObject("/data/IU.NWAO.2015.299.MetricData.ser.gz");
+			data = (MetricData) ResourceManager.loadCompressedObject("/data/IU.NWAO.2015.299.MetricData.ser.gz", false);
 			//data = (MetricData) ResourceManager.loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz");
 			eventLoader = new EventLoader(ResourceManager.getDirectoryPath("/events"));
 		} catch (Exception e) {

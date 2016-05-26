@@ -4,6 +4,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.HashMap;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -15,6 +16,12 @@ import java.util.zip.GZIPOutputStream;
  *
  */
 public abstract class ResourceManager { // NO_UCD (test only)
+
+	/**
+	 * Stores a copy of the resources that is shared between tests. Tests that
+	 * use shared objects, must not modify the object in a destructive manner.
+	 */
+	private static HashMap<String, Object> resources = new HashMap<String, Object>();
 
 	/**
 	 * Compress using GZIPOutputStream and write to file specific in fileName.
@@ -45,11 +52,18 @@ public abstract class ResourceManager { // NO_UCD (test only)
 	 * Loads a resource based on the passed name.
 	 * 
 	 * @param fileName
+	 * @param trashableCopy
+	 *            returns a copy that is not shared with any other class. Any
+	 *            test using shared objects must not destruct the object
 	 * @return decompressed object
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
-	public static Object loadCompressedObject(String fileName) throws IOException, ClassNotFoundException {
+	public static Object loadCompressedObject(String fileName, boolean trashableCopy)
+			throws IOException, ClassNotFoundException {
+		if (!trashableCopy && resources.containsKey(fileName)) {
+			return resources.get(fileName);
+		}
 		Object object = null;
 		GZIPInputStream gzis = null;
 		ObjectInputStream ois = null;
@@ -58,6 +72,9 @@ public abstract class ResourceManager { // NO_UCD (test only)
 			ois = new ObjectInputStream(gzis);
 			object = ois.readObject();
 
+			if (!trashableCopy) {
+				resources.put(fileName, object);
+			}
 			return object;
 
 		} finally { // This is still executed despite return statement.
@@ -65,15 +82,16 @@ public abstract class ResourceManager { // NO_UCD (test only)
 		}
 
 	}
-	
+
 	/**
-	 * Returns the path of a resource directory. This assume the passed parameter is a directory.
+	 * Returns the path of a resource directory. This assume the passed
+	 * parameter is a directory.
 	 * 
-	 * @param directory the resource directory we want to get the path for
+	 * @param directory
+	 *            the resource directory we want to get the path for
 	 * @return the path as a string with ending /
 	 */
-	public static String getDirectoryPath(String directory)
-	{
-		return ResourceManager.class.getResource(directory).getPath()+"/";
+	public static String getDirectoryPath(String directory) {
+		return ResourceManager.class.getResource(directory).getPath() + "/";
 	}
 }

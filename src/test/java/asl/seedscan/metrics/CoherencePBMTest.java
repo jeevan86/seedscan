@@ -20,7 +20,7 @@ public class CoherencePBMTest {
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		try {
-			data = (MetricData) ResourceManager.loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz");
+			data = (MetricData) ResourceManager.loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

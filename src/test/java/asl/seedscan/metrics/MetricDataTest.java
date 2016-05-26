@@ -56,7 +56,7 @@ public class MetricDataTest {
 	@Test
 	public final void testMetricDataMetricReaderStationMeta() throws Exception {
 		StationMeta metadata = (StationMeta) ResourceManager
-				.loadCompressedObject("/metadata/CU.BCIP.2015.228.StationMeta.ser.gz");
+				.loadCompressedObject("/metadata/CU.BCIP.2015.228.StationMeta.ser.gz", false);
 		MetricData metricData = new MetricData(new MockReader(), metadata);
 		assertNotNull(metricData);
 	}
@@ -67,7 +67,7 @@ public class MetricDataTest {
 	 */
 	@Test
 	public final void testGetMetaData() throws Exception {
-		MetricData data = (MetricData) ResourceManager.loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz");
+		MetricData data = (MetricData) ResourceManager.loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
 		StationMeta metadata = data.getMetaData();
 		assertNotNull(metadata);
 		assertEquals("2015:206", metadata.getDate());
@@ -81,7 +81,7 @@ public class MetricDataTest {
 	 */
 	@Test
 	public final void testHasChannels() throws Exception {
-		MetricData data = (MetricData) ResourceManager.loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz");
+		MetricData data = (MetricData) ResourceManager.loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
 		// Should exist
 		assertTrue(data.hasChannels("00", "LH"));
 		assertTrue(data.hasChannels("10", "BH"));
@@ -105,7 +105,7 @@ public class MetricDataTest {
 	@Test
 	public final void testGetMetricValue() throws Exception {
 		StationMeta metadata = (StationMeta) ResourceManager
-				.loadCompressedObject("/metadata/CU.BCIP.2015.228.StationMeta.ser.gz");
+				.loadCompressedObject("/metadata/CU.BCIP.2015.228.StationMeta.ser.gz", false);
 		MockReader reader = new MockReader();
 		MetricData metricData = new MetricData(reader, metadata);
 
@@ -133,7 +133,7 @@ public class MetricDataTest {
 	 */
 	@Test
 	public final void testGetChannelDataChannel() throws Exception {
-		MetricData data = (MetricData) ResourceManager.loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz");
+		MetricData data = (MetricData) ResourceManager.loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
 		ArrayList<DataSet> channelData = data.getChannelData(new Channel("00", "LHZ"));
 
 		assertNotNull(channelData);
@@ -154,11 +154,11 @@ public class MetricDataTest {
 	 */
 	@Test
 	public final void testHasCalibrationData() throws Exception {
-		MetricData data = (MetricData) ResourceManager.loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz");
+		MetricData data = (MetricData) ResourceManager.loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
 		assertFalse(data.hasCalibrationData());
 
 		StationMeta metadata = (StationMeta) ResourceManager
-				.loadCompressedObject("/metadata/CU.BCIP.2015.228.StationMeta.ser.gz");
+				.loadCompressedObject("/metadata/CU.BCIP.2015.228.StationMeta.ser.gz", false);
 		MetricData metricData = new MetricData(new MockReader(), metadata);
 		assertFalse(metricData.hasCalibrationData());
 
@@ -172,7 +172,7 @@ public class MetricDataTest {
 	public final void testGetChannelCalDataChannel() throws Exception {
 		ArrayList<Blockette320> calData;
 
-		MetricData data = (MetricData) ResourceManager.loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz");
+		MetricData data = (MetricData) ResourceManager.loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
 		calData = data.getChannelCalData(new Channel("00", "LHZ"));
 		assertNull(calData);
 	}
@@ -181,7 +181,7 @@ public class MetricDataTest {
 	public final void testGetChannelTimingQualityDataChannel() throws Exception {
 		ArrayList<Integer> timingQuality;
 
-		MetricData data = (MetricData) ResourceManager.loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz");
+		MetricData data = (MetricData) ResourceManager.loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
 
 		timingQuality = data.getChannelTimingQualityData(new Channel("10", "BH1"));
 
@@ -201,7 +201,7 @@ public class MetricDataTest {
 	public final void testValueDigestChanged() throws Exception {
 		// NO DATA
 		StationMeta metadata = (StationMeta) ResourceManager
-				.loadCompressedObject("/metadata/CU.BCIP.2015.228.StationMeta.ser.gz");
+				.loadCompressedObject("/metadata/CU.BCIP.2015.228.StationMeta.ser.gz", false);
 		MockReader reader = new MockReader();
 		MetricData metricData = new MetricData(reader, metadata);
 
@@ -237,7 +237,7 @@ public class MetricDataTest {
 		reader.setConnected(true);
 
 		// DATA
-		metricData = (MetricData) ResourceManager.loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz");
+		metricData = (MetricData) ResourceManager.loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
 		metricData.setMetricReader(reader);
 		date = new GregorianCalendar(2015, 8, 16);
 		station = new Station("IU", "ANMO");

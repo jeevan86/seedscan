@@ -40,10 +40,10 @@ public class StationMetaTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-			data1 = (MetricData) ResourceManager.loadCompressedObject("/data/IU.NWAO.2015.299.MetricData.ser.gz");
-			data2 = (MetricData) ResourceManager.loadCompressedObject("/data/GS.OK029.2015.360.MetricData.ser.gz");
-			data3 = (MetricData) ResourceManager.loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz");
-			maleableMetadata = ((MetricData) ResourceManager.loadCompressedObject("/data/GS.OK029.2015.360.MetricData.ser.gz")).getMetaData();
+			data1 = (MetricData) ResourceManager.loadCompressedObject("/data/IU.NWAO.2015.299.MetricData.ser.gz", false);
+			data2 = (MetricData) ResourceManager.loadCompressedObject("/data/GS.OK029.2015.360.MetricData.ser.gz", false);
+			data3 = (MetricData) ResourceManager.loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
+			maleableMetadata = ((MetricData) ResourceManager.loadCompressedObject("/data/GS.OK029.2015.360.MetricData.ser.gz", true)).getMetaData();
 			
 			ChannelMeta channelMeta = new ChannelMeta(new ChannelKey("51", "HHE"), maleableMetadata.getTimestamp(), new Station("GS", "OK029") );
 			maleableMetadata.addChannel(new ChannelKey("51", "HHE"), channelMeta);
