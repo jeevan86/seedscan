@@ -11,6 +11,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import asl.metadata.Station;
 import asl.seedscan.event.EventLoader;
 import asl.util.ResourceManager;
 
@@ -49,13 +50,14 @@ public class EventCompareSyntheticTest {
 		metric.setData(data);
 		Calendar date = new GregorianCalendar(2015,9,26);
 		metric.setEventTable(eventLoader.getDayEvents(date));
+		metric.setEventSynthetics(eventLoader.getDaySynthetics(date, new Station("IU", "NWAO")));
 		HashMap<String, Double> expect = new HashMap<String, Double>();
-		expect.put("00-20,LHZ-LNZ", 2.884394926482693);  //Was 2.884394926482693 before removing hard coding
-		expect.put("00-20,LHND-LNND", 0.6842270334452618); //Was 0.6848874383447533
-		expect.put("00-20,LHED-LNED", 1.0140182353130993); //1.0097711288921811
-		expect.put("10-20,LHZ-LNZ", 4.0); //4.0
-		expect.put("10-20,LHND-LNND", 4.0); //4.0
-		expect.put("10-20,LHED-LNED", -4.0); //Nonexistent
+		expect.put("00,LHZ", 0.7365784417165183);  
+		expect.put("00,LHND", 0.8034777781560093); 
+		expect.put("00,LHED", 0.7419806164967785);
+		expect.put("10,LHZ", 0.0002246588435010572);
+		expect.put("10,LHND", 0.00008719589964150271);
+		//expect.put("10,LHED-LNED", -4.0); //Nonexistent
 		testMetric(metric, expect);
 
 	}
@@ -64,6 +66,7 @@ public class EventCompareSyntheticTest {
 		metric.process();
 			MetricResult result = metric.getMetricResult();
 			for (String id : result.getIdSet()) {
+//				System.out.println(id+":  "+ result.getResult(id));
 				Double expected = (double)Math.round(expect.get(id)       * 1000000d) / 1000000d;
 				Double resulted = (double)Math.round(result.getResult(id) * 1000000d) / 1000000d;
 				assertEquals(id + " result: ", expected, resulted);	
@@ -73,12 +76,12 @@ public class EventCompareSyntheticTest {
 	@Test
 	public final void testGetVersion() throws Exception {
 		metric = new EventCompareSynthetic();
-		assertEquals(1, metric.getVersion());
+		assertEquals(2, metric.getVersion());
 	}
 
 	@Test
 	public final void testGetName() throws Exception {
 		metric = new EventCompareSynthetic();
-		assertEquals("EventCompareStrongMotion", metric.getName());
+		assertEquals("EventCompareSynthetic", metric.getName());
 	}
 }
