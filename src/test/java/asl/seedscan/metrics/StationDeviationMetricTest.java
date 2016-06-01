@@ -63,14 +63,7 @@ public class StationDeviationMetricTest {
 		expect.put("10,LH2", -11.9362081816316);
 		expect.put("10,LHZ", -10.650704302448048);
 
-		metric.process();
-		MetricResult result = metric.getMetricResult();
-		for (String id : result.getIdSet()) {
-			//Round to 7 places to match the Metric injector
-			Double expected = (double)Math.round(expect.get(id)       * 1000000d) / 1000000d;
-			Double resulted = (double)Math.round(result.getResult(id) * 1000000d) / 1000000d;
-			assertEquals(id + " result: ", expected, resulted);
-		}		
+		TestUtils.testMetric(metric, expect);	
 	}
 	
 	@Test
@@ -85,15 +78,7 @@ public class StationDeviationMetricTest {
 		expect.put("00,HH2", 25.1707731853566);
 		expect.put("00,HHZ", 25.399405846808705);
 
-		metric.process();
-		MetricResult result = metric.getMetricResult();
-		for (String id : result.getIdSet()) {
-			//Round to 7 places to match the Metric injector
-			Double expected = (double)Math.round(expect.get(id)       * 1000000d) / 1000000d;
-			Double resulted = (double)Math.round(result.getResult(id) * 1000000d) / 1000000d;
-			//System.out.println(id + " Expected, Found  " + expected + ",   "+ result.getResult(id));
-			assertEquals(id + " result: ", expected, resulted);		
-		}	
+		TestUtils.testMetric(metric, expect);	
 	}
 
 	@Test

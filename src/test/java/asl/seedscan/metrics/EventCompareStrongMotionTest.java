@@ -57,22 +57,7 @@ public class EventCompareStrongMotionTest {
 		expect.put("10-20,LHZ-LNZ", 4.0); //4.0
 		expect.put("10-20,LHND-LNND", 4.0); //4.0
 		expect.put("10-20,LHED-LNED", -4.0); //Nonexistent
-		testMetric(metric, expect);
-
-	}
-	
-	public void testMetric(EventCompareStrongMotion metric, HashMap<String, Double> expect) throws Exception {
-		metric.process();
-			MetricResult result = metric.getMetricResult();
-			for (String id : result.getIdSet()) {
-				/*
-				 * If this is too stingy, try rounding 7 places like the metric
-				 * injector does
-				 */
-				Double expected = (double)Math.round(expect.get(id)       * 1000000d) / 1000000d;
-				Double resulted = (double)Math.round(result.getResult(id) * 1000000d) / 1000000d;
-				assertEquals(id + " result: ", expected, resulted);	
-			}
+		TestUtils.testMetric(metric, expect);
 	}
 
 	@Test

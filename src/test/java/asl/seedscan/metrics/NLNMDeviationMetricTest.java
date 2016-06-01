@@ -58,15 +58,7 @@ public class NLNMDeviationMetricTest {
 		expect.put("10,LH2", 6.701346629427542);
 		expect.put("10,LHZ", 9.473855204418532);
 
-		metric.process();
-		MetricResult result = metric.getMetricResult();
-		for (String id : result.getIdSet()) {
-			// Round to 7 places to match the Metric injector
-			Double expected = (double) Math.round(expect.get(id) * 1000000d) / 1000000d;
-			Double resulted = (double) Math.round(result.getResult(id) * 1000000d) / 1000000d;
-			System.out.println(id + "   " + result.getResult(id));
-			assertEquals(id + " result: ", expected, resulted);
-		}
+		TestUtils.testMetric(metric, expect);
 
 		// Consider adding this once memozing computePSD is done. Currently it
 		// pretends to, but doesn't really.
@@ -128,17 +120,7 @@ public class NLNMDeviationMetricTest {
 		expect.put("10,BH2", 11.413398919704086);
 		expect.put("10,BHZ", 12.496385325897268);
 
-		metric.process();
-		result = metric.getMetricResult();
-		for (String id : result.getIdSet()) {
-			// Round to 7 places to match the Metric injector
-			Double expected = (double) Math.round(expect.get(id) * 1000000d) / 1000000d;
-			Double resulted = (double) Math.round(result.getResult(id) * 1000000d) / 1000000d;
-			System.out.println(id + "   " + result.getResult(id));
-
-			assertEquals(id + " result: ", expected, resulted);
-		}
-
+		TestUtils.testMetric(metric, expect);
 	}
 
 	@Test

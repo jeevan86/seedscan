@@ -24,7 +24,6 @@ public class EventCompareSyntheticTest {
 	public static void setUpBeforeClass() throws Exception {
 		try {
 			data = (MetricData) ResourceManager.loadCompressedObject("/data/IU.NWAO.2015.299.MetricData.ser.gz", false);
-			//data = (MetricData) ResourceManager.loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz");
 			eventLoader = new EventLoader(ResourceManager.getDirectoryPath("/events"));
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -58,19 +57,8 @@ public class EventCompareSyntheticTest {
 		expect.put("10,LHZ", 0.0002246588435010572);
 		expect.put("10,LHND", 0.00008719589964150271);
 		//expect.put("10,LHED-LNED", -4.0); //Nonexistent
-		testMetric(metric, expect);
+		TestUtils.testMetric(metric, expect);
 
-	}
-	
-	public void testMetric(EventCompareSynthetic metric, HashMap<String, Double> expect) throws Exception {
-		metric.process();
-			MetricResult result = metric.getMetricResult();
-			for (String id : result.getIdSet()) {
-//				System.out.println(id+":  "+ result.getResult(id));
-				Double expected = (double)Math.round(expect.get(id)       * 1000000d) / 1000000d;
-				Double resulted = (double)Math.round(result.getResult(id) * 1000000d) / 1000000d;
-				assertEquals(id + " result: ", expected, resulted);	
-			}
 	}
 
 	@Test

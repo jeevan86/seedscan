@@ -48,7 +48,7 @@ public class DifferencePBMTest {
 		expect.put("00-10,LHZ-LHZ", 0.0277901829800261);
 		expect.put("00-10,LHND-LHND", -0.7957964379263428);
 		expect.put("00-10,LHED-LHED", -0.052274342636852655);
-		testMetric(metric, expect);
+		TestUtils.testMetric(metric, expect);
 
 		//TEST 18 - 22
 		metric = new DifferencePBM();
@@ -59,7 +59,7 @@ public class DifferencePBMTest {
 		expect.put("00-10,LHZ-LHZ", -0.012528556291703559);
 		expect.put("00-10,LHND-LHND", -0.7353751350788797);
 		expect.put("00-10,LHED-LHED", -0.044778096414228245);
-		testMetric(metric, expect);
+		TestUtils.testMetric(metric, expect);
 		
 		//TEST 90 - 110
 		metric = new DifferencePBM();
@@ -70,7 +70,7 @@ public class DifferencePBMTest {
 		expect.put("00-10,LHZ-LHZ", -0.8565980848492304);
 		expect.put("00-10,LHND-LHND", -2.523363274250344);
 		expect.put("00-10,LHED-LHED", 1.964715975773799);
-		testMetric(metric, expect);
+		TestUtils.testMetric(metric, expect);
 
 		//TEST 200 - 500
 		metric = new DifferencePBM();
@@ -81,7 +81,7 @@ public class DifferencePBMTest {
 		expect.put("00-10,LHZ-LHZ", 2.4820410648465976);
 		expect.put("00-10,LHND-LHND", -4.305281836191613);
 		expect.put("00-10,LHED-LHED",  6.142238640298331);
-		testMetric(metric, expect);
+		TestUtils.testMetric(metric, expect);
 		
 		//TEST Change in base
 		//Results should be negative of 00-10
@@ -94,23 +94,8 @@ public class DifferencePBMTest {
 		expect.put("10-00,LHZ-LHZ", -2.4820410648465976);
 		expect.put("10-00,LHND-LHND", 4.305281836191613);
 		expect.put("10-00,LHED-LHED",  -6.142238640298331);
-		testMetric(metric, expect);
+		TestUtils.testMetric(metric, expect);
 
-	}
-	
-	public void testMetric(DifferencePBM metric, HashMap<String, Double> expect) throws Exception {
-		metric.process();
-			MetricResult result = metric.getMetricResult();
-			for (String id : result.getIdSet()) {
-				/*
-				 * If this is too stingy, try rounding 7 places like the metric
-				 * injector does
-				 */
-				//Round to 7 places to match the Metric injector
-				Double expected = (double)Math.round(expect.get(id)       * 1000000d) / 1000000d;
-				Double resulted = (double)Math.round(result.getResult(id) * 1000000d) / 1000000d;
-				assertEquals(id + " result: ", expected, resulted);	
-			}
 	}
 
 	@Test

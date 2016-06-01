@@ -56,15 +56,7 @@ public class ALNMDeviationMetricTest {
 		expect.put("20,LN2", 12.908588992722896);
 		expect.put("20,LNZ", 12.920609888672088);
 
-		metric.process();
-		MetricResult result = metric.getMetricResult();
-		assertFalse(result.getIdSet().isEmpty());
-		for (String id : result.getIdSet()) {
-			//Round to 7 places to match the Metric injector
-			Double expected = (double)Math.round(expect.get(id)       * 1000000d) / 1000000d;
-			Double resulted = (double)Math.round(result.getResult(id) * 1000000d) / 1000000d;
-			assertEquals(id + " result: ", expected, resulted);	
-		}
+		TestUtils.testMetric(metric, expect);
 	}
 
 	@Test
