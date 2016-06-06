@@ -508,7 +508,7 @@ public class StationMeta implements Serializable {
 		}
 
 		if (!found) {
-			logger.error(
+			logger.info(
 					"== addRotatedChannel: -- StationMeta doesn't contain horizontal channels needed to make channel=[{}] date=[{}]\n",
 					derivedChannelName, this.getDate());
 			return;
