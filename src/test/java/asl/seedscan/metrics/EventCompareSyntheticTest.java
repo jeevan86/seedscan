@@ -51,12 +51,13 @@ public class EventCompareSyntheticTest {
 		metric.setEventTable(eventLoader.getDayEvents(date));
 		metric.setEventSynthetics(eventLoader.getDaySynthetics(date, new Station("IU", "NWAO")));
 		HashMap<String, Double> expect = new HashMap<String, Double>();
-		expect.put("00,LHZ", 0.7365784417165183);  
-		expect.put("00,LHND", 0.8034777781560093); 
-		expect.put("00,LHED", 0.7419806164967785);
-		expect.put("10,LHZ", 0.0002246588435010572);
-		expect.put("10,LHND", 0.00008719589964150271);
-		//expect.put("10,LHED-LNED", -4.0); //Nonexistent
+		expect.put("00,LHZ", 0.7365784417165183);  //Before hard coding removal.  0.7365784417165183
+		expect.put("00,LHND", 0.8073041537988243); //0.8034777781560093
+		expect.put("00,LHED", 0.7382054171769823); //0.7419806164967785
+		expect.put("10,LHZ", 0.0002670125120753591); //0.0002246588435010572
+		expect.put("10,LHND", 0.0002155175428788991); //0.00008719589964150271
+		expect.put("10,LHED", -0.00031154322642514324); //Nonexistent
+		
 		TestUtils.testMetric(metric, expect);
 
 	}

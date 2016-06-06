@@ -4,9 +4,11 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.TreeSet;
@@ -113,302 +115,120 @@ public class EventCompareSynthetic extends Metric {
 
 		eventCMTs = getEventTable();
 		if (eventCMTs == null) {
-			logger.info(String
-					.format("No Event CMTs found for Day=[%s] --> Skip EventCompareSynthetic Metric",
-							getDay()));
+			logger.info(
+					String.format("No Event CMTs found for Day=[%s] --> Skip EventCompareSynthetic Metric", getDay()));
 			return;
 		}
 
-		boolean compute00 = weHaveChannels("00", "LH");
-		boolean compute10 = weHaveChannels("10", "LH");
-
-		/**
-		 * iDigest/ iMetric ChannelX v. ChannelY 0 channels[0] = 00-LHZ v.
-		 * channels[6] = LXZ.modes.sac 1 channels[1] = 00-LHND v. channels[7] =
-		 * LXN.modes.sac 2 channels[2] = 00-LHED v. channels[8] = LXE.modes.sac
-		 * 3 channels[3] = 10-LHZ v. channels[6] = LXZ.modes.sac 4 channels[4] =
-		 * 10-LHND v. channels[7] = LXN.modes.sac 5 channels[5] = 10-LHED v.
-		 * channels[8] = LXE.modes.sac
-		 **/
-		int nChannels = 9;
-		int nDigests = 6;
-		double corrVal = 0.;
-        double tempRes = 0.; 
-
-		ByteBuffer[] digestArray = new ByteBuffer[nDigests];
-		// Channel[] channels = new Channel[nChannels];
-		channels = new Channel[nChannels];
-
-		double[] results = new double[nDigests];
-		boolean[] returnResults = new boolean[nDigests];
-
-		channels[0] = new Channel("00", "LHZ");
-		channels[1] = new Channel("00", "LHND");
-		channels[2] = new Channel("00", "LHED");
-		channels[3] = new Channel("10", "LHZ");
-		channels[4] = new Channel("10", "LHND");
-		channels[5] = new Channel("10", "LHED");
-		channels[6] = new Channel("XX", "LHZ");
-		channels[7] = new Channel("XX", "LHN");
-		channels[8] = new Channel("XX", "LHE");
-
-		// Probably won't use channelY = synth in the metric identifier
-
-		if (compute00) {
-			for (int i = 0; i < 3; i++) {
-				Channel channelX = channels[i];
-				digestArray[i] = metricData.valueDigestChanged(channelX,
-						createIdentifier(channelX), getForceUpdate());
-				results[i] = 0.;
-			}
-		}
-		if (compute10) {
-			for (int i = 3; i < 6; i++) {
-				Channel channelX = channels[i];
-				digestArray[i] = metricData.valueDigestChanged(channelX,
-						createIdentifier(channelX), getForceUpdate());
-				results[i] = 0.;
-			}
-		}
-
-		if (compute00) {
-			if (digestArray[0] == null && digestArray[1] == null
-					&& digestArray[2] == null) {
-				compute00 = false;
-			}
-		}
-		if (compute10) {
-			if (digestArray[3] == null && digestArray[4] == null
-					&& digestArray[5] == null) {
-				compute10 = false;
-			}
-		}
-
-		/*
-		 * If only one channel has a metric change, we still want to compute for
-		 * all channels again. This forces recomputation of location if any
-		 * individual channel has been updated.
-		 */
-		if (compute00) {
-			for (int i = 0; i < 3; i++) {
-				Channel channelX = channels[i];
-				digestArray[i] = metricData.valueDigestChanged(channelX, createIdentifier(channelX), true);
-				results[i] = 0.;
-			}
-		}
-		if (compute10) {
-			for (int i = 3; i < 6; i++) {
-				Channel channelX = channels[i];
-				digestArray[i] = metricData.valueDigestChanged(channelX, createIdentifier(channelX), true);
-				results[i] = 0.;
-			}
-		}
-
-		if (!compute00 && !compute10) {
-			logger.info(String
-					.format("== Day=[%s] Stn=[%s] - digest==null (or missing)for BOTH 00-LH and 10-LH chans --> Skip Metric",
-							getDay(), getStation()));
-			return;
-		}
-
-		// This is a little wonky: For instance, the digest for channel 00-LHND
-		// will be computed using only metadata + data
-		// for this channel (i.e., it will not explicitly include 00-LHED) and
-		// for the current day
-		// (i.e., if an event window extends into the next day, those data will
-		// not form part of
-		// the digest. Also, valueDigestChanged --> checkForRotatedChannels -->
-		// createRotatedChannelData
-		// will create rotated data + metadata for both horizontals (e.g.,
-		// 00-LHND, 00-LHED) but
-		// how do we get the rotated data for the next day ?
-
-		int nEvents = 0;
-		int eventNumber = 0;
-
-		// Loop over Events for this day
+		List<Channel> channels = stationMeta.getRotatableChannels();
+		String[] basechannel;
+		String basePreSplit = null;
+		List<String> bands;
+		String preSplitBands = null;
 		try {
-			SortedSet<String> eventKeys = new TreeSet<String>(
-					eventCMTs.keySet());
-			for (String key : eventKeys) {
-				Hashtable<String, SacTimeSeries> synthetics = getEventSynthetics(key);
-				if (synthetics == null) {
-					System.out
-							.format("== %s: No synthetics found for key=[%s] for this station\n",
-									getName(), key);
-					continue;
-				}
-				// We do have synthetics for this station for this event -->
-				// Compare to data
-				// 1. Load up 3-comp synthetics
-				SacTimeSeries[] sacSynthetics = new SacTimeSeries[3];
-				String[] kcmp = { "Z", "N", "E" };
-				for (int i = 0; i < 3; i++) {
-					String fileKey = getStn() + ".XX.LX" + kcmp[i]
-							+ ".modes.sac.proc"; // e.g.,
-					// "ANMO.XX.LXZ.modes.sac.proc"
-					if (synthetics.containsKey(fileKey)) {
-						sacSynthetics[i] = synthetics.get(fileKey);
-						MyFilter.bandpass(sacSynthetics[i], f1, f2, f3, f4);
-					} else {
-						logger.warn(String.format(
-								"Did not find sac synthetic=[%s] in Hashtable",
-								fileKey));
-						return;
-					}
-				}
-				/**
-				 * try { //sacSynthetics[0].write("synth.z"); } catch (Exception
-				 * e){ }
-				 **/
-				hdr = sacSynthetics[0].getHeader();
+			basePreSplit = get("base-channel");
 
-				eventNumber++;
-
-				long eventStartTime = getSacStartTimeInMillis(hdr);
-				// long eventStartTime = (eventCMTs.get(key)).getTimeInMillis();
-				long duration = 8000000L; // 8000 sec = 8000000 msecs
-				long eventEndTime = eventStartTime + duration;
-
-				// 2. Load up Displacement Array
-				ResponseUnits units = ResponseUnits.DISPLACEMENT;
-				ArrayList<double[]> dataDisp = new ArrayList<double[]>();
-
-				ArrayList<double[]> dataDisp00 = null;
-				if (compute00) {
-					dataDisp00 = metricData.getZNE(units, "00", "LH",
-							eventStartTime, eventEndTime, f1, f2, f3, f4);
-					if (dataDisp00 != null) {
-						dataDisp.addAll(dataDisp00);
-					} else {
-						compute00 = false;
-					}
-				}
-				ArrayList<double[]> dataDisp10 = null;
-				if (compute10) {
-					dataDisp10 = metricData.getZNE(units, "10", "LH",
-							eventStartTime, eventEndTime, f1, f2, f3, f4);
-					if (dataDisp10 != null) {
-						dataDisp.addAll(dataDisp10);
-					} else {
-						compute10 = false;
-					}
-				}
-				ArrayList<double[]> dataDisp3 = sacArrayToDouble(sacSynthetics);
-				if (dataDisp3 == null) {
-					logger.warn(
-							"== {}: Error loading sac synthetics for stn=[{}] day=[{}] --> skip\n",
-							getName(), getStation(), getDay());
-					continue;
-				} else {
-					dataDisp.addAll(dataDisp3);
-				}
-
-				if (dataDisp00 == null && dataDisp10 == null) {
-					System.out
-							.format("== %s: getZNE returned null data --> skip this event\n",
-									getName());
-					continue;
-				}
-
-				// Window to use for comparisons
-				int nstart = 0;
-				int nend = hdr.getNpts() - 1;
-
-				if (getMakePlots()) {
-					makePlots(dataDisp00, dataDisp10, dataDisp3, nstart, nend,
-							key, eventNumber);
-				}
-
-				if (compute00) {
-					for (int i = 0; i < 3; i++) {
-						// results[i] += 1.e6 * rmsDiff( dataDisp00.get(i),
-						// dataDisp3.get(i), nstart, nend);
-						corrVal = getCorr(dataDisp00.get(i),
-								dataDisp3.get(i), nstart, nend);
-						//Check if the correlation is high enough to add the comparison
-						if (corrVal >= 0.85){
-							returnResults[i] = true;
-                            tempRes = calcDiff(dataDisp00.get(i),
-								dataDisp3.get(i), nstart, nend);
-                            if(tempRes >= 50.) {
-                                tempRes = 50.;
-                            }
-                            results[i] += tempRes;
-						}
-					
-					}
-				}
-				if (compute10) {
-					for (int i = 0; i < 3; i++) {
-						// results[i+3] += 1.e6 * rmsDiff( dataDisp10.get(i),
-						// dataDisp3.get(i), nstart, nend);
-						corrVal = getCorr(dataDisp10.get(i),
-								dataDisp3.get(i), nstart, nend);
-						//Check if the correlation is high enough to add the comparison
-						if (corrVal >= 0.85){
-							returnResults[i + 3] = true;
-							tempRes = calcDiff(dataDisp10.get(i),
-								dataDisp3.get(i), nstart, nend);
-                            if(tempRes >= 50.){
-                                tempRes = 50.;
-                            }
-                            results[i + 3] += tempRes;
-						}
-
-					}
-				}
-
-				nEvents++;
-
-			} // eventKeys: end loop over events
-
-			if (nEvents == 0) { // Didn't make any measurements for this station
-				return;
-			}
-
-			if (compute00) {
-				for (int i = 0; i < 3; i++) {
-					Channel channelX = channels[i];
-					double result = results[i] / (double) nEvents;
-					ByteBuffer digest = digestArray[i];
-					if (returnResults[i]){
-						metricResult.addResult(channelX, result, digest);
-					}	else{
-						logger.info(
-					"station=[{}] day=[{}]: Low correlation",
-					getStation(), getDay());
-			
-					}
-
-
-				}
-			}
-			if (compute10) {
-				for (int i = 3; i < 6; i++) {
-					Channel channelX = channels[i];
-					double result = results[i] / (double) nEvents;
-					ByteBuffer digest = digestArray[i];
-					if (returnResults[i]){
-						metricResult.addResult(channelX, result, digest);
-					} else{
-						logger.info(
-					"station=[{}] day=[{}]: Low correlation",
-					getStation(), getDay());
-			
-					}
-				}
-			}
-		} catch (ChannelMetaException e) {
-			logger.error("ChannelMetaException:", e);
-		} catch (MetricException e) {
-			logger.error("MetricException:", e);
-		} catch (PlotMakerException e) {
-			logger.error("PlotMakerException:", e);
-		} catch (TraceException e) {
-			logger.error("TraceException:", e);
+		} catch (NoSuchFieldException ignored) {
 		}
-	} // end process()
+		try {
+			preSplitBands = get("channel-restriction");
+		} catch (NoSuchFieldException ignored) {
+		}
+		if (basePreSplit == null) {
+			basePreSplit = "XX-LX";
+			logger.info("No base channel for EventCompare Strong Motion using: " + basePreSplit);
+		}
+		if (preSplitBands == null) {
+			preSplitBands = "LH";
+			logger.info("No band restriction set for EventCompare Strong Motion using: " + preSplitBands);
+		}
+
+		bands = Arrays.asList(preSplitBands.split(","));
+		basechannel = basePreSplit.split("-");
+
+		for (Channel curChannel : channels) {
+
+			String channelVal = curChannel.toString().split("-")[1];
+			if (bands.contains(channelVal.substring(0, 2))) {
+				ByteBuffer digest = metricData.valueDigestChanged(curChannel, createIdentifier(curChannel),
+						getForceUpdate());
+				if (digest == null)
+					continue; // Skip since not out of date or missing.
+
+				double result = 0;
+				boolean correlated = false;
+
+				int nEvents = 0;
+				// Loop over Events for this day
+				try { // getFilteredDisplacement
+					SortedSet<String> eventKeys = new TreeSet<String>(eventCMTs.keySet());
+					for (String key : eventKeys) {
+						Hashtable<String, SacTimeSeries> synthetics = getEventSynthetics(key);
+						if (synthetics == null) {
+							logger.info("== {}: No synthetics found for key=[{}] for this station\n", getName(), key);
+							continue;
+						}
+
+						SacTimeSeries sacSynthetics = null;
+						String fileKey = getStn() + "." + basechannel[0] + "." + basechannel[1].substring(0, 2)
+								+ channelVal.substring(2, 3) + ".modes.sac.proc";
+						// e.g. "ANMO.XX.LXZ.modes.sac.proc"
+						if (synthetics.containsKey(fileKey)) {
+							sacSynthetics = synthetics.get(fileKey);
+							MyFilter.bandpass(sacSynthetics, f1, f2, f3, f4);
+						} else {
+							logger.info("Did not find sac synthetic=[{}] in Hashtable", fileKey);
+							continue; // Try next event
+						}
+
+						SacHeader header = sacSynthetics.getHeader();
+
+						long eventStartTime = getSacStartTimeInMillis(header);
+
+						/*
+						 * Window the data from the Event (PDE) Origin. Use
+						 * larger time window to do the instrument decons and
+						 * trim it down later:
+						 */
+
+						long duration = 8000000L; // 8000 sec = 8000000 msecs
+						long eventEndTime = eventStartTime + duration;
+
+						// Window to use for comparisons
+						int nstart = 0;
+						int nend = header.getNpts() - 1;
+
+						ResponseUnits units = ResponseUnits.DISPLACEMENT;
+
+						double[] baseData = sacArrayToDouble(sacSynthetics);
+						double[] channelData = metricData.getFilteredDisplacement(units, curChannel, eventStartTime,
+								eventEndTime, f1, f2, f3, f4);
+						double corrVal = getCorr(channelData, baseData, nstart, nend);
+						if (Math.abs(corrVal) >= 0.85) {
+							correlated = true;
+							double tempResult = calcDiff(channelData, baseData, nstart, nend);
+							if (tempResult >= 50.0)
+								tempResult = 50.0;
+
+							result += tempResult;
+							nEvents++;
+						}
+					}
+					if (correlated) {
+						metricResult.addResult(curChannel, result / nEvents, digest);
+					} else {
+						logger.info("station=[{}] day=[{}]: Low correlation", getStation(), getDay());
+					}
+
+				} catch (ChannelMetaException e) {
+					logger.error("ChannelMetaException:", e);
+				} catch (MetricException e) {
+					logger.error("MetricException:", e);
+				}
+			}
+
+		}
+	}
 
 	/**
 	 * Gets the sac start time in millis.
@@ -437,19 +257,15 @@ public class EventCompareSynthetic extends Metric {
 	 *            the sac array
 	 * @return the array list
 	 */
-	private ArrayList<double[]> sacArrayToDouble(SacTimeSeries[] sacArray) {
-		ArrayList<double[]> sacDouble = new ArrayList<double[]>();
-		for (int i = 0; i < sacArray.length; i++) {
-			SacTimeSeries sac = sacArray[i];
+	private double[] sacArrayToDouble(SacTimeSeries sac) {
+		
 			float[] fdata = sac.getY();
 			double[] data = new double[fdata.length];
 			for (int k = 0; k < fdata.length; k++) {
 				data[k] = (double) fdata[k];
 			}
-			sacDouble.add(data);
-		}
 
-		return sacDouble;
+		return data;
 	}
 
 	/**
