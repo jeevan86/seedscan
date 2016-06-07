@@ -28,6 +28,7 @@ public class TestUtils {
 		assertEquals("Result Size: ",expect.size(), result.getIdSet().size());
 		
 		for (String id : result.getIdSet()) {
+			//System.out.println(id+"   "+result.getResult(id));
 			Double expected = (double) Math.round(expect.get(id) * 1000000d) / 1000000d;
 			Double resulted = (double) Math.round(result.getResult(id) * 1000000d) / 1000000d;
 			assertEquals(id + " result: ", expected, resulted);

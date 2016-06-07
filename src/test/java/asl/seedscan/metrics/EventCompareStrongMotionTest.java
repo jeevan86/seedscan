@@ -42,10 +42,7 @@ public class EventCompareStrongMotionTest {
 	}
 
 	@Test
-	public void testProcess() throws Exception {
-		/* The String key matches the MetricResult ids */
-		
-		//TEST 4 - 8
+	public void testProcessDefault() throws Exception {
 		metric = new EventCompareStrongMotion();
 		metric.setData(data);
 		Calendar date = new GregorianCalendar(2015,9,26);
@@ -57,6 +54,27 @@ public class EventCompareStrongMotionTest {
 		expect.put("10-20,LHZ-LNZ", 4.0); //4.0
 		expect.put("10-20,LHND-LNND", 4.0); //4.0
 		expect.put("10-20,LHED-LNED", -4.0); //Nonexistent
+		TestUtils.testMetric(metric, expect);
+	}
+	
+	@Test
+	public void testProcessCustomConfig() throws Exception {
+
+		metric = new EventCompareStrongMotion();
+		
+		//Not a strong motion comparison, but that is not what we are testing.
+		//Only care if the custom channel is set.
+		metric.add("base-channel", "10-LH");
+		metric.add("channel-restriction", "LH");
+		
+		metric.setData(data);
+		Calendar date = new GregorianCalendar(2015,9,26);
+		metric.setEventTable(eventLoader.getDayEvents(date));
+		HashMap<String, Double> expect = new HashMap<String, Double>();
+		expect.put("00-10,LHZ-LHZ", -0.0000032751134376322145);
+		expect.put("00-10,LHND-LHND", 0.0000023421505281695907);
+		expect.put("00-10,LHED-LHED", 0.00000010633680999724207);
+
 		TestUtils.testMetric(metric, expect);
 	}
 
