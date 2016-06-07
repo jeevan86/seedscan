@@ -85,6 +85,7 @@ public class EventCompareStrongMotion extends Metric {
 
 		// Check for basechannel actually existing.
 		if (!weHaveChannels(basechannel[0], basechannel[1])) {
+			logger.info("Base channel not present. Skipping day. " + basePreSplit);
 			return;
 		}
 
