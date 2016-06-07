@@ -1,9 +1,6 @@
 package asl.seedscan.metrics;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -20,16 +17,9 @@ import asl.metadata.Channel;
 import asl.metadata.meta_new.ChannelMeta.ResponseUnits;
 import asl.metadata.meta_new.ChannelMetaException;
 import asl.seedscan.event.EventCMT;
-import asl.util.PlotMaker2;
-import asl.util.PlotMakerException;
-import asl.util.Trace;
-import asl.util.TraceException;
-import edu.sc.seis.TauP.SphericalCoords;
 import sac.SacHeader;
 import sac.SacTimeSeries;
 import timeutils.MyFilter;
-
-
 
 /**
  * <p>
@@ -45,7 +35,8 @@ import timeutils.MyFilter;
  * 1 = data aligns exactly with the synthetic.<br>
  * {@literal x > 1} data shows greater displacement than the synthetic.<br>
  * {@literal x < 0} The data is out of phase from the synthetic.<br>
- * x = -1 The data is exactly 180 degrees out of phase, but matches the data.<br>
+ * x = -1 The data is exactly 180 degrees out of phase, but matches the data.
+ * <br>
  * </p>
  * 
  * <a href="http://srl.geoscienceworld.org/content/77/1/12.full">Observations of
@@ -54,49 +45,36 @@ import timeutils.MyFilter;
  */
 public class EventCompareSynthetic extends Metric {
 
-	/** The Constant logger. */
-	private static final Logger logger = LoggerFactory
-			.getLogger(asl.seedscan.metrics.EventCompareSynthetic.class);
+	private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.metrics.EventCompareSynthetic.class);
 
-	/** The Constant PERIOD1. */
 	private static final double PERIOD1 = 500;
 
-	/** The Constant PERIOD2. */
 	private static final double PERIOD2 = 400;
 
-	/** The Constant PERIOD3. */
 	private static final double PERIOD3 = 165;
 
-	/** The Constant PERIOD4. */
 	private static final double PERIOD4 = 85;
 
-	/** The Constant f1. Period 1 frequency: 1./PERIOD1 */
-	private static final double f1 = 1. / PERIOD1;
+	private static final double FREQUENCY1 = 1. / PERIOD1;
 
-	/** The Constant f2. Period 2 frequency: 1./PERIOD2 */
-	private static final double f2 = 1. / PERIOD2;
+	private static final double FREQUENCY2 = 1. / PERIOD2;
 
-	/** The Constant f3. Period 3 frequency: 1./PERIOD3 */
-	private static final double f3 = 1. / PERIOD3;
+	private static final double FREQUENCY3 = 1. / PERIOD3;
 
-	/** The Constant f4. Period 4 frequency: 1./PERIOD4 */
-	private static final double f4 = 1. / PERIOD4;
-
-	/** The event CMTs. */
-	private Hashtable<String, EventCMT> eventCMTs = null;
-
-	/** The channels. */
-	private Channel[] channels = null;
-
-	/** The sac header. */
-	private SacHeader hdr = null;
+	private static final double FREQUENCY4 = 1. / PERIOD4;
+	
+	public EventCompareSynthetic() {
+		super();
+		addArgument("base-channel");
+		addArgument("channel-restriction");
+	}
 
 	/**
 	 * @see asl.seedscan.metrics.Metric#getVersion()
 	 */
 	@Override
 	public long getVersion() {
-		return 2;
+		return 3;
 	}
 
 	/**
@@ -113,7 +91,7 @@ public class EventCompareSynthetic extends Metric {
 	public void process() {
 		logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
 
-		eventCMTs = getEventTable();
+		Hashtable<String, EventCMT> eventCMTs = getEventTable();
 		if (eventCMTs == null) {
 			logger.info(
 					String.format("No Event CMTs found for Day=[%s] --> Skip EventCompareSynthetic Metric", getDay()));
@@ -175,7 +153,7 @@ public class EventCompareSynthetic extends Metric {
 						// e.g. "ANMO.XX.LXZ.modes.sac.proc"
 						if (synthetics.containsKey(fileKey)) {
 							sacSynthetics = synthetics.get(fileKey);
-							MyFilter.bandpass(sacSynthetics, f1, f2, f3, f4);
+							MyFilter.bandpass(sacSynthetics, FREQUENCY1, FREQUENCY2, FREQUENCY3, FREQUENCY4);
 						} else {
 							logger.info("Did not find sac synthetic=[{}] in Hashtable", fileKey);
 							continue; // Try next event
@@ -202,7 +180,7 @@ public class EventCompareSynthetic extends Metric {
 
 						double[] baseData = sacArrayToDouble(sacSynthetics);
 						double[] channelData = metricData.getFilteredDisplacement(units, curChannel, eventStartTime,
-								eventEndTime, f1, f2, f3, f4);
+								eventEndTime, FREQUENCY1, FREQUENCY2, FREQUENCY3, FREQUENCY4);
 						double corrVal = getCorr(channelData, baseData, nstart, nend);
 						if (Math.abs(corrVal) >= 0.85) {
 							correlated = true;
@@ -226,7 +204,6 @@ public class EventCompareSynthetic extends Metric {
 					logger.error("MetricException:", e);
 				}
 			}
-
 		}
 	}
 
@@ -238,8 +215,7 @@ public class EventCompareSynthetic extends Metric {
 	 * @return the sac start time in millis
 	 */
 	private long getSacStartTimeInMillis(SacHeader hdr) {
-		GregorianCalendar gcal = new GregorianCalendar(
-				TimeZone.getTimeZone("GMT"));
+		GregorianCalendar gcal = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
 		gcal.set(Calendar.YEAR, hdr.getNzyear());
 		gcal.set(Calendar.DAY_OF_YEAR, hdr.getNzjday());
 		gcal.set(Calendar.HOUR_OF_DAY, hdr.getNzhour());
@@ -258,12 +234,12 @@ public class EventCompareSynthetic extends Metric {
 	 * @return the array list
 	 */
 	private double[] sacArrayToDouble(SacTimeSeries sac) {
-		
-			float[] fdata = sac.getY();
-			double[] data = new double[fdata.length];
-			for (int k = 0; k < fdata.length; k++) {
-				data[k] = (double) fdata[k];
-			}
+
+		float[] fdata = sac.getY();
+		double[] data = new double[fdata.length];
+		for (int k = 0; k < fdata.length; k++) {
+			data[k] = (double) fdata[k];
+		}
 
 		return data;
 	}
@@ -275,8 +251,8 @@ public class EventCompareSynthetic extends Metric {
 	 * 
 	 * {@literal difference = 0. -->} data are all zero<br>
 	 * {@literal difference = 1. -->} data exactly matches synthetic<br>
-	 * {@literal difference = 1. -->} data exactly matches -synthetic (is 180 deg out of
-	 * phase)<br>
+	 * {@literal difference = 1. -->} data exactly matches -synthetic (is 180
+	 * deg out of phase)<br>
 	 * 
 	 * <a href="http://srl.geoscienceworld.org/content/77/1/12.full">http://srl.
 	 * geoscienceworld.org/content/77/1/12.full</a> Equation 3 <br>
@@ -296,9 +272,7 @@ public class EventCompareSynthetic extends Metric {
 	 */
 	private double calcDiff(double[] data1, double[] data2, int n1, int n2) {
 		if (n2 < n1) {
-			logger.error(
-					"station=[{}] day=[{}]: calcDiff: n2 < n1 --> Bad window",
-					getStation(), getDay());
+			logger.error("station=[{}] day=[{}]: calcDiff: n2 < n1 --> Bad window", getStation(), getDay());
 			return NO_RESULT;
 		}
 		if (n2 >= data1.length || n2 >= data2.length) {
@@ -321,20 +295,22 @@ public class EventCompareSynthetic extends Metric {
 					getStation(), getDay());
 		}
 		double result = numerator / denomenator;
-        if (result > 4.){
-            result = 4.;
-        }
+		if (result > 4.) {
+			result = 4.;
+		}
+		
+		if (result < -4.) {
+			result = -4.;
+		}
 
 		return result;
 	}
 
-
-	private double getCorr(double[] data1, double[] data2, int n1, int n2){
-		//This function computs the Pearson's correlation value for the two time series
+	private double getCorr(double[] data1, double[] data2, int n1, int n2) {
+		// This function computs the Pearson's correlation value for the two
+		// time series
 		if (n2 < n1) {
-			logger.error(
-					"station=[{}] day=[{}]: calcDiff: n2 < n1 --> Bad window",
-					getStation(), getDay());
+			logger.error("station=[{}] day=[{}]: calcDiff: n2 < n1 --> Bad window", getStation(), getDay());
 			return NO_RESULT;
 		}
 		if (n2 >= data1.length || n2 >= data2.length) {
@@ -344,24 +320,23 @@ public class EventCompareSynthetic extends Metric {
 			return NO_RESULT;
 		}
 
-
-		//Calculate the mean of both data streams
+		// Calculate the mean of both data streams
 		double data1mean = 0.;
-		double data2mean = 0.;		
+		double data2mean = 0.;
 
 		for (int i = n1; i < n2; i++) {
 			data1mean += data1[i];
 			data2mean += data2[i];
 
-		}  
+		}
 		data1mean = data1mean / (double) data1.length;
 		data2mean = data2mean / (double) data2.length;
 
-		//Calculate the standard deviation of both data streams
+		// Calculate the standard deviation of both data streams
 		double std1 = 0.;
 		double std2 = 0.;
 
-		for (int i = n1; i < n2; i++){
+		for (int i = n1; i < n2; i++) {
 			std1 += (data1[i] - data1mean) * (data1[i] - data1mean);
 			std2 += (data2[i] - data2mean) * (data2[i] - data2mean);
 
@@ -369,112 +344,14 @@ public class EventCompareSynthetic extends Metric {
 		std1 = std1 / (double) data1.length;
 		std2 = std2 / (double) data2.length;
 
-		//Calculate the r correlation
+		// Calculate the r correlation
 		double r = 0.;
 		for (int i = n1; i < n2; i++) {
-			r += (data1[i] - data1mean) * (data2[i] - data2mean) / (std1*std2);
+			r += (data1[i] - data1mean) * (data2[i] - data2mean) / (std1 * std2);
 
 		}
 		r = r / (double) (data1.length - 1);
-		
+
 		return r;
-	}
-
-	/**
-	 * Make plots.
-	 * 
-	 * @param d00
-	 *            the 00 data
-	 * @param d10
-	 *            the 10 data
-	 * @param d20
-	 *            the 20 data
-	 * @param nstart
-	 *            the window start; nstart in process()
-	 * @param nend
-	 *            the window end; nend in process()
-	 * @param key
-	 *            the key
-	 * @param eventNumber
-	 *            the event number
-	 * @throws PlotMakerException
-	 *             the plot maker exception
-	 * @throws TraceException
-	 *             the trace exception
-	 */
-	public void makePlots(ArrayList<double[]> d00, ArrayList<double[]> d10,
-			ArrayList<double[]> d20, int nstart, int nend, String key,
-			int eventNumber) throws PlotMakerException, TraceException {
-		PlotMaker2 plotMaker = null;
-		EventCMT eventCMT = eventCMTs.get(key);
-		double evla = eventCMT.getLatitude();
-		double evlo = eventCMT.getLongitude();
-		double stla = stationMeta.getLatitude();
-		double stlo = stationMeta.getLongitude();
-		double gcarc = SphericalCoords.distance(evla, evlo, stla, stlo);
-
-		final String plotTitle = String.format(
-				"[ Event: %s ] [ Station: %s ] [ Dist: %.2f ] %s", key,
-				getStation(), gcarc, getName());
-
-		final String pngName = String.format("%s.synthcompare.ev-%d.png",
-				getOutputDir(), eventNumber);
-
-		if (plotMaker == null) {
-			plotMaker = new PlotMaker2(plotTitle);
-			plotMaker.initialize3Panels("LHZ", "LH1/LHN", "LH2/LHE");
-		}
-
-		BasicStroke stroke = new BasicStroke(2.0f);
-
-		int npts = nend - nstart + 1;
-
-		double[] xsecs = new double[npts];
-		for (int k = 0; k < xsecs.length; k++) {
-			xsecs[k] = (float) (k + nstart); // hard-wired for LH? dt=1.0
-		}
-
-		try { // addTraceToPanel()
-			if (d00 != null) {
-				for (int i = 0; i < d00.size(); i++) {
-					double[] dataIn = d00.get(i);
-					double[] dataOut = new double[npts];
-					System.arraycopy(dataIn, nstart, dataOut, 0, npts);
-					plotMaker.addTraceToPanel(new Trace(xsecs, dataOut,
-							channels[i].toString(), Color.green, stroke), i);
-				}
-			}
-			if (d10 != null) {
-				for (int i = 0; i < d10.size(); i++) {
-					double[] dataIn = d10.get(i);
-					double[] dataOut = new double[npts];
-					System.arraycopy(dataIn, nstart, dataOut, 0, npts);
-					plotMaker.addTraceToPanel(new Trace(xsecs, dataOut,
-							channels[i + 3].toString(), Color.red, stroke), i);
-				}
-			}
-			if (d20 != null) {
-				for (int i = 0; i < d20.size(); i++) {
-					double[] dataIn = d20.get(i);
-					double[] dataOut = new double[npts];
-					System.arraycopy(dataIn, nstart, dataOut, 0, npts);
-					// Convert synthetic channel XX-LHN to XX-LHND for plot
-					// legend
-					String kChan = channels[i + 6].toString();
-					if (channels[i + 6].toString().contains("LHN")
-							|| channels[i + 6].toString().contains("LHE")) {
-						kChan += "D";
-					}
-					plotMaker.addTraceToPanel(new Trace(xsecs, dataOut, kChan,
-							Color.black, stroke), i);
-				}
-			}
-
-			plotMaker.writePlot(pngName);
-		} catch (PlotMakerException e) {
-			throw e;
-		} catch (TraceException e) {
-			throw e;
-		}
 	}
 }

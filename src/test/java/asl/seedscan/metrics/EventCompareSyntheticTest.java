@@ -65,7 +65,7 @@ public class EventCompareSyntheticTest {
 	@Test
 	public final void testGetVersion() throws Exception {
 		metric = new EventCompareSynthetic();
-		assertEquals(2, metric.getVersion());
+		assertEquals(3, metric.getVersion());
 	}
 
 	@Test

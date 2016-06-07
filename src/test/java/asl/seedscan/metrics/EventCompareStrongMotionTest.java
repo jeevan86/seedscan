@@ -63,7 +63,7 @@ public class EventCompareStrongMotionTest {
 	@Test
 	public final void testGetVersion() throws Exception {
 		metric = new EventCompareStrongMotion();
-		assertEquals(1, metric.getVersion());
+		assertEquals(2, metric.getVersion());
 	}
 
 	@Test

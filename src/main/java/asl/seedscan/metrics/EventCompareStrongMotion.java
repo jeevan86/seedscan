@@ -1,27 +1,6 @@
-/*
- * Copyright 2012, United States Geological Survey or
- * third-party contributors as indicated by the @author tags.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
- *
- */
 package asl.seedscan.metrics;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
@@ -36,10 +15,6 @@ import asl.metadata.ChannelArray;
 import asl.metadata.meta_new.ChannelMeta.ResponseUnits;
 import asl.metadata.meta_new.ChannelMetaException;
 import asl.seedscan.event.EventCMT;
-import asl.util.PlotMaker2;
-import asl.util.PlotMakerException;
-import asl.util.Trace;
-import asl.util.TraceException;
 import edu.sc.seis.TauP.Arrival;
 import edu.sc.seis.TauP.SphericalCoords;
 import edu.sc.seis.TauP.TauModelException;
@@ -55,14 +30,10 @@ public class EventCompareStrongMotion extends Metric {
 	private static final double PERIOD3 = 4;
 	private static final double PERIOD4 = 2;
 
-	private static final double f1 = 1. / PERIOD1;
-	private static final double f2 = 1. / PERIOD2;
-	private static final double f3 = 1. / PERIOD3;
-	private static final double f4 = 1. / PERIOD4;
-
-	Channel[] channels = new Channel[9];
-
-	private double xDist = 0.;
+	private static final double FREQUENCY1 = 1. / PERIOD1;
+	private static final double FREQUENCY2 = 1. / PERIOD2;
+	private static final double FREQUENCY3 = 1. / PERIOD3;
+	private static final double FREQUENCY4 = 1. / PERIOD4;
 	
 	public EventCompareStrongMotion() {
 		super();
@@ -72,15 +43,16 @@ public class EventCompareStrongMotion extends Metric {
 
 	@Override
 	public long getVersion() {
-		return 1;
+		return 2;
 	}
 
 	@Override
 	public String getName() {
 		return "EventCompareStrongMotion";
 	}
-	
-	public void process(){
+
+	@Override
+	public void process() {
 		logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
 		eventCMTs = getEventTable();
 
@@ -98,49 +70,50 @@ public class EventCompareStrongMotion extends Metric {
 			preSplitBands = get("channel-restriction");
 		} catch (NoSuchFieldException ignored) {
 		}
-		if(basePreSplit == null){
+		
+		if (basePreSplit == null) {
 			basePreSplit = "20-LN";
 			logger.info("No base channel for EventCompare Strong Motion using: " + basePreSplit);
 		}
-		if(preSplitBands == null){
+		if (preSplitBands == null) {
 			preSplitBands = "LH";
 			logger.info("No band restriction set for EventCompare Strong Motion using: " + preSplitBands);
 		}
-		
+
 		bands = Arrays.asList(preSplitBands.split(","));
 		basechannel = basePreSplit.split("-");
-		
-		//Check for basechannel actually existing.
-		if(!weHaveChannels(basechannel[0], basechannel[1])){
+
+		// Check for basechannel actually existing.
+		if (!weHaveChannels(basechannel[0], basechannel[1])) {
 			return;
 		}
 
-		for(Channel channel : channels)
-		{	
+		for (Channel channel : channels) {
 			String channelLoc = channel.toString().split("-")[0];
 			String channelVal = channel.toString().split("-")[1];
-			if(bands.contains(channelVal.substring(0,2)) && !channelLoc.equals(basechannel[0]))
-			{
+			if (bands.contains(channelVal.substring(0, 2)) && !channelLoc.equals(basechannel[0])) {
 				/*
-				 * basechannel[1].substring(0,2) +channelVal.substring(2) => LN + ED, LN + Z, etc
+				 * basechannel[1].substring(0,2) +channelVal.substring(2) => LN
+				 * + ED, LN + Z, etc
 				 */
-				Channel baseChannel = new Channel(basechannel[0], basechannel[1].substring(0,2) + channelVal.substring(2));
+				Channel baseChannel = new Channel(basechannel[0],
+						basechannel[1].substring(0, 2) + channelVal.substring(2));
 				Channel curChannel = new Channel(channelLoc, channelVal);
-				
+
 				ChannelArray channelArray = new ChannelArray(baseChannel, curChannel);
 
 				ByteBuffer digest = metricData.valueDigestChanged(channelArray,
 						createIdentifier(baseChannel, curChannel), getForceUpdate());
-				if(digest == null) continue; //Skip since not out of date or missing.
+				if (digest == null)
+					continue; // Skip since not out of date or missing.
 
 				double srateX = metricData.getChannelData(baseChannel).get(0).getSampleRate();
 				double srateY = metricData.getChannelData(curChannel).get(0).getSampleRate();
-				
+
 				double result = 0;
 				boolean correlated = false;
-				
-				if(srateX == srateY)
-				{
+
+				if (srateX == srateY) {
 					int nEvents = 0;
 					// Loop over Events for this day
 					try { // getFilteredDisplacement
@@ -149,19 +122,24 @@ public class EventCompareStrongMotion extends Metric {
 
 							EventCMT eventCMT = eventCMTs.get(key);
 
-							// Window the data from the Event (PDE) Origin.
-							// Use larger time window to do the instrument decons and trim
-							// it down later:
+							/*
+							 * Window the data from the Event (PDE) Origin. Use
+							 * larger time window to do the instrument decons
+							 * and trim it down later:
+							 */
 
-							long duration = 8000000L; // 8000 sec = 8000000 msecs
+							long duration = 8000000L; // 8000 sec = 8000000
+														// msecs
 							/*
 							 * Event origin epoch time in millisecs
 							 */
 							long eventStartTime = eventCMT.getTimeInMillis();
 							long eventEndTime = eventStartTime + duration;
 
-							/* Use P and S arrival times to trim the window down for
-							 comparison:*/
+							/*
+							 * Use P and S arrival times to trim the window down
+							 * for comparison:
+							 */
 							double[] arrivalTimes = getEventArrivalTimes(eventCMT);
 							if (arrivalTimes == null) {
 								logger.info(
@@ -170,17 +148,20 @@ public class EventCompareStrongMotion extends Metric {
 								continue;
 							}
 
-							int nstart = (int) (arrivalTimes[0] - 120.); // P - 120 sec
-							int nend = (int) (arrivalTimes[1] + 60.); // S + 120 sec
-							if (nstart < 0)
-							{
+							// P - 120 sec
+							int nstart = (int) (arrivalTimes[0] - 120.);
+							// S + 60 sec
+							int nend = (int) (arrivalTimes[1] + 60.);
+							if (nstart < 0) {
 								nstart = 0;
 							}
 
 							ResponseUnits units = ResponseUnits.DISPLACEMENT;
 
-							double[] baseData = metricData.getFilteredDisplacement(units, baseChannel, eventStartTime, eventEndTime, f1, f2, f3,f4);
-							double[] channelData = metricData.getFilteredDisplacement(units, curChannel, eventStartTime, eventEndTime, f1, f2, f3,f4);
+							double[] baseData = metricData.getFilteredDisplacement(units, baseChannel, eventStartTime,
+									eventEndTime, FREQUENCY1, FREQUENCY2, FREQUENCY3, FREQUENCY4);
+							double[] channelData = metricData.getFilteredDisplacement(units, curChannel, eventStartTime,
+									eventEndTime, FREQUENCY1, FREQUENCY2, FREQUENCY3, FREQUENCY4);
 							double corrVal = getCorr(channelData, baseData, nstart, nend);
 							if (Math.abs(corrVal) >= 0.85) {
 								correlated = true;
@@ -188,22 +169,21 @@ public class EventCompareStrongMotion extends Metric {
 								nEvents++;
 							}
 						}
-						if(correlated){
-						metricResult.addResult(curChannel, baseChannel, result/nEvents, digest);
-					} else {
-						logger.info("station=[{}] day=[{}]: Low correlation", getStation(), getDay());
-					}
+						if (correlated) {
+							metricResult.addResult(curChannel, baseChannel, result / nEvents, digest);
+						} else {
+							logger.info("station=[{}] day=[{}]: Low correlation", getStation(), getDay());
+						}
 
+					} catch (ChannelMetaException e) {
+						logger.error("ChannelMetaException:", e);
+					} catch (MetricException e) {
+						logger.error("MetricException:", e);
 					}
-				 catch (ChannelMetaException e) {
-					logger.error("ChannelMetaException:", e);
-				} catch (MetricException e) {
-					logger.error("MetricException:", e);
 				}
 			}
+
 		}
-			
-	}
 	}
 
 	private double scaleFac(double[] data1, double[] data2, int n1, int n2) {
@@ -288,7 +268,6 @@ public class EventCompareStrongMotion extends Metric {
 		double stla = stationMeta.getLatitude();
 		double stlo = stationMeta.getLongitude();
 		double gcarc = SphericalCoords.distance(evla, evlo, stla, stlo);
-		xDist = gcarc;
 		double azim = SphericalCoords.azimuth(evla, evlo, stla, stlo);
 		TauP_Time timeTool = null;
 		try {
@@ -298,7 +277,8 @@ public class EventCompareStrongMotion extends Metric {
 			timeTool.calculate(gcarc);
 		} catch (TauModelException e) {
 			logger.error(e.getMessage());
-			return null; //Return null since arrival times are not determinable.
+			return null; // Return null since arrival times are not
+							// determinable.
 		}
 
 		List<Arrival> arrivals = timeTool.getArrivals();
@@ -334,64 +314,5 @@ public class EventCompareStrongMotion extends Metric {
 		arrivalTimes[1] = arrivalTimeS;
 
 		return arrivalTimes;
-	}
-
-	public void makePlots(ArrayList<double[]> d00, ArrayList<double[]> d10, ArrayList<double[]> d20, int nstart,
-			int nend, String key, int eventNumber) throws PlotMakerException, TraceException {
-
-		PlotMaker2 plotMaker = null;
-		final String plotTitle = String.format("[ Event: %s ] [ Station: %s ] [ Dist: %.2f ] %s", key, getStation(),
-				xDist, getName());
-
-		final String pngName = String.format("%s.strongmtn.ev-%d.png", getOutputDir(), eventNumber);
-
-		if (plotMaker == null) {
-			plotMaker = new PlotMaker2(plotTitle);
-			plotMaker.initialize3Panels("LHZ", "LH1/LHN", "LH2/LHE");
-		}
-
-		BasicStroke stroke = new BasicStroke(2.0f);
-
-		int npts = nend - nstart + 1;
-
-		double[] xsecs = new double[npts];
-		for (int k = 0; k < xsecs.length; k++) {
-			xsecs[k] = (float) (k + nstart); // hard-wired for LH? dt=1.0
-		}
-
-		try {
-			if (d00 != null) {
-				for (int i = 0; i < d00.size(); i++) {
-					double[] dataIn = d00.get(i);
-					double[] dataOut = new double[npts];
-					System.arraycopy(dataIn, nstart, dataOut, 0, npts);
-					plotMaker.addTraceToPanel(new Trace(xsecs, dataOut, channels[i].toString(), Color.green, stroke),
-							i);
-				}
-			}
-			if (d10 != null) {
-				for (int i = 0; i < d10.size(); i++) {
-					double[] dataIn = d10.get(i);
-					double[] dataOut = new double[npts];
-					System.arraycopy(dataIn, nstart, dataOut, 0, npts);
-					plotMaker.addTraceToPanel(new Trace(xsecs, dataOut, channels[i + 3].toString(), Color.red, stroke),
-							i);
-				}
-			}
-			if (d20 != null) {
-				for (int i = 0; i < d20.size(); i++) {
-					double[] dataIn = d20.get(i);
-					double[] dataOut = new double[npts];
-					System.arraycopy(dataIn, nstart, dataOut, 0, npts);
-					plotMaker.addTraceToPanel(
-							new Trace(xsecs, dataOut, channels[i + 6].toString(), Color.black, stroke), i);
-				}
-			}
-			plotMaker.writePlot(pngName);
-		} catch (PlotMakerException e) {
-			throw e;
-		} catch (TraceException e) {
-			throw e;
-		}
 	}
 }
