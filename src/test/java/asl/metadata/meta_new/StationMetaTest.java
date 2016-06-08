@@ -23,7 +23,7 @@ import asl.metadata.ChannelArray;
 import asl.metadata.ChannelKey;
 import asl.metadata.Station;
 import asl.seedscan.metrics.MetricData;
-import asl.util.ResourceManager;
+import asl.testutils.ResourceManager;
 
 public class StationMetaTest {
 	

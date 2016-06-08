@@ -13,7 +13,7 @@ import org.junit.Test;
 
 import asl.metadata.Station;
 import asl.seedscan.event.EventLoader;
-import asl.util.ResourceManager;
+import asl.testutils.ResourceManager;
 
 public class EventCompareSyntheticTest {
 	private EventCompareSynthetic metric;

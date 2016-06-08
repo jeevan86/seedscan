@@ -17,7 +17,7 @@
  *
  */
 
-package asl.util;
+package asl.plotmaker;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -50,7 +50,7 @@ import org.slf4j.LoggerFactory;
  */
 public class PlotMaker2 {
 	private static final Logger logger = LoggerFactory
-			.getLogger(asl.util.PlotMaker2.class);
+			.getLogger(asl.plotmaker.PlotMaker2.class);
 	private String plotTitle;
 
 	private ArrayList<Panel> panels;

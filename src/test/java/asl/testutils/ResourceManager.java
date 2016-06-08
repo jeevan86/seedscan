@@ -1,4 +1,4 @@
-package asl.util;
+package asl.testutils;
 
 import java.io.FileOutputStream;
 import java.io.IOException;

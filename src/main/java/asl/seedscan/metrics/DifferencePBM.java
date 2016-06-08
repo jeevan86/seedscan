@@ -29,11 +29,11 @@ import org.slf4j.LoggerFactory;
 
 import asl.metadata.Channel;
 import asl.metadata.ChannelArray;
+import asl.plotmaker.PlotMaker2;
+import asl.plotmaker.PlotMakerException;
+import asl.plotmaker.Trace;
+import asl.plotmaker.TraceException;
 import asl.timeseries.CrossPower;
-import asl.util.PlotMaker2;
-import asl.util.PlotMakerException;
-import asl.util.Trace;
-import asl.util.TraceException;
 
 //New metric for PSD Differences in 90-110, 200-500 second period ranges
 public class DifferencePBM extends PowerBandMetric {

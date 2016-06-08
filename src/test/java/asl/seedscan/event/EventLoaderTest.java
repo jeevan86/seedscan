@@ -13,7 +13,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import asl.metadata.Station;
-import asl.util.ResourceManager;
+import asl.testutils.ResourceManager;
 import sac.SacTimeSeries;
 
 public class EventLoaderTest {

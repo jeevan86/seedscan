@@ -17,7 +17,7 @@
  *
  */
 
-package asl.util;
+package asl.plotmaker;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -54,7 +54,7 @@ import asl.metadata.Station;
  */
 public class PlotMaker {
 	private static final Logger logger = LoggerFactory
-			.getLogger(asl.util.PlotMaker.class);
+			.getLogger(asl.plotmaker.PlotMaker.class);
 	private Station station;
 	private Channel channel, channelX, channelY;
 	private Channel[] channels;

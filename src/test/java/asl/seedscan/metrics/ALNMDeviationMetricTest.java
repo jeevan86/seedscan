@@ -10,7 +10,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import asl.util.ResourceManager;
+import asl.testutils.ResourceManager;
 
 public class ALNMDeviationMetricTest {
 

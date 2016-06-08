@@ -17,7 +17,7 @@
  *
  */
 
-package asl.util;
+package asl.plotmaker;
 
 import java.awt.Color;
 import java.awt.Stroke;

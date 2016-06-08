@@ -29,7 +29,7 @@ import asl.seedscan.database.MetricReader;
 import asl.seedscan.database.MetricValueIdentifier;
 import asl.seedscan.database.QueryContext;
 import asl.seedsplitter.DataSet;
-import asl.util.ResourceManager;
+import asl.testutils.ResourceManager;
 import seed.Blockette320;
 
 public class MetricDataTest {

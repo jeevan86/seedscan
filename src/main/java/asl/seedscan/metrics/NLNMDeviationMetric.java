@@ -16,12 +16,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import asl.metadata.Channel;
+import asl.plotmaker.PlotMaker2;
+import asl.plotmaker.PlotMakerException;
+import asl.plotmaker.Trace;
+import asl.plotmaker.TraceException;
 import asl.timeseries.CrossPower;
 import asl.timeseries.Timeseries;
-import asl.util.PlotMaker2;
-import asl.util.PlotMakerException;
-import asl.util.Trace;
-import asl.util.TraceException;
 
 /**
  * NLNMDeviationMetric - Compute Difference (over specified range of periods =

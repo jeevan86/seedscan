@@ -34,13 +34,13 @@ import org.slf4j.LoggerFactory;
 
 import asl.metadata.Channel;
 import asl.metadata.Station;
+import asl.plotmaker.PlotMaker2;
+import asl.plotmaker.PlotMakerException;
+import asl.plotmaker.Trace;
+import asl.plotmaker.TraceException;
 import asl.seedscan.ArchivePath;
 import asl.timeseries.CrossPower;
 import asl.timeseries.Timeseries;
-import asl.util.PlotMaker2;
-import asl.util.PlotMakerException;
-import asl.util.Trace;
-import asl.util.TraceException;
 
 public class StationDeviationMetric extends PowerBandMetric {
 	private static final Logger logger = LoggerFactory

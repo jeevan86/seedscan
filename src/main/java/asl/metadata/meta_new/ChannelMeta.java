@@ -34,8 +34,8 @@ import asl.metadata.ChannelKey;
 import asl.metadata.EpochData;
 import asl.metadata.StageData;
 import asl.metadata.Station;
+import asl.plotmaker.PlotMaker;
 import asl.security.MemberDigest;
-import asl.util.PlotMaker;
 
 /**
  * A ChannelMeta consists of a series of ResponseStages. Typically there will be
