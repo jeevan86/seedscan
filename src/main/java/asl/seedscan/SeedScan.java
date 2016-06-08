@@ -19,7 +19,6 @@ import asl.seedscan.database.MetricDatabase;
 import asl.seedscan.database.MetricInjector;
 import asl.seedscan.database.MetricReader;
 import asl.seedscan.metrics.MetricWrapper;
-import asl.util.Filter;
 
 /**
  * The Class SeedScan.
@@ -87,7 +86,7 @@ public class SeedScan {
 				if (scanCfg.getNetworkSubset() != null) {
 					logger.debug("Filter on Network Subset=[{}]",
 							scanCfg.getNetworkSubset());
-					Filter filter = new Filter(false);
+					ScanFilter filter = new ScanFilter(false);
 					for (String network : scanCfg.getNetworkSubset().split(",")) {
 						logger.debug("Network =[{}]", network);
 						filter.addFilter(network);
@@ -97,7 +96,7 @@ public class SeedScan {
 				if (scanCfg.getStationSubset() != null) {
 					logger.debug("Filter on Station Subset=[{}]",
 							scanCfg.getStationSubset());
-					Filter filter = new Filter(false);
+					ScanFilter filter = new ScanFilter(false);
 					for (String station : scanCfg.getStationSubset().split(",")) {
 						logger.debug("Station =[{}]", station);
 						filter.addFilter(station);
@@ -107,7 +106,7 @@ public class SeedScan {
 				if (scanCfg.getLocationSubset() != null) {
 					logger.debug("Filter on Location Subset=[{}]",
 							scanCfg.getLocationSubset());
-					Filter filter = new Filter(false);
+					ScanFilter filter = new ScanFilter(false);
 					for (String location : scanCfg.getLocationSubset().split(
 							",")) {
 						logger.debug("Location =[{}]", location);
@@ -118,7 +117,7 @@ public class SeedScan {
 				if (scanCfg.getChannelSubset() != null) {
 					logger.debug("Filter on Channel Subset=[{}]",
 							scanCfg.getChannelSubset());
-					Filter filter = new Filter(false);
+					ScanFilter filter = new ScanFilter(false);
 					for (String channel : scanCfg.getChannelSubset().split(",")) {
 						logger.debug("Channel =[{}]", channel);
 						filter.addFilter(channel);
@@ -181,7 +180,7 @@ public class SeedScan {
 		// in order to preserve overall system memory resources.
 
 		Scan scan = null;
-		Filter networks = null;
+		ScanFilter networks = null;
 		Set<String> netKeys = null;
 
 		// ==== Perform Scans ====
