@@ -5,20 +5,16 @@ import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
-import org.apache.commons.math3.complex.Complex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import asl.metadata.Channel;
 import asl.metadata.EpochData;
-import asl.metadata.meta_new.ChannelMeta;
-import asl.metadata.meta_new.ChannelMeta.ResponseUnits;
 import asl.metadata.meta_new.ChannelMetaException;
 import asl.metadata.meta_new.StationMeta;
 import asl.seedscan.database.MetricValueIdentifier;
 import asl.seedscan.event.EventCMT;
 import sac.SacTimeSeries;
-import timeutils.PSD;
 
 /**
  * The basic class that all metrics extend.
@@ -162,25 +158,19 @@ public abstract class Metric {
 	 */
 	protected CrossPower getCrossPower(Channel channelA, Channel channelB) {
 		CrossPowerKey key = new CrossPowerKey(channelA, channelB);
-		CrossPower crossPower;
+		CrossPower crossPower = null;
 
 		if (crossPowerMap.containsKey(key)) {
 			crossPower = crossPowerMap.get(key);
 		} else {
-			double[] psd = null;
-			double[] df = new double[1]; // Dummy array to get params out of
-			// computePSD()
-			for (int i = 0; i < df.length; i++)
-				df[i] = 0;
 			try {
-				psd = computePSD(channelA, channelB, df);
+				crossPower = new CrossPower(channelA, channelB, metricData);
+				crossPowerMap.put(key, crossPower);
 			} catch (MetricPSDException e) {
 				logger.error("MetricPSDException:", e);
 			} catch (ChannelMetaException e) {
 				logger.error("ChannelMetaException:", e);
 			}
-			crossPower = new CrossPower(psd, df[0]);
-			crossPowerMap.put(key, crossPower);
 		}
 		return crossPower;
 	}
@@ -449,102 +439,4 @@ public abstract class Metric {
 	public final Enumeration<String> names() {
 		return arguments.keys();
 	}
-
-	/**
-	 * computePSD - Done here so that it can be passed from metric to metric,
-	 * rather than re-computing it for each metric that needs it
-	 * 
-	 * Use Peterson's algorithm (24 hrs = 13 segments with 75% overlap, etc.)
-	 * 
-	 * @param channelX            - X-channel used for power-spectral-density computation
-	 * @param channelY            - Y-channel used for power-spectral-density computation
-	 * @param params            [] - Dummy array used to pass df (frequency spacing) back up
-	 * @return psd[f] - Contains smoothed crosspower-spectral density computed
-	 *         for nf = nfft/2 + 1 frequencies (+ve freqs + DC + Nyq)
-	 * @throws ChannelMetaException the channel metadata exception
-	 * @throws MetricPSDException the metric psd exception
-	 */
-	private final double[] computePSD(Channel channelX, Channel channelY,
-			double[] params) throws ChannelMetaException, MetricPSDException {
-		double srate = 0; // srate = sample frequency, e.g., 20Hz
-
-		// This would give us 2 channels with the SAME number of (overlapping)
-		// points, but
-		// they might not represent a complete day (e.g., could be a single
-		// block of data in the middle of the day)
-		// double[][] channelOverlap = metricData.getChannelOverlap(channelX,
-		// channelY);
-		// double[] chanXData = channelOverlap[0];
-		// double[] chanYData = channelOverlap[1];
-
-		// Instead, getPaddedDayData() gives us a complete (zero padded if
-		// necessary) array of data for 1 day:
-		double[] chanXData = metricData.getPaddedDayData(channelX);
-		double[] chanYData = metricData.getPaddedDayData(channelY);
-
-		double srateX = metricData.getChannelData(channelX).get(0)
-				.getSampleRate();
-		double srateY = metricData.getChannelData(channelY).get(0)
-				.getSampleRate();
-		ChannelMeta chanMetaX = stationMeta.getChannelMetadata(channelX);
-		ChannelMeta chanMetaY = stationMeta.getChannelMetadata(channelY);
-
-		if (srateX != srateY) {
-			StringBuilder message = new StringBuilder();
-			message.append(String.format("computePSD(): srateX (=" + srateX
-					+ ") != srateY (=" + srateY + ")\n"));
-			throw new MetricPSDException(message.toString());
-		}
-		srate = srateX;
-
-		if (srate == 0)
-			throw new MetricPSDException("Got srate=0");
-
-		double dt = 1. / srate;
-
-		PSD psdRaw = new PSD(chanXData, chanYData, dt);
-		Complex[] spec = psdRaw.getSpectrum();
-		double[] freq = psdRaw.getFreq();
-		double df = psdRaw.getDeltaF();
-		int nf = freq.length;
-
-		params[0] = df;
-
-		// Get the instrument response for Acceleration and remove it from the
-		// PSD
-		try {
-			Complex[] instrumentResponseX = chanMetaX.getResponse(freq,
-					ResponseUnits.ACCELERATION);
-			Complex[] instrumentResponseY = chanMetaY.getResponse(freq,
-					ResponseUnits.ACCELERATION);
-
-			Complex[] responseMagC = new Complex[nf];
-
-			double[] psd = new double[nf]; // Will hold the 1-sided PSD
-			// magnitude
-			psd[0] = 0;
-
-			// We're computing the squared magnitude as we did with the FFT
-			// above
-			// Start from k=1 to skip DC (k=0) where the response=0
-
-			for (int k = 1; k < nf; k++) {
-				responseMagC[k] = instrumentResponseX[k].multiply(instrumentResponseY[k].conjugate());
-				if (responseMagC[k].abs() == 0) {
-					StringBuilder message = new StringBuilder();
-					message.append(String
-							.format("responseMagC[k]=0 --> divide by zero!\n"));
-					throw new MetricPSDException(message.toString());
-				} else { // Divide out (squared)instrument response & Convert to
-					// dB:
-					spec[k] = spec[k].divide(responseMagC[k]);
-					psd[k] = spec[k].abs();
-				}
-			}
-
-			return psd;
-		} catch (ChannelMetaException e) {
-			throw e;
-		}
-	} // end computePSD
 } // end class
