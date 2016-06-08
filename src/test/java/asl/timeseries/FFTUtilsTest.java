@@ -1,9 +1,11 @@
-package asl.util;
+package asl.timeseries;
 
 import static org.junit.Assert.assertEquals;
 
 import org.apache.commons.math3.complex.Complex;
 import org.junit.Test;
+
+import asl.timeseries.FFTUtils;
 
 /**
  * Most of the testing here is very basic. If FFT is actually broken, it should

@@ -26,14 +26,14 @@ import asl.seedscan.database.MetricInjector;
 import asl.seedscan.database.MetricReader;
 import asl.seedscan.event.EventCMT;
 import asl.seedscan.event.EventLoader;
-import asl.seedscan.metrics.CrossPower;
-import asl.seedscan.metrics.CrossPowerKey;
 import asl.seedscan.metrics.Metric;
 import asl.seedscan.metrics.MetricData;
 import asl.seedscan.metrics.MetricResult;
 import asl.seedscan.metrics.MetricWrapper;
 import asl.seedsplitter.DataSet;
 import asl.seedsplitter.SeedSplitter;
+import asl.timeseries.CrossPower;
+import asl.timeseries.CrossPowerKey;
 import sac.SacTimeSeries;
 import seed.Blockette320;
 

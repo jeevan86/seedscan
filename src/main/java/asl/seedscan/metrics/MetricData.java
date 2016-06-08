@@ -28,8 +28,8 @@ import asl.seedsplitter.ContiguousBlock;
 import asl.seedsplitter.DataSet;
 import asl.seedsplitter.IllegalSampleRateException;
 import asl.seedsplitter.SequenceRangeException;
+import asl.timeseries.FFTUtils;
 import asl.timeseries.Timeseries;
-import asl.util.FFTUtils;
 import seed.Blockette320;
 
 /**
@@ -293,7 +293,7 @@ public class MetricData implements Serializable {
 	 *            the channel
 	 * @return the channel data
 	 */
-	ArrayList<DataSet> getChannelData(Channel channel) {
+	public ArrayList<DataSet> getChannelData(Channel channel) {
 		return getChannelData(channel.getLocation(), channel.getChannel());
 	}
 
@@ -739,7 +739,7 @@ public class MetricData implements Serializable {
 	 *            the channel
 	 * @return the padded day data
 	 */
-	double[] getPaddedDayData(Channel channel) {
+	public double[] getPaddedDayData(Channel channel) {
 		if (!hasChannelData(channel)) {
 			logger.warn(String.format("== getPaddedDayData(): We have NO data for channel=[%s] date=[%s]\n", channel,
 					metadata.getDate()));

@@ -14,6 +14,8 @@ import asl.metadata.meta_new.ChannelMetaException;
 import asl.metadata.meta_new.StationMeta;
 import asl.seedscan.database.MetricValueIdentifier;
 import asl.seedscan.event.EventCMT;
+import asl.timeseries.CrossPower;
+import asl.timeseries.CrossPowerKey;
 import sac.SacTimeSeries;
 
 /**

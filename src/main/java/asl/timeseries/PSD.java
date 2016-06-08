@@ -4,8 +4,6 @@ import java.util.Arrays;
 
 import org.apache.commons.math3.complex.Complex;
 
-import asl.util.FFTUtils;
-
 /**
  * The Class PSD.
  * This computes PSDs and stores their outputs.

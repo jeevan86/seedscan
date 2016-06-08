@@ -1,4 +1,4 @@
-package asl.seedscan.metrics;
+package asl.timeseries;
 
 import java.util.Arrays;
 
@@ -7,7 +7,8 @@ import org.apache.commons.math3.complex.Complex;
 import asl.metadata.Channel;
 import asl.metadata.meta_new.ChannelMetaException;
 import asl.metadata.meta_new.ChannelMeta.ResponseUnits;
-import asl.timeseries.PSD;
+import asl.seedscan.metrics.MetricData;
+import asl.seedscan.metrics.MetricPSDException;
 
 public class CrossPower {
 	private double[] powerSpectrum = null;

@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import asl.metadata.Channel;
 import asl.metadata.Station;
 import asl.seedscan.ArchivePath;
+import asl.timeseries.CrossPower;
 import asl.timeseries.Timeseries;
 import asl.util.PlotMaker2;
 import asl.util.PlotMakerException;

@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
  *
  */
-package asl.seedscan.metrics;
+package asl.timeseries;
 
 import asl.metadata.Channel;
 

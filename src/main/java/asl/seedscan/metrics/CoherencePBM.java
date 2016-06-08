@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import asl.metadata.Channel;
 import asl.metadata.ChannelArray;
+import asl.timeseries.CrossPower;
 import asl.util.PlotMaker2;
 import asl.util.PlotMakerException;
 import asl.util.Trace;
