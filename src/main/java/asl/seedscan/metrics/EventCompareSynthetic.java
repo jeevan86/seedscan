@@ -17,9 +17,9 @@ import asl.metadata.Channel;
 import asl.metadata.meta_new.ChannelMeta.ResponseUnits;
 import asl.metadata.meta_new.ChannelMetaException;
 import asl.seedscan.event.EventCMT;
+import asl.timeseries.MyFilter;
 import sac.SacHeader;
 import sac.SacTimeSeries;
-import timeutils.MyFilter;
 
 /**
  * <p>

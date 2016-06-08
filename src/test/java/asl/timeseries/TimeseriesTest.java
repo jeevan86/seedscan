@@ -1,8 +1,10 @@
-package timeutils;
+package asl.timeseries;
 
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
+
+import asl.timeseries.Timeseries;
 
 public class TimeseriesTest {
 

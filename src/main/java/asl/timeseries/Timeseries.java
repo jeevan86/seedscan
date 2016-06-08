@@ -1,10 +1,10 @@
-package timeutils;
+package asl.timeseries;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Timeseries {
-	private static final Logger logger = LoggerFactory.getLogger(timeutils.Timeseries.class);
+	private static final Logger logger = LoggerFactory.getLogger(asl.timeseries.Timeseries.class);
 
 	/**
 	 * Performs an in place detrend on an array of timeseries data.

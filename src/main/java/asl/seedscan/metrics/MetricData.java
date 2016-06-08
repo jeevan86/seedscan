@@ -28,9 +28,9 @@ import asl.seedsplitter.ContiguousBlock;
 import asl.seedsplitter.DataSet;
 import asl.seedsplitter.IllegalSampleRateException;
 import asl.seedsplitter.SequenceRangeException;
+import asl.timeseries.Timeseries;
 import asl.util.FFTUtils;
 import seed.Blockette320;
-import timeutils.Timeseries;
 
 /**
  * The Class MetricData. This class can be serialized for implementation in unit

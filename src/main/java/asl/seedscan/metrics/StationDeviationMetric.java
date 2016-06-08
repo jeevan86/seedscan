@@ -35,11 +35,11 @@ import org.slf4j.LoggerFactory;
 import asl.metadata.Channel;
 import asl.metadata.Station;
 import asl.seedscan.ArchivePath;
+import asl.timeseries.Timeseries;
 import asl.util.PlotMaker2;
 import asl.util.PlotMakerException;
 import asl.util.Trace;
 import asl.util.TraceException;
-import timeutils.Timeseries;
 
 public class StationDeviationMetric extends PowerBandMetric {
 	private static final Logger logger = LoggerFactory

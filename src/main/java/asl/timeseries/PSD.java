@@ -1,4 +1,4 @@
-package timeutils;
+package asl.timeseries;
 
 import java.util.Arrays;
 

@@ -7,7 +7,7 @@ import org.apache.commons.math3.complex.Complex;
 import asl.metadata.Channel;
 import asl.metadata.meta_new.ChannelMetaException;
 import asl.metadata.meta_new.ChannelMeta.ResponseUnits;
-import timeutils.PSD;
+import asl.timeseries.PSD;
 
 public class CrossPower {
 	private double[] powerSpectrum = null;
