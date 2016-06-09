@@ -55,6 +55,11 @@ public class EventCompareStrongMotion extends Metric {
 	public void process() {
 		logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
 		eventCMTs = getEventTable();
+		
+		if (eventCMTs == null) {
+			logger.info("No Event CMTs found for Day=[{}] --> Skip EventCompareStrongMotion Metric", getDay());
+			return;
+		}
 
 		List<Channel> channels = stationMeta.getRotatableChannels();
 		String[] basechannel;
