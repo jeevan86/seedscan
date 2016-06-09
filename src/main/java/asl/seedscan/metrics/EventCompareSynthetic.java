@@ -114,11 +114,11 @@ public class EventCompareSynthetic extends Metric {
 		}
 		if (basePreSplit == null) {
 			basePreSplit = "XX-LX";
-			logger.info("No base channel for EventCompare Strong Motion using: " + basePreSplit);
+			logger.info("No base channel for Event Compare Synthetic using: " + basePreSplit);
 		}
 		if (preSplitBands == null) {
 			preSplitBands = "LH";
-			logger.info("No band restriction set for EventCompare Strong Motion using: " + preSplitBands);
+			logger.info("No band restriction set for Event Compare Synthetic using: " + preSplitBands);
 		}
 
 		bands = Arrays.asList(preSplitBands.split(","));
