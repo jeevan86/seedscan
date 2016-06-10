@@ -125,8 +125,8 @@ One thread can run an entire day of data for one station in 30 minutes to 1 hour
 </cfg:metric>
 ```
 
-######NLNM Deviation Metric Setup
-    Previously, nlnm.ascii and nhnm.ascii needed to be specified. But now leaving these settings off will cause seedscan to use default noise models. If different noise models need to be specified, they can be set in the metric.
+######Noise Model Deviation Metric Setup
+    Seedscan has default noise models. If different noise models need to be specified, they can be set in the metric.
     
 ```xml
  <cfg:metric>
@@ -139,6 +139,35 @@ One thread can run an entire day of data for one station in 30 minutes to 1 hour
  </cfg:metric>
 ```
 
+######Channel Band Restrictions Metric Setup  
+    Many metrics allow for restricting what bands are computed. This is set with the channel-restriction argument.  
+    Applicable Metrics: ALNM, Event Compare Strong Motion, Event Compare Synthetic, NLNM  
+    It can be a single band "LH" or multiple "LH,BH,HH".  
+    Defaults are metric specific.  
+
+```xml
+ <cfg:metric>
+    <cfg:class_name>asl.seedscan.metrics.ALNMDeviationMetric</cfg:class_name>
+    <cfg:argument cfg:name="lower-limit">18</cfg:argument>
+    <cfg:argument cfg:name="upper-limit">22</cfg:argument>
+    <cfg:argument cfg:name="channel-restriction">LN,HN</cfg:argument>
+    <cfg:argument cfg:name="makeplots">true</cfg:argument>
+ </cfg:metric>
+```
+######Comparison Based Metric Setup  
+    Metrics that compare sensors with sensors or synthetics, can have the default setting overridden.  
+    base-channel: Sets the channel to which everything is compared.  
+    Applicable Metrics: Coherence, Difference, Event Compare Strong Motion, Event Compare Synthetic (Sets what band of synthetic)  
+
+```xml
+ <cfg:metric>
+    <cfg:class_name>asl.seedscan.metrics.CoherencePBM</cfg:class_name>
+    <cfg:argument cfg:name="lower-limit">90</cfg:argument>
+    <cfg:argument cfg:name="upper-limit">110</cfg:argument>
+    <cfg:argument cfg:name="makeplots">true</cfg:argument>
+    <cfg:argument cfg:name="base-channel">00-LH</cfg:argument>
+ </cfg:metric>
+```
 ###Usage
 
 ######Compilation
