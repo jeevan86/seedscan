@@ -25,10 +25,6 @@ License
     The Apache Software Foundation (http://www.apache.org/).
     License:        Apache License Version 2.0
     Website:        http://commons.apache.org/proper/commons-cli/
-######Cmplx.java
-    Copyright (C) 1999 Anthony Lomax <lomax@faille.unice.fr>
-    Source:         seedscan/src/main/freq
-    License:        GPL Version 2 or later
 ######JCommon
     (C)opyright, 2000-2014, by Object Refinery Limited and Contributors.
     License:        LGPL Version 2.1
