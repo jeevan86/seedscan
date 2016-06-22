@@ -26,6 +26,11 @@ public class MassPositionMetric extends Metric {
 	/** The Constant logger. */
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.seedscan.metrics.MassPositionMetric.class);
+	
+	MassPositionMetric(){
+		super();
+		addArgument("channel-restriction");
+	}
 
 	/**
 	 * Computes the actual mass position metric.
@@ -135,9 +140,20 @@ public class MassPositionMetric extends Metric {
 
 		String station = this.getStation();
 		String day = this.getDay();
+		String bands = null;
+
+		try {
+			bands = get("channel-restriction");
+
+		} catch (Exception ignored) {
+		}
+		
+		if(bands == null){
+			bands = "VM";
+		}
 
 		// Get all VM? channels in metadata to use for loop
-		List<Channel> channels = this.stationMeta.getChannelArray("VM", false, true);
+		List<Channel> channels = this.stationMeta.getChannelArray(bands, false, true);
 
 		// Loop over channels, get metadata & data for channel and Calculate
 		// Metric

@@ -1,7 +1,6 @@
 package asl.seedscan.metrics;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
 
@@ -42,11 +41,25 @@ public class MassPositionMetricTest {
 	}
 
 	@Test
-	public final void testProcess() throws Exception {
+	public final void testProcessDefault() throws Exception {
 		
-		//metric.add("channel-restriction", "VM");
+		HashMap<String, Double> expect = new HashMap<String, Double>();
+		expect.put("00,VM1", 0.8839489469085381);
+		expect.put("00,VM2", 0.06631853547951848);
+		expect.put("00,VMZ", 8.000000000000338);
+		expect.put("10,VMV", 57.142857142857146);
+		expect.put("10,VMU", 57.142857142857146);
+		expect.put("10,VMW", 57.142857142857146);
+
+		TestUtils.testMetric(metric, expect);
+	}
+	
+	@Test
+	public final void testProcessChannelRestricted() throws Exception {
 		
-		/* The String key matches the MetricResult ids */
+		/* Using the standard VM metric because no other mass position channels currently exist.*/
+		metric.add("channel-restriction", "VM");
+
 		HashMap<String, Double> expect = new HashMap<String, Double>();
 		expect.put("00,VM1", 0.8839489469085381);
 		expect.put("00,VM2", 0.06631853547951848);
@@ -60,6 +73,6 @@ public class MassPositionMetricTest {
 
 	@Test
 	public final void testGetName() throws Exception {
-		assertEquals("Base name: ", "MassPositionMetric", metric.getName());
+		assertEquals("MassPositionMetric", metric.getName());
 	}
 }
