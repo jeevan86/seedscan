@@ -171,7 +171,7 @@ One thread can run an entire day of data for one station in 30 minutes to 1 hour
 ###Usage
 
 ######Compilation
-    The current test resources will be required to build, these are contained in a separate git repository. These are contained within a git submodule in src/test/resources. This may require updating periodically.  
+    The current test resources will be required to build, these are contained in a separate git repository. These are contained within a git submodule in src/test/resources. This may require updating periodically. See https://github.com/usgs/seedscan-testdata for the data.  
     To compile execute "gradle build". This will download required dependencies, compile, and test the source code against current unit tests.
     
 ######Basic Execution  
