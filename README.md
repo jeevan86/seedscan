@@ -141,7 +141,7 @@ One thread can run an entire day of data for one station in 30 minutes to 1 hour
 
 ######Channel Band Restrictions Metric Setup  
     Many metrics allow for restricting what bands are computed. This is set with the channel-restriction argument.  
-    Applicable Metrics: ALNM, Event Compare Strong Motion, Event Compare Synthetic, NLNM  
+    Applicable Metrics: ALNM, Event Compare Strong Motion, Event Compare Synthetic, Mass Position, NLNM, Vacuum Monitor  
     It can be a single band "LH" or multiple "LH,BH,HH".  
     Defaults are metric specific.  
 
@@ -171,6 +171,7 @@ One thread can run an entire day of data for one station in 30 minutes to 1 hour
 ###Usage
 
 ######Compilation
+    The current test resources will be required to build, these are contained in a separate git repository. These are contained within a git submodule in src/test/resources. This may require updating periodically.  
     To compile execute "gradle build". This will download required dependencies, compile, and test the source code against current unit tests.
     
 ######Basic Execution  
