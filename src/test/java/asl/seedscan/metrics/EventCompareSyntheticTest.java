@@ -7,7 +7,6 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -33,11 +32,7 @@ public class EventCompareSyntheticTest {
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 		data = null;
-	}
-
-	@Before
-	public void setUp() throws Exception {
-
+		eventLoader = null;
 	}
 
 	@Test

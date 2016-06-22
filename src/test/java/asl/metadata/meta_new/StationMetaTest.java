@@ -12,9 +12,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.TimeZone;
 
-import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -55,14 +53,14 @@ public class StationMetaTest {
 
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
-	}
-
-	@Before
-	public void setUp() throws Exception {
-	}
-
-	@After
-	public void tearDown() throws Exception {
+		data1 = null;
+		data2 = null;
+		data3 = null;
+		maleableMetadata = null;
+		
+		metadata1 = null;
+		metadata2 = null;
+		metadata3 = null;
 	}
 
 	@Test

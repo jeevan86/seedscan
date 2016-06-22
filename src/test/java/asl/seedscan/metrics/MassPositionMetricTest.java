@@ -5,14 +5,12 @@ import static org.junit.Assert.assertEquals;
 import java.util.HashMap;
 
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import asl.testutils.ResourceManager;
 
 public class MassPositionMetricTest {
-	private MassPositionMetric metric;
 	private static MetricData data1;
 
 	@BeforeClass
@@ -29,20 +27,16 @@ public class MassPositionMetricTest {
 		data1 = null;
 	}
 
-	@Before
-	public void setUp() throws Exception {
-		metric = new MassPositionMetric();
-		metric.setData(data1);
-	}
-
 	@Test
 	public final void testGetVersion() throws Exception {
+		MassPositionMetric metric = new MassPositionMetric();
 		assertEquals("Metric Version: ", 1, metric.getVersion());
 	}
 
 	@Test
 	public final void testProcessDefault() throws Exception {
-		
+		MassPositionMetric metric = new MassPositionMetric();
+		metric.setData(data1);
 		HashMap<String, Double> expect = new HashMap<String, Double>();
 		expect.put("00,VM1", 0.8839489469085381);
 		expect.put("00,VM2", 0.06631853547951848);
@@ -56,6 +50,8 @@ public class MassPositionMetricTest {
 	
 	@Test
 	public final void testProcessChannelRestricted() throws Exception {
+		MassPositionMetric metric = new MassPositionMetric();
+		metric.setData(data1);
 		
 		/* Using the standard VM metric because no other mass position channels currently exist.*/
 		metric.add("channel-restriction", "VM");
@@ -73,6 +69,7 @@ public class MassPositionMetricTest {
 
 	@Test
 	public final void testGetName() throws Exception {
+		MassPositionMetric metric = new MassPositionMetric();
 		assertEquals("MassPositionMetric", metric.getName());
 	}
 }

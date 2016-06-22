@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.HashMap;
 
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -24,7 +23,6 @@ public class StationDeviationMetricTest {
 			data1 = (MetricData) ResourceManager.loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
 			data2 = (MetricData) ResourceManager.loadCompressedObject("/data/GS.OK029.2015.360.MetricData.ser.gz", false);
 		} catch (Exception e) {
-			e.printStackTrace();
 		}
 	}
 
@@ -40,10 +38,6 @@ public class StationDeviationMetricTest {
 		metric.add("lower-limit", "90");
 		metric.add("upper-limit", "110");
 		metric.add("modelpath", ResourceManager.getDirectoryPath("/models"));
-	}
-
-	@After
-	public void tearDown() throws Exception {
 	}
 
 	@Test

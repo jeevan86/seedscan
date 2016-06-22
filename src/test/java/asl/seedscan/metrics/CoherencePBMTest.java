@@ -29,6 +29,7 @@ public class CoherencePBMTest {
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 		data = null;
+		maleableData = null;
 	}
 
 	@Before
