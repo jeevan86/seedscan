@@ -1,21 +1,3 @@
-/*
- * Copyright 2012, United States Geological Survey or
- * third-party contributors as indicated by the @author tags.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
- *
- */
 package asl.seedscan.metrics;
 
 import java.nio.ByteBuffer;
@@ -31,12 +13,11 @@ import asl.metadata.Station;
 /**
  * DeadChannelMetric - Computes Difference (over 4-8 second period) between the
  * the power spectral density (psd) of a channel and the NLNM if this value is
- * at or below a 5dB threshold the channel is dead
+ * at or below a 7dB threshold the channel is dead
  */
 
 public class DeadChannelMetric extends PowerBandMetric {
-	private static final Logger logger = LoggerFactory
-			.getLogger(asl.seedscan.metrics.DeadChannelMetric.class);
+	private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.metrics.DeadChannelMetric.class);
 
 	// MetricDatabase metricDB;
 
@@ -87,31 +68,24 @@ public class DeadChannelMetric extends PowerBandMetric {
 		List<Channel> channels = stationMeta.getChannelArray("LH", false, true);
 
 		if (channels == null || channels.size() == 0) {
-			logger.warn("No LH? channels found for station={} day={}",
-					station.toString(), getDay());
+			logger.warn("No LH? channels found for station={} day={}", station.toString(), getDay());
 			return;
 		}
 
-		// Loop over channels, get metadata & data for channel and calculate
-		// metric
+		// Loop over channels, get metadata & data for channel and calculate metric
 		for (Channel channel : channels) {
 			if (!metricData.hasChannelData(channel)) {
-				logger.info(
-						"No data found for channel:[{}] day:[{}] --> Skip metric",
-						channel, getDay());
+				logger.info("No data found for channel:[{}] day:[{}] --> Skip metric", channel, getDay());
 				continue;
 			}
 
-			NLNMValue = metricData.getMetricValue(date, NLNMName, station,
-					channel);
-			ByteBuffer digest = metricData.valueDigestChanged(channel,
-					createIdentifier(channel), getForceUpdate());
+			NLNMValue = metricData.getMetricValue(date, NLNMName, station, channel);
+			ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel), getForceUpdate());
 
 			// => oldDigest == newDigest, no need to recompute metric
 			if (digest == null) {
-				logger.info(
-						"Digest unchanged station:[{}] channel:[{}] day:[{}] --> Skip metric",
-						station, channel, getDay());
+				logger.info("Digest unchanged station:[{}] channel:[{}] day:[{}] --> Skip metric", station, channel,
+						getDay());
 				continue;
 			}
 
