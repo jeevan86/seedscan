@@ -205,64 +205,76 @@ public class Timeseries {
 
 	
 	/**
-	 * Rotate orthogonal channels to North and East. This method returns
-	 * indeterminate results if either azimuth is < 0 or >=360 degrees
+	 * Rotate orthogonal channels to North and East. If the azimuths are more
+	 * than 10 degrees from orthogonal a warning is logged and the rotation
+	 * still occurs as if orthogonal. *
 	 * 
-	 * RT ticket 11466 exists for cleaning this method.
-	 *
-	 * @param az1
+	 * @param azimuthX
 	 *            the azimuth for x
-	 * @param az2
+	 * @param azimuthY
 	 *            the azimuth for y
-	 * @param x
+	 * @param inputX
 	 *            input data
-	 * @param y
+	 * @param inputY
 	 *            input data
-	 * @param n
-	 *            the rotated n data
-	 * @param e
-	 *            the rotated e data
+	 * @param north
+	 *            the rotated north data
+	 * @param east
+	 *            the rotated east data
 	 */
-	public static void rotate_xy_to_ne(double az1, double az2, double[] x, double[] y, double[] n, double[] e) {
+	public static void rotate_xy_to_ne(double azimuthX, double azimuthY, double[] inputX, double[] inputY,
+			double[] north, double[] east) throws TimeseriesException {
 
 		/*
 		 * INITIALLY: Lets assume the horizontal channels are PERPENDICULAR and
 		 * use a single azimuth to rotate We'll check the azimuths and flip
 		 * signs to put channel1 to +N half and channel 2 to +E
 		 */
+		
+		/*
+		 * Check if the azimuths are more than 10 degrees off. Log a warning,
+		 * but still rotate as if perpendicular.
+		 */
+		if ((Math.abs(azimuthX - azimuthY) - 90) > 10) {
+			logger.warn(
+					"Azimuth difference greater than 10 degrees, still rotating as if perpendicular: AzimuthX: {}  AzimuthY: {}",
+					azimuthX, azimuthY);
+		}
 
-		double azimuth = -999;
+		double azimuth;
 		int sign1 = 1;
 		int sign2 = 1;
-		if (az1 >= 0 && az1 < 90) {
-			azimuth = az1;
-		} else if (az1 >= 90 && az1 < 180) {
-			azimuth = az1 - 180;
+		if (azimuthX >= 0 && azimuthX < 90) {
+			azimuth = azimuthX;
+		} else if (azimuthX >= 90 && azimuthX < 180) {
+			azimuth = azimuthX - 180;
 			sign1 = -1;
-		} else if (az1 >= 180 && az1 < 270) {
-			azimuth = az1 - 180;
+		} else if (azimuthX >= 180 && azimuthX < 270) {
+			azimuth = azimuthX - 180;
 			sign1 = -1;
-		} else if (az1 >= 270 && az1 < 360) {
-			azimuth = az1 - 360;
+		} else if (azimuthX >= 270 && azimuthX <= 360) {
+			azimuth = azimuthX - 360;
 		} else {
-			logger.error("MetricData.createRotatedChannels(): Don't know how to rotate az1={}", az1);
+			throw new TimeseriesException(
+					"Don't know how to rotate az1=" + azimuthX);
 		}
 
 		sign2 = 1;
-		if (az2 >= 0 && az2 < 180) {
+		if (azimuthY >= 0 && azimuthY < 180) {
 			sign2 = 1;
-		} else if (az2 >= 180 && az2 < 360) {
+		} else if (azimuthY >= 180 && azimuthY < 360) {
 			sign2 = -1;
 		} else {
-			logger.error("MetricData.createRotatedChannels(): Don't know how to rotate az2={}\n", az2);
+			throw new TimeseriesException(
+					"Don't know how to rotate az2=" + azimuthY);
 		}
 
 		double cosAz = Math.cos(azimuth * Math.PI / 180);
 		double sinAz = Math.sin(azimuth * Math.PI / 180);
 
-		for (int i = 0; i < x.length; i++) {
-			n[i] = sign1 * x[i] * cosAz - sign2 * y[i] * sinAz;
-			e[i] = sign1 * x[i] * sinAz + sign2 * y[i] * cosAz;
+		for (int i = 0; i < inputX.length; i++) {
+			north[i] = sign1 * inputX[i] * cosAz - sign2 * inputY[i] * sinAz;
+			east[i] = sign1 * inputX[i] * sinAz + sign2 * inputY[i] * cosAz;
 		}
 	}
 }

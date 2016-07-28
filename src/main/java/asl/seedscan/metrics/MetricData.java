@@ -30,6 +30,7 @@ import asl.seedsplitter.IllegalSampleRateException;
 import asl.seedsplitter.SequenceRangeException;
 import asl.timeseries.FFTUtils;
 import asl.timeseries.Timeseries;
+import asl.timeseries.TimeseriesException;
 import seed.Blockette320;
 
 /**
@@ -811,7 +812,7 @@ public class MetricData implements Serializable {
 	 * @param channelPrefix
 	 *            the channel prefix
 	 * @throws MetricException
-	 *             the metric exception
+	 *             thrown when unable to create rotated Channel data
 	 */
 	private void createRotatedChannelData(String location, String channelPrefix) throws MetricException {
 		boolean use12 = true; // Use ?H1,?H2 to rotate, else use ?HN,?HE
@@ -882,64 +883,57 @@ public class MetricData implements Serializable {
 
 		double az1 = (metadata.getChannelMetadata(channel1)).getAzimuth();
 		double az2 = (metadata.getChannelMetadata(channel2)).getAzimuth();
-
-		Timeseries.rotate_xy_to_ne(az1, az2, chan1Data, chan2Data, chanNData, chanEData);
-		/**
-		 * // az1 = azimuth of the H1 channel/vector. az2 = azimuth of the H2
-		 * channel/vector // Find the smallest (<= 180) angle between them -->
-		 * This *should* be 90 (=orthogonal channels) double azDiff =
-		 * Math.abs(az1 - az2); if (azDiff > 180) azDiff = Math.abs(az1 - az2 -
-		 * 360);
-		 * 
-		 * if ( Math.abs( azDiff - 90. ) > 0.2 ) { System.out.format(
-		 * "== createRotatedChannels: channels are NOT perpendicular! az1-az2 = %f\n"
-		 * , Math.abs(az1 - az2) ); }
-		 **/
-
-		// Here we need to convert the Series intArray[] into a DataSet with
-		// header, etc ...
-
-		// Make new channelData keys based on existing ones
-
-		String northKey = null;
-		String eastKey = null;
-
-		// keys look like "IU_ANMO 00-BH1 (20.0 Hz)"
-		// or "IU_ANMO 10-BH1 (20.0 Hz)"
-		String lookupString = null;
-		if (use12) {
-			lookupString = location + "-" + channelPrefix + "1"; // e.g.,
-			// "10-BH1"
-		} else {
-			lookupString = location + "-" + channelPrefix + "N"; // e.g.,
-			// "10-BHN"
-		}
-
-		String northString = location + "-" + channelPrefix + "ND"; // e.g.,
-		// "10-BHND"
-		String eastString = location + "-" + channelPrefix + "ED"; // e.g.,
-		// "10-BHED"
-
-		Set<String> keys = data.keySet();
-		for (String key : keys) {
-			if (key.contains(lookupString)) { // "LH1" --> "LHND" and "LHED"
-				northKey = key.replaceAll(lookupString, northString);
-				eastKey = key.replaceAll(lookupString, eastString);
-			}
-		}
-		// System.out.format("== MetricData.createRotatedChannels():
-		// channel1=%s, channelPrefex=%s\n",
-		// channel1, channelPrefix);
-		// System.out.format("== MetricData.createRotatedChannels():
-		// northKey=[%s] eastKey=[%s]\n",
-		// northKey, eastKey);
-
-		DataSet ch1Temp = getChannelData(channel1).get(0);
-		String network = ch1Temp.getNetwork();
-		String station = ch1Temp.getStation();
-		// String location = ch1Temp.getLocation();
-
 		try {
+			Timeseries.rotate_xy_to_ne(az1, az2, chan1Data, chan2Data, chanNData, chanEData);
+			/**
+			 * // az1 = azimuth of the H1 channel/vector. az2 = azimuth of the
+			 * H2 channel/vector // Find the smallest (<= 180) angle between
+			 * them --> This *should* be 90 (=orthogonal channels) double azDiff
+			 * = Math.abs(az1 - az2); if (azDiff > 180) azDiff = Math.abs(az1 -
+			 * az2 - 360);
+			 * 
+			 * if ( Math.abs( azDiff - 90. ) > 0.2 ) { System.out.format(
+			 * "== createRotatedChannels: channels are NOT perpendicular! az1-az2 = %f\n"
+			 * , Math.abs(az1 - az2) ); }
+			 **/
+
+			// Here we need to convert the Series intArray[] into a DataSet with
+			// header, etc ...
+
+			// Make new channelData keys based on existing ones
+
+			String northKey = null;
+			String eastKey = null;
+
+			// keys look like "IU_ANMO 00-BH1 (20.0 Hz)"
+			// or "IU_ANMO 10-BH1 (20.0 Hz)"
+			String lookupString = null;
+			if (use12) {
+				lookupString = location + "-" + channelPrefix + "1"; // e.g.,
+				// "10-BH1"
+			} else {
+				lookupString = location + "-" + channelPrefix + "N"; // e.g.,
+				// "10-BHN"
+			}
+
+			String northString = location + "-" + channelPrefix + "ND"; // e.g.,
+			// "10-BHND"
+			String eastString = location + "-" + channelPrefix + "ED"; // e.g.,
+			// "10-BHED"
+
+			Set<String> keys = data.keySet();
+			for (String key : keys) {
+				if (key.contains(lookupString)) { // "LH1" --> "LHND" and "LHED"
+					northKey = key.replaceAll(lookupString, northString);
+					eastKey = key.replaceAll(lookupString, eastString);
+				}
+			}
+
+			DataSet ch1Temp = getChannelData(channel1).get(0);
+			String network = ch1Temp.getNetwork();
+			String station = ch1Temp.getStation();
+			// String location = ch1Temp.getLocation();
+
 			DataSet northDataSet = new DataSet();
 			northDataSet.setNetwork(network);
 			northDataSet.setStation(station);
@@ -984,6 +978,8 @@ public class MetricData implements Serializable {
 			data.put(eastKey, dataList);
 		} catch (CloneNotSupportedException e) {
 			logger.error("CloneNotSupportedException:", e);
+		} catch (TimeseriesException e){
+			logger.error(e.getLocalizedMessage());
 		} catch (RuntimeException e) {
 			logger.error("RuntimeException:", e);
 		}
@@ -1315,7 +1311,7 @@ public class MetricData implements Serializable {
 					createRotatedChannelData(channel.getLocation(), channelPrefix);
 				}
 			} catch (MetricException e) {
-				logger.error("MetricException:", e);
+				logger.error("MetricException:", e.getLocalizedMessage());
 			}
 		}
 	}
