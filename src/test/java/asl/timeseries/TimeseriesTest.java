@@ -146,5 +146,49 @@ public class TimeseriesTest {
 			assertEquals(new Double((double) Math.round(e[i] * 10000000d) / 10000000d), expectedE);
 		}
 	}
+	
+	@Test(expected = TimeseriesException.class)
+	public final void testRotateHighAzimuthXException() throws Exception{
+		double az1 = 361;
+		double az2 = 291;
+		double[] x = { 1, 1, 1, 1, 1, 1, 1 };
+		double[] y = { 1, 1, 1, 1, 1, 1, 1 };
+		double[] n = { 0, 0, 0, 0, 0, 0, 0 };
+		double[] e = { 0, 0, 0, 0, 0, 0, 0 };
+		Timeseries.rotate_xy_to_ne(az1, az2, x, y, n, e);
+	}
+	
+	@Test(expected = TimeseriesException.class)
+	public final void testRotateLowAzimuthXException() throws Exception{
+		double az1 = 361;
+		double az2 = 291;
+		double[] x = { 1, 1, 1, 1, 1, 1, 1 };
+		double[] y = { 1, 1, 1, 1, 1, 1, 1 };
+		double[] n = { 0, 0, 0, 0, 0, 0, 0 };
+		double[] e = { 0, 0, 0, 0, 0, 0, 0 };
+		Timeseries.rotate_xy_to_ne(az1, az2, x, y, n, e);
+	}
+	
+	@Test(expected = TimeseriesException.class)
+	public final void testRotateHighAzimuthYException() throws Exception{
+		double az1 = 271;
+		double az2 = 361;
+		double[] x = { 1, 1, 1, 1, 1, 1, 1 };
+		double[] y = { 1, 1, 1, 1, 1, 1, 1 };
+		double[] n = { 0, 0, 0, 0, 0, 0, 0 };
+		double[] e = { 0, 0, 0, 0, 0, 0, 0 };
+		Timeseries.rotate_xy_to_ne(az1, az2, x, y, n, e);
+	}
+	
+	@Test(expected = TimeseriesException.class)
+	public final void testRotateLowAzimuthYException() throws Exception{
+		double az1 = 88;
+		double az2 = -1;
+		double[] x = { 1, 1, 1, 1, 1, 1, 1 };
+		double[] y = { 1, 1, 1, 1, 1, 1, 1 };
+		double[] n = { 0, 0, 0, 0, 0, 0, 0 };
+		double[] e = { 0, 0, 0, 0, 0, 0, 0 };
+		Timeseries.rotate_xy_to_ne(az1, az2, x, y, n, e);
+	}
 
 }
