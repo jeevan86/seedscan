@@ -28,11 +28,8 @@ public abstract class MemberDigest implements Serializable {
 
 	/**
 	 * Default Constructor. Uses MD5 as its hashing algorithm.
-	 * 
-	 * @throws RuntimeException
-	 *             if MD5 digest type could not be used.
 	 */
-	public MemberDigest() throws RuntimeException {
+	public MemberDigest() {
 		this("MD5");
 	}
 
@@ -44,7 +41,7 @@ public abstract class MemberDigest implements Serializable {
 	 * @throws RuntimeException
 	 *             if the passed algorithm could not be used.
 	 */
-	public MemberDigest(String algorithm) throws RuntimeException {
+	public MemberDigest(String algorithm) {
 		setAlgorithm(algorithm);
 	}
 
@@ -218,13 +215,12 @@ public abstract class MemberDigest implements Serializable {
 	 *             if the given algorithm causes a
 	 *             {@linkplain java.security.NoSuchAlgorithmException}
 	 */
-	private void setAlgorithm(String algorithm) throws RuntimeException {
+	private void setAlgorithm(String algorithm) {
 		try {
 			digest = MessageDigest.getInstance(algorithm);
 		} catch (NoSuchAlgorithmException ex) {
-			String message = String
-					.format("Could not initialize digest for the '" + algorithm + "' algorithm:" + ex.getMessage());
-			throw new RuntimeException(message);
+			String message ="Could not initialize digest for the '" + algorithm + "' algorithm:" + ex.getMessage();
+			throw new RuntimeException(message); //If this happens, something is wrong with code that called.
 		}
 	}
 

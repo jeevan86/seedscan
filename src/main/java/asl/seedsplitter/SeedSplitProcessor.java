@@ -443,8 +443,6 @@ public class SeedSplitProcessor implements Runnable {
 								}
 								temps.put(key, tempData);
 							} // replaceDataSet
-						} catch (CloneNotSupportedException e) {
-							logger.error("CloneNotSupportedException:", e.getMessage());
 						} catch (RuntimeException e) {
 							logger.error("RuntimeException:", e.getMessage());
 						}

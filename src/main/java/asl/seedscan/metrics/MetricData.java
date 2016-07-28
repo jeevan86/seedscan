@@ -976,8 +976,6 @@ public class MetricData implements Serializable {
 			dataList = new ArrayList<DataSet>();
 			dataList.add(eastDataSet);
 			data.put(eastKey, dataList);
-		} catch (CloneNotSupportedException e) {
-			logger.error("CloneNotSupportedException:", e);
 		} catch (TimeseriesException e){
 			logger.error(e.getLocalizedMessage());
 		} catch (RuntimeException e) {

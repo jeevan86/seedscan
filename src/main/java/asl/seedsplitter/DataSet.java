@@ -39,9 +39,7 @@ public class DataSet extends Sequence implements Serializable {
 	/**
 	 * Constructor.
 	 */
-	public DataSet() throws RuntimeException, CloneNotSupportedException
-
-	{
+	public DataSet() {
 		super();
 		m_network = null;
 		m_station = null;

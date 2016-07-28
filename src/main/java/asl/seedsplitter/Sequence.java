@@ -62,13 +62,8 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 
 	/**
 	 * Creates a new instance of this object.
-	 *
-	 * @throws CloneNotSupportedException
-	 *             the clone not supported exception
-	 * @throws RuntimeException
-	 *             the runtime exception
 	 */
-	public Sequence() throws CloneNotSupportedException, RuntimeException {
+	public Sequence() {
 		super();
 		TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
 		m_pool = new BlockPool(BLOCK_SIZE);
@@ -222,12 +217,9 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 				newSequence.extend(series, 0, series.length);
 				this.swapData(newSequence);
 			} catch (SequenceRangeException e) {
-				String message = "SequenceRangeException: Sequence Range Error in trim(). This should never happen!";
-				logger.error(message, e);
+				logger.error("SequenceRangeException: Sequence Range Error in trim(). This should never happen!", e);
 			} catch (RuntimeException e) {
 				logger.error("RuntimeException:", e);
-			} catch (CloneNotSupportedException e) {
-				logger.error("CloneNotSupportedException:", e);
 			}
 		}
 	}
