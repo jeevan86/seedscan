@@ -136,6 +136,12 @@ public class Channel {
 		}
 	}
 
+	/**
+	 * Sets the channel.
+	 *
+	 * @param channel the channel code
+	 * @throws ChannelException thrown if the channel code is under 3 characters or null
+	 */
 	public void setChannel(String channel) throws ChannelException {
 		if (channel == null) {
 			throw new ChannelException("channel cannot be null");
@@ -148,7 +154,7 @@ public class Channel {
 		// ) ...
 		if (channel.length() < 3) {
 			throw new ChannelException(
-					"channel name MUST be at least 3-chars long");
+					"channel code MUST be at least 3-chars long");
 		}
 		this.channel = channel;
 	}
