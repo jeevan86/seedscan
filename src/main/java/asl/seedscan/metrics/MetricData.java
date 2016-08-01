@@ -815,78 +815,75 @@ public class MetricData implements Serializable {
 	 *             thrown when unable to create rotated Channel data
 	 */
 	private void createRotatedChannelData(String location, String channelPrefix) throws MetricException {
-		boolean use12 = true; // Use ?H1,?H2 to rotate, else use ?HN,?HE
-
-		// Raw horizontal channels used for rotation
-		Channel channel1 = new Channel(location, String.format("%s1", channelPrefix));
-		Channel channel2 = new Channel(location, String.format("%s2", channelPrefix));
-
 		try {
+			boolean use12 = true; // Use ?H1,?H2 to rotate, else use ?HN,?HE
+
+			// Raw horizontal channels used for rotation
+			Channel channel1 = new Channel(location, String.format("%s1", channelPrefix));
+			Channel channel2 = new Channel(location, String.format("%s2", channelPrefix));
+
 			// If we can't find ?H1,?H2 --> try for ?HN,?HE
 			if (hasChannelData(channel1) == false || hasChannelData(channel2) == false) {
 				channel1.setChannel(String.format("%sN", channelPrefix));
 				channel2.setChannel(String.format("%sE", channelPrefix));
 				use12 = false;
+
+				// If we still can't find 2 horizontals to rotate then give up
+				if (hasChannelData(channel1) == false || hasChannelData(channel2) == false) {
+					throw new ChannelException(String.format(
+							"== createRotatedChannelData: -- Unable to find data "
+									+ "for channel1=[%s] and/or channel2=[%s] date=[%s] --> Unable to Rotate!\n",
+							channel1, channel2, metadata.getDate()));
+				}
+
+				if (metadata.hasChannel(channel1) == false || metadata.hasChannel(channel2) == false) {
+					throw new ChannelException(String.format(
+							"== createRotatedChannelData: -- Unable to find metadata "
+									+ "for channel1=[%s] and/or channel2=[%s] date=[%s] --> Unable to Rotate!\n",
+							channel1, channel2, metadata.getDate()));
+				}
 			}
-		} catch (ChannelException e) {
-			logger.error("ChannelException:", e);
-		}
 
-		// If we still can't find 2 horizontals to rotate then give up
-		if (hasChannelData(channel1) == false || hasChannelData(channel2) == false) {
-			logger.warn(String.format(
-					"== createRotatedChannelData: -- Unable to find data "
-							+ "for channel1=[%s] and/or channel2=[%s] date=[%s] --> Unable to Rotate!\n",
-					channel1, channel2, metadata.getDate()));
-			return;
-		}
+			// Rotated (=derived) channels (e.g., 00-LHND,00-LHED -or-
+			// 10-BHND,10-BHED, etc.)
+			Channel channelN = new Channel(location, String.format("%sND", channelPrefix));
+			Channel channelE = new Channel(location, String.format("%sED", channelPrefix));
 
-		if (metadata.hasChannel(channel1) == false || metadata.hasChannel(channel2) == false) {
-			logger.warn(String.format(
-					"== createRotatedChannelData: -- Unable to find metadata "
-							+ "for channel1=[%s] and/or channel2=[%s] date=[%s] --> Unable to Rotate!\n",
-					channel1, channel2, metadata.getDate()));
-			return;
-		}
+			// Get overlapping data for 2 horizontal channels and confirm equal
+			// sample rate, etc.
+			long[] foo = new long[1];
+			double[][] channelOverlap = getChannelOverlap(channel1, channel2, foo);
+			// The startTime of the largest overlapping segment
+			long startTime = foo[0];
 
-		// Rotated (=derived) channels (e.g., 00-LHND,00-LHED -or-
-		// 10-BHND,10-BHED, etc.)
-		Channel channelN = new Channel(location, String.format("%sND", channelPrefix));
-		Channel channelE = new Channel(location, String.format("%sED", channelPrefix));
+			double[] chan1Data = channelOverlap[0];
+			double[] chan2Data = channelOverlap[1];
+			/*
+			 * At this point chan1Data and chan2Data should have the SAME number
+			 * of (overlapping) points
+			 */
 
-		// Get overlapping data for 2 horizontal channels and confirm equal
-		// sample rate, etc.
-		long[] foo = new long[1];
-		double[][] channelOverlap = getChannelOverlap(channel1, channel2, foo);
-		// The startTime of the largest overlapping segment
-		long startTime = foo[0];
+			int ndata = chan1Data.length;
 
-		double[] chan1Data = channelOverlap[0];
-		double[] chan2Data = channelOverlap[1];
-		// At this point chan1Data and chan2Data should have the SAME number of
-		// (overlapping) points
+			double srate1 = getChannelData(channel1).get(0).getSampleRate();
+			double srate2 = getChannelData(channel2).get(0).getSampleRate();
+			if (srate1 != srate2) {
+				StringBuilder message = new StringBuilder();
+				message.append(String.format(
+						"createRotatedChannels: channel1=[%s] and/or channel2=[%s] date=[%s]: srate1 != srate2 !!\n",
+						channel1, channel2, metadata.getDate()));
+				throw new MetricException(message.toString());
+			}
 
-		int ndata = chan1Data.length;
+			double[] chanNData = new double[ndata];
+			double[] chanEData = new double[ndata];
 
-		double srate1 = getChannelData(channel1).get(0).getSampleRate();
-		double srate2 = getChannelData(channel2).get(0).getSampleRate();
-		if (srate1 != srate2) {
-			StringBuilder message = new StringBuilder();
-			message.append(String.format(
-					"createRotatedChannels: channel1=[%s] and/or channel2=[%s] date=[%s]: srate1 != srate2 !!\n",
-					channel1, channel2, metadata.getDate()));
-			throw new MetricException(message.toString());
-		}
+			double az1 = (metadata.getChannelMetadata(channel1)).getAzimuth();
+			double az2 = (metadata.getChannelMetadata(channel2)).getAzimuth();
 
-		double[] chanNData = new double[ndata];
-		double[] chanEData = new double[ndata];
-
-		double az1 = (metadata.getChannelMetadata(channel1)).getAzimuth();
-		double az2 = (metadata.getChannelMetadata(channel2)).getAzimuth();
-		try {
 			Timeseries.rotate_xy_to_ne(az1, az2, chan1Data, chan2Data, chanNData, chanEData);
 			/**
-			 * // az1 = azimuth of the H1 channel/vector. az2 = azimuth of the
+			 * az1 = azimuth of the H1 channel/vector. az2 = azimuth of the
 			 * H2 channel/vector // Find the smallest (<= 180) angle between
 			 * them --> This *should* be 90 (=orthogonal channels) double azDiff
 			 * = Math.abs(az1 - az2); if (azDiff > 180) azDiff = Math.abs(az1 -
@@ -940,11 +937,8 @@ public class MetricData implements Serializable {
 			northDataSet.setLocation(location);
 			northDataSet.setChannel(channelN.getChannel());
 			northDataSet.setStartTime(startTime);
-			try {
-				northDataSet.setSampleRate(srate1);
-			} catch (IllegalSampleRateException e) {
-				logger.error("createRotatedChannels: Invalid Sample Rate = {} date={}", srate1, metadata.getDate());
-			}
+			
+			northDataSet.setSampleRate(srate1);
 
 			int[] intArray = new int[ndata];
 			for (int i = 0; i < ndata; i++) {
@@ -962,11 +956,8 @@ public class MetricData implements Serializable {
 			eastDataSet.setLocation(location);
 			eastDataSet.setChannel(channelE.getChannel());
 			eastDataSet.setStartTime(startTime);
-			try {
-				eastDataSet.setSampleRate(srate1);
-			} catch (IllegalSampleRateException e) {
-				logger.error("createRotatedChannels: Invalid Sample Rate = {} date={}", srate1, metadata.getDate());
-			}
+
+			eastDataSet.setSampleRate(srate1);
 
 			for (int i = 0; i < ndata; i++) {
 				intArray[i] = (int) chanEData[i];
@@ -976,12 +967,9 @@ public class MetricData implements Serializable {
 			dataList = new ArrayList<DataSet>();
 			dataList.add(eastDataSet);
 			data.put(eastKey, dataList);
-		} catch (TimeseriesException e){
-			logger.error(e.getLocalizedMessage());
-		} catch (RuntimeException e) {
-			logger.error("RuntimeException:", e);
+		} catch (TimeseriesException | ChannelException | IllegalSampleRateException e){
+			throw new MetricException("Data rotation failed", e);
 		}
-
 	}
 
 	/**
@@ -1128,7 +1116,7 @@ public class MetricData implements Serializable {
 	 * attempt to rotate the data.
 	 * 
 	 * @param channelArray
-	 *            Array of 3 component channels for a single location.
+	 *            Array of 2 or 3 component channels for a single location.
 	 * @param id
 	 *            contains Network, Station, Location, Channel information for
 	 *            identification.
@@ -1145,16 +1133,19 @@ public class MetricData implements Serializable {
 		String strdate = EpochData.epochToDateString(date);
 		String channelId = MetricResult.createResultId(id.getChannel());
 
-		// We need at least metadata to compute a digest. If it doesn't exist,
-		// then maybe this is a rotated
-		// channel (e.g., "00-LHND") and we need to first try to make the
-		// metadata + data for it.
+		/*
+		 * We need at least metadata to compute a digest. If it doesn't exist,
+		 * then maybe this is a rotated channel (e.g., "00-LHND") and we need to
+		 * first try to make the metadata + data for it.
+		 */
 		if (!metadata.hasChannels(channelArray)) {
 			checkForRotatedChannels(channelArray);
 		}
 
-		// Check again for metadata. If we still don't have it (e.g., we weren't
-		// able to rotate) --> return null digest
+		/*
+		 * Check again for metadata. If we still don't have it (e.g., we weren't
+		 * able to rotate) --> return null digest
+		 */
 		if (!metadata.hasChannels(channelArray)) {
 			logger.warn(
 					"valueDigestChanged (date=[{}]): We don't have metadata to compute the digest for this channelArray "
@@ -1163,12 +1154,13 @@ public class MetricData implements Serializable {
 			return null;
 		}
 
-		// At this point we have the metadata but we may still not have any data
-		// for this channel(s).
-		// Check for data and if it doesn't exist, then return a null digest,
-		// EXCEPT if this is the
-		// AvailabilityMetric that is requesting the digest (in which case
-		// return a digest for the metadata alone)
+		/*
+		 * At this point we have the metadata but we may still not have any data
+		 * for this channel(s). Check for data and if it doesn't exist, then
+		 * return a null digest, EXCEPT if this is the AvailabilityMetric that
+		 * is requesting the digest (in which case return a digest for the
+		 * metadata alone)
+		 */
 
 		boolean availabilityMetric = false;
 		if (id.getMetricName().contains("AvailabilityMetric")) {
@@ -1190,27 +1182,33 @@ public class MetricData implements Serializable {
 			return newDigest; // Go ahead and recompute the metric.
 		}
 
-		if (metricReader.isConnected()) { // Retrieve old Digest from Database
-			// and compare to new Digest
-			// System.out.println("=== MetricData.metricReader *IS* connected");
+		if (metricReader.isConnected()) {
+			/*
+			 * Retrieve old Digest from Database and compare to new Digest
+			 */
 			ByteBuffer oldDigest = metricReader.getMetricValueDigest(id);
 			if (oldDigest == null) {
 				logger.info("Old digest is null.");
 			} else if (newDigest.compareTo(oldDigest) == 0) {
 				logger.info("Digests are Equal !!");
-				if (forceUpdate) { // Don't do anything --> return the digest to
-					// force the metric computation
-					String msg = String
-							.format("== valueDigestChanged: metricName=%s date=%s Digests are Equal BUT forceUpdate=[%s]"
-									+ " so compute the metric anyway!\n", metricName, strdate, forceUpdate);
-					logger.info(msg);
+				if (forceUpdate) {
+					/*
+					 * Don't do anything --> return the digest to force the
+					 * metric computation
+					 */
+					logger.info(
+							"== valueDigestChanged: metricName={} date={} Digests are Equal BUT forceUpdate=[{}] so compute the metric anyway!\n",
+							metricName, strdate, forceUpdate);
 				} else {
 					newDigest = null;
 				}
 			} else if (!hasChannelArrayData(channelArray) && !forceUpdate) {
-				// This should catch availability metrics without data, but have
-				// precomputed values. If forceUpdate then drop out to the returnnewDigest
-				return null;
+				/*
+				 * This should catch availability metrics without data, but have
+				 * precomputed values. If forceUpdate then drop out to the
+				 * returnnewDigest
+				 */
+				newDigest = null;
 			}
 			logger.info(String.format("valueDigestChanged() --> oldDigest = getMetricValueDigest(%s, %s, %s, %s)",
 					strdate, metricName, station, channelId));

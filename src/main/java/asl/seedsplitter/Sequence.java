@@ -127,12 +127,8 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 	 */
 	public void setSampleRate(double sampleRate)
 			throws IllegalSampleRateException {
-		try {
-			m_interval = sampleRateToInterval(sampleRate);
-			m_sampleRate = sampleRate;
-		} catch (IllegalSampleRateException e) {
-			throw e;
-		}
+		m_interval = sampleRateToInterval(sampleRate);
+		m_sampleRate = sampleRate;
 	}
 
 	/**
@@ -164,14 +160,10 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 	 * @throws NullPointerException
 	 *             - if offset is null.
 	 */
-	public void extend(int[] buffer, int offset, int length)
-			throws IndexOutOfBoundsException, ArrayStoreException,
-			NullPointerException {
+	public void extend(int[] buffer, int offset, int length) {
 		int copySize = 0;
 		while (length > 0) {
 			copySize = (m_remainder > length) ? length : m_remainder;
-			// System.out.format("=== Sequence.extend(): length=%d remainder=%d copySize=%d\n",
-			// length, m_remainder, copySize);
 			System.arraycopy(buffer, offset, m_block, BLOCK_SIZE - m_remainder,
 					copySize);
 			if (m_remainder <= length) {
@@ -708,7 +700,7 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 	 * @return A long integer value representing the supplied sample rate as an
 	 *         interval.
 	 * @throws IllegalSampleRateException
-	 *             if the supplied sample rate is not one of the accpeted
+	 *             if the supplied sample rate is not one of the accepted
 	 *             values.
 	 */
 	static long sampleRateToInterval(double sampleRate)
