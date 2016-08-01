@@ -1188,7 +1188,7 @@ public class MetricData implements Serializable {
 			 */
 			ByteBuffer oldDigest = metricReader.getMetricValueDigest(id);
 			if (oldDigest == null) {
-				logger.info("Old digest is null.");
+				logger.info("Old digest is null. No entry in database.");
 			} else if (newDigest.compareTo(oldDigest) == 0) {
 				logger.info("Digests are Equal !!");
 				if (forceUpdate) {
@@ -1208,14 +1208,15 @@ public class MetricData implements Serializable {
 				 * precomputed values. If forceUpdate then drop out to the
 				 * returnnewDigest
 				 */
+				logger.info("Entry found in database, but no data to recompute.");
 				newDigest = null;
 			}
 			logger.info(String.format("valueDigestChanged() --> oldDigest = getMetricValueDigest(%s, %s, %s, %s)",
 					strdate, metricName, station, channelId));
-		} else {
-			// System.out.println("=== MetricData.metricReader *IS NOT*
-			// connected");
 		}
+		/*
+		 * If metricReader is not connected, it will always fall through and recompute.
+		 */
 
 		return newDigest;
 	}
