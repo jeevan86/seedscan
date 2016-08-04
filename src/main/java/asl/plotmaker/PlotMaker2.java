@@ -107,7 +107,7 @@ public class PlotMaker2 {
 		NumberAxis horizontalAxis = new NumberAxis("x-axis default"); // x =
 																		// domain
 
-		if (fileName.contains("nlnm") || fileName.contains("coher")
+		if (fileName.contains("alnm") || fileName.contains("nlnm") || fileName.contains("coher")
 				|| fileName.contains("stn")) { // NLNM or StationDeviation
 			horizontalAxis = new LogarithmicAxis("Period (sec)");
 			horizontalAxis.setRange(new Range(1, 11000));
@@ -129,7 +129,7 @@ public class PlotMaker2 {
 			NumberAxis verticalAxis = new NumberAxis("y-axis default"); // y =
 																		// range
 
-			if (fileName.contains("nlnm") || fileName.contains("stn")) { // NLNM
+			if (fileName.contains("alnm") || fileName.contains("nlnm") || fileName.contains("stn")) { // NLNM
 																			// or
 																			// StationDeviation
 				verticalAxis = new NumberAxis("PSD 10log10(m**2/s**4)/Hz dB");
@@ -203,7 +203,8 @@ public class PlotMaker2 {
 			iTrace = 0;
 			for (Trace trace : panel.getTraces()) {
 				if (!trace.getName().contains("NLNM")
-						&& !trace.getName().contains("NHNM")) {
+						&& !trace.getName().contains("NHNM")
+						&& !trace.getName().contains("ALNM")) {
 					// x1 > x2 > x3, e.g.:
 					// o-------o 00-LHZ
 					// x3 x2 x1
