@@ -48,7 +48,7 @@ public class CrossPower {
 		if (sampleRate == 0)
 			throw new MetricPSDException("Got srate=0");
 
-		PSD psdRaw = new PSD(metricData.getPaddedDayData(channelX), metricData.getPaddedDayData(channelY),
+		PSD psdRaw = new PSD(metricData.getDetrendedPaddedDayData(channelX), metricData.getDetrendedPaddedDayData(channelY),
 				(1. / sampleRate));
 		Complex[] spectrumRaw = psdRaw.getSpectrum();
 		double[] frequencyRaw = psdRaw.getFreq();

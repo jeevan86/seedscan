@@ -733,14 +733,15 @@ public class MetricData implements Serializable {
 	}
 
 	/**
-	 * Return a full day (86400 sec) array of data assembled from a channel's
-	 * DataSets Zero pad any gaps between DataSets.
+	 * Return a demeaned full day (86400 sec) array of data assembled from a channel's
+	 * DataSets<br>
+	 * Zero pad any gaps between DataSets.
 	 *
 	 * @param channel
 	 *            the channel
 	 * @return the padded day data
 	 */
-	public double[] getPaddedDayData(Channel channel) {
+	public double[] getDetrendedPaddedDayData(Channel channel) {
 		if (!hasChannelData(channel)) {
 			logger.warn(String.format("== getPaddedDayData(): We have NO data for channel=[%s] date=[%s]\n", channel,
 					metadata.getDate()));
@@ -758,8 +759,41 @@ public class MetricData implements Serializable {
 
 		double[] data = new double[nPointsPerDay];
 
-		long lastEndTime = 0;
+		long lastEndTime = dayStartTime;
 		int k = 0;
+
+		long xSum = 0;
+		long ySum = 0;
+		long xySum = 0;
+		long xxSum = 0;
+		long count = 0;
+		for (DataSet dataset : datasets) {
+			long startTime = dataset.getStartTime(); // microsecs since Jan. 1,
+			// 1970
+			long endTime = dataset.getEndTime();
+			int length = dataset.getLength();
+
+			int[] series = dataset.getSeries();
+
+			k += (int) ((startTime - lastEndTime) / interval);
+
+			for (int j = 0; j < length; j++) {
+				xSum += k;
+				ySum += series[j];
+				xySum = xySum + (k * (long) series[j]);
+				xxSum = xxSum + (k * (long) k);
+				k++;
+				count++;
+			}
+
+			lastEndTime = endTime;
+		}
+
+		double slope = (count *xySum - xSum*ySum)/ (double)(count*xxSum - xSum*xSum);
+		double yOffset = (ySum - slope * xSum)/(double) count;
+
+		lastEndTime = dayStartTime;
+		k = 0;
 
 		for (int i = 0; i < datasets.size(); i++) {
 			DataSet dataset = datasets.get(i);
@@ -767,9 +801,6 @@ public class MetricData implements Serializable {
 			// 1970
 			long endTime = dataset.getEndTime();
 			int length = dataset.getLength();
-			// System.out.format("== getPaddedDayData: channel=[%s] dataset #%d
-			// startTime=%d endTime=%d length=%d\n",
-			// channel, i, startTime, endTime, length);
 			int[] series = dataset.getSeries();
 
 			if (i == 0) {
@@ -777,25 +808,24 @@ public class MetricData implements Serializable {
 			}
 			int npad = (int) ((startTime - lastEndTime) / interval) - 1;
 
+			/*Begin does nothing except increase k by npad*/
 			for (int j = 0; j < npad; j++) {
 				if (k < data.length) {
 					data[k] = 0.;
 				}
 				k++;
 			}
+			/*End does nothing*/
+			
 			for (int j = 0; j < length; j++) {
 				if (k < data.length) {
-					data[k] = (double) series[j];
+					data[k] = (double) (series[j] - k*slope - yOffset);
 				}
 				k++;
 			}
-
+			
 			lastEndTime = endTime;
 		}
-		// System.out.format("== fullDayData: nDataSets=%d interval=%d
-		// nPointsPerDay%d k=%d\n",
-		// datasets.size(),
-		// interval, nPointsPerDay, k );
 		return data;
 	}
 

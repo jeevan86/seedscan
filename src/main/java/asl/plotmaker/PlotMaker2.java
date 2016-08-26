@@ -133,7 +133,7 @@ public class PlotMaker2 {
 																			// or
 																			// StationDeviation
 				verticalAxis = new NumberAxis("PSD 10log10(m**2/s**4)/Hz dB");
-				verticalAxis.setRange(new Range(-190, -95));
+				verticalAxis.setRange(new Range(-190, -80));
 				verticalAxis.setTickUnit(new NumberTickUnit(5.0));
 			} else if (fileName.contains("coher")) { // Coherence
 				verticalAxis = new NumberAxis("Coherence, Gamma");
