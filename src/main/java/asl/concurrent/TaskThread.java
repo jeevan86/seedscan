@@ -76,14 +76,14 @@ public abstract class TaskThread<T> implements Runnable {
 						running = false;
 					}
 					// Otherwise hand off the task
-					else {
+					else if(task != null){
 						logger.debug(String.format(
 								"Performing task %s : %s",
 								task.getCommand(),
 								(task.getData() == null) ? "null" : task
 										.getData()));
 						performTask(task);
-					}
+					} //Else go back around and take/poll again.
 				} catch (InterruptedException e) {
 					// This is expected when threads are being killed.
 					// Mark interrupt to true so we can remark the thread later.
