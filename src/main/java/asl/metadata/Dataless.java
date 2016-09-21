@@ -278,16 +278,13 @@ public class Dataless {
 				ChannelKey channelKey = null;
 				try {
 					channelKey = new ChannelKey(blockette);
-				} catch (WrongBlocketteException e) {
-					logger.error("WrongBlocketteException:", e);
-				}
-				if (!station.hasChannel(channelKey)) {
-					channel = new ChannelData(channelKey);
-					station.addChannel(channelKey, channel);
-				} else {
-					channel = station.getChannel(channelKey);
-				}
-				try {
+
+					if (!station.hasChannel(channelKey)) {
+						channel = new ChannelData(channelKey);
+						station.addChannel(channelKey, channel);
+					} else {
+						channel = station.getChannel(channelKey);
+					}
 					Calendar epochKey = channel.addEpoch(blockette);
 					epoch = channel.getEpoch(epochKey);
 				} catch (MissingBlocketteDataException e) {
