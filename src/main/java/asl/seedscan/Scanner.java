@@ -47,8 +47,7 @@ class Scanner implements Runnable {
 	private Scan scan;
 	private MetaServer metaServer;
 
-	private MetricData currentMetricData = null;
-	private MetricData nextMetricData = null;
+
 
 	// Class to assign seedplitter object and seedsplitter table
 	private static class SplitterObject {
@@ -92,6 +91,9 @@ class Scanner implements Runnable {
 		logger.debug("Enter scan(): Thread id=[{}]", Thread.currentThread().getId());
 
 		GregorianCalendar timestamp = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+		
+		MetricData currentMetricData = null;
+		MetricData nextMetricData = null;
 
 		// Look for cfg:start_date first:
 		if (scan.getStartDate() >= 1970001 && scan.getStartDate() < 2114001) {
@@ -267,9 +269,6 @@ class Scanner implements Runnable {
 				logger.error("Scanner IllegalArgumentException:", e);
 			}
 		} // end loop over day to scan
-			// Clear out references to data so that memory can be saved.
-		this.currentMetricData = null;
-		this.nextMetricData = null;
 	} // end scan()
 
 	/**
