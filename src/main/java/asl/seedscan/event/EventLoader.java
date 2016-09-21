@@ -170,14 +170,18 @@ public class EventLoader {
 
 			File[] sacFiles = eventDir.listFiles(sacFilter);
 			Hashtable<String, SacTimeSeries> eventSynthetics = null;
+			
+			if(sacFiles == null) continue; //Continue to next key
 
 			for (File sacFile : sacFiles) {
 				logger.info(String.format("Found sacFile=%s [%s]", sacFile, sacFile.getName()));
 				SacTimeSeries sac = new SacTimeSeries();
 				try {
 					sac.read(sacFile);
-				} catch (Exception e) {
+				} catch (IOException e) {
+					//File didn't read correctly, try next file.
 					logger.error("Exception:", e);
+					continue;
 				}
 				if (eventSynthetics == null) {
 					eventSynthetics = new Hashtable<String, SacTimeSeries>();
