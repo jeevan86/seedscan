@@ -53,9 +53,10 @@ public class VacuumMonitorMetric extends Metric {
 
 		double totalGain = stage1.getStageGain() * stage2.getStageGain();
 
-		if (stage0.getStageGain() != totalGain) {
+		//StageGain and the totalGain should be the same.
+		if (Math.abs(1.0 - stage0.getStageGain()/totalGain) > 0.00001) {
 			throw new MetricException(String.format(
-					"Channel Response invalid: %s Verification stage mismatch: Verification= %s TotalGain=%s",
+					"Channel Response invalid: Verification stage mismatch: Verification= %s TotalGain=%s",
 					stage0.getStageGain(), totalGain));
 		}
 
