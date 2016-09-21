@@ -33,9 +33,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * 
  * IF THERE ARE ANY PROBLEMS IN ANY OF THE SAC CLASSES, CONSIDER SCRAPPING OUR
@@ -58,9 +55,6 @@ import org.slf4j.LoggerFactory;
  * @author H. Philip Crotwell
  */
 public class SacTimeSeries {
-
-	private static final Logger logger = LoggerFactory
-			.getLogger(sac.SacTimeSeries.class);
 
 	public SacTimeSeries() {
 	}
@@ -192,8 +186,6 @@ public class SacTimeSeries {
 						+ ") !=  file length=" + sacFile.length());
 			}
 			readData(dis);
-		} catch (Exception e) {
-			logger.error("Exception:", e);
 		} finally {
 			dis.close();
 		}
