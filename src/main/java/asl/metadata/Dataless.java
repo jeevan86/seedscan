@@ -70,7 +70,7 @@ import java.util.Hashtable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Dataless {
+class Dataless {
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.metadata.Dataless.class);
 
@@ -82,21 +82,11 @@ public class Dataless {
 	private double count;
 	private double total;
 	
-	public Dataless(Collection<String> rawDataless) {
+	Dataless(Collection<String> rawDataless) {
 		this.rawDataless = rawDataless;
 	}
 
-	// This should be the one we use until station/network masks are implemented
-	public void processVolume() throws DatalessParseException {
-		processVolume("now", "is the time");
-	}
-
-	public void processVolume(Station station) throws DatalessParseException {
-		processVolume(station.getNetwork(), station.getStation());
-	}
-
-	public void processVolume(String networkMask, String stationMask)
-			throws DatalessParseException {
+	void processVolume() throws DatalessParseException {
 		boolean failed = true;
 		try {
 			parse();
