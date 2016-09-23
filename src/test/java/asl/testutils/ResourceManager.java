@@ -44,7 +44,9 @@ public abstract class ResourceManager { // NO_UCD (test only)
 			oos = new ObjectOutputStream(gzos);
 			oos.writeObject(object);
 		} finally { // This is still executed despite return statement.
-			oos.close();
+			if (oos != null) oos.close();
+			else if( gzos != null) gzos.close(); //Try next level up
+			else if(fos != null) fos.close();
 		}
 	}
 
@@ -78,7 +80,8 @@ public abstract class ResourceManager { // NO_UCD (test only)
 			return object;
 
 		} finally { // This is still executed despite return statement.
-			ois.close();
+			if(ois != null) ois.close();
+			else if(gzis != null) gzis.close(); //Try next level up.
 		}
 
 	}
