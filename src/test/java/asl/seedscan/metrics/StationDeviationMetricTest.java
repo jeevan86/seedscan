@@ -62,12 +62,12 @@ public class StationDeviationMetricTest {
 		metric.setData(data2);
 		
 		HashMap<String, Double> expect = new HashMap<String, Double>();
-		expect.put("00,LH1", 14.257283986992178);
-		expect.put("00,LH2", 24.696306735105786);
+		expect.put("00,LH1", 10.55316202766241);
+		expect.put("00,LH2", 13.004893924325444);
 		
-		expect.put("00,HH1", 15.821418158610228);
-		expect.put("00,HH2", 25.1707731853566);
-		expect.put("00,HHZ", 25.399405846808705);
+		expect.put("00,HH1", 79.1343722643019);
+		expect.put("00,HH2", 84.66032464538895);
+		expect.put("00,HHZ", 69.51285486264509);
 
 		TestUtils.testMetric(metric, expect);	
 	}
