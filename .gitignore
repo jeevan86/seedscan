@@ -2,9 +2,11 @@ build
 *.class
 .classpath
 config.xml
+config.xml.*
 config.xml~
 doc
 .gradle/
+*.jar
 logs/*
 log.txt
 *.old
