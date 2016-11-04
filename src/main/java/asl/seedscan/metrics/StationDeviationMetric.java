@@ -40,7 +40,7 @@ import asl.plotmaker.Trace;
 import asl.plotmaker.TraceException;
 import asl.seedscan.ArchivePath;
 import asl.timeseries.CrossPower;
-import asl.timeseries.Timeseries;
+import asl.timeseries.TimeseriesUtils;
 
 public class StationDeviationMetric extends PowerBandMetric {
 	private static final Logger logger = LoggerFactory
@@ -201,7 +201,7 @@ public class StationDeviationMetric extends PowerBandMetric {
 
 		// Interpolate the smoothed psd to the periods of the Station/Channel
 		// Noise Model:
-		double psdInterp[] = Timeseries.interpolate(per, psdPer, modelPeriods);
+		double psdInterp[] = TimeseriesUtils.interpolate(per, psdPer, modelPeriods);
 
 		PowerBand band = getPowerBand();
 		double lowPeriod = band.getLow();

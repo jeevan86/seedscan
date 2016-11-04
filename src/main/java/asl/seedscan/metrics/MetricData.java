@@ -29,8 +29,9 @@ import asl.seedsplitter.DataSet;
 import asl.seedsplitter.IllegalSampleRateException;
 import asl.seedsplitter.SequenceRangeException;
 import asl.timeseries.FFTUtils;
-import asl.timeseries.Timeseries;
+import asl.timeseries.TimeseriesUtils;
 import asl.timeseries.TimeseriesException;
+import asl.timeseries.TimeseriesFactory;
 import seed.Blockette320;
 
 /**
@@ -534,9 +535,9 @@ public class MetricData implements Serializable {
 		for (int i = 0; i < timeseries.length; i++) {
 			data[i] = timeseries[i];
 		}
-		Timeseries.detrend(data);
-		Timeseries.demean(data);
-		Timeseries.costaper(data, .01);
+		TimeseriesUtils.detrend(data);
+		TimeseriesUtils.demean(data);
+		TimeseriesUtils.costaper(data, .01);
 
 		double[] freq = new double[nf];
 		for (int k = 0; k < nf; k++) {
@@ -749,10 +750,8 @@ public class MetricData implements Serializable {
 		}
 		ArrayList<DataSet> datasets = getChannelData(channel);
 
-		long dayStartTime = metadata.getTimestamp().getTimeInMillis() * 1000; // epoch
-		// microsecs
-		// since
-		// 1970
+		/*epoch microsecs since 1970*/
+		long dayStartTime = metadata.getTimestamp().getTimeInMillis() * 1000; 
 		long interval = datasets.get(0).getInterval(); // sample dt in microsecs
 
 		int nPointsPerDay = (int) (86400000000L / interval);
@@ -768,8 +767,8 @@ public class MetricData implements Serializable {
 		long xxSum = 0;
 		long count = 0;
 		for (DataSet dataset : datasets) {
-			long startTime = dataset.getStartTime(); // microsecs since Jan. 1,
-			// 1970
+			/*microsecs since Jan. 1, 1970*/
+			long startTime = dataset.getStartTime();
 			long endTime = dataset.getEndTime();
 			int length = dataset.getLength();
 
@@ -911,7 +910,7 @@ public class MetricData implements Serializable {
 			double az1 = (metadata.getChannelMetadata(channel1)).getAzimuth();
 			double az2 = (metadata.getChannelMetadata(channel2)).getAzimuth();
 
-			Timeseries.rotate_xy_to_ne(az1, az2, chan1Data, chan2Data, chanNData, chanEData);
+			TimeseriesUtils.rotate_xy_to_ne(az1, az2, chan1Data, chan2Data, chanNData, chanEData);
 			/**
 			 * az1 = azimuth of the H1 channel/vector. az2 = azimuth of the
 			 * H2 channel/vector // Find the smallest (<= 180) angle between

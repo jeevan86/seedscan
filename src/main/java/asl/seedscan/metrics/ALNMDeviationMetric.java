@@ -21,7 +21,7 @@ import asl.plotmaker.PlotMakerException;
 import asl.plotmaker.Trace;
 import asl.plotmaker.TraceException;
 import asl.timeseries.CrossPower;
-import asl.timeseries.Timeseries;
+import asl.timeseries.TimeseriesUtils;
 
 /**
  * ALNMDeviationMetric - Compute Difference (over specified range of periods =
@@ -251,7 +251,7 @@ public class ALNMDeviationMetric extends PowerBandMetric {
 		// Timeseries.timeoutXY(per, psdPer, outFile);
 
 		// Interpolate the smoothed psd to the periods of the ALNM Model:
-		double psdInterp[] = Timeseries.interpolate(per, psdPer, getALNM().getPeriods());
+		double psdInterp[] = TimeseriesUtils.interpolate(per, psdPer, getALNM().getPeriods());
 
 		// outFile = channel.toString() + ".psd.Fsmooth.T.Interp";
 		// Timeseries.timeoutXY(ALNMPeriods, psdInterp, outFile);

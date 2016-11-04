@@ -3,8 +3,8 @@ package asl.timeseries;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Timeseries {
-	private static final Logger logger = LoggerFactory.getLogger(asl.timeseries.Timeseries.class);
+public class TimeseriesUtils {
+	private static final Logger logger = LoggerFactory.getLogger(asl.timeseries.TimeseriesUtils.class);
 
 	/**
 	 * Performs an in place detrend on an array of timeseries data.

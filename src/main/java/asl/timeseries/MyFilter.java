@@ -56,9 +56,9 @@ public class MyFilter {
 		for (int i = 0; i < ndata; i++) {
 			data[i] = timeseries[i];
 		}
-		Timeseries.detrend(data);
-		Timeseries.demean(data);
-		Timeseries.costaper(data, .01);
+		TimeseriesUtils.detrend(data);
+		TimeseriesUtils.demean(data);
+		TimeseriesUtils.costaper(data, .01);
 
 		// fft2 returns just the (nf = nfft/2 + 1) positive frequencies
 		Complex[] xfft = FFTUtils.singleSidedFFT(data);

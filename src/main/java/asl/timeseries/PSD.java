@@ -162,17 +162,17 @@ public class PSD {
 			
 			//Using Arrays.copyOfRange() is better than a loop when dealing with HH data.
 			double[] xseg = Arrays.copyOfRange(dataX, offset, segmentLastIndex);
-			Timeseries.detrend(xseg);
-			Timeseries.demean(xseg);
-			wss = Timeseries.costaper(xseg, .10);
+			TimeseriesUtils.detrend(xseg);
+			TimeseriesUtils.demean(xseg);
+			wss = TimeseriesUtils.costaper(xseg, .10);
 			xfft = FFTUtils.singleSidedFFT(xseg);
 			
 			//Only use yseg if dataY actually exists. Cuts computation time in half.
 			if(dataY != null){
 				double[] yseg = Arrays.copyOfRange(dataY, offset, segmentLastIndex);
-				Timeseries.detrend(yseg);
-				Timeseries.demean(yseg);
-				wss = Timeseries.costaper(yseg, .10);
+				TimeseriesUtils.detrend(yseg);
+				TimeseriesUtils.demean(yseg);
+				wss = TimeseriesUtils.costaper(yseg, .10);
 				yfft = FFTUtils.singleSidedFFT(yseg);
 			}
 			else{

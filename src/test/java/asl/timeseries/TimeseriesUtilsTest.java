@@ -4,15 +4,15 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import asl.timeseries.Timeseries;
+import asl.timeseries.TimeseriesUtils;
 
-public class TimeseriesTest {
+public class TimeseriesUtilsTest {
 
 	@Test
 	public final void testDetrendNoSlope() throws Exception {
 		double[] x = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
 
-		Timeseries.detrend(x);
+		TimeseriesUtils.detrend(x);
 
 		for (int i = 0; i < x.length; i++) {
 			assertEquals(new Double(x[i]), new Double(0.0));
@@ -27,7 +27,7 @@ public class TimeseriesTest {
 		Double[] answer = { -9d, -8d, -7d, -6d, -5d, -4d, -3d, -2d, -1d, 0d, 1d, 2d, 3d, 4d, 5d, 6d, 7d, 8d, 9d, 10d,
 				9d, 8d, 7d, 6d, 5d, 4d, 3d, 2d, 1d, 0d, -1d, -2d, -3d, -4d, -5d, -6d, -7d, -8d, -9d };
 
-		Timeseries.detrend(x);
+		TimeseriesUtils.detrend(x);
 		for (int i = 0; i < x.length; i++) {
 			assertEquals(new Double(Math.round(x[i])), answer[i]);
 		}
@@ -37,7 +37,7 @@ public class TimeseriesTest {
 	public final void testDetrendLinear() throws Exception {
 		double[] x = { -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 };
 
-		Timeseries.detrend(x);
+		TimeseriesUtils.detrend(x);
 		for (int i = 0; i < x.length; i++) {
 			assertEquals(new Double(Math.round(x[i])), new Double(0));
 		}
@@ -46,7 +46,7 @@ public class TimeseriesTest {
 	@Test
 	public final void testDemean0s() throws Exception {
 		double[] x = { 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-		Timeseries.demean(x);
+		TimeseriesUtils.demean(x);
 		for (int i = 0; i < x.length; i++) {
 			assertEquals(new Double((double) Math.round(x[i] * 10000000d) / 10000000d), new Double(0.0));
 		}
@@ -56,7 +56,7 @@ public class TimeseriesTest {
 	public final void testDemean1to9() throws Exception {
 		double[] x = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 		Double[] expected = { -4d, -3d, -2d, -1d, 0d, 1d, 2d, 3d, 4d };
-		Timeseries.demean(x);
+		TimeseriesUtils.demean(x);
 		for (int i = 0; i < x.length; i++) {
 			assertEquals(new Double((double) Math.round(x[i] * 10000000d) / 10000000d), expected[i]);
 		}
@@ -66,7 +66,7 @@ public class TimeseriesTest {
 	public final void testCostaperNoWidth() throws Exception {
 		double[] x = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
 
-		double power = Timeseries.costaper(x, 0);
+		double power = TimeseriesUtils.costaper(x, 0);
 
 		assertEquals(new Double(Math.round(power)), new Double(16));
 		for (int i = 0; i < x.length; i++) {
@@ -79,7 +79,7 @@ public class TimeseriesTest {
 		double[] x = { 5, 5, 5, 5, 5 };
 		Double[] answer = { 0d, 4.5d, 5d, 4.5d, 0d };
 
-		double power = Timeseries.costaper(x, 0.25);
+		double power = TimeseriesUtils.costaper(x, 0.25);
 
 		assertEquals(new Double(Math.round(power)), new Double(4));
 
@@ -96,7 +96,7 @@ public class TimeseriesTest {
 
 		Double[] answer = { 1.0d, 2.5d, 3.0d, 3.5d, 7.0d, 7.9d };
 
-		double[] result = Timeseries.interpolate(X, Y, Z);
+		double[] result = TimeseriesUtils.interpolate(X, Y, Z);
 
 		// Super basic interpolation. If it isn't within 1 tenth of the answer,
 		// we should interpolate differently.
@@ -117,7 +117,7 @@ public class TimeseriesTest {
 		Double expected = (double) Math.round(0.70710678118 * 10000000d) / 10000000d; // sin(45
 																						// deg)
 
-		Timeseries.rotate_xy_to_ne(az1, az2, x, y, n, e);
+		TimeseriesUtils.rotate_xy_to_ne(az1, az2, x, y, n, e);
 		for (int i = 0; i < n.length; i++) {
 			assertEquals(new Double((double) Math.round(n[i] * 10000000d) / 10000000d), expected);
 			assertEquals(new Double((double) Math.round(e[i] * 10000000d) / 10000000d), expected);
@@ -140,7 +140,7 @@ public class TimeseriesTest {
 																								// +
 																								// cos(330)
 
-		Timeseries.rotate_xy_to_ne(az1, az2, x, y, n, e);
+		TimeseriesUtils.rotate_xy_to_ne(az1, az2, x, y, n, e);
 		for (int i = 0; i < n.length; i++) {
 			assertEquals(new Double((double) Math.round(n[i] * 10000000d) / 10000000d), expectedN);
 			assertEquals(new Double((double) Math.round(e[i] * 10000000d) / 10000000d), expectedE);
@@ -155,7 +155,7 @@ public class TimeseriesTest {
 		double[] y = { 1, 1, 1, 1, 1, 1, 1 };
 		double[] n = { 0, 0, 0, 0, 0, 0, 0 };
 		double[] e = { 0, 0, 0, 0, 0, 0, 0 };
-		Timeseries.rotate_xy_to_ne(az1, az2, x, y, n, e);
+		TimeseriesUtils.rotate_xy_to_ne(az1, az2, x, y, n, e);
 	}
 	
 	@Test(expected = TimeseriesException.class)
@@ -166,7 +166,7 @@ public class TimeseriesTest {
 		double[] y = { 1, 1, 1, 1, 1, 1, 1 };
 		double[] n = { 0, 0, 0, 0, 0, 0, 0 };
 		double[] e = { 0, 0, 0, 0, 0, 0, 0 };
-		Timeseries.rotate_xy_to_ne(az1, az2, x, y, n, e);
+		TimeseriesUtils.rotate_xy_to_ne(az1, az2, x, y, n, e);
 	}
 	
 	@Test(expected = TimeseriesException.class)
@@ -177,7 +177,7 @@ public class TimeseriesTest {
 		double[] y = { 1, 1, 1, 1, 1, 1, 1 };
 		double[] n = { 0, 0, 0, 0, 0, 0, 0 };
 		double[] e = { 0, 0, 0, 0, 0, 0, 0 };
-		Timeseries.rotate_xy_to_ne(az1, az2, x, y, n, e);
+		TimeseriesUtils.rotate_xy_to_ne(az1, az2, x, y, n, e);
 	}
 	
 	@Test(expected = TimeseriesException.class)
@@ -188,7 +188,7 @@ public class TimeseriesTest {
 		double[] y = { 1, 1, 1, 1, 1, 1, 1 };
 		double[] n = { 0, 0, 0, 0, 0, 0, 0 };
 		double[] e = { 0, 0, 0, 0, 0, 0, 0 };
-		Timeseries.rotate_xy_to_ne(az1, az2, x, y, n, e);
+		TimeseriesUtils.rotate_xy_to_ne(az1, az2, x, y, n, e);
 	}
 
 }
