@@ -31,7 +31,6 @@ import asl.seedsplitter.SequenceRangeException;
 import asl.timeseries.FFTUtils;
 import asl.timeseries.TimeseriesUtils;
 import asl.timeseries.TimeseriesException;
-import asl.timeseries.TimeseriesFactory;
 import seed.Blockette320;
 
 /**
