@@ -60,7 +60,7 @@ public class EventLoader {
 	 * 
 	 * @return the events Directory
 	 */
-	public static String getEventsDirectory() {
+	public static String getEventsDirectory() { // NO_UCD (test only)
 		return eventsDirectory;
 	}
 
