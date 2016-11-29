@@ -9,6 +9,7 @@ SeedScan
 ######Software
 Java 1.8  
 Gradle 2.5  
+Postgresql  
 ######Hardware
 This is dependent upon the quantity of data that is scanned.  
 Each thread takes between 1 to 5 GB of RAM depending on the station's data for the day.  
