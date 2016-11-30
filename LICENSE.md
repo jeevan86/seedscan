@@ -19,12 +19,16 @@ License
     Below are copyright notices for included libraries. Binaries and
     source can be retrieved from publicly available servers via
     dependencies set in build.gradle.
-######Apache Commons CLI                                                                                                                              
+######Apache Commons CLI
     Copyright 2001-2009 The Apache Software Foundation
     This product includes software developed by
     The Apache Software Foundation (http://www.apache.org/).
     License:        Apache License Version 2.0
     Website:        http://commons.apache.org/proper/commons-cli/
+######C3P0
+    Copyright (C) 2015 Machinery For Change, Inc.
+    License:        LGPL Version 2.1
+    Website:        https://github.com/swaldman/c3p0
 ######JCommon
     (C)opyright, 2000-2014, by Object Refinery Limited and Contributors.
     License:        LGPL Version 2.1
