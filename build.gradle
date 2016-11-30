@@ -30,6 +30,7 @@ dependencies {
         compile group: 'commons-cli', name: 'commons-cli', version: '1.2'
         compile group: 'org.apache.commons', name: 'commons-math3', version: '3.+'
         compile group: 'org.postgresql', name: 'postgresql', version: '9.4-1201-jdbc41'
+        compile group: 'com.mchange', name: 'c3p0', version: '0.9.5.2'
         compile files('lib/TauP-2.1.0.jar')
 
         testCompile group: 'org.mockito', name: 'mockito-all', version: '1.10.19'
