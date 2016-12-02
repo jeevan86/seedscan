@@ -354,15 +354,23 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 			logger.debug("Subsequence. Just _reset().");
 			// MTH: 2013-04-27 This seems wrong:
 			// seq._reset();
-			DataSet dataSet = (DataSet) this;
-			logger.debug(
-					"== Sequence.mergeInto() [{}_{} {}-{}] this=[{}-{}] is a subSequence of seq=[{}-{}] --> this._reset()\n",
-					dataSet.getNetwork(), dataSet.getStation(),
-					dataSet.getLocation(), dataSet.getChannel(),
-					Sequence.timestampToString(this.getStartTime()),
-					Sequence.timestampToString(this.getEndTime()),
-					Sequence.timestampToString(seq.getStartTime()),
-					Sequence.timestampToString(seq.getEndTime()));
+			/*
+			 * JH: 2016-12-02 Commented this out because assuming Sequence is a
+			 * Dataset is risky. Afraid to delete because of Mike's comment.
+			 * Hopefully this whole class will go away if I can migrate to
+			 * using a different seed library. For now I am leaving the dead
+			 * code in case I need to debug later.
+			 */
+			/*
+			 * DataSet dataSet = (DataSet) this; logger.debug(
+			 * "== Sequence.mergeInto() [{}_{} {}-{}] this=[{}-{}] is a subSequence of seq=[{}-{}] --> this._reset()\n"
+			 * , dataSet.getNetwork(), dataSet.getStation(),
+			 * dataSet.getLocation(), dataSet.getChannel(),
+			 * Sequence.timestampToString(this.getStartTime()),
+			 * Sequence.timestampToString(this.getEndTime()),
+			 * Sequence.timestampToString(seq.getStartTime()),
+			 * Sequence.timestampToString(seq.getEndTime()));
+			 */
 			this._reset();
 			return;
 		}
