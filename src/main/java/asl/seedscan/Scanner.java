@@ -22,8 +22,7 @@ import asl.metadata.EpochData;
 import asl.metadata.MetaServer;
 import asl.metadata.Station;
 import asl.metadata.meta_new.StationMeta;
-import asl.seedscan.database.MetricInjector;
-import asl.seedscan.database.MetricReader;
+import asl.seedscan.database.MetricDatabase;
 import asl.seedscan.event.EventCMT;
 import asl.seedscan.event.EventLoader;
 import asl.seedscan.metrics.Metric;
@@ -42,8 +41,7 @@ class Scanner implements Runnable {
 	private static final long MILLISECONDS_IN_DAY = 1000 * 60 * 60 * 24;
 
 	private Station station;
-	private MetricInjector injector;
-	private MetricReader reader;
+	private MetricDatabase database;
 	private Scan scan;
 	private MetaServer metaServer;
 
@@ -75,9 +73,8 @@ class Scanner implements Runnable {
 		}
 	}
 
-	Scanner(MetricReader reader, MetricInjector injector, Station station, Scan scan, MetaServer metaServer) {
-		this.reader = reader;
-		this.injector = injector;
+	Scanner(MetricDatabase database, Station station, Scan scan, MetaServer metaServer) {
+		this.database = database;
 		this.station = station;
 		this.metaServer = metaServer;
 		this.scan = scan;
@@ -200,7 +197,7 @@ class Scanner implements Runnable {
 					metric.setBaseOutputDir(scan.getPlotsDir());
 
 					if (currentMetricData == null) {
-						metric.setData(new MetricData(this.reader, stnMeta));
+						metric.setData(new MetricData(this.database, stnMeta));
 					} else {
 						metric.setData(currentMetricData);
 					}
@@ -246,14 +243,8 @@ class Scanner implements Runnable {
 							}
 							/* @formatter:on */
 						}
-						if (injector.isConnected()) {
-							try {
-								injector.inject(results);
-							} catch (InterruptedException ex) {
-								String message = String.format("Scanner: InterruptedException injecting metric [%s]",
-										metric.toString());
-								logger.warn(message, ex);
-							}
+						if (database.isConnected()) {
+							database.insertMetricData(results);
 						} else {
 							logger.warn("Injector *IS NOT* connected --> Don't inject");
 						}
@@ -374,7 +365,7 @@ class Scanner implements Runnable {
 			Hashtable<String, ArrayList<Blockette320>> calibrationTable = null;
 			calibrationTable = splitter.getCalTable();
 
-			return new MetricData(reader, table, qualityTable, stationMeta, calibrationTable);
+			return new MetricData(database, table, qualityTable, stationMeta, calibrationTable);
 		} catch (TimeoutException e) {
 			StringBuilder message = new StringBuilder();
 			message.append(String.format("== TimeoutException: Skipping to next day for [%s]:[%s]\n", station,

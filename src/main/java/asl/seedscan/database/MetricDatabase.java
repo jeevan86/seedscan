@@ -90,6 +90,13 @@ public class MetricDatabase {
 	}
 
 	/**
+	 * Used for testing purposes only.
+	 * Where java requires call to super() in mock Class.
+	 */
+	public MetricDatabase() {
+	}
+
+	/**
 	 * Checks if is connected.
 	 *
 	 * @return true, if is connected
@@ -114,7 +121,7 @@ public class MetricDatabase {
 	 *            the channel and location information
 	 * @return the metric value digest
 	 */
-	ByteBuffer getMetricValueDigest(Calendar date, String metricName, Station station, Channel channel) {
+	public ByteBuffer getMetricValueDigest(Calendar date, String metricName, Station station, Channel channel) {
 		ByteBuffer digest = null;
 		Connection connection = null;
 		try {
@@ -163,7 +170,7 @@ public class MetricDatabase {
 	 *            the channel and location information
 	 * @return the metric value
 	 */
-	Double getMetricValue(Calendar date, String metricName, Station station, Channel channel) {
+	public Double getMetricValue(Calendar date, String metricName, Station station, Channel channel) {
 		Double value = null;
 		String sqlDateString = null;
 		Connection connection = null;
@@ -203,7 +210,7 @@ public class MetricDatabase {
 	 *            the metric result to insert
 	 * @return 0 if successful
 	 */
-	int insertMetricData(MetricResult results) {
+	public int insertMetricData(MetricResult results) {
 		int result = -1;
 		Connection connection = null;
 		try {
@@ -245,5 +252,14 @@ public class MetricDatabase {
 		}
 
 		return result;
+	}
+
+	/**
+	 * Closes the connection pool and sets dataSource to null.
+	 * This signals that it is no longer connected.
+	 */
+	public void close() {
+		dataSource.close();
+		dataSource = null;
 	}
 }

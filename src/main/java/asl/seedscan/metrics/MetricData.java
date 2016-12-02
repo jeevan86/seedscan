@@ -21,7 +21,7 @@ import asl.metadata.meta_new.ChannelMeta.ResponseUnits;
 import asl.metadata.meta_new.ChannelMetaException;
 import asl.metadata.meta_new.StationMeta;
 import asl.security.MemberDigest;
-import asl.seedscan.database.MetricReader;
+import asl.seedscan.database.MetricDatabase;
 import asl.seedscan.database.MetricValueIdentifier;
 import asl.seedsplitter.BlockLocator;
 import asl.seedsplitter.ContiguousBlock;
@@ -58,13 +58,13 @@ public class MetricData implements Serializable {
 	private StationMeta metadata;
 
 	/** The metric reader. */
-	private transient MetricReader metricReader;
+	private transient MetricDatabase metricReader;
 
 	/**
 	 * Used exclusively in unit testing to plugin a reader after importing data from file
 	 * @param metricReader the metricReader to set
 	 */
-	protected void setMetricReader(MetricReader metricReader) { // NO_UCD (test only)
+	protected void setMetricReader(MetricDatabase metricReader) { // NO_UCD (test only)
 		this.metricReader = metricReader;
 	}
 
@@ -101,7 +101,7 @@ public class MetricData implements Serializable {
 	 * @param randomCal
 	 *            the random cal
 	 */
-	public MetricData(MetricReader metricReader, Hashtable<String, ArrayList<DataSet>> data,
+	public MetricData(MetricDatabase metricReader, Hashtable<String, ArrayList<DataSet>> data,
 			Hashtable<String, ArrayList<Integer>> qualityData, StationMeta metadata,
 			Hashtable<String, ArrayList<Blockette320>> randomCal) {
 		this.metricReader = metricReader;
@@ -119,7 +119,7 @@ public class MetricData implements Serializable {
 	 * @param metadata
 	 *            the metadata
 	 */
-	public MetricData(MetricReader metricReader, StationMeta metadata) {
+	public MetricData(MetricDatabase metricReader, StationMeta metadata) {
 		this.metadata = metadata;
 		this.metricReader = metricReader;
 	}
@@ -251,11 +251,10 @@ public class MetricData implements Serializable {
 	 */
 	Double getMetricValue(Calendar date, String metricName, Station station, Channel channel) {
 		Double metricVal = null;
-		MetricValueIdentifier id = new MetricValueIdentifier(date, metricName, station, channel);
 
 		// Retrieve metric value from Database
 		if (metricReader.isConnected()) {
-			metricVal = metricReader.getMetricValue(id);
+			metricVal = metricReader.getMetricValue(date, metricName, station, channel);
 			return metricVal;
 		} else {
 			metricVal = null;
@@ -1214,7 +1213,7 @@ public class MetricData implements Serializable {
 			/*
 			 * Retrieve old Digest from Database and compare to new Digest
 			 */
-			ByteBuffer oldDigest = metricReader.getMetricValueDigest(id);
+			ByteBuffer oldDigest = metricReader.getMetricValueDigest(id.getDate(),id.getMetricName(),id.getStation(),id.getChannel());
 			if (oldDigest == null) {
 				logger.info("Old digest is null. No entry in database.");
 			} else if (newDigest.compareTo(oldDigest) == 0) {

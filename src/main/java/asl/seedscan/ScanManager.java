@@ -24,15 +24,13 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import asl.metadata.MetaServer;
 import asl.metadata.Station;
-import asl.seedscan.database.MetricInjector;
-import asl.seedscan.database.MetricReader;
+import asl.seedscan.database.MetricDatabase;
 
 public class ScanManager {
 	private static final Logger logger = LoggerFactory
@@ -40,7 +38,7 @@ public class ScanManager {
 
 	private Scan scan = null;
 
-	public ScanManager(MetricReader reader, MetricInjector injector,
+	public ScanManager(MetricDatabase database,
 			List<Station> stationList, Scan scan, MetaServer metaServer)
 
 	{
@@ -62,7 +60,7 @@ public class ScanManager {
 		for (Station station : stationList) {
 			if (passesFilter(station)) {
 				logger.debug("Add station={} to the task queue", station);
-				tasks.add(Executors.callable(new Scanner(reader, injector,
+				tasks.add(Executors.callable(new Scanner(database,
 						station, scan, metaServer)));
 			} else {
 				logger.debug("station={} Did NOT pass filter for scan={}",
@@ -73,8 +71,6 @@ public class ScanManager {
 			executor.invokeAll(tasks); // It will wait here until scanner
 										// threads finish.
 			executor.shutdown();
-			executor.awaitTermination(300, TimeUnit.SECONDS); // This lets any injector/reader threads finish
-																// before we return.
 		} catch (InterruptedException e) {
 			logger.warn("Scan Manager executor service interrupted:", e);
 		} catch (NullPointerException e) {

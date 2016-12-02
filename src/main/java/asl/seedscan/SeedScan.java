@@ -16,8 +16,6 @@ import asl.seedscan.config.ArgumentT;
 import asl.seedscan.config.MetricT;
 import asl.seedscan.config.ScanT;
 import asl.seedscan.database.MetricDatabase;
-import asl.seedscan.database.MetricInjector;
-import asl.seedscan.database.MetricReader;
 import asl.seedscan.metrics.MetricWrapper;
 
 /**
@@ -245,18 +243,7 @@ public class SeedScan {
 		}
 		
 		// ===== CONFIG: DATABASE =====
-		MetricDatabase readDB = new MetricDatabase(Global.CONFIG.getDatabase());
-		MetricDatabase writeDB = new MetricDatabase(Global.CONFIG.getDatabase());
-		MetricReader reader = new MetricReader(readDB);
-		MetricInjector injector = new MetricInjector(writeDB);
-
-		Thread readerThread = new Thread(reader);
-		readerThread.start();
-		logger.info("Reader thread started.");
-
-		Thread injectorThread = new Thread(injector);
-		injectorThread.start();
-		logger.info("Injector thread started.");
+		MetricDatabase database = new MetricDatabase(Global.CONFIG.getDatabase());
 
 		// Loop over scans and hand each one to a ScanManager
 		logger.info("Hand scan to ScanManager");		
@@ -268,38 +255,13 @@ public class SeedScan {
 					scan.getStartDay(), scan.getStartDate(),
 					scan.getDaysToScan()));
 			@SuppressWarnings("unused")
-			ScanManager scanManager = new ScanManager(reader, injector,
+			ScanManager scanManager = new ScanManager(database,
 					stations, scan, metaServer);
 		}
 
 		logger.info("ScanManager is [ FINISHED ] --> stop the injector and reader threads");
 
-		try {
-			injector.halt();
-			logger.info("All stations processed. Waiting for injector thread to finish...");
-			synchronized (injectorThread) {
-				// injectorThread.wait();
-				injectorThread.interrupt();
-			}
-			logger.info("Injector thread halted.");
-		} catch (InterruptedException ex) {
-			String message = "The injector thread was interrupted while attempting to complete requests.";
-			logger.warn(message, ex);
-		}
-
-		try {
-			reader.halt();
-			logger.info("All stations processed. Waiting for reader thread to finish...");
-			synchronized (readerThread) {
-				// readerThread.wait();
-				readerThread.interrupt();
-			}
-			logger.info("Reader thread halted.");
-		} catch (InterruptedException ex) {
-			String message = "The reader thread was interrupted while attempting to complete requests.";
-			logger.warn(message, ex);
-		}
-
+		database.close();
 		try {
 			Global.lock.release();
 		} catch (IOException e) {

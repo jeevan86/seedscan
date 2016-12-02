@@ -17,13 +17,11 @@ import javax.xml.bind.DatatypeConverter;
 
 import org.junit.Test;
 
-import asl.concurrent.Task;
 import asl.metadata.Channel;
 import asl.metadata.Station;
 import asl.metadata.meta_new.StationMeta;
-import asl.seedscan.database.MetricReader;
+import asl.seedscan.database.MetricDatabase;
 import asl.seedscan.database.MetricValueIdentifier;
-import asl.seedscan.database.QueryContext;
 import asl.seedsplitter.DataSet;
 import asl.testutils.ResourceManager;
 import seed.Blockette320;
@@ -255,12 +253,12 @@ public class MetricDataTest {
 
 	}
 
-	private class MockReader extends MetricReader {
+	private class MockReader extends MetricDatabase {
 
 		private boolean mockConnected;
 
 		public MockReader() {
-			super(null);
+			super(); //Call required because of extension.
 			this.mockConnected = true;
 		}
 
@@ -273,80 +271,62 @@ public class MetricDataTest {
 			this.mockConnected = isConnected;
 		}
 
-		@Override
-		protected void setup() {
-			// Don't need this
-		}
-
-		@Override
-		protected void performTask(Task<QueryContext<? extends Object>> task) {
-			// Don't need this
-		}
-
-		@Override
-		protected void cleanup() {
-			/// Don't need this
-		}
-
-		/*
+		/**
 		 * Reserved channels that must be missing include 00-BH*
 		 */
-		public Double getMetricValue(MetricValueIdentifier id) {
+		public Double getMetricValue(Calendar date, String metricName, Station station, Channel channel) {
 			HashMap<MetricValueIdentifier, Double> expect = new HashMap<MetricValueIdentifier, Double>();
-			Calendar date = new GregorianCalendar(2014, 7, 12);
-			Station station = new Station("CU", "BCIP");
-			String metricName = "AvailabilityMetric";
+			Calendar expectDate = new GregorianCalendar(2014, 7, 12);
+			Station expectStation = new Station("CU", "BCIP");
+			String expectMetricName = "AvailabilityMetric";
 
-			Channel channel = new Channel("00", "LHZ");
-			expect.put(new MetricValueIdentifier(date, metricName, station, channel), 35.123456);
+			Channel expectChannel = new Channel("00", "LHZ");
+			expect.put(new MetricValueIdentifier(expectDate, expectMetricName, expectStation, expectChannel), 35.123456);
 
-			channel = new Channel("00", "LH1");
-			expect.put(new MetricValueIdentifier(date, metricName, station, channel), 99.999);
+			expectChannel = new Channel("00", "LH1");
+			expect.put(new MetricValueIdentifier(expectDate, expectMetricName, expectStation, expectChannel), 99.999);
 
-			channel = new Channel("00", "LH2");
-			expect.put(new MetricValueIdentifier(date, metricName, station, channel), 0.00);
+			expectChannel = new Channel("00", "LH2");
+			expect.put(new MetricValueIdentifier(expectDate, expectMetricName, expectStation, expectChannel), 0.00);
 
-			return expect.get(id);
+			return expect.get(new MetricValueIdentifier(date, metricName, station, channel));
 		}
 
 		/**
 		 * Currently getMetricValueDigest() is the only method called (from the
 		 * MetricData class)
 		 */
-		public ByteBuffer getMetricValueDigest(MetricValueIdentifier id) {
+		public ByteBuffer getMetricValueDigest(Calendar date, String metricName, Station station, Channel channel) {
 			HashMap<MetricValueIdentifier, ByteBuffer> expect = new HashMap<MetricValueIdentifier, ByteBuffer>();
-			Calendar date = new GregorianCalendar(2014, 7, 12);
-			Station station = new Station("CU", "BCIP");
-			String metricName = "AvailabilityMetric";
+			Calendar expectDate = new GregorianCalendar(2014, 7, 12);
+			Station expectStation = new Station("CU", "BCIP");
+			String expectMetricName = "AvailabilityMetric";
 
-			Channel channel = new Channel("00", "LHZ");
-			expect.put(new MetricValueIdentifier(date, metricName, station, channel),
+			Channel expectChannel = new Channel("00", "LHZ");
+			expect.put(new MetricValueIdentifier(expectDate, expectMetricName, expectStation, expectChannel),
 					ByteBuffer.wrap("Same".getBytes()));
 
-			channel = new Channel("00", "LH1");
-			expect.put(new MetricValueIdentifier(date, metricName, station, channel),
+			expectChannel = new Channel("00", "LH1");
+			expect.put(new MetricValueIdentifier(expectDate, expectMetricName, expectStation, expectChannel),
 					ByteBuffer.wrap("Same".getBytes()));
 
-			channel = new Channel("00", "LH2");
-			expect.put(new MetricValueIdentifier(date, metricName, station, channel),
+			expectChannel = new Channel("00", "LH2");
+			expect.put(new MetricValueIdentifier(expectDate, expectMetricName, expectStation, expectChannel),
 					ByteBuffer.wrap("Different".getBytes()));
 
 			// ANMO
-			date = new GregorianCalendar(2015, 8, 16);
-			station = new Station("IU", "ANMO");
-			metricName = "AvailabilityMetric";
+			expectDate = new GregorianCalendar(2015, 8, 16);
+			expectStation = new Station("IU", "ANMO");
+			expectMetricName = "AvailabilityMetric";
 
-			channel = new Channel("10", "BH1"); // Precomputed the digest
-			expect.put(new MetricValueIdentifier(date, metricName, station, channel),
+			expectChannel = new Channel("10", "BH1"); // Precomputed the digest
+			expect.put(new MetricValueIdentifier(expectDate, expectMetricName, expectStation, expectChannel),
 					ByteBuffer.wrap(DatatypeConverter.parseHexBinary("9A4FE3A10FD60F93526F464B0DB9580E")));
-			channel = new Channel("00", "LH2");
-			expect.put(new MetricValueIdentifier(date, metricName, station, channel),
+			expectChannel = new Channel("00", "LH2");
+			expect.put(new MetricValueIdentifier(expectDate, expectMetricName, expectStation, expectChannel),
 					ByteBuffer.wrap("Different".getBytes()));
 
-			System.out.println(DatatypeConverter
-					.printHexBinary(expect.get(new MetricValueIdentifier(date, metricName, station, channel)).array()));
-
-			return expect.get(id);
+			return expect.get(new MetricValueIdentifier(date, metricName, station, channel));
 		}
 	}
 }
