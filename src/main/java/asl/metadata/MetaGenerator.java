@@ -129,7 +129,10 @@ public class MetaGenerator extends UnicastRemoteObject implements MetaInterface 
 		};
 
 		String[] files = dir.list(textFilter);
-
+		if (files == null) {
+			logger.error("== No dataless files exist!");
+			System.exit(0);
+		}
 		for (String fileName : files) {
 			String datalessFile = dir + "/" + fileName;
 			System.out.format(
@@ -179,7 +182,7 @@ public class MetaGenerator extends UnicastRemoteObject implements MetaInterface 
 			}
 
 			if (volume == null) {
-				logger.error("== processing dataless volume==null! for file=[{}]\n", fileName);
+				logger.error("== processing dataless volume==null! for file=[{}]", fileName);
 				System.exit(0);
 			} else {
 				addVolume(volume);
