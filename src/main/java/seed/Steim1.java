@@ -119,8 +119,9 @@ class Steim1 {
 
 	/**
 	 * Abbreviated, zero-bias version of decode().
+	 * Used in test case to test steim1 decoding.
 	 */
-	static int[] decode(byte[] b, int numSamples, boolean swapBytes)
+	static int[] decode(byte[] b, int numSamples, boolean swapBytes) // NO_UCD (test only)
 			throws SteimException {
 		try {
 			// zero-bias version of decode
