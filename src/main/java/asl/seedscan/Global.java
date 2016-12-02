@@ -35,14 +35,14 @@ public abstract class Global {
 	public static LockFile lock;  
 	
 	/** The logger. */
-	private static Logger logger = LoggerFactory.getLogger(asl.seedscan.SeedScan.class);
+	private static Logger logger = LoggerFactory.getLogger(asl.seedscan.Global.class);
 	
 	//Static Initializer 
 	static
 	{
 		// Default locations of config and schema files
 				File configFile = new File("config.xml");
-				URL schemaFile = SeedScan.class.getResource("/schemas/SeedScanConfig.xsd");
+				URL schemaFile = Global.class.getResource("/schemas/SeedScanConfig.xsd");
 				ArrayList<URL> schemaFiles = new ArrayList<URL>();
 				schemaFiles.add(schemaFile);
 
