@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import asl.seedscan.metrics.MetricWrapper;
 
-public class Scan {
+class Scan {
 	private String scanName = null;
 	private String pathPattern;
 	private String datalessDir;
@@ -20,7 +20,7 @@ public class Scan {
 	private ScanFilter locations = null;
 	private ScanFilter channels = null;
 
-	public Scan(String scanName) {
+	Scan(String scanName) {
 		this.scanName = scanName;
 		metrics = new ArrayList<MetricWrapper>();
 	}
@@ -64,29 +64,12 @@ public class Scan {
 	}
 
 	// metrics
-	public void addMetric(MetricWrapper metric) {
+	void addMetric(MetricWrapper metric) {
 		metrics.add(metric);
-	}
-
-	public MetricWrapper getMetric(int index) throws IndexOutOfBoundsException {
-		return metrics.get(index);
 	}
 
 	public ArrayList<MetricWrapper> getMetrics() {
 		return metrics;
-	}
-
-	public boolean removeMetric(MetricWrapper metric) {
-		return metrics.remove(metric);
-	}
-
-	public MetricWrapper removeMetric(int index)
-			throws IndexOutOfBoundsException {
-		return metrics.remove(index);
-	}
-
-	public void clearMetrics() {
-		metrics.clear();
 	}
 
 	public void setStartDate(int startDate) {

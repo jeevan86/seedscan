@@ -32,13 +32,13 @@ import asl.metadata.MetaServer;
 import asl.metadata.Station;
 import asl.seedscan.database.MetricDatabase;
 
-public class ScanManager {
+class ScanManager {
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.seedscan.ScanManager.class);
 
 	private Scan scan = null;
 
-	public ScanManager(MetricDatabase database,
+	ScanManager(MetricDatabase database,
 			List<Station> stationList, Scan scan, MetaServer metaServer)
 
 	{
