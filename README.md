@@ -9,7 +9,8 @@ SeedScan
 ######Software
 Java 1.8  
 Gradle 2.5  
-Postgresql  
+Postgresql 9.x  
+
 ######Hardware
 This is dependent upon the quantity of data that is scanned.  
 Each thread takes between 1 to 5 GB of RAM depending on the station's data for the day.  
@@ -60,8 +61,8 @@ One thread can run an entire day of data for one station in 30 minutes to 1 hour
 
 ######Database Setup  
     SeedScan connects to a PostgreSQL database. The configuration is at the base level of the
-    config.xml. The database drivers are found in the lib directory. If an upgrade is required,
-    simply remove the existing driver and add the new driver.  
+    config.xml. The database drivers are set in the gradle build file. If an upgrade is required,
+    modify the build to link the correct driver.  
 ```xml
     <cfg:database>
         <cfg:uri>jdbc:postgresql://hostname.domain.tld:5432/dataq_db</cfg:uri>
@@ -70,6 +71,13 @@ One thread can run an entire day of data for one station in 30 minutes to 1 hour
             <cfg:plain>Password</cfg:plain>
         </cfg:password>
     </cfg:database>
+```
+
+    Initially, the database will require a few configuration changes. The database will need to
+    be optimized for the specific hardware.
+    The following extension will need to be enabled.
+```sql
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 ```
 
 ######Data Directory Setup
