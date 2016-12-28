@@ -2,6 +2,7 @@ package asl.seedscan;
 
 import java.io.IOException;
 import java.net.URI;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
@@ -243,7 +244,13 @@ public class SeedScan {
 		}
 		
 		// ===== CONFIG: DATABASE =====
-		MetricDatabase database = new MetricDatabase(Global.CONFIG.getDatabase());
+		MetricDatabase database = null;
+		try {
+			database = new MetricDatabase(Global.CONFIG.getDatabase());
+		} catch (SQLException e1) {
+			logger.error("Unable to communicate with Database");
+			System.exit(1);
+		}
 
 		// Loop over scans and hand each one to a ScanManager
 		logger.info("Hand scan to ScanManager");		

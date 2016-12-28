@@ -5,6 +5,7 @@ import java.beans.PropertyVetoException;
 import java.nio.ByteBuffer;
 import java.sql.CallableStatement;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Calendar;
@@ -47,8 +48,9 @@ public class MetricDatabase {
 	 *
 	 * @param config
 	 *            the config
+	 * @throws SQLException if the database is unable to be communicated with.
 	 */
-	public MetricDatabase(DatabaseT config) {
+	public MetricDatabase(DatabaseT config) throws SQLException {
 		this(config.getUri(), config.getUsername(), config.getPassword().getPlain());
 	}
 
@@ -61,8 +63,9 @@ public class MetricDatabase {
 	 *            the username
 	 * @param password
 	 *            the password
+	 * @throws SQLException if the database is unable to be communicated with.
 	 */
-	private MetricDatabase(String URI, String username, String password) {
+	private MetricDatabase(String URI, String username, String password) throws SQLException {
 		this.URI = URI;
 		this.username = username;
 		logger.info("MetricDatabase Constructor(): Attempting to connect to the database");
@@ -87,11 +90,13 @@ public class MetricDatabase {
 				dataSource = null;
 			}
 		}
+		//Reset any orphaned scans immiediately after connection.
+		resetStationScans();
 	}
 
 	/**
-	 * Used for testing purposes only.
-	 * Where java requires call to super() in mock Class.
+	 * Used for testing purposes only. Where java requires call to super() in
+	 * mock Class.
 	 */
 	public MetricDatabase() {
 	}
@@ -241,8 +246,6 @@ public class MetricDatabase {
 
 					callStatement.executeQuery();
 				}
-
-				connection.commit();
 				result = 0;
 			} finally {
 				connection.close();
@@ -255,6 +258,29 @@ public class MetricDatabase {
 	}
 
 	/**
+	 * Reset any existing small scans that are taken.
+	 * This prevents orphaned scans, if seedscan dies while running a scan.
+	 * @throws SQLException 
+	 */
+	private void resetStationScans() throws SQLException {
+		Connection connection = null;
+		try {
+			connection = dataSource.getConnection();
+			connection.setAutoCommit(false);
+
+			PreparedStatement statement = connection.prepareStatement(
+					"UPDATE tblscan SET taken=FALSE WHERE fkparentscan IS NULL AND finished = FALSE AND taken = TRUE");
+
+			if (!(statement.executeUpdate() == 1)) {
+				logger.error("Failed to Reset Station Scans");
+			}
+		} finally {
+			connection.close();
+		}
+
+	}
+
+	/**
 	 * Closes the connection pool and sets dataSource to null.
 	 * This signals that it is no longer connected.
 	 */
@@ -262,4 +288,5 @@ public class MetricDatabase {
 		dataSource.close();
 		dataSource = null;
 	}
+	
 }
