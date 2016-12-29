@@ -8,6 +8,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.Calendar;
 
 import org.slf4j.Logger;
@@ -19,6 +20,7 @@ import asl.metadata.Channel;
 import asl.metadata.Station;
 import asl.seedscan.config.DatabaseT;
 import asl.seedscan.metrics.MetricResult;
+import asl.seedscan.worker.Scan;
 
 /**
  * The Class MetricDatabase. This contains methods for inserting and retrieving
@@ -284,6 +286,39 @@ public class MetricDatabase {
 			if(connection != null)connection.close();
 		}
 
+	}
+	
+	public Scan takeNextScan(){
+		Connection connection = null;
+		CallableStatement callStatement = null;
+		ResultSet rs = null;
+		try {
+			try {
+				connection = dataSource.getConnection();
+				callStatement = connection.prepareCall("SELECT * from fntakenextscan()");
+				
+				rs = callStatement.executeQuery();
+				return new Scan(
+						(java.util.UUID)rs.getObject("pkscanid"),
+						(java.util.UUID)rs.getObject("fkparentscanid"),
+						rs.getString("metricfilter"),
+						rs.getString("networkfilter"),
+						rs.getString("stationfilter"),
+						rs.getString("locationfilter"),
+						rs.getString("channelfilter"),
+						rs.getObject("startdate", LocalDate.class),
+						rs.getObject("enddate", LocalDate.class),
+						rs.getBoolean("deleteexisting")
+					);
+			} finally {
+				if(rs != null)rs.close();
+				if(callStatement != null) callStatement.close();
+				if(connection != null)connection.close();
+			}
+		} catch (SQLException e) {
+			logger.error("SQLException:", e);
+		}
+		return null;
 	}
 
 	/**
