@@ -129,11 +129,12 @@ public class MetricDatabase {
 	public ByteBuffer getMetricValueDigest(Calendar date, String metricName, Station station, Channel channel) {
 		ByteBuffer digest = null;
 		Connection connection = null;
+		CallableStatement callStatement = null;
+		ResultSet resultSet = null;
 		try {
 			try {
 				connection = dataSource.getConnection();
-				CallableStatement callStatement = connection
-						.prepareCall("SELECT spGetMetricValueDigest(?, ?, ?, ?, ?, ?)");
+				callStatement = connection.prepareCall("SELECT spGetMetricValueDigest(?, ?, ?, ?, ?, ?)");
 
 				java.sql.Date sqlDate = new java.sql.Date(date.getTime().getTime());
 				callStatement.setDate(1, sqlDate, date);
@@ -143,7 +144,7 @@ public class MetricDatabase {
 				callStatement.setString(5, channel.getLocation());
 				callStatement.setString(6, channel.getChannel());
 
-				ResultSet resultSet = callStatement.executeQuery();
+				resultSet = callStatement.executeQuery();
 
 				if (resultSet.next()) {
 					byte[] digestIn = resultSet.getBytes(1);
@@ -151,9 +152,10 @@ public class MetricDatabase {
 					if (digestIn != null)
 						digest = ByteBuffer.wrap(digestIn);
 				}
-
 			} finally {
-				connection.close();
+				if(resultSet != null)resultSet.close();
+				if(callStatement != null) callStatement.close();
+				if(connection != null)connection.close();
 			}
 		} catch (SQLException e) {
 			logger.error("SQLException:", e);
@@ -179,10 +181,12 @@ public class MetricDatabase {
 		Double value = null;
 		String sqlDateString = null;
 		Connection connection = null;
+		CallableStatement callStatement = null;
+		ResultSet resultSet = null;
 		try {
 			try {
 				connection = dataSource.getConnection();
-				CallableStatement callStatement = connection.prepareCall("SELECT spGetMetricValue(?, ?, ?, ?, ?, ?)");
+				callStatement = connection.prepareCall("SELECT spGetMetricValue(?, ?, ?, ?, ?, ?)");
 				java.sql.Date sqlDate = new java.sql.Date(date.getTime().getTime());
 				sqlDateString = sqlDate.toString();
 				callStatement.setDate(1, sqlDate, date);
@@ -191,12 +195,14 @@ public class MetricDatabase {
 				callStatement.setString(4, station.getStation());
 				callStatement.setString(5, channel.getLocation());
 				callStatement.setString(6, channel.getChannel());
-				ResultSet resultSet = callStatement.executeQuery();
+				resultSet = callStatement.executeQuery();
 				if (resultSet.next()) {
 					value = resultSet.getDouble(1);
 				}
 			} finally {
-				connection.close();
+				if(resultSet != null)resultSet.close();
+				if(callStatement != null) callStatement.close();
+				if(connection != null)connection.close();
 			}
 		} catch (SQLException e) {
 			logger.error("SQLException:", e);
@@ -218,12 +224,12 @@ public class MetricDatabase {
 	public int insertMetricData(MetricResult results) {
 		int result = -1;
 		Connection connection = null;
+		CallableStatement callStatement = null;
 		try {
 			try {
 				connection = dataSource.getConnection();
-				connection.setAutoCommit(false);
 
-				CallableStatement callStatement = connection
+				callStatement = connection
 						.prepareCall("SELECT spInsertMetricData(?, ?, ?, ?, ?, ?, ?, ?)");
 
 				for (String id : results.getIdSet()) {
@@ -248,7 +254,8 @@ public class MetricDatabase {
 				}
 				result = 0;
 			} finally {
-				connection.close();
+				if(callStatement != null) callStatement.close();
+				if(connection != null)connection.close();
 			}
 		} catch (SQLException e) {
 			logger.error("SQLException:", e);
@@ -264,18 +271,17 @@ public class MetricDatabase {
 	 */
 	private void resetStationScans() throws SQLException {
 		Connection connection = null;
+		PreparedStatement statement = null;
 		try {
 			connection = dataSource.getConnection();
-			connection.setAutoCommit(false);
-
-			PreparedStatement statement = connection.prepareStatement(
+			statement = connection.prepareStatement(
 					"UPDATE tblscan SET taken=FALSE WHERE fkparentscan IS NULL AND finished = FALSE AND taken = TRUE");
 
-			if (!(statement.executeUpdate() == 1)) {
-				logger.error("Failed to Reset Station Scans");
-			}
+			int orphanCount = statement.executeUpdate();
+			logger.info("Reset {} orphaned scans", orphanCount);
 		} finally {
-			connection.close();
+			if(statement != null) statement.close();
+			if(connection != null)connection.close();
 		}
 
 	}
