@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.Calendar;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -319,6 +320,30 @@ public class MetricDatabase {
 			logger.error("SQLException:", e);
 		}
 		return null;
+	}
+	
+	/**
+	 * Mark a scan as finished.
+	 * The database handles further work, such as completing parent scans and collapsing finished scans.
+	 * @param pkScanID The UUID of the finished station scan.
+	 */
+	public void finishScan(UUID pkScanID){
+		Connection connection = null;
+		CallableStatement callStatement = null;
+		try {
+			try {
+				connection = dataSource.getConnection();
+				callStatement = connection.prepareCall("SELECT * from fnfinishscan(?)");
+				callStatement.setObject(1, pkScanID);
+				callStatement.executeQuery();
+				
+			} finally {
+				if(callStatement != null) callStatement.close();
+				if(connection != null)connection.close();
+			}
+		} catch (SQLException e) {
+			logger.error("SQLException:", e);
+		}
 	}
 
 	/**
