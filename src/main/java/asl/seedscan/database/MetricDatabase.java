@@ -289,6 +289,12 @@ public class MetricDatabase {
 		}
 	}
 	
+	/**
+	 * Gets the next priority scan from the database.
+	 * The database handles its copy of the queue.
+	 * Priority in the database queue may not exactly match priority in Seedscan.
+	 * @return A Scan object to be added to the Priority Queue.
+	 */
 	public Scan takeNextScan(){
 		Connection connection = null;
 		CallableStatement callStatement = null;
