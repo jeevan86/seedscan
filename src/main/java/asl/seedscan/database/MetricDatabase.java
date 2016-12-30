@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -268,7 +269,7 @@ public class MetricDatabase {
 	}
 
 	/**
-	 * Reset any existing small scans that are taken.
+	 * Reset any existing station scans that are taken.
 	 * This prevents orphaned scans, if seedscan dies while running a scan.
 	 * @throws SQLException 
 	 */
@@ -286,7 +287,6 @@ public class MetricDatabase {
 			if(statement != null) statement.close();
 			if(connection != null)connection.close();
 		}
-
 	}
 	
 	public Scan takeNextScan(){
@@ -343,6 +343,68 @@ public class MetricDatabase {
 			}
 		} catch (SQLException e) {
 			logger.error("SQLException:", e);
+		}
+	}
+	
+	/**
+	 * Insert a non scan specific error into the database logs.
+	 * @param message
+	 */
+	public void insertError(String message) {
+		Connection connection = null;
+		PreparedStatement statement = null;
+		try {
+			try {
+				connection = dataSource.getConnection();
+				//We will let the db set the timestamp.
+				statement = connection.prepareStatement(
+						"INSERT INTO tblerrorlog(errormessage) VALUES (?)");
+				statement.setString(1, message);
+				if(statement.executeUpdate() != 1){
+					throw new SQLException("Failed to insert following error message into database:");
+				}
+			} finally {
+				if (statement != null)
+					statement.close();
+				if (connection != null)
+					connection.close();
+			}
+		} catch (SQLException e) {
+			logger.error("SQLException:", e);
+			logger.error("Error Message not inserted:\n"+message);
+		}
+	}
+	
+	public void insertScanMessage(UUID scanID, String network, String station, String location, String channel, String metric, String message){
+		Connection connection = null;
+		PreparedStatement statement = null;
+		try {
+			try {
+				connection = dataSource.getConnection();
+				//We will let the db set the timestamp.
+				statement = connection.prepareStatement(
+						"INSERT INTO tblscanmessage(fkscanid, network, station, location, channel, metric, message)VALUES (?, ?, ?, ?, ?, ?, ?)");
+				int i = 1;
+				statement.setObject(i++, scanID);
+				statement.setString(i++, network);
+				statement.setString(i++, station);
+				statement.setString(i++, location);
+				statement.setString(i++, channel);
+				statement.setString(i++, metric);
+				statement.setString(i++, message);
+
+				if(statement.executeUpdate() != 1){
+					throw new SQLException("Failed to insert following scan message into database:");
+				}
+			} finally {
+				if (statement != null)
+					statement.close();
+				if (connection != null)
+					connection.close();
+			}
+		} catch (SQLException e) {
+			logger.error("SQLException:", e);
+			logger.error("Scan Message not inserted:\n"+message);
 		}
 	}
 
