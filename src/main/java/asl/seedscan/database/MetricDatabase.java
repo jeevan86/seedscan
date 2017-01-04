@@ -5,12 +5,12 @@ import java.beans.PropertyVetoException;
 import java.nio.ByteBuffer;
 import java.sql.CallableStatement;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -44,8 +44,6 @@ public class MetricDatabase {
 
 	/** The username. */
 	private String username;
-
-	// private CallableStatement callStatement;
 
 	/**
 	 * Instantiates a new metric database based off the jaxb config.
@@ -389,7 +387,9 @@ public class MetricDatabase {
 				connection = dataSource.getConnection();
 				//We will let the db set the timestamp.
 				statement = connection.prepareStatement(
-						"INSERT INTO tblscanmessage(fkscanid, network, station, location, channel, metric, message)VALUES (?, ?, ?, ?, ?, ?, ?)");
+						"INSERT INTO tblscanmessage"
+						+ "(fkscanid, network, station, location, channel, metric, message)"
+						+ "VALUES (?, ?, ?, ?, ?, ?, ?)");
 				int i = 1;
 				statement.setObject(i++, scanID);
 				statement.setString(i++, network);
@@ -411,6 +411,52 @@ public class MetricDatabase {
 		} catch (SQLException e) {
 			logger.error("SQLException:", e);
 			logger.error("Scan Message not inserted:\n"+message);
+		}
+	}
+	
+	public void insertChildScan(UUID parentID, String network, String station, String location, String channel, String metric, Date startDate, Date endDate, int priority, boolean deleteExisting){
+		Connection connection = null;
+		PreparedStatement statement = null;
+		try {
+			try {
+				connection = dataSource.getConnection();
+				//We will let the db set the timestamp.
+				statement = connection.prepareStatement(
+					"INSERT INTO tblscan("
+						+ "fkparentscan, "
+						+ "networkfilter, "
+						+ "stationfilter, "
+						+ "locationfilter, "
+						+ "channelfilter, "
+						+ "metricfilter, "
+						+ "startdate, "
+						+ "enddate, "
+						+ "priority, "
+						+ "deleteexisting)"
+						+ "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+				int i = 1;
+				statement.setObject( i++, parentID);
+				statement.setString( i++, network);
+				statement.setString( i++, station);
+				statement.setString( i++, location);
+				statement.setString( i++, channel);
+				statement.setString( i++, metric);
+				statement.setDate(   i++, startDate);
+				statement.setDate(   i++, endDate);
+				statement.setInt(    i++, priority);
+				statement.setBoolean(i++, deleteExisting);
+
+				if(statement.executeUpdate() != 1){
+					throw new SQLException("Failed to insert following scan into database:");
+				}
+			} finally {
+				if (statement != null)
+					statement.close();
+				if (connection != null)
+					connection.close();
+			}
+		} catch (SQLException e) {
+			this.insertScanMessage(parentID, network, station, location, channel, metric, "Unable to add child scan");
 		}
 	}
 
