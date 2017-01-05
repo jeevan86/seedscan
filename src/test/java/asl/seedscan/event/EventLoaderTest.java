@@ -4,8 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Calendar;
-import java.util.GregorianCalendar;
+import java.time.LocalDate;
 import java.util.Hashtable;
 
 import org.junit.AfterClass;
@@ -40,9 +39,7 @@ public class EventLoaderTest {
 
 	@Test
 	public final void testGetDaySynthetics() throws Exception {
-		Calendar date = new GregorianCalendar(2015, 9, 26); // GregorianCalendar
-															// is 0 based with
-															// months
+		LocalDate date = LocalDate.of(2015,10,26);
 		Station station = new Station("IU", "NWAO");
 
 		eventLoader.getDayEvents(date); // TODO: This shouldn't be required.
@@ -64,9 +61,7 @@ public class EventLoaderTest {
 
 	@Test
 	public final void testGetDayEvents() throws Exception {
-		Calendar date = new GregorianCalendar(2015, 9, 26); // GregorianCalendar
-															// is 0 based with
-															// months
+		LocalDate date = LocalDate.of(2015,10,26);
 		Hashtable<String, EventCMT> cmts = eventLoader.getDayEvents(date);
 		EventCMT cmt = cmts.get("C201510260909A");
 		assertEquals(new Double(cmt.getLatitude()), new Double(36.44));

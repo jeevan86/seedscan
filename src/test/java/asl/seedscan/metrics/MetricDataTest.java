@@ -8,9 +8,8 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.nio.ByteBuffer;
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 
 import javax.xml.bind.DatatypeConverter;
@@ -87,7 +86,7 @@ public class MetricDataTest {
 		MockReader reader = new MockReader();
 		MetricData metricData = new MetricData(reader, metadata);
 
-		Calendar date = new GregorianCalendar(2014, 7, 12);
+		LocalDate date = LocalDate.parse("2014-07-12");
 		Station station = new Station("CU", "BCIP");
 		String metricName = "AvailabilityMetric";
 		Channel channel = new Channel("00", "LHZ");
@@ -183,7 +182,7 @@ public class MetricDataTest {
 		MockReader reader = new MockReader();
 		MetricData metricData = new MetricData(reader, metadata);
 
-		Calendar date = new GregorianCalendar(2014, 7, 12);
+		LocalDate date = LocalDate.parse("2014-07-12");
 		Station station = new Station("CU", "BCIP");
 		String metricName = "AvailabilityMetric";
 
@@ -217,7 +216,8 @@ public class MetricDataTest {
 		// DATA
 		metricData = (MetricData) ResourceManager.loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
 		metricData.setMetricReader(reader);
-		date = new GregorianCalendar(2015, 8, 16);
+		date = LocalDate.parse("2015-08-16");
+
 		station = new Station("IU", "ANMO");
 		metricName = "AvailabilityMetric";
 
@@ -274,9 +274,9 @@ public class MetricDataTest {
 		/**
 		 * Reserved channels that must be missing include 00-BH*
 		 */
-		public Double getMetricValue(Calendar date, String metricName, Station station, Channel channel) {
+		public Double getMetricValue(LocalDate date, String metricName, Station station, Channel channel) {
 			HashMap<MetricValueIdentifier, Double> expect = new HashMap<MetricValueIdentifier, Double>();
-			Calendar expectDate = new GregorianCalendar(2014, 7, 12);
+			LocalDate expectDate = LocalDate.parse("2014-07-12");
 			Station expectStation = new Station("CU", "BCIP");
 			String expectMetricName = "AvailabilityMetric";
 
@@ -296,9 +296,9 @@ public class MetricDataTest {
 		 * Currently getMetricValueDigest() is the only method called (from the
 		 * MetricData class)
 		 */
-		public ByteBuffer getMetricValueDigest(Calendar date, String metricName, Station station, Channel channel) {
+		public ByteBuffer getMetricValueDigest(LocalDate date, String metricName, Station station, Channel channel) {
 			HashMap<MetricValueIdentifier, ByteBuffer> expect = new HashMap<MetricValueIdentifier, ByteBuffer>();
-			Calendar expectDate = new GregorianCalendar(2014, 7, 12);
+			LocalDate expectDate = LocalDate.parse("2014-07-12");
 			Station expectStation = new Station("CU", "BCIP");
 			String expectMetricName = "AvailabilityMetric";
 
@@ -315,7 +315,7 @@ public class MetricDataTest {
 					ByteBuffer.wrap("Different".getBytes()));
 
 			// ANMO
-			expectDate = new GregorianCalendar(2015, 8, 16);
+			expectDate = LocalDate.parse("2015-08-16");
 			expectStation = new Station("IU", "ANMO");
 			expectMetricName = "AvailabilityMetric";
 

@@ -7,10 +7,10 @@ import static org.junit.Assert.assertTrue;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
-import java.util.GregorianCalendar;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.TimeZone;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -101,15 +101,11 @@ public class StationMetaTest {
 
 	@Test
 	public final void testGetTimestamp() throws Exception {
-		GregorianCalendar cal1 = new GregorianCalendar();
-		GregorianCalendar cal2 = new GregorianCalendar();
-		cal1.setTimeInMillis(1445817600000l);
-		cal2.setTimeInMillis(1451088000000l);
-		cal1.setTimeZone(TimeZone.getTimeZone("GMT"));
-		cal2.setTimeZone(TimeZone.getTimeZone("GMT"));
+		LocalDateTime cal1 = LocalDate.of(2015, 10, 26).atStartOfDay();
+		LocalDateTime cal2 = LocalDate.of(2015, 12, 26).atStartOfDay();
 
-		assertEquals(cal1.getTime(), metadata1.getTimestamp().getTime());
-		assertEquals(cal2.getTime(), metadata2.getTimestamp().getTime());
+		assertEquals(cal1, metadata1.getTimestamp());
+		assertEquals(cal2, metadata2.getTimestamp());
 	}
 
 	@Test

@@ -2,8 +2,7 @@ package asl.seedscan.metrics;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.Calendar;
-import java.util.GregorianCalendar;
+import java.time.LocalDate;
 import java.util.HashMap;
 
 import org.junit.AfterClass;
@@ -39,7 +38,7 @@ public class EventCompareSyntheticTest {
 	public void testProcessDefault() throws Exception {		
 		metric = new EventCompareSynthetic();
 		metric.setData(data);
-		Calendar date = new GregorianCalendar(2015,9,26);
+		LocalDate date = LocalDate.of(2015,10,26);
 		metric.setEventTable(eventLoader.getDayEvents(date));
 		metric.setEventSynthetics(eventLoader.getDaySynthetics(date, new Station("IU", "NWAO")));
 		HashMap<String, Double> expect = new HashMap<String, Double>();
@@ -63,7 +62,7 @@ public class EventCompareSyntheticTest {
 		metric.add("channel-restriction", "LH");
 		
 		metric.setData(data);
-		Calendar date = new GregorianCalendar(2015,9,26);
+		LocalDate date = LocalDate.of(2015,10,26);
 		metric.setEventTable(eventLoader.getDayEvents(date));
 		metric.setEventSynthetics(eventLoader.getDaySynthetics(date, new Station("IU", "NWAO")));
 		HashMap<String, Double> expect = new HashMap<String, Double>();

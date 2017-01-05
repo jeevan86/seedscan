@@ -2,8 +2,7 @@ package asl.seedscan.metrics;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.Calendar;
-import java.util.GregorianCalendar;
+import java.time.LocalDate;
 import java.util.HashMap;
 
 import org.junit.AfterClass;
@@ -39,7 +38,7 @@ public class EventCompareStrongMotionTest {
 	public void testProcessDefault() throws Exception {
 		metric = new EventCompareStrongMotion();
 		metric.setData(data);
-		Calendar date = new GregorianCalendar(2015,9,26);
+		LocalDate date = LocalDate.of(2015,10,26);
 		metric.setEventTable(eventLoader.getDayEvents(date));
 		HashMap<String, Double> expect = new HashMap<String, Double>();
 		expect.put("00-20,LHZ-LNZ", 2.884394926482693);  //Was 2.884394926482693 before removing hard coding
@@ -62,7 +61,7 @@ public class EventCompareStrongMotionTest {
 		metric.add("channel-restriction", "LH");
 		
 		metric.setData(data);
-		Calendar date = new GregorianCalendar(2015,9,26);
+		LocalDate date = LocalDate.of(2015,10,26);
 		metric.setEventTable(eventLoader.getDayEvents(date));
 		HashMap<String, Double> expect = new HashMap<String, Double>();
 		expect.put("00-10,LHZ-LHZ", -0.0000032751134376322145);
