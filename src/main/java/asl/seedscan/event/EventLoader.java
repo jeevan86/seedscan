@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Hashtable;
@@ -102,16 +104,12 @@ public class EventLoader {
 	/**
 	 * Make key.
 	 *
-	 * @param timestamp
+	 * @param date
 	 *            the timestamp
 	 * @return the string
 	 */
-	private final String makeKey(Calendar timestamp) {
-		String yyyy = String.format("%4d", timestamp.get(Calendar.YEAR));
-		String mo = String.format("%02d", timestamp.get(Calendar.MONTH) + 1);
-		String dd = String.format("%02d", timestamp.get(Calendar.DAY_OF_MONTH));
-		final String yyyymodd = yyyy + mo + dd;
-		return yyyymodd;
+	private final String makeKey(LocalDate date) {
+		return date.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 	}
 
 	/**
@@ -124,7 +122,7 @@ public class EventLoader {
 	 *            the station
 	 * @return the day synthetics
 	 */
-	public Hashtable<String, Hashtable<String, SacTimeSeries>> getDaySynthetics(Calendar timestamp,
+	public Hashtable<String, Hashtable<String, SacTimeSeries>> getDaySynthetics(LocalDate timestamp,
 			final Station station) {
 
 		final String key = makeKey(timestamp);
@@ -210,7 +208,7 @@ public class EventLoader {
 	 *            the timestamp
 	 * @return the day events formatted as Hashtable<"C201510260909A", EventCMT>
 	 */
-	synchronized public Hashtable<String, EventCMT> getDayEvents(Calendar timestamp) {
+	synchronized public Hashtable<String, EventCMT> getDayEvents(LocalDate timestamp) {
 
 		final String key = makeKey(timestamp);
 

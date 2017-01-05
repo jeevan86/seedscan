@@ -24,7 +24,9 @@ import java.awt.Paint;
 import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
-import java.util.Calendar;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
@@ -43,7 +45,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import asl.metadata.Channel;
-import asl.metadata.EpochData;
 import asl.metadata.Station;
 
 /**
@@ -54,16 +55,20 @@ public class PlotMaker {
 			.getLogger(asl.plotmaker.PlotMaker.class);
 	private Station station;
 	private Channel channel;
-	private Calendar date;
-	private String datestr;
+	private LocalDate date;
 	private final String outputDir = "outputs";
 
 	// constructor(s)
-	public PlotMaker(Station station, Channel channel, Calendar date) {
+	public PlotMaker(Station station, Channel channel, LocalDateTime timestamp) {
+		this.station = station;
+		this.channel = channel;
+		this.date = timestamp.toLocalDate();
+	}
+	
+	public PlotMaker(Station station, Channel channel, LocalDate date) {
 		this.station = station;
 		this.channel = channel;
 		this.date = date;
-		this.datestr = EpochData.epochToDateString(this.date);
 	}
 
 	public void plotSpecAmp2(double freq[], double[] amp1, double[] phase1,
@@ -82,9 +87,8 @@ public class PlotMaker {
 		// Check that we will be able to output the file without problems and if
 		// not --> return
 		if (!checkFileOut(outputFile)) {
-			System.out
-					.format("== plotSpecAmp: request to output plot=[%s] date=[%s] but we are unable to create it "
-							+ " --> skip plot\n", pngName, datestr);
+			logger.warn("== plotSpecAmp: request to output plot=[{}] date=[{}] but we are unable to create it "
+							+ " --> skip plot", pngName, date.format(DateTimeFormatter.ISO_ORDINAL_DATE));
 			return;
 		}
 		// Plot x-axis (frequency) range
@@ -210,12 +214,12 @@ public class PlotMaker {
 
 		// plotTitle = "2012074.IU_ANMO.00-BHZ " + plotString
 		final String plotTitle = String.format("%04d%03d.%s.%s %s",
-				date.get(Calendar.YEAR), date.get(Calendar.DAY_OF_YEAR),
+				date.getYear(), date.getDayOfYear(),
 				station, channel, plotString);
 		// plot filename = "2012074.IU_ANMO.00-BHZ" + plotString + ".png"
 		final String pngName = String.format("%s/%04d%03d.%s.%s.%s.png",
-				outputDir, date.get(Calendar.YEAR),
-				date.get(Calendar.DAY_OF_YEAR), station, channel, plotString);
+				outputDir, date.getYear(),
+				date.getDayOfYear(), station, channel, plotString);
 
 		File outputFile = new File(pngName);
 
@@ -225,8 +229,8 @@ public class PlotMaker {
 			// System.out.format("== plotSpecAmp: request to output plot=[%s] but we are unable to create it "
 			// + " --> skip plot\n", pngName );
 			logger.warn(
-					"== plotSpecAmp: request to output plot=[%s] date=[%s] but we are unable to create it "
-							+ " --> skip plot\n", pngName, datestr);
+					"== plotSpecAmp: request to output plot=[{}] date=[{}] but we are unable to create it "
+							+ " --> skip plot", pngName, date.format(DateTimeFormatter.ISO_ORDINAL_DATE));
 			return;
 		}
 

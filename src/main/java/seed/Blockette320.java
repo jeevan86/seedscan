@@ -42,8 +42,13 @@
 package seed;
 
 import java.io.Serializable;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+
+import asl.util.Time;
 
 /**
  * This class represents the Blockette 320 from the SEED standard V2.4
@@ -59,7 +64,7 @@ public class Blockette320 extends Blockette  implements Serializable {
 	private long calDuration = 0L;
 	private double calPeakAmp = 0.;
 	private double calRefAmp = 0.;
-	private GregorianCalendar gcal = null;
+	private LocalDateTime timestamp = null;
 	private String calNoiseType = null;
 	private String calCoupling = null;
 	private String calFilter = null;
@@ -97,23 +102,15 @@ public class Blockette320 extends Blockette  implements Serializable {
 		int unused = (int) bb.get(); // Unused for data (required for alignment)
 		// int seconds = (int)bb.getShort(); // .0001 seconds (0--9999)
 		// int seconds = bb.getShort() & 0x0000ffff; // .0001 seconds (0--9999)
-		int seconds = (int) bb.getChar(); // .0001 seconds (0--9999)
+		int partialSeconds = (int) bb.getChar(); // .0001 seconds (0--9999)
 
 		@SuppressWarnings("unused")
 		byte reserved = bb.get();
 		byte calFlags = bb.get();
 
-		// Calendar cal = Calendar.getInstance();
-		// cal.setTimeZone(TimeZone.getTimeZone("GMT+0"));
-		GregorianCalendar cal = new GregorianCalendar();
-		cal.set(Calendar.YEAR, year);
-		cal.set(Calendar.DAY_OF_YEAR, dayOfYear);
-		cal.set(Calendar.HOUR_OF_DAY, hour);
-		cal.set(Calendar.MINUTE, min);
-		cal.set(Calendar.SECOND, sec);
-		cal.set(Calendar.MILLISECOND, seconds / 10);
-
-		this.gcal = cal;
+		LocalDate localDate = LocalDate.ofYearDay(year, dayOfYear);
+		LocalTime localTime = LocalTime.of(hour, min, sec, partialSeconds *10000);
+		this.timestamp = LocalDateTime.of(localDate,localTime);
 
 		/**
 		 * byte calFlags = 1<<4; if (calFlags & 0x10) --> bit 4 set = calFlags =
@@ -172,39 +169,10 @@ public class Blockette320 extends Blockette  implements Serializable {
 
 	}
 
-	public void print() {
-		System.out.println("== Random Calibration Blockette");
-		System.out.format("==   Start Time:%4d, %03d %02d:%02d:%02d.%03d\n",
-				gcal.get(Calendar.YEAR), gcal.get(Calendar.DAY_OF_YEAR),
-				gcal.get(Calendar.HOUR_OF_DAY), gcal.get(Calendar.MINUTE),
-				gcal.get(Calendar.SECOND), gcal.get(Calendar.MILLISECOND));
-		System.out
-				.format("==   Calibration Duration: %d\n", calDuration / 1000); // Convert
-																				// millisecs
-																				// -->
-																				// secs
-																				// for
-																				// printing
-		System.out.format("==   Noise Type [%s]  Calibration Amplitude:%f\n",
-				calNoiseType, calPeakAmp);
-		System.out.format("==   Calibration Input Channel:%s\n",
-				calInputChannel);
-		System.out.format("==   Reference Amplitude:%f\n", calRefAmp);
-		System.out.format("==   Coupling Method:%s\n", calCoupling);
-		System.out.format(
-				"==   Filtering Type:%s          Calibration Flags:[%02x]\n",
-				calFilter, calFlags);
-		System.out.println("====================================");
-	}
-
 	public String toString() {
 		StringBuilder ret = new StringBuilder();
 		ret.append(String.format("\n== Random Calibration Blockette\n"));
-		ret.append(String.format(
-				"==   Start Time:%4d, %03d %02d:%02d:%02d.%03d\n",
-				gcal.get(Calendar.YEAR), gcal.get(Calendar.DAY_OF_YEAR),
-				gcal.get(Calendar.HOUR_OF_DAY), gcal.get(Calendar.MINUTE),
-				gcal.get(Calendar.SECOND), gcal.get(Calendar.MILLISECOND)));
+		ret.append(String.format("==   Start Time:%s\n", timestamp.toString()));
 		ret.append(String.format("==   Calibration Duration: %d\n",
 				calDuration / 1000)); // Convert millisecs --> secs for printing
 		ret.append(String.format(
@@ -223,15 +191,11 @@ public class Blockette320 extends Blockette  implements Serializable {
 	}
 
 	public long getCalibrationEpoch() {
-		// System.out.println("==getCalibrationEpoch");
-		// System.out.println("==Calendar date is: " + gcal.getTime());
-		// System.out.println("==Calendar timeInMillis is: " +
-		// gcal.getTimeInMillis());
-		return gcal.getTimeInMillis();
+		return Time.calculateEpochMilliSeconds(timestamp);
 	}
 
-	public Calendar getCalibrationCalendar() {
-		return gcal;
+	public LocalDateTime getCalibrationTimeStamp() {
+		return timestamp;
 	}
 
 	public long getCalibrationDuration() {

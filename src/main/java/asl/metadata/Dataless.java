@@ -1,5 +1,7 @@
 package asl.metadata;
 
+import java.time.LocalDateTime;
+
 /* 
  * Follwing is a depiction of the structure generated as a result of 
  * parsing the output of `evalresp -s`
@@ -63,7 +65,6 @@ package asl.metadata;
  */
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Hashtable;
 
@@ -275,7 +276,7 @@ class Dataless {
 					} else {
 						channel = station.getChannel(channelKey);
 					}
-					Calendar epochKey = channel.addEpoch(blockette);
+					LocalDateTime epochKey = channel.addEpoch(blockette);
 					epoch = channel.getEpoch(epochKey);
 				} catch (MissingBlocketteDataException e) {
 					throw e;

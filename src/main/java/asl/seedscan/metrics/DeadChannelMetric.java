@@ -1,7 +1,7 @@
 package asl.seedscan.metrics;
 
 import java.nio.ByteBuffer;
-import java.util.Calendar;
+import java.time.LocalDate;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -40,14 +40,14 @@ public class DeadChannelMetric extends PowerBandMetric {
 		String netstat;
 		String net;
 		String stat;
-		Calendar date;
+		LocalDate date;
 		String period;
 		Double NLNMValue;
 		Double threshold;
 		String NLNMBaseName;
 		String NLNMName;
 
-		date = getDate();
+		date = stationMeta.getTimestamp().toLocalDate();
 		metric = getName();
 		threshold = -7.0;
 

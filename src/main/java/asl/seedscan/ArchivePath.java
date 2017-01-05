@@ -1,6 +1,7 @@
 package asl.seedscan;
 
-import java.util.GregorianCalendar;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import asl.metadata.Station;
 
@@ -11,7 +12,7 @@ import asl.metadata.Station;
 public class ArchivePath {
 
 	/** The timestamp. */
-	private GregorianCalendar timestamp = null;
+	private LocalDateTime timestamp = null;
 
 	/** The station. */
 	private Station station = null;
@@ -34,7 +35,7 @@ public class ArchivePath {
 	 * @param station
 	 *            the station
 	 */
-	ArchivePath(GregorianCalendar timestamp, Station station) {
+	ArchivePath(LocalDateTime timestamp, Station station) {
 		this.timestamp = timestamp;
 		this.station = station;
 	}
@@ -45,7 +46,7 @@ public class ArchivePath {
 	 * @param timestamp
 	 *            the new timestamp
 	 */
-	public void setTimestamp(GregorianCalendar timestamp) {
+	public void setTimestamp(LocalDateTime timestamp) {
 		this.timestamp = timestamp;
 	}
 
@@ -75,13 +76,13 @@ public class ArchivePath {
 		}
 
 		if (timestamp != null) {
-			pattern = pattern.replace("${YEAR}", String.format("%1$tY", timestamp));
-			pattern = pattern.replace("${MONTH}", String.format("%1$tm", timestamp));
-			pattern = pattern.replace("${DAY}", String.format("%1$td", timestamp));
-			pattern = pattern.replace("${JDAY}", String.format("%1$tj", timestamp));
-			pattern = pattern.replace("${HOUR}", String.format("%1$tH", timestamp));
-			pattern = pattern.replace("${MINUTE}", String.format("%1$tM", timestamp));
-			pattern = pattern.replace("${SECOND}", String.format("%1$tS", timestamp));
+			pattern = pattern.replace("${YEAR}", timestamp.format(DateTimeFormatter.ofPattern("yyyy")));
+			pattern = pattern.replace("${MONTH}", timestamp.format(DateTimeFormatter.ofPattern("MM")));
+			pattern = pattern.replace("${DAY}", timestamp.format(DateTimeFormatter.ofPattern("dd")));
+			pattern = pattern.replace("${JDAY}", timestamp.format(DateTimeFormatter.ofPattern("DDD")));
+			pattern = pattern.replace("${HOUR}", timestamp.format(DateTimeFormatter.ofPattern("HH")));
+			pattern = pattern.replace("${MINUTE}", timestamp.format(DateTimeFormatter.ofPattern("mm")));
+			pattern = pattern.replace("${SECOND}", timestamp.format(DateTimeFormatter.ofPattern("ss")));
 		}
 
 		return pattern;

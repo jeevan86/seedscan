@@ -22,7 +22,7 @@ import java.net.URI;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.Calendar;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -87,7 +87,7 @@ public class MetaServer {
 		}
 	}
 
-	public StationMeta getStationMeta(Station station, Calendar timestamp) {
+	public StationMeta getStationMeta(Station station, LocalDateTime timestamp) {
 		logger.debug("getStationMeta Station=" + station);
 		StationMeta stnMeta = null;
 		try {

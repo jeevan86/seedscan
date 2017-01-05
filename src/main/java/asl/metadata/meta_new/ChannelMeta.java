@@ -20,8 +20,8 @@
 package asl.metadata.meta_new;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Hashtable;
 
 import org.apache.commons.math3.complex.Complex;
@@ -57,7 +57,7 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 		Cloneable {
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.metadata.meta_new.ChannelMeta.class);
-	private static final long serialVersionUID = 2L;
+	private static final long serialVersionUID = 3L;
 
 	private String name = null;
 	private String location = null;
@@ -70,7 +70,7 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 	private double dip;
 	private double azimuth;
 	private double depth;
-	private Calendar metaTimestamp = null; // This should be same as the
+	private LocalDateTime metaTimestamp = null; // This should be same as the
 											// stationMeta metaTimestamp
 	private boolean dayBreak = false; // This will be set to true if channelMeta
 										// changes during requested day
@@ -83,64 +83,54 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 	}
 
 	// constructor(s)
-	public ChannelMeta(ChannelKey channel, Calendar metaTimestamp,
-			Station station) throws RuntimeException {
+	public ChannelMeta(ChannelKey channel, LocalDateTime metaTimestamp,
+			Station station){
 		// We need to call the super constructor to start the MessageDigest
 		super();
 		this.name = channel.getName();
 		this.location = channel.getLocation();
-		this.metaTimestamp = (Calendar) metaTimestamp.clone();
+		this.metaTimestamp = metaTimestamp;
 		this.metaDate = (EpochData.epochToDateString(this.metaTimestamp));
 		this.station = station;
 		stages = new Hashtable<Integer, ResponseStage>();
 	}
 
-	private ChannelMeta(ChannelKey channel, Calendar metaTimestamp)
-			throws RuntimeException {
+	private ChannelMeta(ChannelKey channel, LocalDateTime metaTimestamp){
 		this(channel, metaTimestamp, null);
 	}
 
-	private ChannelMeta(String location, String channel, Calendar metaTimestamp)
-			throws RuntimeException {
+	private ChannelMeta(String location, String channel, LocalDateTime metaTimestamp){
 		this(new ChannelKey(location, channel), metaTimestamp);
 	}
 
-	ChannelMeta copy(Channel channel) throws RuntimeException {
-		try {
-			ChannelMeta copyChan = copy(channel.getChannel());
-			return copyChan;
-		} catch (RuntimeException e) {
-			throw e;
-		}
+	ChannelMeta copy(Channel channel){
+		ChannelMeta copyChan = copy(channel.getChannel());
+		return copyChan;
 	}
 
-	private ChannelMeta copy(String name) throws RuntimeException {
+	private ChannelMeta copy(String name){
 		String useName = null;
 		if (name != null) {
 			useName = name;
 		} else {
 			useName = this.getName();
 		}
-		try {
-			ChannelMeta copyChan = new ChannelMeta(this.getLocation(), useName,
-					this.getTimestamp());
-			copyChan.sampleRate = this.sampleRate;
-			copyChan.dip = this.dip;
-			copyChan.azimuth = this.azimuth;
-			copyChan.depth = this.depth;
-			copyChan.dayBreak = this.dayBreak;
-			copyChan.instrumentType = this.instrumentType;
-			copyChan.channelFlags = this.channelFlags;
+		ChannelMeta copyChan = new ChannelMeta(this.getLocation(), useName,
+				this.getTimestamp());
+		copyChan.sampleRate = this.sampleRate;
+		copyChan.dip = this.dip;
+		copyChan.azimuth = this.azimuth;
+		copyChan.depth = this.depth;
+		copyChan.dayBreak = this.dayBreak;
+		copyChan.instrumentType = this.instrumentType;
+		copyChan.channelFlags = this.channelFlags;
 
-			for (Integer stageID : this.stages.keySet()) {
-				ResponseStage stage = this.getStage(stageID);
-				ResponseStage copyStage = stage.copy();
-				copyChan.addStage(stageID, copyStage);
-			}
-			return copyChan;
-		} catch (RuntimeException e) {
-			throw e;
+		for (Integer stageID : this.stages.keySet()) {
+			ResponseStage stage = this.getStage(stageID);
+			ResponseStage copyStage = stage.copy();
+			copyChan.addStage(stageID, copyStage);
 		}
+		return copyChan;
 	}
 
 	/**
@@ -261,8 +251,8 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 		return channelFlags;
 	}
 
-	public Calendar getTimestamp() {
-		return (Calendar) metaTimestamp.clone();
+	public LocalDateTime getTimestamp() {
+		return metaTimestamp;
 	}
 
 	public String getDate() {

@@ -1,7 +1,6 @@
 
 package asl.seedscan.metrics;
 
-import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
@@ -256,10 +255,12 @@ public abstract class Metric {
 	 * @return the output dir structure with dates. e.g., "outputs/2012/2012160/2012160.IU_ANMO"
 	 */
 	public String getOutputDir() {
+		String year = String.valueOf(stationMeta.getTimestamp().getYear());
+		String doy = String.valueOf(stationMeta.getTimestamp().getDayOfYear());
 		// e.g., "outputs/2012/2012160/2012160.IU_ANMO"
-		return new String(String.format("%s/%4s/%4s%3s/%4s%3s.%s",
-				getBaseOutputDir(), getYear(), getYear(), getDOY(), getYear(),
-				getDOY(), getStation()));
+		return String.format("%s/%4s/%4s%3s/%4s%3s.%s",
+				getBaseOutputDir(), year, year, doy, year,
+				doy, getStation());
 	}
 
 	/**
@@ -268,37 +269,7 @@ public abstract class Metric {
 	 * @return the date string of stationMeta's timestamp.
 	 */
 	public String getDay() { // returns yyyy:ddd:hh:mm
-		return (EpochData.epochToDateString(stationMeta.getTimestamp()));
-	}
-
-	/**
-	 * Gets the date.
-	 *
-	 * @return the stationMeta timestamp.
-	 */
-	public Calendar getDate() {
-		// returns Calendar date from StationMeta
-		return stationMeta.getTimestamp();
-	}
-
-	/**
-	 * Gets the day of year.
-	 *
-	 * @return the day of year
-	 */
-	public String getDOY() {
-		String[] dateArray = getDay().split(":");
-		return dateArray[1];
-	}
-
-	/**
-	 * Gets the year.
-	 *
-	 * @return the year
-	 */
-	public String getYear() {
-		String[] dateArray = getDay().split(":");
-		return dateArray[0];
+		return EpochData.epochToDateString(stationMeta.getTimestamp());
 	}
 
 	/**

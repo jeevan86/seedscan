@@ -1,21 +1,3 @@
-/*
- * Copyright 2012, United States Geological Survey or
- * third-party contributors as indicated by the @author tags.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
- *
- */
 package asl.seedscan.metrics;
 
 import java.nio.ByteBuffer;
@@ -26,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import asl.metadata.Channel;
 import asl.seedsplitter.DataSet;
+import asl.util.Time;
 
 public class GapCountMetric extends Metric {
 	private static final Logger logger = LoggerFactory
@@ -104,10 +87,7 @@ public class GapCountMetric extends Metric {
 																	// epoch
 		long interval = datasets.get(0).getInterval(); // sample dt in microsecs
 
-		// stationMeta.getTimestamp() returns a Calendar object for the expected
-		// day
-		// convert it from milisecs to microsecs
-		long expectedStartTime = stationMeta.getTimestamp().getTimeInMillis() * 1000;
+		long expectedStartTime = Time.calculateEpochMicroSeconds(stationMeta.getTimestamp());
 		// double gapThreshold = interval / 2.;
 		double gapThreshold = interval / 1.;
 

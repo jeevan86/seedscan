@@ -2,11 +2,10 @@ package asl.seedscan;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.Hashtable;
-import java.util.TimeZone;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -18,7 +17,6 @@ import java.util.concurrent.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import asl.metadata.EpochData;
 import asl.metadata.MetaServer;
 import asl.metadata.Station;
 import asl.metadata.meta_new.StationMeta;
@@ -38,8 +36,6 @@ import seed.Blockette320;
 
 class Scanner implements Runnable {
 	private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.Scanner.class);
-	private static final long MILLISECONDS_IN_DAY = 1000 * 60 * 60 * 24;
-
 	private Station station;
 	private MetricDatabase database;
 	private Scan scan;
@@ -87,32 +83,25 @@ class Scanner implements Runnable {
 	private void scan() {
 		logger.debug("Enter scan(): Thread id=[{}]", Thread.currentThread().getId());
 
-		GregorianCalendar timestamp = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+		LocalDate currentDate = null;
 		
 		MetricData currentMetricData = null;
 		MetricData nextMetricData = null;
 
 		// Look for cfg:start_date first:
 		if (scan.getStartDate() >= 1970001 && scan.getStartDate() < 2114001) {
-			timestamp.set(Calendar.YEAR, scan.getStartDate() / 1000);
-			timestamp.set(Calendar.DAY_OF_YEAR, scan.getStartDate() % 1000);
+			currentDate = LocalDate.ofYearDay(scan.getStartDate() / 1000, scan.getStartDate() % 1000);
 		} else if (scan.getStartDate() != 0 // Catch if no startDate is set
 				&& (scan.getStartDate() < 1970001 || scan.getStartDate() > 2114001)) {
 			logger.error(
 					"Start Date=[{}] is invalid. Either it must be inbetween 1970001 and 2114001 OR 0 to use start_day.",
 					scan.getStartDate());
 			return; // Can't scan an invalid date so get out of here.
-		} else { // Use cfg:start_day
-			timestamp.setTimeInMillis(timestamp.getTimeInMillis() - (scan.getStartDay() * MILLISECONDS_IN_DAY));
 		}
 
 		// timestamp is now set to current time - (24 hours x StartDay). What we
 		// really want is to set it
 		// to the start (hh:mm=00:00) of the first day we want to scan
-		timestamp.set(Calendar.HOUR_OF_DAY, 0);
-		timestamp.set(Calendar.MINUTE, 0);
-		timestamp.set(Calendar.SECOND, 0);
-		timestamp.set(Calendar.MILLISECOND, 0);
 
 		// CMT Event loader - use to load events for each day
 		EventLoader eventLoader = new EventLoader(scan.getEventsDir());
@@ -130,21 +119,20 @@ class Scanner implements Runnable {
 
 		for (int i = 0; i < scan.getDaysToScan(); i++) {
 			if (i != 0) {
-				timestamp.setTimeInMillis(timestamp.getTimeInMillis() - MILLISECONDS_IN_DAY);
+				currentDate.minusDays(1);
 			}
-			GregorianCalendar nextDayTimestamp = (GregorianCalendar) timestamp.clone();
-			nextDayTimestamp.setTimeInMillis(timestamp.getTimeInMillis() + MILLISECONDS_IN_DAY);
+			LocalDate nextDayTimestamp = currentDate.plusDays(1);
 
-			logger.debug(String.format("Scan Station=%s Day=%s Thread id=[%d]", station,
-					EpochData.epochToDateString(timestamp), Thread.currentThread().getId()));
+			logger.debug("Scan Station={} Day={} Thread id=[{}]", station,
+					currentDate.format(DateTimeFormatter.ISO_ORDINAL_DATE), Thread.currentThread().getId());
 
 			// [1] Get all the channel metadata for this station, for this day
 			// StationMeta stnMeta = metaGen.getStationMeta(station, timestamp);
-			StationMeta stnMeta = metaServer.getStationMeta(station, timestamp);
+			StationMeta stnMeta = metaServer.getStationMeta(station, currentDate.atStartOfDay());
 			if (stnMeta == null) { // No Metadata found for this station + this
 				// day --> skip day
-				logger.warn(String.format("== Scanner: No Metadata found for Station:%s_%s + Day:%s --> Skipping\n",
-						station.getNetwork(), station.getStation(), EpochData.epochToDateString(timestamp)));
+				logger.warn("== Scanner: No Metadata found for Station:{}_{} + Day:{} --> Skipping",
+						station.getNetwork(), station.getStation(), currentDate.format(DateTimeFormatter.ISO_ORDINAL_DATE));
 				continue;
 			}
 
@@ -152,13 +140,13 @@ class Scanner implements Runnable {
 				stnMeta.printStationInfo();
 			}
 
-			logger.info(String.format("Scan Station=%s Day=%s", station, EpochData.epochToDateString(timestamp)));
+			logger.info("Scan Station={} Day={}", station, currentDate.format(DateTimeFormatter.ISO_ORDINAL_DATE));
 
-			Hashtable<String, EventCMT> eventCMTs = eventLoader.getDayEvents(timestamp);
+			Hashtable<String, EventCMT> eventCMTs = eventLoader.getDayEvents(currentDate);
 			Hashtable<String, Hashtable<String, SacTimeSeries>> eventSynthetics = null;
 
 			if (eventCMTs != null) {
-				eventSynthetics = eventLoader.getDaySynthetics(timestamp, station);
+				eventSynthetics = eventLoader.getDaySynthetics(currentDate, station);
 			} else {
 				// System.out.format("== Scanner: NO CMTs FOUND for this
 				// day\n");
@@ -181,7 +169,7 @@ class Scanner implements Runnable {
 				}
 			}
 			currentMetricData = null;
-			currentMetricData = getMetricData(timestamp);
+			currentMetricData = getMetricData(currentDate);
 
 			if (currentMetricData != null) {
 				// This doesn't mean nextMetricData isn't null!
@@ -229,17 +217,17 @@ class Scanner implements Runnable {
 							double value = results.getResult(id);
 							/* @formatter:off */
 							logger.info(String.format("%s [%7s] [%s] %15s:%6.2f", results.getMetricName(),
-									results.getStation(), EpochData.epochToDateString(results.getDate()), id, value));
+									results.getStation(), results.getDate().format(DateTimeFormatter.ISO_ORDINAL_DATE), id, value));
 
 							if (Double.isNaN(value)) {
 								logger.error(String.format("%s [%s] [%s] %s: ERROR: metric value = [ NaN ] !!\n",
 										results.getMetricName(), results.getStation(),
-										EpochData.epochToDateString(results.getDate()), id));
+										results.getDate().format(DateTimeFormatter.ISO_ORDINAL_DATE), id));
 							}
 							if (Double.isInfinite(value)) {
 								logger.error(String.format("%s [%s] [%s] %s: ERROR: metric value = [ Infinity ] !!\n",
 										results.getMetricName(), results.getStation(),
-										EpochData.epochToDateString(results.getDate()), id));
+										results.getDate().format(DateTimeFormatter.ISO_ORDINAL_DATE), id));
 							}
 							/* @formatter:on */
 						}
@@ -266,7 +254,7 @@ class Scanner implements Runnable {
 	 * SeedSplitter function: processing times greater than 3 min. will move to
 	 * the next day
 	 */
-	private SplitterObject executeSplitter(File[] files, int timeout, GregorianCalendar timestamp)
+	private SplitterObject executeSplitter(File[] files, int timeout, LocalDate timestamp)
 			throws TimeoutException, ExecutionException, InterruptedException {
 		Hashtable<String, ArrayList<DataSet>> table = null;
 		SeedSplitter splitter = new SeedSplitter(files);
@@ -274,11 +262,11 @@ class Scanner implements Runnable {
 		Future<Hashtable<String, ArrayList<DataSet>>> future = executor.submit(new Task(splitter));
 
 		try {
-			logger.info(String.format("== STARTED SeedSplitter() process for [%s]:[%s]\n", station,
-					EpochData.epochToDateString(timestamp)));
+			logger.info("== STARTED SeedSplitter() process for [{}]:[{}]\n", station,
+					timestamp.format(DateTimeFormatter.ISO_ORDINAL_DATE));
 			table = future.get(timeout, TimeUnit.SECONDS);
-			logger.info(String.format("== FINISHED SeedSplitter() process for [%s]:[%s]\n", station,
-					EpochData.epochToDateString(timestamp)));
+			logger.info("== FINISHED SeedSplitter() process for [{}]:[{}]\n", station,
+					timestamp.format(DateTimeFormatter.ISO_ORDINAL_DATE));
 		} catch (TimeoutException e) {
 			future.cancel(true);
 			throw e;
@@ -298,14 +286,14 @@ class Scanner implements Runnable {
 	/**
 	 * Return a MetricData object for the station + timestamp
 	 */
-	private MetricData getMetricData(GregorianCalendar timestamp) {
+	private MetricData getMetricData(LocalDate date) {
 
-		StationMeta stationMeta = metaServer.getStationMeta(station, timestamp);
+		StationMeta stationMeta = metaServer.getStationMeta(station, date.atStartOfDay());
 		if (stationMeta == null) {
 			return null;
 		}
 
-		ArchivePath pathEngine = new ArchivePath(timestamp, station);
+		ArchivePath pathEngine = new ArchivePath(date.atStartOfDay(), station);
 		String path = pathEngine.makePath(scan.getPathPattern());
 		File dir = new File(path);
 		File[] files = null;
@@ -355,7 +343,7 @@ class Scanner implements Runnable {
 		// execute SeedSplitter process (180 sec timer will be issued)
 		try {
 			int timeout = 180;
-			SplitterObject splitObj = executeSplitter(files, timeout, timestamp);
+			SplitterObject splitObj = executeSplitter(files, timeout, date);
 			SeedSplitter splitter = splitObj.splitter;
 			Hashtable<String, ArrayList<DataSet>> table = splitObj.table;
 
@@ -367,18 +355,16 @@ class Scanner implements Runnable {
 
 			return new MetricData(database, table, qualityTable, stationMeta, calibrationTable);
 		} catch (TimeoutException e) {
-			StringBuilder message = new StringBuilder();
-			message.append(String.format("== TimeoutException: Skipping to next day for [%s]:[%s]\n", station,
-					EpochData.epochToDateString(timestamp)));
-			logger.error(message.toString());
+			logger.error("== TimeoutException: Skipping to next day for [{}]:[{}]\n", station,
+					date.format(DateTimeFormatter.ISO_ORDINAL_DATE));
 			return null;
 		} catch (ExecutionException e) {
-			logger.error(String.format("== ExecutionException: Skipping to next day for [%s]:[%s]\n", station,
-					EpochData.epochToDateString(timestamp)));
+			logger.error("== ExecutionException: Skipping to next day for [{}]:[{}]\n", station,
+					date.format(DateTimeFormatter.ISO_ORDINAL_DATE));
 			return null;
 		} catch (InterruptedException e) {
-			logger.error(String.format("== InterruptedException: Skipping to next day for [%s]:[%s]\n", station,
-					EpochData.epochToDateString(timestamp)));
+			logger.error("== InterruptedException: Skipping to next day for [{}]:[{}]\n", station,
+					date.format(DateTimeFormatter.ISO_ORDINAL_DATE));
 			return null;
 		}
 	}

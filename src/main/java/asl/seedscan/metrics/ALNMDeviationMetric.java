@@ -9,7 +9,6 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -330,8 +329,8 @@ public class ALNMDeviationMetric extends PowerBandMetric {
 			throw new MetricException(message.toString());
 		}
 		if (plotMaker == null) {
-			String date = String.format("%04d%03d", metricResult.getDate().get(Calendar.YEAR),
-					metricResult.getDate().get(Calendar.DAY_OF_YEAR));
+			String date = String.format("%04d%03d", metricResult.getDate().getYear(),
+					metricResult.getDate().getDayOfYear());
 			final String plotTitle = String.format("[ Date: %s ] [ Station: %s ] ALNM-Deviation", date, getStation());
 			plotMaker = new PlotMaker2(plotTitle);
 			plotMaker.initialize3Panels("LNZ", "LN1/LNN", "LN2/LNE");

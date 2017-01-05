@@ -5,7 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Calendar;
+import java.time.format.DateTimeFormatter;
 import java.util.Hashtable;
 import java.util.List;
 
@@ -14,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import asl.metadata.Channel;
-import asl.metadata.EpochData;
 import asl.metadata.meta_new.ChannelMeta;
 import asl.metadata.meta_new.ResponseStage;
 import asl.plotmaker.PlotMaker;
@@ -167,7 +166,7 @@ public class CalibrationMetric extends Metric {
 		// calDuration/1000);
 		logger.info(blockette320.toString());
 
-		if (blockette320.getCalibrationCalendar().get(Calendar.HOUR) == 0) {
+		if (blockette320.getCalibrationTimeStamp().getHour() == 0) {
 			// This appears to be the 2nd half of a cal that began on the
 			// previous day --> Skip
 			logger.warn("** cal appears to be the 2nd half of a cal from previous day --> Skip");
@@ -178,10 +177,15 @@ public class CalibrationMetric extends Metric {
 		// this will
 		// be mapped to the default location code="00"
 		Channel calChannel = new Channel("00", channelExtension);
+		
+		String calStartDate = "(null)";
+		if (blockette320.getCalibrationTimeStamp() != null) {
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy:DDD:HH:mm:ss");
+			calStartDate = blockette320.getCalibrationTimeStamp().format(formatter);
+		}
 
 		CalibrationResult calibration = new CalibrationResult(channel,
-				calChannel, EpochData.epochToTimeString(blockette320
-						.getCalibrationCalendar()), calDuration / 1000);
+				calChannel, calStartDate, calDuration / 1000);
 
 		if (calEndEpoch > dataEndEpoch) {
 			// Look for cal to span into next day
@@ -430,12 +434,9 @@ public class CalibrationMetric extends Metric {
 		}
 
 		if (getMakePlots()) {
-			String date = String.format("%04d%03d",
-					metricResult.getDate().get(Calendar.YEAR), metricResult
-							.getDate().get(Calendar.DAY_OF_YEAR));
 			final String plotTitle = String.format(
 					"[ Date: %s ] [ Station: %s ] [ Channel: %s ] Calibration",
-					date, getStation(), channel);
+					metricResult.getDate().format(DateTimeFormatter.ISO_ORDINAL_DATE), getStation(), channel);
 			final String pngName = String.format("%s.%s.%s.png",
 					getOutputDir(), channel, "calib");
 

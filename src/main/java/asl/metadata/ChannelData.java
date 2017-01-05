@@ -1,7 +1,7 @@
 package asl.metadata;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Hashtable;
 
@@ -15,8 +15,8 @@ public class ChannelData {
 	private static final int CHANNEL_EPOCH_INFO_BLOCKETTE_NUMBER = 52;
 	private static final int CHANNEL_COMMENT_BLOCKETTE_NUMBER = 59;
 
-	private Hashtable<Calendar, Blockette> comments;
-	private Hashtable<Calendar, EpochData> epochs;
+	private Hashtable<LocalDateTime, Blockette> comments;
+	private Hashtable<LocalDateTime, EpochData> epochs;
 	private String location = null;
 	private String name = null;
 
@@ -25,8 +25,8 @@ public class ChannelData {
 	ChannelData(ChannelKey channelKey) {
 		this.location = channelKey.getLocation();
 		this.name = channelKey.getName();
-		comments = new Hashtable<Calendar, Blockette>();
-		epochs = new Hashtable<Calendar, EpochData>();
+		comments = new Hashtable<LocalDateTime, Blockette>();
+		epochs = new Hashtable<LocalDateTime, EpochData>();
 	}
 
 	// identifiers
@@ -39,7 +39,7 @@ public class ChannelData {
 	}
 
 	// comments
-	Calendar addComment(Blockette blockette)
+	LocalDateTime addComment(Blockette blockette)
 			throws MissingBlocketteDataException, TimestampFormatException,
 			WrongBlocketteException {
 		if (blockette.getNumber() != CHANNEL_COMMENT_BLOCKETTE_NUMBER) {
@@ -51,7 +51,7 @@ public class ChannelData {
 			throw new MissingBlocketteDataException();
 		}
 		try {
-			Calendar timestamp = BlocketteTimestamp
+			LocalDateTime timestamp = BlocketteTimestamp
 					.parseTimestamp(timestampString);
 			comments.put(timestamp, blockette);
 			return timestamp;
@@ -60,16 +60,16 @@ public class ChannelData {
 		}
 	}
 
-	public boolean hasComment(Calendar timestamp) {
+	public boolean hasComment(LocalDateTime timestamp) {
 		return comments.containsKey(timestamp);
 	}
 
-	public Blockette getComment(Calendar timestamp) {
+	public Blockette getComment(LocalDateTime timestamp) {
 		return comments.get(timestamp);
 	}
 
 	// epochs
-	Calendar addEpoch(Blockette blockette)
+	LocalDateTime addEpoch(Blockette blockette)
 			throws MissingBlocketteDataException, TimestampFormatException,
 			WrongBlocketteException {
 		if (blockette.getNumber() != CHANNEL_EPOCH_INFO_BLOCKETTE_NUMBER) {
@@ -82,7 +82,7 @@ public class ChannelData {
 			throw new MissingBlocketteDataException();
 		}
 		try {
-			Calendar timestamp = BlocketteTimestamp
+			LocalDateTime timestamp = BlocketteTimestamp
 					.parseTimestamp(timestampString);
 			EpochData data = new EpochData(blockette);
 			epochs.put(timestamp, data);
@@ -92,11 +92,11 @@ public class ChannelData {
 		}
 	}
 
-	public boolean hasEpoch(Calendar timestamp) {
+	public boolean hasEpoch(LocalDateTime timestamp) {
 		return epochs.containsKey(timestamp);
 	}
 
-	EpochData getEpoch(Calendar timestamp) {
+	EpochData getEpoch(LocalDateTime timestamp) {
 		return epochs.get(timestamp);
 	}
 
@@ -108,18 +108,18 @@ public class ChannelData {
 	 * oldest startTimestamp - oldest endTimestamp
 	 **/
 	// public boolean containsEpoch(Calendar epochTime)
-	Calendar containsEpoch(Calendar epochTime) {
+	LocalDateTime containsEpoch(LocalDateTime epochTime) {
 		boolean containsEpochTime = false;
 
-		ArrayList<Calendar> epochtimes = new ArrayList<Calendar>();
+		ArrayList<LocalDateTime> epochtimes = new ArrayList<LocalDateTime>();
 		epochtimes.addAll(epochs.keySet());
 		Collections.sort(epochtimes);
 		Collections.reverse(epochtimes);
 		int nEpochs = epochtimes.size();
 
-		Calendar startTimeStamp = null;
-		Calendar endTimeStamp = null;
-		Calendar timestamp = null;
+		LocalDateTime startTimeStamp = null;
+		LocalDateTime endTimeStamp = null;
+		LocalDateTime timestamp = null;
 		EpochData epoch = null;
 
 		// epochs keys(=timestamps) are now sorted with the newest first
@@ -131,15 +131,13 @@ public class ChannelData {
 		epoch = epochs.get(timestamp);
 		startTimeStamp = epoch.getStartTime();
 		endTimeStamp = epoch.getEndTime();
-		if (endTimeStamp == null) { // The first Epoch is open
-			if (epochTime.getTimeInMillis() >= startTimeStamp.getTimeInMillis()) {
+		if (endTimeStamp == null) { // This Epoch is open
+			if (epochTime.compareTo(startTimeStamp) >= 0) {
 				containsEpochTime = true;
 			}
 		} // The first Epoch is closed
-		else if (epochTime.getTimeInMillis() >= startTimeStamp
-				.getTimeInMillis()
-				&& epochTime.getTimeInMillis() <= endTimeStamp
-						.getTimeInMillis()) {
+		else if (epochTime.compareTo(startTimeStamp) >= 0
+				&& epochTime.compareTo(endTimeStamp) <= 0) {
 			containsEpochTime = true;
 		}
 
@@ -158,10 +156,8 @@ public class ChannelData {
 					// containsEpochTime = true;
 					// }
 					break;
-				} else if (epochTime.getTimeInMillis() >= startTimeStamp
-						.getTimeInMillis()
-						&& epochTime.getTimeInMillis() <= endTimeStamp
-								.getTimeInMillis()) {
+				} else if (epochTime.compareTo(startTimeStamp) >= 0
+						&& epochTime.compareTo(endTimeStamp) <= 0) {
 					containsEpochTime = true;
 					break;
 				}
@@ -183,18 +179,18 @@ public class ChannelData {
 		// TreeSet<Calendar> epochtimes = new TreeSet<Calendar>();
 		// epochtimes.addAll(epochs.keySet());
 
-		ArrayList<Calendar> epochtimes = new ArrayList<Calendar>();
+		ArrayList<LocalDateTime> epochtimes = new ArrayList<LocalDateTime>();
 		epochtimes.addAll(epochs.keySet());
 		Collections.sort(epochtimes);
 
-		for (Calendar timestamp : epochtimes) {
+		for (LocalDateTime timestamp : epochtimes) {
 			// timestamp is the Hashtable key and "should" be the same as
 			// EpochData.getStartTime()
 			// String startDate = EpochData.epochToDateString(timestamp);
 
 			EpochData epoch = epochs.get(timestamp);
-			Calendar startTimeStamp = epoch.getStartTime();
-			Calendar endTimeStamp = epoch.getEndTime();
+			LocalDateTime startTimeStamp = epoch.getStartTime();
+			LocalDateTime endTimeStamp = epoch.getEndTime();
 			String startDateString = EpochData
 					.epochToDateString(startTimeStamp);
 			String endDateString = EpochData.epochToDateString(endTimeStamp);

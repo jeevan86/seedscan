@@ -19,8 +19,8 @@
 package asl.metadata.meta_new;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.TreeSet;
@@ -44,7 +44,7 @@ import asl.metadata.WrongBlocketteException;
 public class StationMeta implements Serializable {
 	
 	/** The Constant serialVersionUID. */
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 2L;
 
 	/** The Constant logger. */
 	private static final Logger logger = LoggerFactory
@@ -69,7 +69,7 @@ public class StationMeta implements Serializable {
 	private Hashtable<ChannelKey, ChannelMeta> channels;
 	
 	/** The meta timestamp. */
-	private Calendar metaTimestamp = null;
+	private LocalDateTime metaTimestamp = null;
 	
 	/** The meta date. */
 	private String metaDate = null;
@@ -84,7 +84,7 @@ public class StationMeta implements Serializable {
 	 * @param timestamp the timestamp
 	 * @throws WrongBlocketteException if the passed blockette 
 	 */
-	public StationMeta(Blockette blockette, Calendar timestamp)
+	public StationMeta(Blockette blockette, LocalDateTime timestamp)
 			throws WrongBlocketteException {
 		if (blockette.getNumber() != 50) { // We're expecting a station
 											// blockette (B050)
@@ -96,7 +96,7 @@ public class StationMeta implements Serializable {
 		this.longitude = Double.parseDouble(blockette.getFieldValue(5, 0));
 		this.elevation = Double.parseDouble(blockette.getFieldValue(6, 0));
 		channels = new Hashtable<ChannelKey, ChannelMeta>();
-		this.metaTimestamp = (Calendar) timestamp.clone();
+		this.metaTimestamp = timestamp;
 		this.metaDate = (EpochData.epochToDateString(this.metaTimestamp));
 		this.blockette50 = blockette;
 	}
@@ -170,8 +170,8 @@ public class StationMeta implements Serializable {
 	 *
 	 * @return the timestamp
 	 */
-	public Calendar getTimestamp() {
-		return (Calendar) metaTimestamp.clone();
+	public LocalDateTime getTimestamp() {
+		return metaTimestamp;
 	}
 
 	/**

@@ -3,7 +3,6 @@ package asl.seedscan.metrics;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.nio.ByteBuffer;
-import java.util.Calendar;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -241,8 +240,8 @@ public class CoherencePBM extends PowerBandMetric {
 
 			if (plotMaker == null) {
 				String plotTitle = String.format("%04d%03d [ %s ] Coherence",
-						metricResult.getDate().get(Calendar.YEAR), metricResult
-								.getDate().get(Calendar.DAY_OF_YEAR),
+						metricResult.getDate().getYear(), metricResult
+								.getDate().getDayOfYear(),
 						metricResult.getStation());
 				plotMaker = new PlotMaker2(plotTitle);
 				plotMaker.initialize3Panels("LHZ", "LHND", "LHED");

@@ -18,11 +18,10 @@
  */
 package asl.metadata;
 
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Hashtable;
-import java.util.TimeZone;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,8 +36,8 @@ public class EpochData {
 	private Hashtable<Integer, StageData> stages;
 
 	// MTH:
-	private Calendar startTimestamp = null;
-	private Calendar endTimestamp = null;
+	private LocalDateTime startTimestamp = null;
+	private LocalDateTime endTimestamp = null;
 	private double dip;
 	private double azimuth;
 	private double depth;
@@ -46,31 +45,10 @@ public class EpochData {
 	private String instrumentType;
 	private String channelFlags;
 
-	// epochToDateString(Calendar timestamp):
-	// Return date string (e.g., "2002:324:14:30") for given Calendar timestamp
-	// Return "(null)" if timestamp==null
-
-	public static String epochToDateString(Calendar time) {
-		// SimpleDateFormat sdf = new SimpleDateFormat("yyyy:DDD:HH:mm");
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy:DDD");
-		// This appears to be necessary because
-		// seedsplitter/SeedSplitProcessor.java sets the TimeZone to GMT
-		// so without the next line, the timestamp will be converted into the
-		// local timezone (e.g., 4 hours
-		// earlier than GMT
-		sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
-		if (time != null) {
-			return sdf.format(time.getTime());
-		} else {
-			return "(null)";
-		}
-	}
-
-	public static String epochToTimeString(Calendar time) {
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy:DDD:HH:mm:ss");
-		sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
-		if (time != null) {
-			return sdf.format(time.getTime());
+	public static String epochToDateString(LocalDateTime date) {
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy:DDD");
+		if (date != null) {
+			return date.format(formatter);
 		} else {
 			return "(null)";
 		}
@@ -181,11 +159,11 @@ public class EpochData {
 		return stages.size();
 	}
 
-	public Calendar getStartTime() {
+	public LocalDateTime getStartTime() {
 		return startTimestamp;
 	}
 
-	public Calendar getEndTime() {
+	public LocalDateTime getEndTime() {
 		return endTimestamp;
 	}
 

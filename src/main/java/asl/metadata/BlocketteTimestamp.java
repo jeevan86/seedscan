@@ -1,13 +1,13 @@
 
 package asl.metadata;
 
-import java.util.Calendar;
-import java.util.GregorianCalendar;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 public class BlocketteTimestamp {
-	public static Calendar parseTimestamp(String timestampString)
+	public static LocalDateTime parseTimestamp(String timestampString)
 			throws TimestampFormatException {
-		Calendar timestamp = new GregorianCalendar();
 		int year = 1;
 		int dayOfYear = 1;
 		int hour = 0;
@@ -68,27 +68,17 @@ public class BlocketteTimestamp {
 						// + timestamp);
 						throw new TimestampFormatException(
 								"parseTimestamp: Error parsing Timestamp="
-										+ timestamp);
+										+ timestampString);
 					}
 				}
-				// System.out.format("== parseTimestamp(%s) hour=%d minute=%d second=%d\n",
-				// timestampString, hour, minute, second );
 			}
 		} catch (NumberFormatException exception) {
 			throw new TimestampFormatException(exception.getMessage());
 		}
+		LocalDate date = LocalDate.ofYearDay(year, dayOfYear);
+		LocalTime time = LocalTime.of(hour, minute, second);
 
-		timestamp.set(Calendar.YEAR, year);
-		timestamp.set(Calendar.DAY_OF_YEAR, dayOfYear);
-		// timestamp.set(Calendar.HOUR, hour);
-		// MTH: I think we want to use 24-hour calendar here to get correct
-		// Epoch timestamp
-		timestamp.set(Calendar.HOUR_OF_DAY, hour);
-		timestamp.set(Calendar.MINUTE, minute);
-		timestamp.set(Calendar.SECOND, second);
-		timestamp.set(Calendar.MILLISECOND, 0);
-		timestamp.set(Calendar.ZONE_OFFSET, 0);
 
-		return timestamp;
+		return LocalDateTime.of(date, time);
 	}
 }

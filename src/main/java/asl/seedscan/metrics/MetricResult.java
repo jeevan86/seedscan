@@ -19,7 +19,7 @@
 package asl.seedscan.metrics;
 
 import java.nio.ByteBuffer;
-import java.util.Calendar;
+import java.time.LocalDate;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Set;
@@ -38,14 +38,14 @@ public class MetricResult {
 			.getLogger(asl.seedscan.metrics.MetricResult.class);
 
 	private String metricName;
-	private Calendar date;
+	private LocalDate date;
 	private Station station;
 	private Hashtable<String, Double> valueMap;
 	private Hashtable<String, ByteBuffer> digestMap;
 
 	public MetricResult(StationMeta stationInfo, String metricName) {
 		this.metricName = metricName;
-		this.date = (Calendar) stationInfo.getTimestamp().clone();
+		this.date = stationInfo.getTimestamp().toLocalDate();
 		this.station = new Station(stationInfo.getNetwork(),
 				stationInfo.getStation());
 		this.valueMap = new Hashtable<String, Double>();
@@ -56,7 +56,7 @@ public class MetricResult {
 		return metricName;
 	}
 
-	public Calendar getDate() {
+	public LocalDate getDate() {
 		return date;
 	}
 

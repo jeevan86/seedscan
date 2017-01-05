@@ -10,7 +10,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.Calendar;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -155,9 +154,8 @@ public class MetricDatabase {
 	 *            the channel and location information
 	 * @return the metric value
 	 */
-	public Double getMetricValue(Calendar date, String metricName, Station station, Channel channel) {
+	public Double getMetricValue(LocalDate date, String metricName, Station station, Channel channel) {
 		Double value = null;
-		String sqlDateString = null;
 		Connection connection = null;
 		CallableStatement callStatement = null;
 		ResultSet resultSet = null;
@@ -165,9 +163,7 @@ public class MetricDatabase {
 			try {
 				connection = dataSource.getConnection();
 				callStatement = connection.prepareCall("SELECT spGetMetricValue(?, ?, ?, ?, ?, ?)");
-				java.sql.Date sqlDate = new java.sql.Date(date.getTime().getTime());
-				sqlDateString = sqlDate.toString();
-				callStatement.setDate(1, sqlDate, date);
+				callStatement.setObject(1, date);
 				callStatement.setString(2, metricName);
 				callStatement.setString(3, station.getNetwork());
 				callStatement.setString(4, station.getStation());
@@ -189,7 +185,7 @@ public class MetricDatabase {
 			logger.error("SQLException:", e);
 		}
 		if (value == null) {
-			logger.warn("No value returned for sqldate:[{}] metric:[{}] station:[{}] channel:[{}]", sqlDateString,
+			logger.warn("No value returned for sqldate:[{}] metric:[{}] station:[{}] channel:[{}]", date,
 					metricName, station, channel);
 		}
 		return value;
@@ -208,7 +204,7 @@ public class MetricDatabase {
 	 *            the channel and location information
 	 * @return the metric value digest
 	 */
-	public ByteBuffer getMetricValueDigest(Calendar date, String metricName, Station station, Channel channel) {
+	public ByteBuffer getMetricValueDigest(LocalDate date, String metricName, Station station, Channel channel) {
 		ByteBuffer digest = null;
 		Connection connection = null;
 		CallableStatement callStatement = null;
@@ -218,8 +214,7 @@ public class MetricDatabase {
 				connection = dataSource.getConnection();
 				callStatement = connection.prepareCall("SELECT spGetMetricValueDigest(?, ?, ?, ?, ?, ?)");
 
-				java.sql.Date sqlDate = new java.sql.Date(date.getTime().getTime());
-				callStatement.setDate(1, sqlDate, date);
+				callStatement.setObject(1, date);
 				callStatement.setString(2, metricName);
 				callStatement.setString(3, station.getNetwork());
 				callStatement.setString(4, station.getStation());
@@ -345,10 +340,9 @@ public class MetricDatabase {
 				callStatement = connection.prepareCall("SELECT spInsertMetricData(?, ?, ?, ?, ?, ?, ?, ?)");
 
 				for (String id : results.getIdSet()) {
-					java.sql.Date date = new java.sql.Date(results.getDate().getTime().getTime());
 					Channel channel = MetricResult.createChannel(id);
 
-					callStatement.setDate(1, date, results.getDate());
+					callStatement.setObject(1, results.getDate());
 					callStatement.setString(2, results.getMetricName());
 					callStatement.setString(3, results.getStation().getNetwork());
 					callStatement.setString(4, results.getStation().getStation());

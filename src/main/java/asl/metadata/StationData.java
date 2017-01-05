@@ -1,5 +1,6 @@
 package asl.metadata;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -16,16 +17,16 @@ public class StationData {
 	private static final int STATION_EPOCH_BLOCKETTE_NUMBER = 50;
 	private static final int STATION_COMMENT_BLOCKETTE_NUMBER = 51;
 
-	private Hashtable<Calendar, Blockette> comments;
-	private Hashtable<Calendar, Blockette> epochs;
+	private Hashtable<LocalDateTime, Blockette> comments;
+	private Hashtable<LocalDateTime, Blockette> epochs;
 	private Hashtable<ChannelKey, ChannelData> channels;
 	private String network = null;
 	private String name = null;
 
 	// Constructor(s)
 	public StationData(String network, String name) {
-		comments = new Hashtable<Calendar, Blockette>();
-		epochs = new Hashtable<Calendar, Blockette>();
+		comments = new Hashtable<LocalDateTime, Blockette>();
+		epochs = new Hashtable<LocalDateTime, Blockette>();
 		channels = new Hashtable<ChannelKey, ChannelData>();
 		this.name = name;
 		this.network = network;
@@ -41,7 +42,7 @@ public class StationData {
 	}
 
 	// comments
-	public Calendar addComment(Blockette blockette)
+	public LocalDateTime addComment(Blockette blockette)
 			throws TimestampFormatException, WrongBlocketteException,
 			MissingBlocketteDataException {
 		if (blockette.getNumber() != STATION_COMMENT_BLOCKETTE_NUMBER) {
@@ -53,7 +54,7 @@ public class StationData {
 			throw new MissingBlocketteDataException();
 		}
 		try {
-			Calendar timestamp = BlocketteTimestamp
+			LocalDateTime timestamp = BlocketteTimestamp
 					.parseTimestamp(timestampString);
 			comments.put(timestamp, blockette);
 			return timestamp;
@@ -71,32 +72,29 @@ public class StationData {
 	}
 
 	// epochs
-	public Calendar addEpoch(Blockette blockette)
+	public LocalDateTime addEpoch(Blockette blockette)
 			throws TimestampFormatException, WrongBlocketteException,
 			MissingBlocketteDataException {
 		if (blockette.getNumber() != STATION_EPOCH_BLOCKETTE_NUMBER) {
 			throw new WrongBlocketteException();
 		}
-		// Epoch epochNew = new Epoch(blockette);
+
 		String timestampString = blockette.getFieldValue(13, 0);
 		if (timestampString == null) {
 			throw new MissingBlocketteDataException();
 		}
-		try {
-			Calendar timestamp = BlocketteTimestamp
-					.parseTimestamp(timestampString);
-			epochs.put(timestamp, blockette);
-			return timestamp;
-		} catch (TimestampFormatException e) {
-			throw e;
-		}
+		
+		LocalDateTime timestamp = BlocketteTimestamp
+				.parseTimestamp(timestampString);
+		epochs.put(timestamp, blockette);
+		return timestamp;
 	}
 
-	public boolean hasEpoch(Calendar timestamp) {
+	public boolean hasEpoch(LocalDateTime timestamp) {
 		return epochs.containsKey(timestamp);
 	}
 
-	public Blockette getEpoch(Calendar timestamp) {
+	public Blockette getEpoch(LocalDateTime timestamp) {
 		return epochs.get(timestamp);
 	}
 
@@ -109,15 +107,15 @@ public class StationData {
 
 	// Return the correct Blockette 050 for the requested epochTime
 	// Return null if epochTime not contained
-	public Blockette getBlockette(Calendar epochTime) {
-		ArrayList<Calendar> epochtimes = new ArrayList<Calendar>();
+	public Blockette getBlockette(LocalDateTime epochTime) {
+		ArrayList<LocalDateTime> epochtimes = new ArrayList<LocalDateTime>();
 		epochtimes.addAll(epochs.keySet());
 		Collections.sort(epochtimes);
 		Collections.reverse(epochtimes);
 		int nEpochs = epochtimes.size();
 
-		Calendar startTimeStamp = null;
-		Calendar endTimeStamp = null;
+		LocalDateTime startTimeStamp = null;
+		LocalDateTime endTimeStamp = null;
 
 		// Loop through Blockettes (B050) and pick out epoch end dates
 		for (int i = 0; i < nEpochs; i++) {
@@ -138,18 +136,13 @@ public class StationData {
 				}
 			}
 			if (endTimeStamp == null) { // This Epoch is open
-				if (epochTime.getTimeInMillis() >= startTimeStamp
-						.getTimeInMillis()) {
+				if (epochTime.compareTo(startTimeStamp) >= 0) {
 					return blockette;
-					// break;
 				}
 			} // This Epoch is closed
-			else if (epochTime.getTimeInMillis() >= startTimeStamp
-					.getTimeInMillis()
-					&& epochTime.getTimeInMillis() <= endTimeStamp
-							.getTimeInMillis()) {
+			else if (epochTime.compareTo(startTimeStamp) >= 0
+					&& epochTime.compareTo(endTimeStamp) <= 0) {
 				return blockette;
-				// break;
 			}
 		} // for
 		return null; // If we made it to here than we are returning
@@ -159,31 +152,27 @@ public class StationData {
 	// Loop through all station (=Blockette 050) epochs and print summary
 
 	public void printEpochs() {
-		TreeSet<Calendar> epochtimes = new TreeSet<Calendar>();
+		TreeSet<LocalDateTime> epochtimes = new TreeSet<LocalDateTime>();
 		epochtimes.addAll(epochs.keySet());
 
-		for (Calendar timestamp : epochtimes) {
+		for (LocalDateTime timestamp : epochtimes) {
 			String startDate = EpochData.epochToDateString(timestamp);
 
 			Blockette blockette = epochs.get(timestamp);
 			String timestampString = blockette.getFieldValue(14, 0);
-			String endDate = timestampString;
+			String endDate = null;
 			if (!timestampString.equals("(null)")) {
 				try {
-					Calendar endtimestamp = BlocketteTimestamp
+					LocalDateTime endtimestamp = BlocketteTimestamp
 							.parseTimestamp(timestampString);
 					endDate = EpochData.epochToDateString(endtimestamp);
 				} catch (TimestampFormatException e) {
-					StringBuilder message = new StringBuilder();
-					message.append(String.format(
-							"printEpochs: Error converting timestampString=%s",
-							timestampString));
-					logger.error(message.toString(), e);
+					logger.error("printEpochs: Error converting timestampString={}",
+							timestampString);
+					logger.error(e.getLocalizedMessage());
 				}
 			}
-			System.out.format("==StationData Epoch: %s - %s\n", startDate,
-					endDate);
-			// blockette.print();
+			logger.info("==StationData Epoch: {} - {}", startDate, endDate);
 		}
 	}
 

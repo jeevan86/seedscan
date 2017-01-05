@@ -1,17 +1,17 @@
 package asl.seedscan.database;
 
-import java.util.Calendar;
+import java.time.LocalDate;
 
 import asl.metadata.Channel;
 import asl.metadata.Station;
 
 public class MetricValueIdentifier {
-	private Calendar date;
+	private LocalDate date;
 	private String metricName;
 	private Station station;
 	private Channel channel;
 
-	public MetricValueIdentifier(Calendar date, String metricName,
+	public MetricValueIdentifier(LocalDate date, String metricName,
 			Station station, Channel channel) {
 		this.date = date;
 		this.metricName = metricName;
@@ -19,7 +19,7 @@ public class MetricValueIdentifier {
 		this.channel = channel;
 	}
 
-	public Calendar getDate() {
+	public LocalDate getDate() {
 		return date;
 	}
 

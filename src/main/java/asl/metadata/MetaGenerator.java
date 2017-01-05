@@ -26,6 +26,8 @@ import java.io.InputStreamReader;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Hashtable;
@@ -294,18 +296,14 @@ public class MetaGenerator extends UnicastRemoteObject implements MetaInterface 
 	 *            we detect a change in metadata on the requested timestamp day.
 	 */
 
-	public StationMeta getStationMeta(Station station, Calendar timestamp)
+	public StationMeta getStationMeta(Station station, LocalDateTime timestamp)
 			throws RemoteException, RuntimeException {
 
 		StationData stationData = getStationData(station);
-		if (stationData == null) { // This can happen if the file
-									// DATALESS.IW_LKWY.seed doesn't match
-			StringBuilder message = new StringBuilder();
-			message.append(String
-					.format("== [UTC %s] getStationMeta request:\t\t[%s]\t[%s]\tNOT FOUND!\n",
-							EpochData.epochToDateString(Calendar.getInstance()),
-							station, EpochData.epochToDateString(timestamp)));
-			logger.error(message.toString());
+		//This can happen if the file DATALESS.IW_LKWY.seed doesn't match
+		if (stationData == null) {
+			logger.error("== getStationMeta request:\t\t[{}]\t[{}]\tNOT FOUND!",
+					station, timestamp.format(DateTimeFormatter.ISO_ORDINAL_DATE));
 			return null; // the name INSIDE the dataless (= US_LKWY) ... so the
 							// keys don't match
 		}
@@ -314,31 +312,22 @@ public class MetaGenerator extends UnicastRemoteObject implements MetaInterface 
 		Blockette blockette = stationData.getBlockette(timestamp);
 
 		if (blockette == null) {
-			StringBuilder message = new StringBuilder();
-			message.append(String
-					.format("== [UTC %s] getStationMeta request:\t\t[%s]\t[%s]\tNOT FOUND!\n",
-							EpochData.epochToDateString(Calendar.getInstance()),
-							station, EpochData.epochToDateString(timestamp)));
-			logger.error(message.toString());
+			logger.error("== getStationMeta request:\t\t[{}]\t[{}]\tNOT FOUND!",
+					station, timestamp.format(DateTimeFormatter.ISO_ORDINAL_DATE));
 			return null;
 		} else { // Uncomment to print out a Blockette050 each time
 					// getStationMeta is called
 					// blockette.print();
-			System.out
-					.format("== [UTC %s] MetaGenerator getStationMeta request:\t\t[%s]\t[%s]\n",
-							EpochData.epochToDateString(Calendar.getInstance()),
-							station, EpochData.epochToDateString(timestamp));
+			logger.info("== MetaGenerator getStationMeta request:\t\t[{}]\t[{}]",
+					station, EpochData.epochToDateString(timestamp));
 		}
 
 		StationMeta stationMeta = null;
 		try {
 			stationMeta = new StationMeta(blockette, timestamp);
 		} catch (WrongBlocketteException e) {
-			StringBuilder message = new StringBuilder();
-			message.append(String
-					.format("ERROR: Could not create new StationMeta(blockette) !!"));
-			logger.error(message.toString());
-			System.exit(0);
+			logger.error("Could not create new StationMeta(blockette) !!");
+			System.exit(0); //TODO: Fix this System.exit(0) This shouldn't happen.
 		}
 
 		// Get this StationData's ChannelKeys and sort:
@@ -357,25 +346,22 @@ public class MetaGenerator extends UnicastRemoteObject implements MetaInterface 
 				// so return the key
 				// (=Epoch Start timestamp)
 				// channel.printEpochs();
-				Calendar epochTimestamp = channel.containsEpoch(timestamp);
+				LocalDateTime epochTimestamp = channel.containsEpoch(timestamp);
 				if (epochTimestamp != null) {
 					EpochData epochData = channel.getEpoch(epochTimestamp);
 
 					// If the epoch is closed, check that the end time is at
 					// least 24 hours later than the requested time
 					if (epochData.getEndTime() != null) {
-						long epochEnd = epochData.getEndTime()
-								.getTimeInMillis();
-						if (epochEnd < (timestamp.getTimeInMillis() + 24 * 3600 * 1000)) {
-							channelMeta.setDayBreak(); // set
-														// channelMeta.dayBreak
-														// = true
+						if (epochData.getEndTime().compareTo(timestamp.plusDays(1)) < 0){
+							// set channelMeta.dayBreak = true
+							channelMeta.setDayBreak(); 
 						}
 					}
 					channelMeta.processEpochData(epochData);
 					stationMeta.addChannel(key, channelMeta);
-				} else { // The channel does NOT contain the epoch time -->
-							// reset ChannelMeta to null
+				} else {
+					//The channel does NOT contain the epoch time --> reset ChannelMeta to null
 					channelMeta = null;
 				}
 			}
@@ -387,7 +373,7 @@ public class MetaGenerator extends UnicastRemoteObject implements MetaInterface 
 	}
 
 	public static void main(String[] args) {
-		System.out.println("=== Start MetaGenerator Server ====");
+		logger.info("=== Start MetaGenerator Server ====");
 		try {
 			MetaGenerator metaGen = getInstance();
 			metaGen.loadDataless(
@@ -395,11 +381,9 @@ public class MetaGenerator extends UnicastRemoteObject implements MetaInterface 
 			metaGen.print();
 
 			Naming.rebind("MetaGen", metaGen);
-			System.out.println("== MetaGen Server is ready");
+			logger.info("== MetaGen Server is ready");
 		} catch (Exception e) {
-			// System.out.format("== MetaGen Server failed:%s\n", e.getMessage()
-			// );
-			logger.error("== MetaGen Server failed:\n", e);
+			logger.error("== MetaGen Server failed:", e);
 		}
 	}
 

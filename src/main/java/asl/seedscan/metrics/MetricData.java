@@ -2,8 +2,9 @@ package asl.seedscan.metrics;
 
 import java.io.Serializable;
 import java.nio.ByteBuffer;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Hashtable;
 import java.util.Set;
 
@@ -14,7 +15,6 @@ import org.slf4j.LoggerFactory;
 import asl.metadata.Channel;
 import asl.metadata.ChannelArray;
 import asl.metadata.ChannelException;
-import asl.metadata.EpochData;
 import asl.metadata.Station;
 import asl.metadata.meta_new.ChannelMeta;
 import asl.metadata.meta_new.ChannelMeta.ResponseUnits;
@@ -29,8 +29,9 @@ import asl.seedsplitter.DataSet;
 import asl.seedsplitter.IllegalSampleRateException;
 import asl.seedsplitter.SequenceRangeException;
 import asl.timeseries.FFTUtils;
-import asl.timeseries.TimeseriesUtils;
 import asl.timeseries.TimeseriesException;
+import asl.timeseries.TimeseriesUtils;
+import asl.util.Time;
 import seed.Blockette320;
 
 /**
@@ -40,7 +41,7 @@ import seed.Blockette320;
 public class MetricData implements Serializable {
 
 	/** The Constant serialVersionUID. */
-	private static final long serialVersionUID = 2L;
+	private static final long serialVersionUID = 3L;
 
 	/** The Constant logger. */
 	private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.metrics.MetricData.class);
@@ -249,7 +250,7 @@ public class MetricData implements Serializable {
 	 *            the channel
 	 * @return Double = metric value for given channel, station and date
 	 */
-	Double getMetricValue(Calendar date, String metricName, Station station, Channel channel) {
+	Double getMetricValue(LocalDate date, String metricName, Station station, Channel channel) {
 		Double metricVal = null;
 
 		// Retrieve metric value from Database
@@ -749,7 +750,7 @@ public class MetricData implements Serializable {
 		ArrayList<DataSet> datasets = getChannelData(channel);
 
 		/*epoch microsecs since 1970*/
-		long dayStartTime = metadata.getTimestamp().getTimeInMillis() * 1000; 
+		long dayStartTime = Time.calculateEpochMicroSeconds(metadata.getTimestamp()); 
 		long interval = datasets.get(0).getInterval(); // sample dt in microsecs
 
 		int nPointsPerDay = (int) (86400000000L / interval);
@@ -1156,8 +1157,8 @@ public class MetricData implements Serializable {
 	ByteBuffer valueDigestChanged(ChannelArray channelArray, MetricValueIdentifier id, boolean forceUpdate) {
 		String metricName = id.getMetricName();
 		Station station = id.getStation();
-		Calendar date = id.getDate();
-		String strdate = EpochData.epochToDateString(date);
+		LocalDate date = id.getDate();
+		String strdate = date.format(DateTimeFormatter.ISO_ORDINAL_DATE);
 		String channelId = MetricResult.createResultId(id.getChannel());
 
 		/*
