@@ -212,6 +212,9 @@ public class StationMetaTest {
 	
 	@Test
 		public final void testFindChannelArrayForIgnoringDerivedChannels() throws Exception {
+			metadata3.addRotatedChannelMeta("00", "LH");
+			metadata3.addRotatedChannelMeta("10", "LH");
+		
 			List<Channel> channels = metadata3.getChannelArray("LH,BH", false, true);
 			assertEquals(new Integer(12), new Integer(channels.size()));
 			
