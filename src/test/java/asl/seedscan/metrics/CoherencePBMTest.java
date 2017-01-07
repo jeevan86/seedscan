@@ -58,9 +58,9 @@ public class CoherencePBMTest {
 		metric.add("upper-limit", "8");
 		metric.setData(maleableData);
 		HashMap<String, Double> expect = new HashMap<String, Double>();
-		expect.put("00-10,LHZ-LHZ", 0.10350950393220554);
-		expect.put("00-10,LHND-LHND", 0.12234638248634985);
-		expect.put("00-10,LHED-LHED", 0.1273019962691998);
+		expect.put("00-10,LHZ-LHZ", 0.10371478170685652);
+		expect.put("00-10,LHND-LHND", 0.12759091538485867);
+		expect.put("00-10,LHED-LHED", 0.1321379382028378);
 		TestUtils.testMetric(metric, expect);
 	}
 	@Test
