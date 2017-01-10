@@ -842,7 +842,7 @@ public class MetricData implements Serializable {
 	 * @throws MetricException
 	 *             thrown when unable to create rotated Channel data
 	 */
-	private void createRotatedChannelData(String location, String channelPrefix) throws MetricException {
+	private synchronized void createRotatedChannelData(String location, String channelPrefix) throws MetricException {
 		try {
 			boolean use12 = true; // Use ?H1,?H2 to rotate, else use ?HN,?HE
 
@@ -1131,7 +1131,7 @@ public class MetricData implements Serializable {
 	 * @return hashed digest in a ByteBuffer or null if computation isn't
 	 *         warranted.
 	 */
-	ByteBuffer valueDigestChanged(Channel channel, MetricValueIdentifier id, boolean forceUpdate) {
+	synchronized ByteBuffer valueDigestChanged(Channel channel, MetricValueIdentifier id, boolean forceUpdate) {
 		ChannelArray channelArray = new ChannelArray(channel.getLocation(), channel.getChannel());
 		return valueDigestChanged(channelArray, id, forceUpdate);
 	}
@@ -1154,12 +1154,13 @@ public class MetricData implements Serializable {
 	 * @return hashed digest in a ByteBuffer or null if computation isn't
 	 *         warranted.
 	 */
-	ByteBuffer valueDigestChanged(ChannelArray channelArray, MetricValueIdentifier id, boolean forceUpdate) {
+	synchronized ByteBuffer valueDigestChanged(ChannelArray channelArray, MetricValueIdentifier id, boolean forceUpdate) {
 		String metricName = id.getMetricName();
 		Station station = id.getStation();
 		LocalDate date = id.getDate();
 		String strdate = date.format(DateTimeFormatter.ISO_ORDINAL_DATE);
 		String channelId = MetricResult.createResultId(id.getChannel());
+
 
 		/*
 		 * We need at least metadata to compute a digest. If it doesn't exist,
@@ -1199,6 +1200,7 @@ public class MetricData implements Serializable {
 		if (!hasChannelArrayData(channelArray) && !availabilityMetric) { // Return
 			return null;
 		}
+
 
 		ByteBuffer newDigest = getHash(channelArray);
 		if (newDigest == null) {
@@ -1256,7 +1258,7 @@ public class MetricData implements Serializable {
 	 *            the channel array
 	 * @return the hash
 	 */
-	private ByteBuffer getHash(ChannelArray channelArray) {
+	private synchronized ByteBuffer getHash(ChannelArray channelArray) {
 		ArrayList<ByteBuffer> digests = new ArrayList<ByteBuffer>();
 
 		ArrayList<Channel> channels = channelArray.getChannels();
@@ -1300,7 +1302,7 @@ public class MetricData implements Serializable {
 	 * @param channelArray
 	 *            the channel array
 	 */
-	private void checkForRotatedChannels(ChannelArray channelArray) {
+	private synchronized void checkForRotatedChannels(ChannelArray channelArray) {
 		ArrayList<Channel> channels = channelArray.getChannels();
 		for (Channel channel : channels) {
 			// System.out.format("== checkForRotatedChannels: request
