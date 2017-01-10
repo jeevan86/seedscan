@@ -53,6 +53,8 @@ public abstract class ResourceManager { // NO_UCD (test only)
 	/**
 	 * Loads a resource based on the passed name.
 	 * 
+	 * Synchronized to prevent multiple tests from simulaneously loading the same resources.
+	 * 
 	 * @param fileName
 	 * @param trashableCopy
 	 *            returns a copy that is not shared with any other class. Any
@@ -61,7 +63,7 @@ public abstract class ResourceManager { // NO_UCD (test only)
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
-	public static Object loadCompressedObject(String fileName, boolean trashableCopy)
+	public synchronized static Object loadCompressedObject(String fileName, boolean trashableCopy)
 			throws IOException, ClassNotFoundException {
 		if (!trashableCopy && resources.containsKey(fileName)) {
 			return resources.get(fileName);
