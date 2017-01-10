@@ -27,40 +27,40 @@ public class StationMetaTest {
 	
 	private static MetricData data1;
 	private static MetricData data2;
-	private static MetricData data3;
+	private static MetricData maleabledata3;
 
 	private static StationMeta metadata1;
 	private static StationMeta metadata2;
-	private static StationMeta metadata3;
+	private static StationMeta maleablemetadata3;
 	
 	//This is not static and can change underneath the tests.
-	private static StationMeta maleableMetadata;
+	private static StationMeta maleabledata4;
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 			data1 = (MetricData) ResourceManager.loadCompressedObject("/data/IU.NWAO.2015.299.MetricData.ser.gz", false);
 			data2 = (MetricData) ResourceManager.loadCompressedObject("/data/GS.OK029.2015.360.MetricData.ser.gz", false);
-			data3 = (MetricData) ResourceManager.loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
-			maleableMetadata = ((MetricData) ResourceManager.loadCompressedObject("/data/GS.OK029.2015.360.MetricData.ser.gz", true)).getMetaData();
+			maleabledata3 = (MetricData) ResourceManager.loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", true);
+			maleabledata4 = ((MetricData) ResourceManager.loadCompressedObject("/data/GS.OK029.2015.360.MetricData.ser.gz", true)).getMetaData();
 			
-			ChannelMeta channelMeta = new ChannelMeta(new ChannelKey("51", "HHE"), maleableMetadata.getTimestamp(), new Station("GS", "OK029") );
-			maleableMetadata.addChannel(new ChannelKey("51", "HHE"), channelMeta);
+			ChannelMeta channelMeta = new ChannelMeta(new ChannelKey("51", "HHE"), maleabledata4.getTimestamp(), new Station("GS", "OK029") );
+			maleabledata4.addChannel(new ChannelKey("51", "HHE"), channelMeta);
 			
 			metadata1 = data1.getMetaData();
 			metadata2 = data2.getMetaData();
-			metadata3 = data3.getMetaData();
+			maleablemetadata3 = maleabledata3.getMetaData();
 	}
 
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 		data1 = null;
 		data2 = null;
-		data3 = null;
-		maleableMetadata = null;
+		maleabledata3 = null;
+		maleabledata4 = null;
 		
 		metadata1 = null;
 		metadata2 = null;
-		metadata3 = null;
+		maleablemetadata3 = null;
 	}
 
 	@Test
@@ -212,44 +212,44 @@ public class StationMetaTest {
 	
 	@Test
 		public final void testFindChannelArrayForIgnoringDerivedChannels() throws Exception {
-			metadata3.addRotatedChannelMeta("00", "LH");
-			metadata3.addRotatedChannelMeta("10", "LH");
+			maleablemetadata3.addRotatedChannelMeta("00", "LH");
+			maleablemetadata3.addRotatedChannelMeta("10", "LH");
 		
-			List<Channel> channels = metadata3.getChannelArray("LH,BH", false, true);
+			List<Channel> channels = maleablemetadata3.getChannelArray("LH,BH", false, true);
 			assertEquals(new Integer(12), new Integer(channels.size()));
 			
 			//Should now get 4 (not 6) more derived channels channels
 			//*Z channels should be included regardless as they are always vertical.
-			channels = metadata3.getChannelArray("LH,BH", false, false);
+			channels = maleablemetadata3.getChannelArray("LH,BH", false, false);
 			assertEquals(new Integer(16), new Integer(channels.size()));
 		}
 	
 	@Test
 		public final void testFindChannelArrayForChangingBands() throws Exception {
-			List<Channel> channels = metadata3.getChannelArray("LH,BH", false, true);
+			List<Channel> channels = maleablemetadata3.getChannelArray("LH,BH", false, true);
 			assertEquals(new Integer(12), new Integer(channels.size()));
 			
 			//Should not change from last result
-			channels = metadata3.getChannelArray("LH,BH", false, true);
+			channels = maleablemetadata3.getChannelArray("LH,BH", false, true);
 			assertEquals(new Integer(12), new Integer(channels.size()));
 			
 			//Should now get HH as well
-			channels = metadata3.getChannelArray("LH,BH,HH", false, true);
+			channels = maleablemetadata3.getChannelArray("LH,BH,HH", false, true);
 			assertEquals(new Integer(15), new Integer(channels.size()));
 			
 			//Should only get LH
-			channels = metadata3.getChannelArray("LH", false, true);
+			channels = maleablemetadata3.getChannelArray("LH", false, true);
 			assertEquals(new Integer(6), new Integer(channels.size()));
 		}
 
 	@Test
 		public final void testFindChannelUsingComponent12() throws Exception {
 			assertEquals(new Channel("00", "LH1"), metadata1.findChannel("00", "LH", "1"));
-			assertEquals(new Channel("10", "HH2"), metadata3.findChannel("10", "HH", "2"));
+			assertEquals(new Channel("10", "HH2"), maleablemetadata3.findChannel("10", "HH", "2"));
 			
 			//Test that still returns N/E if those exist and not 1/2
 			//This channel was added during setup.
-			assertEquals(new Channel("51", "HHE"), maleableMetadata.findChannel("51", "HH", "2"));
+			assertEquals(new Channel("51", "HHE"), maleabledata4.findChannel("51", "HH", "2"));
 			
 			assertNull(metadata1.findChannel("30", "LH", "1"));
 			assertNull(metadata1.findChannel("00", "HH", "2"));
@@ -320,22 +320,22 @@ public class StationMetaTest {
 
 	@Test
 	public final void testAddRotatedChannelMeta() throws Exception {
-		assertFalse(maleableMetadata.hasChannel(new Channel("00", "LHED")));
-		assertFalse(maleableMetadata.hasChannel(new Channel("00", "LHND")));
+		assertFalse(maleabledata4.hasChannel(new Channel("00", "LHED")));
+		assertFalse(maleabledata4.hasChannel(new Channel("00", "LHND")));
 
 
-		maleableMetadata.addRotatedChannelMeta("00", "LH");
+		maleabledata4.addRotatedChannelMeta("00", "LH");
 
-		assertTrue(maleableMetadata.hasChannel(new Channel("00", "LHED")));
-		assertTrue(maleableMetadata.hasChannel(new Channel("00", "LHND")));
-		assertTrue(maleableMetadata.hasChannel(new Channel("00", "LHZ")));
+		assertTrue(maleabledata4.hasChannel(new Channel("00", "LHED")));
+		assertTrue(maleabledata4.hasChannel(new Channel("00", "LHND")));
+		assertTrue(maleabledata4.hasChannel(new Channel("00", "LHZ")));
 	}
 
 	@Test
 	public final void testToString() throws Exception {
 		assertEquals("IU_NWAO", metadata1.toString());
 		assertEquals("GS_OK029", metadata2.toString());
-		assertEquals("IU_ANMO", metadata3.toString());
+		assertEquals("IU_ANMO", maleablemetadata3.toString());
 	}
 
 }
