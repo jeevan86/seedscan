@@ -448,7 +448,7 @@ public class StationMeta implements Serializable {
 	 * @param location the location
 	 * @param channelPrefix the channel prefix
 	 */
-	public void addRotatedChannelMeta(String location, String channelPrefix) {
+	public synchronized void addRotatedChannelMeta(String location, String channelPrefix) {
 		String northChannelName = channelPrefix + "ND";
 		String eastChannelName = channelPrefix + "ED";
 		addRotatedChannel(location, northChannelName);
@@ -463,7 +463,7 @@ public class StationMeta implements Serializable {
 	 * @param location the location
 	 * @param derivedChannelName the derived channel name
 	 */
-	private void addRotatedChannel(String location, String derivedChannelName) {
+	private synchronized void addRotatedChannel(String location, String derivedChannelName) {
 
 		String origChannelName = null;
 		double azimuth;
@@ -517,18 +517,14 @@ public class StationMeta implements Serializable {
 		Channel origChannel = new Channel(location, origChannelName);
 		Channel derivedChannel = new Channel(location, derivedChannelName);
 
-		try {
-			/*
-			 * ChannelMeta.copy(channel) Deep copy the orig chanMeta to the
-			 * derived chanMeta and set the derived chanMeta azimuth
-			 */
-			ChannelMeta derivedChannelMeta = (getChannelMetadata(origChannel))
-					.copy(derivedChannel);
-			derivedChannelMeta.setAzimuth(azimuth);
-			this.addChannel(new ChannelKey(derivedChannel), derivedChannelMeta);
-		} catch (RuntimeException e) {
-			logger.error("RuntimeException:", e);
-		}
+		/*
+		 * ChannelMeta.copy(channel) Deep copy the orig chanMeta to the
+		 * derived chanMeta and set the derived chanMeta azimuth
+		 */
+		ChannelMeta derivedChannelMeta = (getChannelMetadata(origChannel))
+				.copy(derivedChannel);
+		derivedChannelMeta.setAzimuth(azimuth);
+		this.addChannel(new ChannelKey(derivedChannel), derivedChannelMeta);
 	}
 
 	/**
