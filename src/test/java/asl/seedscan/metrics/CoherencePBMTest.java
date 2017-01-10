@@ -17,13 +17,8 @@ public class CoherencePBMTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		try {
-			data = (MetricData) ResourceManager.loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
-			maleableData = (MetricData) ResourceManager.loadCompressedObject("/data/IU.NWAO.2015.299.MetricData.ser.gz", true);
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		data = (MetricData) ResourceManager.loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
+		maleableData = (MetricData) ResourceManager.loadCompressedObject("/data/IU.NWAO.2015.299.MetricData.ser.gz", true);
 	}
 	
 	@AfterClass
@@ -38,7 +33,7 @@ public class CoherencePBMTest {
 	}
 
 	@Test
-	public void testProcess48() throws Exception {
+	public void testProcess4_8() throws Exception {
 		//TEST 4 - 8
 		CoherencePBM metric = new CoherencePBM();
 		metric.add("lower-limit", "4");
@@ -51,7 +46,7 @@ public class CoherencePBMTest {
 		TestUtils.testMetric(metric, expect);
 	}
 	@Test
-	public void testProcess48RotationNeeded() throws Exception {
+	public void testProcess4_8_RotationNeeded() throws Exception {
 		//TEST 4 - 8
 		CoherencePBM metric = new CoherencePBM();
 		metric.add("lower-limit", "4");
@@ -64,7 +59,7 @@ public class CoherencePBMTest {
 		TestUtils.testMetric(metric, expect);
 	}
 	@Test
-	public void testProcess1822() throws Exception {
+	public void testProcess18_22() throws Exception {
 		//TEST 18 - 22
 		CoherencePBM metric = new CoherencePBM();
 		metric.add("lower-limit", "18");
@@ -78,7 +73,7 @@ public class CoherencePBMTest {
 		TestUtils.testMetric(metric, expect);
 	}
 	@Test
-	public void testProcess90110() throws Exception {
+	public void testProcess90_110() throws Exception {
 		//TEST 90 - 110
 		CoherencePBM metric = new CoherencePBM();
 		metric.add("lower-limit", "90");
@@ -91,7 +86,7 @@ public class CoherencePBMTest {
 		TestUtils.testMetric(metric, expect);
 	}
 	@Test
-	public void testProcess200500() throws Exception {
+	public void testProcess200_500() throws Exception {
 		//TEST 200 - 500
 		CoherencePBM metric = new CoherencePBM();
 		metric.add("lower-limit", "200");
@@ -101,10 +96,12 @@ public class CoherencePBMTest {
 		expect.put("00-10,LHZ-LHZ", 0.2937884614962973);
 		expect.put("00-10,LHND-LHND", 0.2116717537635636);
 		expect.put("00-10,LHED-LHED",  0.21227322319511213);
+		System.out.println(metric);
+		System.out.println(expect);
 		TestUtils.testMetric(metric, expect);
 	}
 	@Test
-	public void testProcess200500Reverse() throws Exception {
+	public void testProcess200_500_Reverse() throws Exception {
 		//TEST Change in base
 		//Results should match 00-10
 		CoherencePBM metric = new CoherencePBM();
