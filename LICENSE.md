@@ -19,12 +19,12 @@ License
     Below are copyright notices for included libraries. Binaries and
     source can be retrieved from publicly available servers via
     dependencies set in build.gradle.
-######Apache Commons CLI
-    Copyright 2001-2009 The Apache Software Foundation
+######Apache Commons Math
+    Copyright 2001-2016 The Apache Software Foundation
     This product includes software developed by
     The Apache Software Foundation (http://www.apache.org/).
     License:        Apache License Version 2.0
-    Website:        http://commons.apache.org/proper/commons-cli/
+    Website:        http://commons.apache.org/proper/commons-math/
 ######C3P0
     Copyright (C) 2015 Machinery For Change, Inc.
     License:        LGPL Version 2.1
