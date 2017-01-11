@@ -1,7 +1,14 @@
 package asl.seedscan.scanner;
 
-abstract class Worker implements Comparable<Worker>, Runnable {
+abstract class ScanWorker implements Comparable<ScanWorker>, Runnable {
 	
+	protected final ScanManager manager;
+	
+	ScanWorker(ScanManager manager){
+		this.manager = manager;
+	}
+
+
 	/**
 	 * Returns the base priority. This is used for setting levels of running. EG Metrics run before Station scans. 
 	 * Lower values are lower priority.

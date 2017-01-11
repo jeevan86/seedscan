@@ -7,7 +7,7 @@ import java.util.UUID;
 /**
  * The Class Scan.
  */
-public class StationScan extends Worker {
+public class StationScan extends ScanWorker {
 	
 	protected final UUID scanID;
 	
@@ -62,8 +62,10 @@ public class StationScan extends Worker {
 		String channel,
 		LocalDate startDate,
 		LocalDate endDate,
-		boolean deleteExisting
+		boolean deleteExisting,
+		ScanManager manager
 	) {
+		super(manager);
 		this.scanID = scanID;
 		this.parentScanID = parentScanID;
 		this.startDate = startDate;
@@ -91,7 +93,7 @@ public class StationScan extends Worker {
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)
 	 */
 	@Override
-	public int compareTo(Worker o) {
+	public int compareTo(ScanWorker o) {
 		// TODO Auto-generated method stub
 		return 0;
 	}
