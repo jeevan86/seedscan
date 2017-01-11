@@ -21,7 +21,7 @@ import asl.metadata.Channel;
 import asl.metadata.Station;
 import asl.seedscan.config.DatabaseT;
 import asl.seedscan.metrics.MetricResult;
-import asl.seedscan.worker.Scan;
+import asl.seedscan.scanner.StationScan;
 
 /**
  * The Class MetricDatabase. This contains methods for inserting and retrieving
@@ -474,7 +474,7 @@ public class MetricDatabase {
 	 * 
 	 * @return A Scan object to be added to the Priority Queue.
 	 */
-	public Scan takeNextScan() {
+	public StationScan takeNextScan() {
 		Connection connection = null;
 		CallableStatement callStatement = null;
 		ResultSet rs = null;
@@ -485,7 +485,7 @@ public class MetricDatabase {
 
 				rs = callStatement.executeQuery();
 				//@formatter:off
-				return new Scan(
+				return new StationScan(
 					(java.util.UUID) rs.getObject("pkscanid"),
 					(java.util.UUID) rs.getObject("fkparentscanid"),
 					rs.getString("metricfilter"),

@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import asl.metadata.MetaServer;
 import asl.seedscan.database.MetricDatabase;
+import asl.seedscan.scanner.ScanManager;
 
 /**
  * The Class SeedScan.

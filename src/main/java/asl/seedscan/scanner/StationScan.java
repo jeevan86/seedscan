@@ -1,4 +1,4 @@
-package asl.seedscan.worker;
+package asl.seedscan.scanner;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -7,7 +7,7 @@ import java.util.UUID;
 /**
  * The Class Scan.
  */
-public class Scan extends Worker {
+public class StationScan extends Worker {
 	
 	protected final UUID scanID;
 	
@@ -52,7 +52,7 @@ public class Scan extends Worker {
 	 * @param metricName the metric name
 	 */
 	//@formatter:off
-	public Scan(
+	public StationScan(
 		UUID scanID,
 		UUID parentScanID,
 		String metricName,

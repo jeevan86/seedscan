@@ -1,4 +1,4 @@
-package asl.seedscan.worker;
+package asl.seedscan.scanner;
 
 abstract class Worker implements Comparable<Worker>, Runnable {
 	

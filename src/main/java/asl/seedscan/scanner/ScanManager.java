@@ -1,4 +1,4 @@
-package asl.seedscan;
+package asl.seedscan.scanner;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
@@ -11,15 +11,15 @@ import org.slf4j.LoggerFactory;
 import asl.metadata.MetaServer;
 import asl.seedscan.database.MetricDatabase;
 
-class ScanManager {
+public class ScanManager {
 	private static final Logger logger = LoggerFactory
-			.getLogger(asl.seedscan.ScanManager.class);
+			.getLogger(asl.seedscan.scanner.ScanManager.class);
 
 	final MetricDatabase database;
 	final MetaServer metaServer;
 	final ThreadPoolExecutor threadPool;
 
-	ScanManager(MetricDatabase database, MetaServer metaServer){
+	public ScanManager(MetricDatabase database, MetaServer metaServer){
 		this.database = database;
 		this.metaServer = metaServer;
 		
@@ -36,7 +36,7 @@ class ScanManager {
 	 * Begins the scan process.
 	 * This blocks indefinitely while scans are being performed.
 	 */
-	void scan(){
+	public void scan(){
 		while (true){
 			
 		}

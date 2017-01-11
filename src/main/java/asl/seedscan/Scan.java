@@ -20,11 +20,6 @@ class Scan {
 	private ScanFilter locations = null;
 	private ScanFilter channels = null;
 
-	Scan(String scanName) {
-		this.scanName = scanName;
-		metrics = new ArrayList<MetricWrapper>();
-	}
-
 	public String getName() {
 		return scanName;
 	}
@@ -61,11 +56,6 @@ class Scan {
 
 	public String getEventsDir() {
 		return eventsDir;
-	}
-
-	// metrics
-	void addMetric(MetricWrapper metric) {
-		metrics.add(metric);
 	}
 
 	public ArrayList<MetricWrapper> getMetrics() {
