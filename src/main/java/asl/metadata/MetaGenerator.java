@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Set;
 import java.util.TreeSet;
 
 import org.slf4j.Logger;
@@ -90,7 +89,7 @@ public class MetaGenerator extends UnicastRemoteObject implements MetaInterface 
 	 * @param datalessDir
 	 *            path to dataless seed files, read from config.xml
 	 */
-	public void loadDataless(String datalessDir, final Set<String> networkSubset) {
+	public void loadDataless(String datalessDir, final List<String> networkSubset) {
 		File dir = new File(datalessDir);
 		if (!dir.exists()) {
 			logger.error("Path '" + dir + "' does not exist.");

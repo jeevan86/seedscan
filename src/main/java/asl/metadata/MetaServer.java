@@ -24,7 +24,6 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,7 +66,7 @@ public class MetaServer {
 	}
 
 	// Empty constructor --> Use local MetaGenerator class to load metadata
-	public MetaServer(String datalessDir, Set<String> networkSubset) {
+	public MetaServer(String datalessDir, List<String> networkSubset) {
 		logger.info("use *Local* MetaGenerator: datalessDir=" + datalessDir);
 		try {
 			metaGen = MetaGenerator.getInstance();
