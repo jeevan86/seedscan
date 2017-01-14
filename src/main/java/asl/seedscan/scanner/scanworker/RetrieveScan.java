@@ -1,5 +1,6 @@
 package asl.seedscan.scanner.scanworker;
 
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
@@ -35,7 +36,29 @@ public class RetrieveScan extends ScanWorker {
 		//Split the non Station Scan into Station Scans
 		else{
 			//Get possible stations list
-			List<Station> possibleStations = manager.metaGenerator.getStationList();
+			List<Station> possibleStations = manager.metaGenerator.getStationList(networks, stations);
+			LocalDate start = newScan.startDate;
+			LocalDate end;
+			do{
+				end = start.plusDays(30);
+				if(end.compareTo(newScan.endDate)>0){
+					end = newScan.endDate;
+				}
+				for(Station station : possibleStations){
+					manager.database.insertChildScan(
+							newScan.scanID,
+							station.getNetwork(),
+							station.getStation(),
+							newScan.location,
+							newScan.channel,
+							newScan.metricName,
+							start, end,
+							newScan.priority,
+							newScan.deleteExisting);
+				}
+			
+			}while(!end.equals(newScan.endDate));
+			
 		}
 		
 		//Add new Retriever to queue

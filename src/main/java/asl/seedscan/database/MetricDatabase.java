@@ -5,7 +5,6 @@ import java.beans.PropertyVetoException;
 import java.nio.ByteBuffer;
 import java.sql.CallableStatement;
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -244,7 +243,7 @@ public class MetricDatabase {
 	}
 
 	public void insertChildScan(UUID parentID, String network, String station, String location, String channel,
-			String metric, Date startDate, Date endDate, int priority, boolean deleteExisting) {
+			String metric, LocalDate startDate, LocalDate endDate, int priority, boolean deleteExisting) {
 		Connection connection = null;
 		PreparedStatement statement = null;
 		try {
@@ -272,8 +271,8 @@ public class MetricDatabase {
 				statement.setString( i++, location);
 				statement.setString( i++, channel);
 				statement.setString( i++, metric);
-				statement.setDate(   i++, startDate);
-				statement.setDate(   i++, endDate);
+				statement.setObject(   i++, startDate);
+				statement.setObject(   i++, endDate);
 				statement.setInt(    i++, priority);
 				statement.setBoolean(i++, deleteExisting);
 				//@formatter:on
@@ -494,6 +493,7 @@ public class MetricDatabase {
 					rs.getString("channelfilter"),
 					rs.getObject("startdate", LocalDate.class),
 					rs.getObject("enddate", LocalDate.class),
+					rs.getInt("priority"),
 					rs.getBoolean("deleteexisting"));
 				//@formatter:on
 			} finally {

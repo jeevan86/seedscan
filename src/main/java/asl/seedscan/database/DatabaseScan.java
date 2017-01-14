@@ -35,6 +35,8 @@ public class DatabaseScan {
 	
 	/** Only recompute this metric */
 	public final String metricName;
+	
+	public final int priority;
 
 	/**
 	 * Instantiates a new scan.
@@ -59,12 +61,14 @@ public class DatabaseScan {
 		String channel,
 		LocalDate startDate,
 		LocalDate endDate,
+		int priority,
 		boolean deleteExisting
 	) {
 		this.scanID = scanID;
 		this.parentScanID = parentScanID;
 		this.startDate = startDate;
 		this.endDate = endDate;
+		this.priority = priority;
 		this.deleteExisting = deleteExisting;
 
 		this.network = network;
