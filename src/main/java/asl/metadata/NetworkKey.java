@@ -22,7 +22,7 @@ class NetworkKey extends Key {
 	private static final int DATALESS_VOLUME_BLOCKETTE_NUMBER = 10;
 
 	/** The network code e.g. IU, CU, IC. */
-	private final String network;
+	public final String network;
 
 	/**
 	 * Instantiates a new network key based on volume info blockette
@@ -59,15 +59,6 @@ class NetworkKey extends Key {
 	 */
 	NetworkKey(String network) {
 		this.network = network;
-	}
-
-	/**
-	 * Gets the network code
-	 * 
-	 * @return the network code
-	 */
-	public String getNetwork() {
-		return network;
 	}
 
 	/*
