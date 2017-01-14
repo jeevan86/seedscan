@@ -199,19 +199,48 @@ public class MetaGenerator {
 	
 	/**
 	 * Return a list of all stations matching parameters.
+	 *
+	 * @param networks network restrictions. Can be null
+	 * @param stations station restrictions. Can be null
+	 * @return the station list
 	 */
 	public List<Station> getStationList(String[] networks, String[] stations) {
+		
+		logger.info("Generating list of stations for: {}  | {}", networks, stations);
 		if (volumes == null) {
 			return null;
 		}
 		
-		ArrayList<Station> allStations = new ArrayList<Station>();
-		for (String network : networks) {
-			SeedVolume volume = volumes.get(new NetworkKey(network));
-			for(String station : stations){
-				volume.hasStation(new StationKey(network, station));
-				allStations.add(new Station(network, station));
+		List<Station> allStations = new ArrayList<Station>();
+		
+		if(networks != null && stations != null){
+			for (String network : networks) {
+				SeedVolume volume = volumes.get(new NetworkKey(network));
+				for(String station : stations){
+					volume.hasStation(new StationKey(network, station));
+					allStations.add(new Station(network, station));
+				}
 			}
+		}
+		else if(networks != null && stations == null){
+			//Only Network restrictions
+			for (String network : networks) {
+				SeedVolume volume = volumes.get(new NetworkKey(network));
+				allStations.addAll(volume.getStationList());
+			}
+		}
+		else if(networks == null && stations != null){
+			//Possible condition, not sure the situation this makes sense.
+			for (NetworkKey networkKey : volumes.keySet()) {
+				SeedVolume volume = volumes.get(networkKey);
+				for(String station : stations){
+					volume.hasStation(new StationKey(networkKey.network, station));
+					allStations.add(new Station(networkKey.network, station));
+				}
+			}
+		}
+		else if(networks == null && stations == null){
+			allStations = getStationList();
 		}
 		return allStations;
 	}
@@ -230,6 +259,7 @@ public class MetaGenerator {
 	 */
 	private StationData getStationData(Station station) {
 		SeedVolume volume = volumes.get(new NetworkKey(station.getNetwork()));
+		System.out.println(station.getNetwork());
 		if (volume == null) {
 			logger.error(
 					"== getStationData() - Volume==null for Station=[{}]  Check the volume label in Blockette 10 Field 9. Must be formatted like IU* to work.\n",
