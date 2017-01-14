@@ -8,7 +8,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import asl.metadata.MetaServer;
+import asl.metadata.MetaGenerator;
 import asl.seedscan.database.MetricDatabase;
 import asl.seedscan.scanner.ScanManager;
 
@@ -39,7 +39,7 @@ public class SeedScan {
 		System.setProperty("java.awt.headless", "true");
 
 		ScanManager scanManager = null;
-		MetaServer metaServer = null;
+		MetaGenerator metaGenerator = null;
 		MetricDatabase database = null;
 
 		try {
@@ -53,9 +53,9 @@ public class SeedScan {
 					}
 				}
 
-				metaServer = new MetaServer(Global.CONFIG.getDatalessDir(), networks);
+				metaGenerator = new MetaGenerator(Global.CONFIG.getDatalessDir(), networks);
 				database = new MetricDatabase(Global.CONFIG.getDatabase());
-				scanManager = new ScanManager(database, metaServer);
+				scanManager = new ScanManager(database, metaGenerator);
 			}
 
 			logger.info("Handing control to ScanManager");
@@ -78,9 +78,7 @@ public class SeedScan {
 			if (database != null){
 				database.close();
 			}
-			if (metaServer != null){
-				metaServer.quit();
-			}
+			
 			System.exit(0);
 		}
 	} // main()

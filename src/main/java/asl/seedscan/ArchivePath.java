@@ -35,7 +35,7 @@ public class ArchivePath {
 	 * @param station
 	 *            the station
 	 */
-	ArchivePath(LocalDateTime timestamp, Station station) {
+	public ArchivePath(LocalDateTime timestamp, Station station) {
 		this.timestamp = timestamp;
 		this.station = station;
 	}

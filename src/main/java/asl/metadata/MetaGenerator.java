@@ -23,9 +23,6 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.rmi.Naming;
-import java.rmi.RemoteException;
-import java.rmi.server.UnicastRemoteObject;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -47,11 +44,9 @@ import asl.metadata.meta_new.StationMeta;
  * @author Mike Hagerty hagertmb@bc.edu
  * 
  */
-public class MetaGenerator extends UnicastRemoteObject implements MetaInterface {
+public class MetaGenerator {
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.metadata.MetaGenerator.class);
-
-	private static final long serialVersionUID = 1L;
 
 	/**
 	 * Each datalessDir/XX.dataless file is read into a separate SeedVolume
@@ -59,37 +54,16 @@ public class MetaGenerator extends UnicastRemoteObject implements MetaInterface 
 	 */
 	private Hashtable<NetworkKey, SeedVolume> volumes = null;
 
-	private static MetaGenerator instance;
-
-	private boolean successfullyLoaded = false;
-
 	/**
-	 * Private constructor to ensure singleton
-	 */
-	private MetaGenerator() throws RemoteException {
-		volumes = new Hashtable<NetworkKey, SeedVolume>();
-	}
-
-	public static MetaGenerator getInstance() throws RemoteException {
-		if (instance == null) {
-			instance = new MetaGenerator();
-		}
-		return instance;
-	}
-
-	public String getString() throws RemoteException {
-		return new String("This-string-is-from-MetaGenerator");
-	}
-
-	/**
-	 * 
-	 * loadDataless - Look in datalessDir for all files of form XX.dataless
+	 * Look in datalessDir for all files of form XX.dataless
 	 * where XX = network {II, IU, NE, etc.}
-	 * 
-	 * @param datalessDir
-	 *            path to dataless seed files, read from config.xml
+	 *
+	 * @param datalessDir	path to dataless seed files, read from config.xml
+	 * @param networkSubset the network subset to parse
 	 */
-	public void loadDataless(String datalessDir, final List<String> networkSubset) {
+	public MetaGenerator(String datalessDir, List<String> networkSubset) {
+		volumes = new Hashtable<NetworkKey, SeedVolume>();
+		
 		File dir = new File(datalessDir);
 		if (!dir.exists()) {
 			logger.error("Path '" + dir + "' does not exist.");
@@ -190,10 +164,7 @@ public class MetaGenerator extends UnicastRemoteObject implements MetaInterface 
 			}
 
 		} // end for loop over XX.dataless files
-
-		successfullyLoaded = true;
-
-	} // end loadDataless()
+	}
 
 	private void addVolume(SeedVolume volume) {
 		NetworkKey networkKey = volume.getNetworkKey();
@@ -210,39 +181,14 @@ public class MetaGenerator extends UnicastRemoteObject implements MetaInterface 
 		}
 	}
 
-	public boolean isLoaded() {
-		return successfullyLoaded;
-	}
-
-	private void print() {
-		if (volumes == null) {
-			System.out
-					.format("== MetaGenerator.print() - No SeedVolumes have been loaded!\n");
-		} else {
-			for (NetworkKey key : volumes.keySet()) {
-				System.out.format(
-						"== MetaGenerator Found SeedVolume for Network:[%s]\n",
-						key);
-				SeedVolume volume = volumes.get(key);
-				// volume.printStations();
-				List<Station> stations = volume.getStationList();
-				for (Station station : stations) {
-					System.out.format(
-							"     == SeedVolume contains Station:[%s]\n",
-							station);
-				}
-			}
-		}
-	}
-
-	/*
+	/**
 	 * Return a list of all stations contained in all volumes
 	 */
-	public List<Station> getStationList() throws RemoteException {
+	public List<Station> getStationList() {
 		if (volumes == null) {
 			return null;
 		}
-		List<Station> allStations = new ArrayList<Station>();
+		ArrayList<Station> allStations = new ArrayList<Station>();
 		for (NetworkKey key : volumes.keySet()) {
 			SeedVolume volume = volumes.get(key);
 			List<Station> stations = volume.getStationList();
@@ -295,8 +241,7 @@ public class MetaGenerator extends UnicastRemoteObject implements MetaInterface 
 	 *            we detect a change in metadata on the requested timestamp day.
 	 */
 
-	public StationMeta getStationMeta(Station station, LocalDateTime timestamp)
-			throws RemoteException, RuntimeException {
+	public StationMeta getStationMeta(Station station, LocalDateTime timestamp){
 
 		StationData stationData = getStationData(station);
 		//This can happen if the file DATALESS.IW_LKWY.seed doesn't match
@@ -370,20 +315,4 @@ public class MetaGenerator extends UnicastRemoteObject implements MetaInterface 
 			throw e;
 		}
 	}
-
-	public static void main(String[] args) {
-		logger.info("=== Start MetaGenerator Server ====");
-		try {
-			MetaGenerator metaGen = getInstance();
-			metaGen.loadDataless(
-					"/Users/mth/mth/ASLData/dcc/metadata/dataless", null);
-			metaGen.print();
-
-			Naming.rebind("MetaGen", metaGen);
-			logger.info("== MetaGen Server is ready");
-		} catch (Exception e) {
-			logger.error("== MetaGen Server failed:", e);
-		}
-	}
-
 }

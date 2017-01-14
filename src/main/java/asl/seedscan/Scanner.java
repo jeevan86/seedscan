@@ -1,23 +1,13 @@
 package asl.seedscan;
 
-import java.io.File;
-import java.io.FilenameFilter;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import asl.metadata.MetaServer;
+import asl.metadata.MetaGenerator;
 import asl.metadata.Station;
 import asl.metadata.meta_new.StationMeta;
 import asl.seedscan.database.MetricDatabase;
@@ -27,52 +17,26 @@ import asl.seedscan.metrics.Metric;
 import asl.seedscan.metrics.MetricData;
 import asl.seedscan.metrics.MetricResult;
 import asl.seedscan.metrics.MetricWrapper;
-import asl.seedsplitter.DataSet;
-import asl.seedsplitter.SeedSplitter;
+import asl.seedscan.scanner.DataLoader;
 import asl.timeseries.CrossPower;
 import asl.timeseries.CrossPowerKey;
 import sac.SacTimeSeries;
-import seed.Blockette320;
 
 class Scanner implements Runnable {
 	private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.Scanner.class);
 	private Station station;
 	private MetricDatabase database;
 	private Scan scan;
-	private MetaServer metaServer;
+	private MetaGenerator metaGenerator;
 
 
 
-	// Class to assign seedplitter object and seedsplitter table
-	private static class SplitterObject {
-		private SeedSplitter splitter;
-		private Hashtable<String, ArrayList<DataSet>> table;
 
-		private SplitterObject(SeedSplitter splitter, Hashtable<String, ArrayList<DataSet>> table) {
-			this.splitter = splitter;
-			this.table = table;
-		}
-	}
 
-	// Class to run Future task (seedplitter.doInBackground())
-	private static class Task implements Callable<Hashtable<String, ArrayList<DataSet>>> {
-		private SeedSplitter splitter;
-
-		private Task(SeedSplitter splitter) {
-			this.splitter = splitter;
-		}
-
-		public Hashtable<String, ArrayList<DataSet>> call() throws Exception {
-			Hashtable<String, ArrayList<DataSet>> table = null;
-			table = splitter.doInBackground();
-			return table;
-		}
-	}
-
-	Scanner(MetricDatabase database, Station station, Scan scan, MetaServer metaServer) {
+	Scanner(MetricDatabase database, Station station, Scan scan, MetaGenerator metaGenerator) {
 		this.database = database;
 		this.station = station;
-		this.metaServer = metaServer;
+		this.metaGenerator = metaGenerator;
 		this.scan = scan;
 	}
 
@@ -128,7 +92,7 @@ class Scanner implements Runnable {
 
 			// [1] Get all the channel metadata for this station, for this day
 			// StationMeta stnMeta = metaGen.getStationMeta(station, timestamp);
-			StationMeta stnMeta = metaServer.getStationMeta(station, currentDate.atStartOfDay());
+			StationMeta stnMeta = metaGenerator.getStationMeta(station, currentDate.atStartOfDay());
 			if (stnMeta == null) { // No Metadata found for this station + this
 				// day --> skip day
 				logger.warn("== Scanner: No Metadata found for Station:{}_{} + Day:{} --> Skipping",
@@ -159,7 +123,7 @@ class Scanner implements Runnable {
 			// don't have to reread all of the seed files in
 
 			if (i == 0) {
-				nextMetricData = getMetricData(nextDayTimestamp);
+				nextMetricData = DataLoader.getMetricData(nextDayTimestamp, station, null);
 			} else {
 				// Need to null out ref to next day before passing
 				// currentMetricData to avoid chaining refs
@@ -169,7 +133,7 @@ class Scanner implements Runnable {
 				}
 			}
 			currentMetricData = null;
-			currentMetricData = getMetricData(currentDate);
+			currentMetricData = DataLoader.getMetricData(currentDate, station, null);
 
 			if (currentMetricData != null) {
 				// This doesn't mean nextMetricData isn't null!
@@ -250,122 +214,5 @@ class Scanner implements Runnable {
 		} // end loop over day to scan
 	} // end scan()
 
-	/**
-	 * SeedSplitter function: processing times greater than 3 min. will move to
-	 * the next day
-	 */
-	private SplitterObject executeSplitter(File[] files, int timeout, LocalDate timestamp)
-			throws TimeoutException, ExecutionException, InterruptedException {
-		Hashtable<String, ArrayList<DataSet>> table = null;
-		SeedSplitter splitter = new SeedSplitter(files);
-		ExecutorService executor = Executors.newSingleThreadExecutor();
-		Future<Hashtable<String, ArrayList<DataSet>>> future = executor.submit(new Task(splitter));
-
-		try {
-			logger.info("== STARTED SeedSplitter() process for [{}]:[{}]\n", station,
-					timestamp.format(DateTimeFormatter.ISO_ORDINAL_DATE));
-			table = future.get(timeout, TimeUnit.SECONDS);
-			logger.info("== FINISHED SeedSplitter() process for [{}]:[{}]\n", station,
-					timestamp.format(DateTimeFormatter.ISO_ORDINAL_DATE));
-		} catch (TimeoutException e) {
-			future.cancel(true);
-			throw e;
-		} catch (ExecutionException e) {
-			future.cancel(true);
-			throw e;
-		} catch (InterruptedException e) {
-			future.cancel(true);
-			throw e;
-		}
-		executor.shutdown();
-		executor.awaitTermination(300, TimeUnit.SECONDS);
-
-		return new SplitterObject(splitter, table);
-	}
-
-	/**
-	 * Return a MetricData object for the station + timestamp
-	 */
-	private MetricData getMetricData(LocalDate date) {
-
-		StationMeta stationMeta = metaServer.getStationMeta(station, date.atStartOfDay());
-		if (stationMeta == null) {
-			return null;
-		}
-
-		ArchivePath pathEngine = new ArchivePath(date.atStartOfDay(), station);
-		String path = pathEngine.makePath(scan.getPathPattern());
-		File dir = new File(path);
-		File[] files = null;
-		boolean dataExists = true;
-
-		/**
-		 * MTH: There are some non-seed files (e.g., data_avail.txt) included in
-		 * files[]. For some reason the file netday.index causes the splitter to
-		 * hang. Either restrict the file list to .seed files (as I do below)
-		 * -or- Debug splitter so it drops non-seed/miniseed files.
-		 **/
-		FilenameFilter textFilter = new FilenameFilter() {
-			public boolean accept(File dir, String name) {
-				String lowercaseName = name.toLowerCase();
-				File file = new File(dir + "/" + name);
-				if (lowercaseName.endsWith(".seed") && (file.length() > 0)) {
-					return true;
-				} else {
-					return false;
-				}
-			}
-		};
-
-		if (!dir.exists()) {
-			logger.info("Path '" + dir + "' does not exist.");
-			dataExists = false;
-		} else if (!dir.isDirectory()) {
-			logger.info("Path '" + dir + "' is not a directory.");
-			dataExists = false;
-		} else { // The dir exists --> See if we have any useful seed files in
-					// it:
-
-			files = dir.listFiles(textFilter);
-			if (files == null) {
-				dataExists = false;
-			} else if (files.length == 0) {
-				dataExists = false;
-			}
-		}
-
-		if (!dataExists) {
-			return null;
-		}
-
-		logger.info(dir.getPath() + " contains " + files.length + " files.");
-
-		// execute SeedSplitter process (180 sec timer will be issued)
-		try {
-			int timeout = 180;
-			SplitterObject splitObj = executeSplitter(files, timeout, date);
-			SeedSplitter splitter = splitObj.splitter;
-			Hashtable<String, ArrayList<DataSet>> table = splitObj.table;
-
-			Hashtable<String, ArrayList<Integer>> qualityTable = null;
-			qualityTable = splitter.getQualityTable();
-
-			Hashtable<String, ArrayList<Blockette320>> calibrationTable = null;
-			calibrationTable = splitter.getCalTable();
-
-			return new MetricData(database, table, qualityTable, stationMeta, calibrationTable);
-		} catch (TimeoutException e) {
-			logger.error("== TimeoutException: Skipping to next day for [{}]:[{}]\n", station,
-					date.format(DateTimeFormatter.ISO_ORDINAL_DATE));
-			return null;
-		} catch (ExecutionException e) {
-			logger.error("== ExecutionException: Skipping to next day for [{}]:[{}]\n", station,
-					date.format(DateTimeFormatter.ISO_ORDINAL_DATE));
-			return null;
-		} catch (InterruptedException e) {
-			logger.error("== InterruptedException: Skipping to next day for [{}]:[{}]\n", station,
-					date.format(DateTimeFormatter.ISO_ORDINAL_DATE));
-			return null;
-		}
-	}
+	
 }
