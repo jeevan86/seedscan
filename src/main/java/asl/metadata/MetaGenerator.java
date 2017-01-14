@@ -196,6 +196,25 @@ public class MetaGenerator {
 		}
 		return allStations;
 	}
+	
+	/**
+	 * Return a list of all stations matching parameters.
+	 */
+	public List<Station> getStationList(String[] networks, String[] stations) {
+		if (volumes == null) {
+			return null;
+		}
+		
+		ArrayList<Station> allStations = new ArrayList<Station>();
+		for (String network : networks) {
+			SeedVolume volume = volumes.get(new NetworkKey(network));
+			for(String station : stations){
+				volume.hasStation(new StationKey(network, station));
+				allStations.add(new Station(network, station));
+			}
+		}
+		return allStations;
+	}
 
 	/**
 	 * loadDataless() reads in the entire dataless seed file (all stations)
