@@ -482,20 +482,26 @@ public class MetricDatabase {
 				callStatement = connection.prepareCall("SELECT * from fntakenextscan()");
 
 				rs = callStatement.executeQuery();
+				//If we have a scan return it
+				if(rs.next()){
 				//@formatter:off
-				return new DatabaseScan(
-					(java.util.UUID) rs.getObject("pkscanid"),
-					(java.util.UUID) rs.getObject("fkparentscanid"),
-					rs.getString("metricfilter"),
-					rs.getString("networkfilter"),
-					rs.getString("stationfilter"),
-					rs.getString("locationfilter"),
-					rs.getString("channelfilter"),
-					rs.getObject("startdate", LocalDate.class),
-					rs.getObject("enddate", LocalDate.class),
-					rs.getInt("priority"),
-					rs.getBoolean("deleteexisting"));
+					return new DatabaseScan(
+						(java.util.UUID) rs.getObject("pkscanid"),
+						(java.util.UUID) rs.getObject("fkparentscan"),
+						rs.getString("metricfilter"),
+						rs.getString("networkfilter"),
+						rs.getString("stationfilter"),
+						rs.getString("locationfilter"),
+						rs.getString("channelfilter"),
+						rs.getObject("startdate", LocalDate.class),
+						rs.getObject("enddate", LocalDate.class),
+						rs.getInt("priority"),
+						rs.getBoolean("deleteexisting"));
 				//@formatter:on
+				}
+				else{
+					return null;
+				}
 			} finally {
 				if (rs != null)
 					rs.close();

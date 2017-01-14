@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import asl.metadata.MetaGenerator;
 import asl.seedscan.database.MetricDatabase;
+import asl.seedscan.scanner.scanworker.RetrieveScan;
 
 public class ScanManager {
 	private static final Logger logger = LoggerFactory
@@ -37,6 +38,7 @@ public class ScanManager {
 	 * This blocks indefinitely while scans are being performed.
 	 */
 	public void scan(){
+		threadPool.submit(new RetrieveScan( this));
 		while (true){
 			
 		}
