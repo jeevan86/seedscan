@@ -77,4 +77,15 @@ public class DatabaseScan {
 		this.channel = channel;
 		this.metricName = metricName;
 	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "DatabaseScan [scanID=" + scanID + ", parentScanID=" + parentScanID + ", startDate=" + startDate
+				+ ", endDate=" + endDate + ", deleteExisting=" + deleteExisting + ", network=" + network + ", station="
+				+ station + ", location=" + location + ", channel=" + channel + ", metricName=" + metricName
+				+ ", priority=" + priority + "]";
+	}
 }
