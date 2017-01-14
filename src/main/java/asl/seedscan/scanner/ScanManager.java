@@ -8,20 +8,20 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import asl.metadata.MetaServer;
+import asl.metadata.MetaGenerator;
 import asl.seedscan.database.MetricDatabase;
 
 public class ScanManager {
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.seedscan.scanner.ScanManager.class);
 
-	final MetricDatabase database;
-	final MetaServer metaServer;
-	final ThreadPoolExecutor threadPool;
+	public final MetricDatabase database;
+	public final MetaGenerator metaGenerator;
+	public final ThreadPoolExecutor threadPool;
 
-	public ScanManager(MetricDatabase database, MetaServer metaServer){
+	public ScanManager(MetricDatabase database, MetaGenerator metaGenerator){
 		this.database = database;
-		this.metaServer = metaServer;
+		this.metaGenerator = metaGenerator;
 		
 		int threadCount = Runtime.getRuntime().availableProcessors();
 		logger.info("Number of Threads to Use = [{}]", threadCount);
