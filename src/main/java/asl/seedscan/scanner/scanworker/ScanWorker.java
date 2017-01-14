@@ -2,7 +2,7 @@ package asl.seedscan.scanner.scanworker;
 
 import asl.seedscan.scanner.ScanManager;
 
-abstract class ScanWorker implements Comparable<ScanWorker>, Runnable {
+public abstract class ScanWorker implements Comparable<ScanWorker>, Runnable {
 
 	protected final ScanManager manager;
 
