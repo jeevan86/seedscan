@@ -189,7 +189,7 @@ public class StationScan extends ScanWorker {
 			
 		//Insert Next Day task
 		if(nextDayTimestamp.compareTo(databaseScan.endDate) <= 0){
-			manager.threadPool.submit(new StationScan(this.manager, this.databaseScan, nextDayTimestamp, this.nextMetricData));
+			manager.threadPool.execute(new StationScan(this.manager, this.databaseScan, nextDayTimestamp, this.nextMetricData));
 		}
 
 		//Cleanup

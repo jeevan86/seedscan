@@ -28,17 +28,17 @@ public class ScanManager {
 		logger.info("Number of Threads to Use = [{}]", threadCount);
 
 		
-		BlockingQueue<Runnable> workQueue = new PriorityBlockingQueue<Runnable>();
+		BlockingQueue<Runnable> workQueue = new PriorityBlockingQueue<>();
 		
 		this.threadPool = new ThreadPoolExecutor(threadCount, threadCount, 10, TimeUnit.MINUTES, workQueue);
 	}
-	
+
 	/**
 	 * Begins the scan process.
 	 * This blocks indefinitely while scans are being performed.
 	 */
 	public void scan(){
-		threadPool.submit(new RetrieveScan( this));
+		threadPool.execute(new RetrieveScan( this));
 		while (true){
 			
 		}
