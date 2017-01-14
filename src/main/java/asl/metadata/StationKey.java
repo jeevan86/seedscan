@@ -15,10 +15,10 @@ class StationKey extends Key implements Comparable<StationKey> {
 	private static final int STATION_EPOCH_BLOCKETTE_NUMBER = 50;
 
 	/** The network code. */
-	private String network = null;
+	private final String network;
 	
 	/** The station name. */
-	private String name = null;
+	private final String name;
 
 	/**
 	 * Instantiates a new station key based on the station epoch blockette, blockette 50.
@@ -42,6 +42,11 @@ class StationKey extends Key implements Comparable<StationKey> {
 	StationKey(Station station) {
 		this.network = station.getNetwork();
 		this.name = station.getStation();
+	}
+	
+	StationKey(String network, String station){
+		this.network = network;
+		this.name = station;
 	}
 
 
