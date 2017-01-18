@@ -1,7 +1,5 @@
 package asl.seedscan.scanner.scanworker;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -12,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import asl.metadata.Station;
 import asl.seedscan.database.DatabaseScan;
 import asl.seedscan.scanner.ScanManager;
+import asl.util.Logging;
 
 /**
  * This worker retrieves a Scan from the database. Determines if it is a
@@ -51,7 +50,7 @@ public class RetrieveScan extends ScanWorker {
 			// Check if it is a Station Scan.
 			if (networks != null && stations != null && stations.length == 1 && networks.length == 1 && dayLength <= 30) {
 				logger.info("Station Scan loaded adding to local queue");
-				manager.threadPool.submit(new StationScan(manager, newScan));
+				manager.addTask(new StationScan(manager, newScan));
 			}
 			// Split the non Station Scan into Station Scans
 			else {
@@ -79,23 +78,25 @@ public class RetrieveScan extends ScanWorker {
 								newScan.deleteExisting);
 						//@formatter:on
 					}
-
+					
+					start = end;
 				} while (!end.equals(newScan.endDate));
-
 			}
+			// Add new Retriever to queue since we know more probably exist.
+			manager.addTask(new RetrieveScan(manager));
 		}
 		else{
 			logger.info("Database has no Scans left!");
 		}
+			/*
+			 * Don't bother adding a new Retrieving Task since DB is empty. A
+			 * different process will handle this.
+			 */
 
-		// Add new Retriever to queue
-		manager.threadPool.execute(new RetrieveScan(manager));
 		}catch(Exception e){
-			StringWriter stringWriter = new StringWriter();
-			PrintWriter printWriter = new PrintWriter(stringWriter);
-			e.printStackTrace(printWriter);
-			logger.error(stringWriter.toString());
-			manager.database.insertError(stringWriter.toString());
+			String message = Logging.exceptionToString(e);
+			logger.error(message);
+			manager.database.insertError(message);
 		}
 	}
 

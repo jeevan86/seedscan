@@ -143,11 +143,6 @@ public class StationScan extends ScanWorker {
 					// Save the current crossPowerMap for the next metric:
 					crossPowerMap = metric.getCrossPowerMap();
 
-					// This is a little convoluted: calibration.getResult()
-					// returns a MetricResult, which may contain many values
-					// in a Hashtable<String,String> = map.
-					// MetricResult.getResult(id) returns value = String
-
 					MetricResult results = metric.getMetricResult();
 					if (results == null) {
 					} else {
@@ -189,7 +184,11 @@ public class StationScan extends ScanWorker {
 			
 		//Insert Next Day task
 		if(nextDayTimestamp.compareTo(databaseScan.endDate) <= 0){
-			manager.threadPool.execute(new StationScan(this.manager, this.databaseScan, nextDayTimestamp, this.nextMetricData));
+			manager.addTask(new StationScan(this.manager, this.databaseScan, nextDayTimestamp, this.nextMetricData));
+		}
+		else{
+			//We have finished this station
+			manager.database.finishScan(databaseScan.scanID);
 		}
 
 		//Cleanup
