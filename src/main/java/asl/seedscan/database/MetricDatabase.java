@@ -451,7 +451,7 @@ public class MetricDatabase {
 					"UPDATE tblscan "
 					+ "SET taken=FALSE "
 					+ "WHERE "
-						+ "fkparentscan IS NULL "
+						+ "fkparentscan IS NOT NULL "
 						+ "AND finished = FALSE "
 						+ "AND taken = TRUE");
 			//@formatter:on
