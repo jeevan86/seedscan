@@ -79,7 +79,7 @@ public class RetrieveScan extends ScanWorker {
 						//@formatter:on
 					}
 					
-					start = end;
+					start = end.plusDays(1);
 				} while (!end.equals(newScan.endDate));
 			}
 			// Add new Retriever to queue since we know more probably exist.
