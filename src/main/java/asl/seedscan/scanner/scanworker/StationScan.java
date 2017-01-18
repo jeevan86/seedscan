@@ -154,18 +154,18 @@ public class StationScan extends ScanWorker {
 						for (String id : results.getIdSortedSet()) {
 							double value = results.getResult(id);
 						/* @formatter:off */
-						logger.info(String.format("%s [%7s] [%s] %15s:%6.2f", results.getMetricName(),
-								results.getStation(), results.getDate().format(DateTimeFormatter.ISO_ORDINAL_DATE), id, value));
+						logger.info("{} [{}] [{}] {}:{}", results.getMetricName(),
+								results.getStation(), results.getDate().format(DateTimeFormatter.ISO_ORDINAL_DATE), id, value);
 
 						if (Double.isNaN(value)) {
-							logger.error(String.format("%s [%s] [%s] %s: ERROR: metric value = [ NaN ] !!\n",
+							logger.error("{} [{}] [{}] {}: ERROR: metric value = [ NaN ] !!\n",
 									results.getMetricName(), results.getStation(),
-									results.getDate().format(DateTimeFormatter.ISO_ORDINAL_DATE), id));
+									results.getDate().format(DateTimeFormatter.ISO_ORDINAL_DATE), id);
 						}
 						if (Double.isInfinite(value)) {
-							logger.error(String.format("%s [%s] [%s] %s: ERROR: metric value = [ Infinity ] !!\n",
+							logger.error("{} [{}] [{}] {}: ERROR: metric value = [ Infinity ] !!\n",
 									results.getMetricName(), results.getStation(),
-									results.getDate().format(DateTimeFormatter.ISO_ORDINAL_DATE), id));
+									results.getDate().format(DateTimeFormatter.ISO_ORDINAL_DATE), id);
 						}
 						/* @formatter:on */
 						}
@@ -206,6 +206,7 @@ public class StationScan extends ScanWorker {
 	 */
 	@Override
 	public Integer getBasePriority() {
+		//Average StationScan priority.
 		return 45;
 	}
 	
