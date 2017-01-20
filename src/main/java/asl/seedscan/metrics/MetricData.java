@@ -1204,7 +1204,7 @@ public class MetricData implements Serializable {
 
 		ByteBuffer newDigest = getHash(channelArray);
 		if (newDigest == null) {
-			logger.warn("New digest is null!");
+			logger.warn("Digest of [{}, {}, {}, {}] = null", strdate, metricName, station, channelId);
 		}
 
 		/** This can occur if MetricData was loaded from a serialized file. */
@@ -1217,10 +1217,7 @@ public class MetricData implements Serializable {
 			 * Retrieve old Digest from Database and compare to new Digest
 			 */
 			ByteBuffer oldDigest = metricReader.getMetricValueDigest(id.getDate(),id.getMetricName(),id.getStation(),id.getChannel());
-			if (oldDigest == null) {
-				logger.info("Old digest is null. No entry in database.");
-			} else if (newDigest.compareTo(oldDigest) == 0) {
-				logger.info("Digests are Equal !!");
+			if (oldDigest != null && newDigest.compareTo(oldDigest) == 0) {
 				if (forceUpdate) {
 					/*
 					 * Don't do anything --> return the digest to force the
@@ -1238,11 +1235,10 @@ public class MetricData implements Serializable {
 				 * precomputed values. If forceUpdate then drop out to the
 				 * returnnewDigest
 				 */
-				logger.info("Entry found in database, but no data to recompute.");
+				logger.info("[{}, {}, {}, {}] Entry found in database, but no data to recompute.", strdate, metricName,
+						station, channelId);
 				newDigest = null;
 			}
-			logger.info(String.format("valueDigestChanged() --> oldDigest = getMetricValueDigest(%s, %s, %s, %s)",
-					strdate, metricName, station, channelId));
 		}
 		/*
 		 * If metricReader is not connected, it will always fall through and recompute.
@@ -1265,8 +1261,8 @@ public class MetricData implements Serializable {
 		for (Channel channel : channels) {
 			ChannelMeta chanMeta = getMetaData().getChannelMetadata(channel);
 			if (chanMeta == null) {
-				logger.warn(String.format("getHash: metadata not found for requested channel:%s date:%s\n", channel,
-						metadata.getDate()));
+				logger.warn("getHash: metadata not found for requested channel:{} date:{}", channel,
+						metadata.getDate());
 				return null;
 			} else {
 				digests.add(chanMeta.getDigestBytes());
