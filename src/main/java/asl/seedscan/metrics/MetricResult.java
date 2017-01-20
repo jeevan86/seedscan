@@ -1,21 +1,3 @@
-/*
- * Copyright 2012, United States Geological Survey or
- * third-party contributors as indicated by the @author tags.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
- *
- */
 package asl.seedscan.metrics;
 
 import java.nio.ByteBuffer;
@@ -26,17 +8,11 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import asl.metadata.Channel;
 import asl.metadata.Station;
 import asl.metadata.meta_new.StationMeta;
 
 public class MetricResult {
-	private static final Logger logger = LoggerFactory
-			.getLogger(asl.seedscan.metrics.MetricResult.class);
-
 	private String metricName;
 	private LocalDate date;
 	private Station station;
@@ -111,11 +87,12 @@ public class MetricResult {
 	}
 
 	public static Channel createChannel(String id) {
-		logger.info("createChannel: id=" + id);
 		Channel channel = null;
-		if (id.length() > 15) { // This is likely to be coming from a
-			// CalibrationMetric so handle differently
-			// id = "{ "channelId":"00-LHZ", "band": { ..."
+		if (id.length() > 15) {
+			/*
+			 * This is likely to be coming from a CalibrationMetric so handle
+			 * differently id = "{ "channelId":"00-LHZ", "band": { ..."
+			 */
 			String[] f1 = id.split(":"); // f1="00-LHZ","band"
 			String[] f2 = f1[1].split(","); // f2="00-LHZ"
 			String[] f3 = f2[0].split("-"); // f3[0]="00" f3[1]="LHZ"
@@ -126,7 +103,6 @@ public class MetricResult {
 				channel = new Channel(parts[0], parts[1]);
 			}
 		}
-		logger.info("createChannel: channel=[{}]", channel);
 		return channel;
 	}
 }
