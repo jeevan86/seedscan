@@ -1216,28 +1216,31 @@ public class MetricData implements Serializable {
 			/*
 			 * Retrieve old Digest from Database and compare to new Digest
 			 */
-			ByteBuffer oldDigest = metricReader.getMetricValueDigest(id.getDate(),id.getMetricName(),id.getStation(),id.getChannel());
-			if (oldDigest != null && newDigest.compareTo(oldDigest) == 0) {
-				if (forceUpdate) {
+			ByteBuffer oldDigest = metricReader.getMetricValueDigest(id.getDate(), id.getMetricName(), id.getStation(),
+					id.getChannel());
+			if (oldDigest != null) {
+				if (newDigest.compareTo(oldDigest) == 0) {
+					if (forceUpdate) {
+						/*
+						 * Don't do anything --> return the digest to force the
+						 * metric computation
+						 */
+						logger.info(
+								"== valueDigestChanged: metricName={} date={} Digests are Equal BUT forceUpdate=[{}] so compute the metric anyway!\n",
+								metricName, strdate, forceUpdate);
+					} else {
+						newDigest = null;
+					}
+				} else if (!hasChannelArrayData(channelArray) && !forceUpdate) {
 					/*
-					 * Don't do anything --> return the digest to force the
-					 * metric computation
+					 * This should catch availability metrics without data, but
+					 * have precomputed values. If forceUpdate then drop out to
+					 * the returnnewDigest
 					 */
-					logger.info(
-							"== valueDigestChanged: metricName={} date={} Digests are Equal BUT forceUpdate=[{}] so compute the metric anyway!\n",
-							metricName, strdate, forceUpdate);
-				} else {
+					logger.info("[{}, {}, {}, {}] Entry found in database, but no data to recompute.", strdate,
+							metricName, station, channelId);
 					newDigest = null;
 				}
-			} else if (!hasChannelArrayData(channelArray) && !forceUpdate) {
-				/*
-				 * This should catch availability metrics without data, but have
-				 * precomputed values. If forceUpdate then drop out to the
-				 * returnnewDigest
-				 */
-				logger.info("[{}, {}, {}, {}] Entry found in database, but no data to recompute.", strdate, metricName,
-						station, channelId);
-				newDigest = null;
 			}
 		}
 		/*
@@ -1301,9 +1304,6 @@ public class MetricData implements Serializable {
 	synchronized void checkForRotatedChannels(ChannelArray channelArray) {
 		ArrayList<Channel> channels = channelArray.getChannels();
 		for (Channel channel : channels) {
-			// System.out.format("== checkForRotatedChannels: request
-			// channel=%s\n",
-			// channel);
 
 			// channelPrefix = channel band + instrument code e.g., 'L' + 'H' =
 			// "LH"

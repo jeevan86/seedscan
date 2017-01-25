@@ -193,6 +193,7 @@ public class MetricDataTest {
 		assertNull(digest);
 
 		// No data, digest not in Reader, no force update
+		// Should come back with something.
 		channel = new Channel("00", "BH1"); // Not set in reader
 		digest = metricData.valueDigestChanged(channel, new MetricValueIdentifier(date, metricName, station, channel),
 				false);
