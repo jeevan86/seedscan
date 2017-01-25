@@ -21,6 +21,7 @@ import asl.seedscan.scanner.DataLoader;
 import asl.seedscan.scanner.ScanManager;
 import asl.timeseries.CrossPower;
 import asl.timeseries.CrossPowerKey;
+import asl.util.Logging;
 import sac.SacTimeSeries;
 
 /**
@@ -72,52 +73,54 @@ public class StationScan extends ScanWorker {
 	}
 
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Runnable#run()
 	 */
 	@Override
 	public void run() {
-		logger.debug("Scan Station={} Day={} Thread id=[{}]", station,
-				currentDate.format(DateTimeFormatter.ISO_ORDINAL_DATE), Thread.currentThread().getId());
-		
-		// CMT Event loader - use to load events for each day
-		EventLoader eventLoader = new EventLoader(Global.CONFIG.getEventsDir());
+		try {
+			logger.debug("Scan Station={} Day={} Thread id=[{}]", station,
+					currentDate.format(DateTimeFormatter.ISO_ORDINAL_DATE), Thread.currentThread().getId());
 
-		LocalDate nextDayTimestamp = currentDate.plusDays(1);
+			// CMT Event loader - use to load events for each day
+			EventLoader eventLoader = new EventLoader(Global.CONFIG.getEventsDir());
 
-		//Get all the channel metadata for this station, for this day
-		StationMeta stnMeta = manager.metaGenerator.getStationMeta(station, currentDate.atStartOfDay());
+			LocalDate nextDayTimestamp = currentDate.plusDays(1);
 
-		Hashtable<String, Hashtable<String, SacTimeSeries>> eventSynthetics = null;
-		
-		Hashtable<String, EventCMT> eventCMTs = eventLoader.getDayEvents(currentDate);
-		if (eventCMTs != null) {
-			eventSynthetics = eventLoader.getDaySynthetics(currentDate, station);
-		}
-		
-		//May have been passed from previous day
-		if(currentMetricData == null){
-			currentMetricData = DataLoader.getMetricData(currentDate, station, manager);
-		}
-		nextMetricData = DataLoader.getMetricData(nextDayTimestamp, station, manager);
+			// Get all the channel metadata for this station, for this day
+			StationMeta stnMeta = manager.metaGenerator.getStationMeta(station, currentDate.atStartOfDay());
 
-		if (currentMetricData != null) {
-			// This doesn't mean nextMetricData isn't null!
-			currentMetricData.setNextMetricData(nextMetricData);
-		}
-		
-		// No Metadata found for this station-day --> skip day
-		if (stnMeta == null) {
-			logger.info("== Scanner: No Metadata found for Station:{}_{} for Day:{} --> Skipping", station.getNetwork(),
-					station.getStation(), currentDate.format(DateTimeFormatter.ISO_ORDINAL_DATE));
-		} else {
+			Hashtable<String, Hashtable<String, SacTimeSeries>> eventSynthetics = null;
 
-			stnMeta.printStationInfo();
+			Hashtable<String, EventCMT> eventCMTs = eventLoader.getDayEvents(currentDate);
+			if (eventCMTs != null) {
+				eventSynthetics = eventLoader.getDaySynthetics(currentDate, station);
+			}
 
-			// Loop over Metrics to compute, for this station, for this day
-			Hashtable<CrossPowerKey, CrossPower> crossPowerMap = null;
+			// May have been passed from previous day
+			if (currentMetricData == null) {
+				currentMetricData = DataLoader.getMetricData(currentDate, station, manager);
+			}
+			nextMetricData = DataLoader.getMetricData(nextDayTimestamp, station, manager);
 
-			try { // wrapper.getNewInstance()
+			if (currentMetricData != null) {
+				// This doesn't mean nextMetricData isn't null!
+				currentMetricData.setNextMetricData(nextMetricData);
+			}
+
+			// No Metadata found for this station-day --> skip day
+			if (stnMeta == null) {
+				logger.info("== Scanner: No Metadata found for Station:{}_{} for Day:{} --> Skipping",
+						station.getNetwork(), station.getStation(),
+						currentDate.format(DateTimeFormatter.ISO_ORDINAL_DATE));
+			} else {
+				stnMeta.printStationInfo();
+				
+				// Loop over Metrics to compute, for this station, for this day
+				Hashtable<CrossPowerKey, CrossPower> crossPowerMap = null;
+
 				for (MetricWrapper wrapper : Global.METRICS) {
 					Metric metric = wrapper.getNewInstance();
 					metric.setBaseOutputDir(Global.CONFIG.getPlotsDir());
@@ -171,33 +174,26 @@ public class StationScan extends ScanWorker {
 						}
 					}
 				} // end loop over metrics
-			} catch (InstantiationException e) {
-				logger.error("Scanner InstantationException:", e);
-			} catch (IllegalAccessException e) {
-				logger.error("Scanner IllegalAccessException:", e);
-			} catch (NoSuchFieldException e) {
-				logger.error("Scanner NoSuchFieldException:", e);
-			} catch (IllegalArgumentException e) {
-				logger.error("Scanner IllegalArgumentException:", e);
 			}
-		}
-			
-		//Insert Next Day task
-		if(nextDayTimestamp.compareTo(databaseScan.endDate) <= 0){
-			manager.addTask(new StationScan(this.manager, this.databaseScan, nextDayTimestamp, this.nextMetricData));
-		}
-		else{
-			//We have finished this station
-			manager.database.finishScan(databaseScan.scanID);
-		}
+			// Insert Next Day task
+			if (nextDayTimestamp.compareTo(databaseScan.endDate) <= 0) {
+				manager.addTask(
+						new StationScan(this.manager, this.databaseScan, nextDayTimestamp, this.nextMetricData));
+			} else {
+				// We have finished this station
+				manager.database.finishScan(databaseScan.scanID);
+			}
 
-		//Cleanup
-		/* Need to null out ref to next day before passing currentMetricData to avoid chaining refs*/
-		if (currentMetricData != null) {
-			currentMetricData.setNextMetricDataToNull();
+		} catch (Exception e) {
+			String message = Logging.exceptionToString(e);
+			logger.error(message);
+			manager.database.insertScanMessage(databaseScan.parentScanID, station.getNetwork(), station.getStation(),
+					null, null, null, message);
+		} finally {
+			// Cleanup
+			currentMetricData = null;
+			nextMetricData = null;
 		}
-		currentMetricData = null;
-		nextMetricData = null;
 	}
 
 	/* (non-Javadoc)
