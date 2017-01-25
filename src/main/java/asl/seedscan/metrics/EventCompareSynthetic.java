@@ -181,6 +181,11 @@ public class EventCompareSynthetic extends Metric {
 						double[] baseData = sacArrayToDouble(sacSynthetics);
 						double[] channelData = metricData.getFilteredDisplacement(units, curChannel, eventStartTime,
 								eventEndTime, FREQUENCY1, FREQUENCY2, FREQUENCY3, FREQUENCY4);
+
+						if(baseData == null || channelData == null){
+							//Not enough data to compute skip this event
+							continue;
+						}
 						double corrVal = getCorr(channelData, baseData, nstart, nend);
 						if (Math.abs(corrVal) >= 0.85) {
 							correlated = true;
