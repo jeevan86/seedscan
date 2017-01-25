@@ -108,6 +108,9 @@ public class EventCompareStrongMotion extends Metric {
 
 				ChannelArray channelArray = new ChannelArray(baseChannel, curChannel);
 
+				//Rotate channels as needed.
+				metricData.checkForRotatedChannels(channelArray);
+				
 				ByteBuffer digest = metricData.valueDigestChanged(channelArray,
 						createIdentifier(baseChannel, curChannel), getForceUpdate());
 				if (digest == null)
@@ -168,6 +171,11 @@ public class EventCompareStrongMotion extends Metric {
 									eventEndTime, FREQUENCY1, FREQUENCY2, FREQUENCY3, FREQUENCY4);
 							double[] channelData = metricData.getFilteredDisplacement(units, curChannel, eventStartTime,
 									eventEndTime, FREQUENCY1, FREQUENCY2, FREQUENCY3, FREQUENCY4);
+
+							if(baseData == null || channelData == null){
+								//Not enough data to compute skip this event
+								continue;
+							}
 							double corrVal = getCorr(channelData, baseData, nstart, nend);
 							if (Math.abs(corrVal) >= 0.85) {
 								correlated = true;

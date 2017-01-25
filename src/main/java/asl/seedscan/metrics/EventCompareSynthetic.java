@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import asl.metadata.Channel;
+import asl.metadata.ChannelArray;
 import asl.metadata.meta_new.ChannelMeta.ResponseUnits;
 import asl.metadata.meta_new.ChannelMetaException;
 import asl.seedscan.event.EventCMT;
@@ -128,6 +129,10 @@ public class EventCompareSynthetic extends Metric {
 
 			String channelVal = curChannel.toString().split("-")[1];
 			if (bands.contains(channelVal.substring(0, 2))) {
+				//Rotate channels as needed.
+				ChannelArray channelArray = new ChannelArray(curChannel.getLocation(), curChannel.getChannel());
+				metricData.checkForRotatedChannels(channelArray);
+				
 				ByteBuffer digest = metricData.valueDigestChanged(curChannel, createIdentifier(curChannel),
 						getForceUpdate());
 				if (digest == null)
