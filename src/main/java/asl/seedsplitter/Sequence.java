@@ -27,8 +27,7 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 	private static final long serialVersionUID = 2L;
 
 	/** The Constant logger. */
-	private static final Logger logger = LoggerFactory
-			.getLogger(asl.seedsplitter.Sequence.class);
+	private static final Logger logger = LoggerFactory.getLogger(asl.seedsplitter.Sequence.class);
 
 	/** The Constant BLOCK_SIZE. */
 	private static final int BLOCK_SIZE = 4096;
@@ -42,7 +41,10 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 	/** The m_blocks. */
 	private ArrayList<int[]> m_blocks = null;
 
-	/** The m_block. This appears to be used as a temporary hold member and is thus transient.*/
+	/**
+	 * The m_block. This appears to be used as a temporary hold member and is
+	 * thus transient.
+	 */
 	private transient int[] m_block = null;
 
 	/** The m_length. */
@@ -99,8 +101,7 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 		addToDigest(m_sampleRate);
 		int remaining = m_blocks.size();
 		for (int[] block : m_blocks) {
-			int numSamples = (--remaining > 0) ? BLOCK_SIZE
-					: (BLOCK_SIZE - m_remainder);
+			int numSamples = (--remaining > 0) ? BLOCK_SIZE : (BLOCK_SIZE - m_remainder);
 			for (int i = 0; i < numSamples; i++) {
 				addToDigest(block[i]);
 			}
@@ -125,8 +126,7 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 	 * @throws IllegalSampleRateException
 	 *             the illegal sample rate exception
 	 */
-	public void setSampleRate(double sampleRate)
-			throws IllegalSampleRateException {
+	public void setSampleRate(double sampleRate) throws IllegalSampleRateException {
 		m_interval = sampleRateToInterval(sampleRate);
 		m_sampleRate = sampleRate;
 	}
@@ -164,8 +164,7 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 		int copySize = 0;
 		while (length > 0) {
 			copySize = (m_remainder > length) ? length : m_remainder;
-			System.arraycopy(buffer, offset, m_block, BLOCK_SIZE - m_remainder,
-					copySize);
+			System.arraycopy(buffer, offset, m_block, BLOCK_SIZE - m_remainder, copySize);
 			if (m_remainder <= length) {
 				this._addBlock();
 			} else {
@@ -287,10 +286,8 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 	 * @throws BlockSizeMismatchException
 	 *             the block size mismatch exception
 	 */
-	synchronized void mergeInto(Sequence seq)
-			throws SequenceIntervalMismatchException,
-			SequenceMergeRangeException, SequenceTimingException,
-			BlockSizeMismatchException {
+	synchronized void mergeInto(Sequence seq) throws SequenceIntervalMismatchException, SequenceMergeRangeException,
+			SequenceTimingException, BlockSizeMismatchException {
 		if (m_interval != seq.m_interval) {
 			throw new SequenceIntervalMismatchException();
 		}
@@ -310,34 +307,26 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 		long intervalAdjustment = m_interval / 10;
 
 		logger.debug("");
-		logger.debug("    Source DataSet: "
-				+ Sequence.timestampToString(this.getStartTime()) + " to "
-				+ Sequence.timestampToString(this.getEndTime()) + " ("
-				+ this.getLength() + " data points)");
-		logger.debug("    Target DataSet: "
-				+ Sequence.timestampToString(seq.getStartTime()) + " to "
-				+ Sequence.timestampToString(seq.getEndTime()) + " ("
-				+ seq.getLength() + " data points)");
+		logger.debug("    Source DataSet: " + Sequence.timestampToString(this.getStartTime()) + " to "
+				+ Sequence.timestampToString(this.getEndTime()) + " (" + this.getLength() + " data points)");
+		logger.debug("    Target DataSet: " + Sequence.timestampToString(seq.getStartTime()) + " to "
+				+ Sequence.timestampToString(seq.getEndTime()) + " (" + seq.getLength() + " data points)");
 		if (m_startTime > seq.getEndTime()) {
 			if (((m_startTime - seq.getEndTime()) < (m_interval - intervalAdjustment))
 					|| ((m_startTime - seq.getEndTime()) > (m_interval + intervalAdjustment))) {
-				logger.debug("Source is more than 1 data point after target. (difference = "
-						+ (m_startTime - seq.getEndTime())
-						+ " ms OR "
-						+ ((m_startTime - seq.getEndTime()) / m_interval)
+				logger.warn("Source is more than 1 data point after target. (difference = "
+						+ (m_startTime - seq.getEndTime()) + " ms OR " + ((m_startTime - seq.getEndTime()) / m_interval)
 						+ " data points)");
-				throw new SequenceMergeRangeException(
-						"Source is more than 1 data point after target.");
+				throw new SequenceMergeRangeException("Source is more than 1 data point after target.");
 			}
 		}
 
 		if (this.getEndTime() < seq.m_startTime) {
 			if (((seq.m_startTime - this.getEndTime()) < (m_interval - intervalAdjustment))
 					|| ((seq.m_startTime - this.getEndTime()) > (m_interval + intervalAdjustment))) {
-				logger.debug("Target is more than 1 data point after source. (difference = "
+				logger.warn("Target is more than 1 data point after source. (difference = "
 						+ (seq.m_startTime - this.getEndTime()) + ")");
-				throw new SequenceMergeRangeException(
-						"Target is more than 1 data point after source.");
+				throw new SequenceMergeRangeException("Target is more than 1 data point after source.");
 			} else {
 				logger.debug("Swapping source and target prior to merge.");
 				try {
@@ -357,9 +346,9 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 			/*
 			 * JH: 2016-12-02 Commented this out because assuming Sequence is a
 			 * Dataset is risky. Afraid to delete because of Mike's comment.
-			 * Hopefully this whole class will go away if I can migrate to
-			 * using a different seed library. For now I am leaving the dead
-			 * code in case I need to debug later.
+			 * Hopefully this whole class will go away if I can migrate to using
+			 * a different seed library. For now I am leaving the dead code in
+			 * case I need to debug later.
 			 */
 			/*
 			 * DataSet dataSet = (DataSet) this; logger.debug(
@@ -448,10 +437,12 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 				pool.addBlock(block);
 			} catch (BlockSizeMismatchException e) {
 				// throw new
-				// RuntimeException("Impossible situation! BlockSizeMismatchException on BlockPool.addBlock()",
+				// RuntimeException("Impossible situation!
+				// BlockSizeMismatchException on BlockPool.addBlock()",
 				// e); // This should never happen
 				// String message =
-				// "Sequence BlockSizeMismatchException: BlockPool.addBlock() Impossible situation!";
+				// "Sequence BlockSizeMismatchException: BlockPool.addBlock()
+				// Impossible situation!";
 				throw e;
 			}
 		}
@@ -535,8 +526,7 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 	 * @throws SequenceRangeException
 	 *             the sequence range exception
 	 */
-	private int[] getSeries(int index, int count)
-			throws IndexOutOfBoundsException, SequenceRangeException {
+	private int[] getSeries(int index, int count) throws IndexOutOfBoundsException, SequenceRangeException {
 		if (index >= m_length) {
 			throw new IndexOutOfBoundsException();
 		}
@@ -610,8 +600,7 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 	 * @throws IndexOutOfBoundsException
 	 *             the index out of bounds exception
 	 */
-	public int[] getSeries(long startTime, long endTime)
-			throws SequenceRangeException, IndexOutOfBoundsException {
+	public int[] getSeries(long startTime, long endTime) throws SequenceRangeException, IndexOutOfBoundsException {
 		int[] series = null;
 		int index = 0;
 		int count = 0;
@@ -690,13 +679,11 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 	 *             if the reference Sequence's frequency does not match that of
 	 *             this Sequence.
 	 */
-	private Boolean subSequenceOf(Sequence seq)
-			throws SequenceIntervalMismatchException {
+	private Boolean subSequenceOf(Sequence seq) throws SequenceIntervalMismatchException {
 		if (seq.m_interval != m_interval) {
 			throw new SequenceIntervalMismatchException();
 		}
-		return ((m_startTime >= seq.m_startTime) && (this.getEndTime() <= seq
-				.getEndTime()));
+		return ((m_startTime >= seq.m_startTime) && (this.getEndTime() <= seq.getEndTime()));
 	}
 
 	/**
@@ -711,8 +698,7 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 	 *             if the supplied sample rate is not one of the accepted
 	 *             values.
 	 */
-	static long sampleRateToInterval(double sampleRate)
-			throws IllegalSampleRateException {
+	static long sampleRateToInterval(double sampleRate) throws IllegalSampleRateException {
 		long interval;
 		if (sampleRate == 0.001)
 			interval = 1000000000L;
@@ -755,8 +741,7 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 		else if (sampleRate == 5000.0)
 			interval = 200L;
 		else {
-			throw new IllegalSampleRateException("The selected sample rate ("
-					+ sampleRate + " Hz) is not supported.");
+			throw new IllegalSampleRateException("The selected sample rate (" + sampleRate + " Hz) is not supported.");
 		}
 		return interval;
 	}
@@ -776,13 +761,10 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 		String result = null;
 		GregorianCalendar cal = new GregorianCalendar(m_tz);
 		cal.setTimeInMillis(timestamp / 1000);
-		result = String.format(
-				"%04d/%02d/%02d %02d:%02d:%02d.%06d",
-				cal.get(Calendar.YEAR),
+		result = String.format("%04d/%02d/%02d %02d:%02d:%02d.%06d", cal.get(Calendar.YEAR),
 				cal.get(Calendar.MONTH) + 1, // MTH: Java uses months 0-11 ...
-				cal.get(Calendar.DAY_OF_MONTH), cal.get(Calendar.HOUR_OF_DAY),
-				cal.get(Calendar.MINUTE), cal.get(Calendar.SECOND),
-				(cal.get(Calendar.MILLISECOND) * 1000 + (timestamp % 10)));
+				cal.get(Calendar.DAY_OF_MONTH), cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE),
+				cal.get(Calendar.SECOND), (cal.get(Calendar.MILLISECOND) * 1000 + (timestamp % 10)));
 		return result;
 	}
 
