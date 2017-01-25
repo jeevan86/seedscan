@@ -132,6 +132,9 @@ public class EventCompareSynthetic extends Metric {
 				//Rotate channels as needed.
 				ChannelArray channelArray = new ChannelArray(curChannel.getLocation(), curChannel.getChannel());
 				metricData.checkForRotatedChannels(channelArray);
+				if (metricData.getNextMetricData() != null) {
+					metricData.getNextMetricData().checkForRotatedChannels(channelArray);
+				}
 				
 				ByteBuffer digest = metricData.valueDigestChanged(curChannel, createIdentifier(curChannel),
 						getForceUpdate());

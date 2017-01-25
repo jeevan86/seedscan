@@ -110,6 +110,9 @@ public class EventCompareStrongMotion extends Metric {
 
 				//Rotate channels as needed.
 				metricData.checkForRotatedChannels(channelArray);
+				if (metricData.getNextMetricData() != null) {
+					metricData.getNextMetricData().checkForRotatedChannels(channelArray);
+				}
 				
 				ByteBuffer digest = metricData.valueDigestChanged(channelArray,
 						createIdentifier(baseChannel, curChannel), getForceUpdate());
