@@ -1298,7 +1298,7 @@ public class MetricData implements Serializable {
 	 * @param channelArray
 	 *            the channel array
 	 */
-	private synchronized void checkForRotatedChannels(ChannelArray channelArray) {
+	synchronized void checkForRotatedChannels(ChannelArray channelArray) {
 		ArrayList<Channel> channels = channelArray.getChannels();
 		for (Channel channel : channels) {
 			// System.out.format("== checkForRotatedChannels: request
