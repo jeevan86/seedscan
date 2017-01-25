@@ -352,10 +352,7 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 			iPanel = 1;
 		} else if (channel.getChannel().equals("LH2") || channel.getChannel().equals("LHE")) {
 			iPanel = 2;
-		} else { // ??
-			StringBuilder message = new StringBuilder();
-			message.append(String.format("day=%s makePlots(): Don't know how to plot channel=%s\n", day, channel));
-			logger.info(message.toString());
+		} else {
 			return;
 		}
 
@@ -363,16 +360,8 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 			color = Color.green;
 		} else if (channel.getLocation().equals("10")) {
 			color = Color.red;
-		} else { // ??
 		}
-
-		try {
-			plotMaker.addTraceToPanel(new Trace(xdata, ydata, channel.toString(), color, stroke), iPanel);
-		} catch (PlotMakerException e) {
-			throw e;
-		} catch (TraceException e) {
-			throw e;
-		}
+		plotMaker.addTraceToPanel(new Trace(xdata, ydata, channel.toString(), color, stroke), iPanel);
 	}
 
 	/**
