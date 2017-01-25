@@ -611,7 +611,6 @@ public class SeedSplitProcessor implements Runnable {
 						throw new RuntimeException(
 								"Interval Mismatch. This should never happen!");
 					} catch (SequenceMergeRangeException e) {
-						logger.error("SequenceMergeRangeException:", e.getMessage());
 						list.add(lastDataSet);
 						lastDataSet = currDataSet;
 						currDataSet = null;
