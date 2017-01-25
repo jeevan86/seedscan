@@ -1302,6 +1302,10 @@ public class MetricData implements Serializable {
 	 *            the channel array
 	 */
 	synchronized void checkForRotatedChannels(ChannelArray channelArray) {
+		if(this.nextMetricData != null){
+			this.nextMetricData.checkForRotatedChannels(channelArray);
+		}
+		
 		ArrayList<Channel> channels = channelArray.getChannels();
 		for (Channel channel : channels) {
 
