@@ -252,7 +252,7 @@ public class StationMeta implements Serializable {
 			 * to restrict ourselves to 3-char channels so we don't also return
 			 * the derived channels (e.g., LHND, LHED)
 			 */
-			if ((!ignoreDerived || channel.getChannel().length() == 3)
+			if ((!ignoreDerived || !(channel.isDerivedChannel()))
 					&& (!ignoreTriggered || Channel.isContinousChannel(channelFlags))) {
 				for (String band : bandArray) {
 					if (channel.getChannel().startsWith(band)) {
@@ -327,7 +327,7 @@ public class StationMeta implements Serializable {
 			Channel channel = channelKey.toChannel();
 			String channelFlags = getChannelMetadata(channelKey).getChannelFlags();
 
-			if (Channel.isContinousChannel(channelFlags)){
+			if (Channel.isContinousChannel(channelFlags) && !(channel.isDerivedChannel())){
 				channelArrayList.add(channel);
 			}
 		}
