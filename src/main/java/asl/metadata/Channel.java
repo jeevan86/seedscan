@@ -143,10 +143,7 @@ public class Channel {
 		}
 		Pattern pattern = Pattern.compile("[1,2,3,N,E,Z,U,V,W]");
 		Matcher matcher = pattern.matcher(orientation);
-		if (!matcher.matches()) {
-			return false;
-		}
-		return true;
+		return matcher.matches();
 	}
 
 	// channel setter method(s)
