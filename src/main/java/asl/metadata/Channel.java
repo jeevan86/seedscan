@@ -48,13 +48,15 @@ public class Channel {
 	}
 
 	/**
-	 * Static methods to validate channel naming and location. Individuaally
-	 * validate Band, Instrument and Orientation Codes as per SEEDManual v2.4
-	 * Appendix A.
+	 * Validates the Location Code as being either numbers or -- and 2 characters.
 	 * 
-	 * These will only be useful to validate original, SEISMIC channels (e.g.,
-	 * "VHZ") but will trip over derived channels (e.g., "00-10, LHND-LHND") and
-	 * non-seismic channels (e.g., LDF)
+	 * Note that this does not validate to SEED Convention. Chapter 8 "Fixed Section of Data Header"<br>
+	 * Seed Convention allows Upper Case and Numerals with left space justification.
+	 * We do not permit this in DQA.
+	 * 
+	 * TODO: Determine what validation is actually required.
+	 * @param location two character string
+	 * @return false if invalid
 	 */
 	public static boolean validLocationCode(String location) {
 		if (location.length() != 2) {
@@ -63,12 +65,15 @@ public class Channel {
 		// Allow locations = {"00", "10", "20", ..., "99" and "--"}
 		Pattern pattern = Pattern.compile("^[0-9][0-9]$");
 		Matcher matcher = pattern.matcher(location);
-		if (!matcher.matches() && !location.equals("--")) {
-			return false;
-		}
-		return true;
+		return (matcher.matches() || location.equals("--"));
+
 	}
 
+	/**
+	 * Valids that the band code follows SEED Conventions in Appendix A
+	 * @param band 1 character band code
+	 * @return
+	 */
 	public static boolean validBandCode(String band) {
 		if (band.length() != 1) {
 			return false;
@@ -82,28 +87,56 @@ public class Channel {
 		return true;
 	}
 
+	/**
+	 * Validates with instrument codes that Seedscan supports. EG Seismometers:
+	 * H,L,G,M,N, and Other: D,F,I,K,R,W,C,E
+	 * 
+	 * Note: I (James) am not sure who picked this list, but we should consider
+	 * just allowing any valid code. Metrics can determine themselves if they
+	 * work on a given type of instrument.
+	 * 
+	 * @param instrument 1 character Instrument Code
+	 * @return true if a valid instrument code false if not
+	 */
 	public static boolean validInstrumentCode(String instrument) {
 		if (instrument.length() != 1) {
 			return false;
 		}
 		Pattern pattern = Pattern.compile("[H,L,G,M,N,D,F,I,K,R,W,C,E]");
 		Matcher matcher = pattern.matcher(instrument);
-		if (!matcher.matches()) {
-			return false;
-		}
-		return true;
+		return matcher.matches();
 	}
 	
 	/**
-	 * Returns true if the channelFlags indicate a continuous channel
+	 * Returns true if the channelFlags indicate a continuous channel.
+	 * If first char is C, it is continous.
+	 * If it is only a G or H, then we guess it is continous.
 	 * @param channelFlags
 	 * @return true if continuous, false otherwise
 	 */
-	public static boolean continousChannel(String channelFlags){
+	public static boolean isContinousChannel(String channelFlags){
 		return channelFlags.substring(0, 1).equals("C")
 				|| channelFlags.equals("G") || channelFlags.equals("H");
 	}
+	
+	/**
+	 * Returns true if it is a derived channel
+	 * 
+	 * Standard channels are exactly 3 characters EG LH1.
+	 * Derived channels are more EG LHED
+	 * @return
+	 */
+	public boolean isDerivedChannel(){
+		return channel != null && channel.length() != 3;
+	}
 
+	/**
+	 * Checks for valid seismometer orientation code.
+	 * Doesn't allow ABC or TR.
+	 * 
+	 * @param orientation 1 character OrientationCode
+	 * @return true if valid false if invalid
+	 */
 	public static boolean validOrientationCode(String orientation) {
 		if (orientation.length() != 1) {
 			return false;
