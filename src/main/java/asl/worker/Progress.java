@@ -24,13 +24,13 @@ package asl.worker;
  *         Interface for tracking progress of various finite operations.
  */
 public interface Progress {
-	public boolean isComplete();
+	boolean isComplete();
 
-	public boolean errorOccurred();
+	boolean errorOccurred();
 
-	public Enum<?> getErrorType();
+	Enum<?> getErrorType();
 
-	public String getErrorMessage();
+	String getErrorMessage();
 
-	public double getProgressPercent();
+	double getProgressPercent();
 }

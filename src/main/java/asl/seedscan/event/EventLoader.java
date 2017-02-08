@@ -85,18 +85,14 @@ public class EventLoader {
 
 		if (directoryPath == null) {
 			logger.warn("eventsDir was NOT set in config.xml: <cfg:events_dir> --> Don't Compute Event Metrics");
-			return;
 		} else if (!(new File(directoryPath)).exists()) {
 			logger.warn(String.format("eventsDir=%s does NOT exist --> Skip Event Metrics", directoryPath));
-			return;
 		} else if (!(new File(directoryPath)).isDirectory()) {
 			logger.error(String.format("eventsDir=%s is NOT a directory --> Skip Event Metrics", directoryPath));
-			return;
 		} else {
 			logger.info(String.format("eventsDir=%s DOES exist --> Compute Event Metrics if asked", directoryPath));
 			eventsDirectory = directoryPath;
 			eventsDirectoryValid = true;
-			return;
 		}
 
 	}
@@ -142,11 +138,7 @@ public class EventLoader {
 				File file = new File(dir + "/" + name);
 				// if (name.startsWith(station.getStation()) &&
 				// name.endsWith(".sac") && (file.length() != 0) ) {
-				if (name.startsWith(station.getStation()) && name.contains(".sac") && (file.length() != 0)) {
-					return true;
-				} else {
-					return false;
-				}
+				return name.startsWith(station.getStation()) && name.contains(".sac") && (file.length() != 0);
 			}
 		};
 
@@ -264,11 +256,7 @@ public class EventLoader {
 		FilenameFilter eventFilter = new FilenameFilter() {
 			public boolean accept(File dir, String name) {
 				File file = new File(dir + "/" + name);
-				if (name.contains(yyyymmdd) && file.isDirectory()) {
-					return true;
-				} else {
-					return false;
-				}
+				return name.contains(yyyymmdd) && file.isDirectory();
 			}
 		};
 

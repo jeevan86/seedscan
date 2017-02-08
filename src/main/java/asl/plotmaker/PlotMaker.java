@@ -149,7 +149,6 @@ public class PlotMaker {
 			ymax = 10.;
 		} else {
 			ymax = maxdB + 2;
-			;
 		}
 
 		final NumberAxis verticalAxis = new NumberAxis("Spec Amp (dB)");
@@ -276,7 +275,6 @@ public class PlotMaker {
 			ymax = 10.;
 		} else {
 			ymax = maxdB + 2;
-			;
 		}
 
 		final NumberAxis verticalAxis = new NumberAxis("Spec Amp (dB)");

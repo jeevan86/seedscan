@@ -119,8 +119,8 @@ public class MiniSeed {
 	private int length;
 	
 	/** The int5. */
-	private static final DecimalFormat int5 = new DecimalFormat("00000");;
-	
+	private static final DecimalFormat int5 = new DecimalFormat("00000");
+
 	/** Counter as MiniSeed records are created. */
 	private static int recordCount;
 	
@@ -740,9 +740,7 @@ public class MiniSeed {
 						// based on where the data starts!
 				bb.position(44);
 				offset = bb.getShort();
-				if (offset < 0 || offset > 512)
-					return true;
-				return false;
+				return offset < 0 || offset > 512;
 			}
 		}
 		else
@@ -1951,7 +1949,6 @@ public class MiniSeed {
 			}
 			cracked = false;
 		}
-		return;
 	}
 
 	/**

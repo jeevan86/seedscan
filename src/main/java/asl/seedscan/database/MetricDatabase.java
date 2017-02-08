@@ -429,10 +429,7 @@ public class MetricDatabase {
 	 * @return true, if is connected
 	 */
 	public boolean isConnected() {
-		if (dataSource == null)
-			return false;
-
-		return true;
+		return dataSource != null;
 	}
 
 	/**

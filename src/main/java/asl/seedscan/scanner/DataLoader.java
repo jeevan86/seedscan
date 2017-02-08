@@ -105,11 +105,7 @@ public abstract class DataLoader {
 			public boolean accept(File dir, String name) {
 				String lowercaseName = name.toLowerCase();
 				File file = new File(dir + "/" + name);
-				if (lowercaseName.endsWith(".seed") && (file.length() > 0)) {
-					return true;
-				} else {
-					return false;
-				}
+				return lowercaseName.endsWith(".seed") && (file.length() > 0);
 			}
 		};
 

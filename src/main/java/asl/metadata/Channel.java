@@ -81,10 +81,7 @@ public class Channel {
 		Pattern pattern = Pattern
 				.compile("[FGDCESHBMLVURPTQAO]");
 		Matcher matcher = pattern.matcher(band);
-		if (!matcher.matches()) {
-			return false;
-		}
-		return true;
+		return matcher.matches();
 	}
 
 	/**

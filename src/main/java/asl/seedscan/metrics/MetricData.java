@@ -839,20 +839,20 @@ public class MetricData implements Serializable {
 			Channel channel2 = new Channel(location, String.format("%s2", channelPrefix));
 
 			// If we can't find ?H1,?H2 --> try for ?HN,?HE
-			if (hasChannelData(channel1) == false || hasChannelData(channel2) == false) {
+			if (!hasChannelData(channel1) || !hasChannelData(channel2)) {
 				channel1.setChannel(String.format("%sN", channelPrefix));
 				channel2.setChannel(String.format("%sE", channelPrefix));
 				use12 = false;
 
 				// If we still can't find 2 horizontals to rotate then give up
-				if (hasChannelData(channel1) == false || hasChannelData(channel2) == false) {
+				if (!hasChannelData(channel1) || !hasChannelData(channel2)) {
 					throw new ChannelException(String.format(
 							"== createRotatedChannelData: -- Unable to find data "
 									+ "for channel1=[%s] and/or channel2=[%s] date=[%s] --> Unable to Rotate!\n",
 							channel1, channel2, metadata.getDate()));
 				}
 
-				if (metadata.hasChannel(channel1) == false || metadata.hasChannel(channel2) == false) {
+				if (!metadata.hasChannel(channel1) || !metadata.hasChannel(channel2)) {
 					throw new ChannelException(String.format(
 							"== createRotatedChannelData: -- Unable to find metadata "
 									+ "for channel1=[%s] and/or channel2=[%s] date=[%s] --> Unable to Rotate!\n",

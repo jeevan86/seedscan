@@ -49,7 +49,7 @@ public class CalibrationMetric extends Metric {
 		String day = getDay(); // yyyy:ddd:hh:mm
 		String metric = getName();
 
-		if (metricData.hasCalibrationData() == false) {
+		if (!metricData.hasCalibrationData()) {
 			logger.info(
 					"No Calibration loaded for station=[{}] day=[{}] --> Skip Metric",
 					getStation(), getDay());

@@ -335,10 +335,7 @@ public abstract class Metric {
 		if (!stationMeta.hasChannels(location, band)) {
 			return false;
 		}
-		if (!metricData.hasChannels(location, band)) {
-			return false;
-		}
-		return true;
+		return metricData.hasChannels(location, band);
 	}
 
 	/**

@@ -79,7 +79,7 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 	private Station station;
 
 	public enum ResponseUnits {
-		DISPLACEMENT, VELOCITY, ACCELERATION, SEEDUNITS;
+		DISPLACEMENT, VELOCITY, ACCELERATION, SEEDUNITS
 	}
 
 	// constructor(s)
@@ -457,7 +457,6 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 				// Here we set s to be omega. This doesn't depend on the
 				// response type as was previous
 				double s = 2. * Math.PI;
-				;
 
 				// Here we integrate
 				if (n < 0) { // INTEGRATION RESPONSE I(w) x (iw)^n

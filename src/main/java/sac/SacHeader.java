@@ -35,7 +35,7 @@ import java.io.IOException;
  */
 public class SacHeader {
 	public SacHeader() {
-	};
+	}
 
 	SacHeader(DataInput indis) throws IOException {
 		readHeader(indis);

@@ -84,20 +84,12 @@ public class MetaGenerator {
 		FilenameFilter textFilter = new FilenameFilter() {
 			public boolean accept(File dir, String name) {
 				if (!networkExt.isEmpty()) {
-					if (networkExt.contains(name)) {
-						return true;
-					} else {
-						return false;
-					}
+					return networkExt.contains(name);
 				} else {
 					if (name.endsWith(".dataless") && (name.length() == 11)) {
 						return true;
-					} else if (name.endsWith(".dataless")
-							&& (name.length() == 10)) {
-						return true;
-					} else {
-						return false;
-					}
+					} else return name.endsWith(".dataless")
+							&& (name.length() == 10);
 				}
 			}
 		};

@@ -14,7 +14,7 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
-class Util extends Object {
+class Util {
 	/**
 	 * Print a string in all printable characers, take non-printable to their
 	 * hex vales
