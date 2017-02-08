@@ -323,8 +323,8 @@ public class StationDeviationMetric extends PowerBandMetric {
 					throw new MetricException(message.toString());
 				}
 				try {
-					tmpPers.add(Double.valueOf(args[0].trim()).doubleValue());
-					tmpPows.add(Double.valueOf(args[2].trim()).doubleValue());
+					tmpPers.add(Double.valueOf(args[0].trim()));
+					tmpPows.add(Double.valueOf(args[2].trim()));
 				} catch (NumberFormatException e) {
 					StringBuilder message = new StringBuilder();
 					message.append(String.format(
