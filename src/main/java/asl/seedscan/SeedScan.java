@@ -77,8 +77,6 @@ public class SeedScan {
 			if (database != null){
 				database.close();
 			}
-			
-			System.exit(0);
 		}
 	} // main()
 

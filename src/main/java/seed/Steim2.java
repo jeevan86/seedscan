@@ -235,12 +235,8 @@ class Steim2 {
 	 */
 	private static int[] decode(byte[] b, int numSamples, boolean swapBytes)
 			throws SteimException {
-		try {
-			// zero-bias version of decode
-			return decode(b, numSamples, swapBytes, 0);
-		} catch (SteimException e) {
-			throw e;
-		}
+		// zero-bias version of decode
+		return decode(b, numSamples, swapBytes, 0);
 	}
 
 	
@@ -427,8 +423,6 @@ class Steim2 {
 				+ (end.getTimeInMillis() - time));
 		logger.info("Dom = " + dom + " end dom=" + end.get(Calendar.DAY_OF_MONTH));
 		byte[] b = new byte[64];
-		@SuppressWarnings("unused")
-		int[] temp;
 
 		for (int i = 0; i < 64; i++) {
 			b[i] = 0x00;
@@ -463,11 +457,7 @@ class Steim2 {
 		b[21] = 1;
 		b[22] = 0;
 		b[23] = 0;
-		try {
-			temp = Steim2.decode(b, 17, false);
-		} catch (SteimException e) {
-			throw e;
-		}
+		Steim2.decode(b, 17, false);
 	}
 
 }

@@ -332,10 +332,7 @@ public abstract class Metric {
 	 * @return true, if both stationMeta and metric data have channels and band.
 	 */
 	public boolean weHaveChannels(String location, String band) {
-		if (!stationMeta.hasChannels(location, band)) {
-			return false;
-		}
-		return metricData.hasChannels(location, band);
+		return stationMeta.hasChannels(location, band) && metricData.hasChannels(location, band);
 	}
 
 	/**

@@ -344,12 +344,7 @@ public class PlotMaker {
 		Boolean allIsOkay = true;
 
 		if (dir.exists()) { // Dir exists --> check write permissions
-			if (!dir.isDirectory()) {
-				allIsOkay = false; // The filename exists but it is NOT a
-									// directory
-			} else {
-				allIsOkay = dir.canWrite();
-			}
+			allIsOkay = dir.isDirectory() && dir.canWrite();
 		} else { // Dir doesn't exist --> try to make it
 			allIsOkay = dir.mkdirs();
 		}

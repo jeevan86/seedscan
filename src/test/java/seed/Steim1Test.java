@@ -11,8 +11,6 @@ public class Steim1Test {
 	@Test
 	public final void testDecodeByteArrayIntBooleanInt() throws Exception {
 		byte[] b = new byte[64];
-		@SuppressWarnings("unused")
-		int[] temp;
 
 		for (int i = 0; i < 64; i++) {
 			b[i] = 0x00;
@@ -46,11 +44,7 @@ public class Steim1Test {
 		b[21] = 1;
 		b[22] = 0;
 		b[23] = 0;
-		try {
-			temp = Steim1.decode(b, 17, false);
-		} catch (SteimException e) {
-			throw e;
-		}	
-		}
+		Steim1.decode(b, 17, false);
+	}
 
 }

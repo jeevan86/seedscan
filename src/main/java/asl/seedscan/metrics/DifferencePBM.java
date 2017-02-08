@@ -240,7 +240,7 @@ public class DifferencePBM extends PowerBandMetric {
 			}
 			String channelLabel = MetricResult.createResultId(channelX,
 					channelY);
-			
+
 			plotMaker.addTraceToPanel(new Trace(per, diffPer, channelLabel,
 					color, stroke), iPanel);
 

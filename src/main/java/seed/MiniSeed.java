@@ -2008,25 +2008,21 @@ public class MiniSeed {
 		int rev = 0;
 		int[] samples = null;
 
-		try {
-			if (getBlockSize() > dataOffset) {
-				int framelen = getBlockSize() - dataOffset;
-				byte[] frames = new byte[framelen];
-				System.arraycopy(buf, dataOffset, frames, 0, framelen);
+		if (getBlockSize() > dataOffset) {
+            int framelen = getBlockSize() - dataOffset;
+            byte[] frames = new byte[framelen];
+            System.arraycopy(buf, dataOffset, frames, 0, framelen);
 
-				if (getEncoding() == 10)
-					samples = Steim1.decode(frames, getNsamp(), swap, rev);
-				if (getEncoding() == 11)
-					samples = Steim2.decode(frames, getNsamp(), swap, rev);
+            if (getEncoding() == 10)
+                samples = Steim1.decode(frames, getNsamp(), swap, rev);
+            if (getEncoding() == 11)
+                samples = Steim2.decode(frames, getNsamp(), swap, rev);
 
-			} else {
-				throw new BlockSizeException(String
-						.format("BlockSizeException: (blockSize:[{%s}]) > (dataOffset:[{%s}])",
-								getBlockSize(), dataOffset));
-			}
-		} catch (SteimException e) {
-			throw e;
-		}
+        } else {
+            throw new BlockSizeException(String
+                    .format("BlockSizeException: (blockSize:[{%s}]) > (dataOffset:[{%s}])",
+                            getBlockSize(), dataOffset));
+        }
 
 		// Would adding this block "as is" cause a reverse constant error (or
 		// steim error)? If so, restore block

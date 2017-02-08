@@ -86,10 +86,7 @@ public class MetaGenerator {
 				if (!networkExt.isEmpty()) {
 					return networkExt.contains(name);
 				} else {
-					if (name.endsWith(".dataless") && (name.length() == 11)) {
-						return true;
-					} else return name.endsWith(".dataless")
-							&& (name.length() == 10);
+					return name.endsWith(".dataless") && (name.length() == 11) || name.endsWith(".dataless") && (name.length() == 10);
 				}
 			}
 		};
@@ -307,41 +304,34 @@ public class MetaGenerator {
 		Hashtable<ChannelKey, ChannelData> channels = stationData.getChannels();
 		TreeSet<ChannelKey> keys = new TreeSet<ChannelKey>();
 		keys.addAll(channels.keySet());
-		try { // try/catch for ChannelMeta(key,timestamp,station)
-			for (ChannelKey key : keys) {
-				// System.out.println("==Channel:"+key );
-				ChannelData channel = channels.get(key);
-				// ChannelMeta channelMeta = new ChannelMeta(key,timestamp);
-				ChannelMeta channelMeta = new ChannelMeta(key, timestamp,
-						station);
+		for (ChannelKey key : keys) {
+            // System.out.println("==Channel:"+key );
+            ChannelData channel = channels.get(key);
+            // ChannelMeta channelMeta = new ChannelMeta(key,timestamp);
+            ChannelMeta channelMeta = new ChannelMeta(key, timestamp,
+                    station);
 
-				// See if this channel contains the requested epoch time and if
-				// so return the key
-				// (=Epoch Start timestamp)
-				// channel.printEpochs();
-				LocalDateTime epochTimestamp = channel.containsEpoch(timestamp);
-				if (epochTimestamp != null) {
-					EpochData epochData = channel.getEpoch(epochTimestamp);
+            // See if this channel contains the requested epoch time and if
+            // so return the key
+            // (=Epoch Start timestamp)
+            // channel.printEpochs();
+            LocalDateTime epochTimestamp = channel.containsEpoch(timestamp);
+            if (epochTimestamp != null) {
+                EpochData epochData = channel.getEpoch(epochTimestamp);
 
-					// If the epoch is closed, check that the end time is at
-					// least 24 hours later than the requested time
-					if (epochData.getEndTime() != null) {
-						if (epochData.getEndTime().compareTo(timestamp.plusDays(1)) < 0){
-							// set channelMeta.dayBreak = true
-							channelMeta.setDayBreak(); 
-						}
-					}
-					channelMeta.processEpochData(epochData);
-					stationMeta.addChannel(key, channelMeta);
-				} else {
-					//The channel does NOT contain the epoch time --> reset ChannelMeta to null
-					channelMeta = null;
-				}
-			}
+                // If the epoch is closed, check that the end time is at
+                // least 24 hours later than the requested time
+                if (epochData.getEndTime() != null) {
+                    if (epochData.getEndTime().compareTo(timestamp.plusDays(1)) < 0){
+                        // set channelMeta.dayBreak = true
+                        channelMeta.setDayBreak();
+                    }
+                }
+                channelMeta.processEpochData(epochData);
+                stationMeta.addChannel(key, channelMeta);
+            }
+        }
 
-			return stationMeta;
-		} catch (RuntimeException e) {
-			throw e;
-		}
+		return stationMeta;
 	}
 }

@@ -531,48 +531,44 @@ public class MetricData implements Serializable {
 			freq[k] = (double) k * df;
 		}
 
-		try {
-			// Get the instrument response for requested ResponseUnits
-			Complex[] instrumentResponse = chanMeta.getResponse(freq, responseUnits);
+		// Get the instrument response for requested ResponseUnits
+		Complex[] instrumentResponse = chanMeta.getResponse(freq, responseUnits);
 
-			// fft2 returns just the (nf = nfft/2 + 1) positive frequencies
-			Complex[] xfft = FFTUtils.singleSidedFFT(data);
+		// fft2 returns just the (nf = nfft/2 + 1) positive frequencies
+		Complex[] xfft = FFTUtils.singleSidedFFT(data);
 
-			double fNyq = (double) (nf - 1) * df;
+		double fNyq = (double) (nf - 1) * df;
 
-			if (f4 > fNyq) {
-				f4 = fNyq;
-			}
+		if (f4 > fNyq) {
+            f4 = fNyq;
+        }
 
-			int k1 = (int) (f1 / df);
-			int k2 = (int) (f2 / df);
-			int k3 = (int) (f3 / df);
-			int k4 = (int) (f4 / df);
+		int k1 = (int) (f1 / df);
+		int k2 = (int) (f2 / df);
+		int k3 = (int) (f3 / df);
+		int k4 = (int) (f4 / df);
 
-			for (int k = 0; k < nf; k++) {
-				double taper = bpass(k, k1, k2, k3, k4);
-				// Because Apache's FFT matches our imaginary sign, we don't
-				// need a conjugate. If we were using Numerical Recipes we would
-				// need to.
-				xfft[k] = xfft[k].divide(instrumentResponse[k]); // Remove
-				// instrument
-				xfft[k] = xfft[k].multiply(taper); // Bandpass
-			}
+		for (int k = 0; k < nf; k++) {
+            double taper = bpass(k, k1, k2, k3, k4);
+            // Because Apache's FFT matches our imaginary sign, we don't
+            // need a conjugate. If we were using Numerical Recipes we would
+            // need to.
+            xfft[k] = xfft[k].divide(instrumentResponse[k]); // Remove
+            // instrument
+            xfft[k] = xfft[k].multiply(taper); // Bandpass
+        }
 
-			Complex[] cfft = new Complex[nfft];
-			cfft[0] = Complex.ZERO; // DC
-			cfft[nf - 1] = xfft[nf - 1]; // Nyq
-			for (int k = 1; k < nf - 1; k++) { // Reflect spec about the Nyquist
-				// to get -ve freqs
-				cfft[k] = xfft[k];
-				cfft[2 * nf - 2 - k] = xfft[k].conjugate();
-			}
+		Complex[] cfft = new Complex[nfft];
+		cfft[0] = Complex.ZERO; // DC
+		cfft[nf - 1] = xfft[nf - 1]; // Nyq
+		for (int k = 1; k < nf - 1; k++) { // Reflect spec about the Nyquist
+            // to get -ve freqs
+            cfft[k] = xfft[k];
+            cfft[2 * nf - 2 - k] = xfft[k].conjugate();
+        }
 
-			Complex[] invertedFFT = FFTUtils.inverseFFT(cfft);
-			return FFTUtils.getRealArray(invertedFFT, ndata);
-		} catch (ChannelMetaException e) {
-			throw e;
-		}
+		Complex[] invertedFFT = FFTUtils.inverseFFT(cfft);
+		return FFTUtils.getRealArray(invertedFFT, ndata);
 	}
 
 	/**

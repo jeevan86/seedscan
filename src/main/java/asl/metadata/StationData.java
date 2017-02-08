@@ -53,14 +53,10 @@ public class StationData {
 		if (timestampString == null) {
 			throw new MissingBlocketteDataException();
 		}
-		try {
-			LocalDateTime timestamp = BlocketteTimestamp
-					.parseTimestamp(timestampString);
-			comments.put(timestamp, blockette);
-			return timestamp;
-		} catch (TimestampFormatException e) {
-			throw e;
-		}
+		LocalDateTime timestamp = BlocketteTimestamp
+                .parseTimestamp(timestampString);
+		comments.put(timestamp, blockette);
+		return timestamp;
 	}
 
 	public boolean hasComment(Calendar timestamp) {

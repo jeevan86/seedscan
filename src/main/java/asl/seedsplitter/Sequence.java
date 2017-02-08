@@ -433,18 +433,7 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 			}
 			// Add the block to the target Sequence's BlockPool after its
 			// contents have been copied.
-			try {
-				pool.addBlock(block);
-			} catch (BlockSizeMismatchException e) {
-				// throw new
-				// RuntimeException("Impossible situation!
-				// BlockSizeMismatchException on BlockPool.addBlock()",
-				// e); // This should never happen
-				// String message =
-				// "Sequence BlockSizeMismatchException: BlockPool.addBlock()
-				// Impossible situation!";
-				throw e;
-			}
+			pool.addBlock(block);
 		}
 	}
 
@@ -613,11 +602,7 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 		count = (int) ((endTime - startTime) / m_interval);
 		index = (int) (((startTime - m_startTime) + (m_interval / 2)) / m_interval);
 
-		try {
-			series = this.getSeries(index, count);
-		} catch (IndexOutOfBoundsException e) {
-			throw e;
-		}
+		series = this.getSeries(index, count);
 		return series;
 	}
 
