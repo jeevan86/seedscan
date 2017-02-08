@@ -238,53 +238,33 @@ class Dataless {
 					throw e;
 				}
 
-				try {
-					station.addEpoch(blockette);
-				} catch (TimestampFormatException e) {
-					throw e;
-				} catch (WrongBlocketteException e) {
-					throw e;
-				} catch (MissingBlocketteDataException e) {
-					throw e;
-				}
+				station.addEpoch(blockette);
 				break;
 			case 51:
 				if (station == null) {
 					throw new BlocketteOutOfOrderException();
 				}
-				try {
-					station.addComment(blockette);
-				} catch (TimestampFormatException e) {
-					throw e;
-				} catch (WrongBlocketteException e) {
-					throw e;
-				} catch (MissingBlocketteDataException e) {
-					throw e;
-				}
+
+				station.addComment(blockette);
+
 				break;
 			case 52:
 				if (station == null) {
 					throw new BlocketteOutOfOrderException();
 				}
 				ChannelKey channelKey = null;
-				try {
-					channelKey = new ChannelKey(blockette);
 
-					if (!station.hasChannel(channelKey)) {
-						channel = new ChannelData(channelKey);
-						station.addChannel(channelKey, channel);
-					} else {
-						channel = station.getChannel(channelKey);
-					}
-					LocalDateTime epochKey = channel.addEpoch(blockette);
-					epoch = channel.getEpoch(epochKey);
-				} catch (MissingBlocketteDataException e) {
-					throw e;
-				} catch (TimestampFormatException e) {
-					throw e;
-				} catch (WrongBlocketteException e) {
-					throw e;
+				channelKey = new ChannelKey(blockette);
+
+				if (!station.hasChannel(channelKey)) {
+					channel = new ChannelData(channelKey);
+					station.addChannel(channelKey, channel);
+				} else {
+					channel = station.getChannel(channelKey);
 				}
+				LocalDateTime epochKey = channel.addEpoch(blockette);
+				epoch = channel.getEpoch(epochKey);
+
 				break;
 			case 30:
 				if (epoch == null) {
@@ -296,15 +276,8 @@ class Dataless {
 				if (channel == null) {
 					throw new BlocketteOutOfOrderException();
 				}
-				try {
-					channel.addComment(blockette);
-				} catch (MissingBlocketteDataException e) {
-					throw e;
-				} catch (TimestampFormatException e) {
-					throw e;
-				} catch (WrongBlocketteException e) {
-					throw e;
-				}
+
+				channel.addComment(blockette);
 				break;
 			case 53:
 			case 54:

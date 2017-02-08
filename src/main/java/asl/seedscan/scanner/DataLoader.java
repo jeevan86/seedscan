@@ -68,13 +68,7 @@ public abstract class DataLoader {
 
 		try {
 			table = future.get(timeout, TimeUnit.SECONDS);
-		} catch (TimeoutException e) {
-			future.cancel(true);
-			throw e;
-		} catch (ExecutionException e) {
-			future.cancel(true);
-			throw e;
-		} catch (InterruptedException e) {
+		} catch (TimeoutException | ExecutionException | InterruptedException e) {
 			future.cancel(true);
 			throw e;
 		}

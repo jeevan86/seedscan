@@ -346,16 +346,10 @@ public class ALNMDeviationMetric extends PowerBandMetric {
 			color = Color.green;
 		} else if (channel.getLocation().equals("20")) {
 			color = Color.red;
-		} else { // ??
 		}
 
-		try {
-			plotMaker.addTraceToPanel(new Trace(xdata, ydata, channel.toString(), color, stroke), iPanel);
-		} catch (PlotMakerException e) {
-			throw e;
-		} catch (TraceException e) {
-			throw e;
-		}
+		plotMaker.addTraceToPanel(new Trace(xdata, ydata, channel.toString(), color, stroke), iPanel);
+
 	}
 
 	/**

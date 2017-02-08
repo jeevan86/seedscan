@@ -248,18 +248,12 @@ public class CoherencePBM extends PowerBandMetric {
 				iPanel = 1;
 			} else if (channelX.getChannel().equals("LHED")) {
 				iPanel = 2;
-			} else { // ??
 			}
+
 			String channelLabel = MetricResult.createResultId(channelX,
 					channelY);
-			try {
-				plotMaker.addTraceToPanel(new Trace(per, gammaPer,
+			plotMaker.addTraceToPanel(new Trace(per, gammaPer,
 						channelLabel, color, stroke), iPanel);
-			} catch (PlotMakerException e) {
-				throw e;
-			} catch (TraceException e) {
-				throw e;
-			}
 		}
 
 		return averageValue;
