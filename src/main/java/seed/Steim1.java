@@ -52,7 +52,7 @@ class Steim1 {
 	 *             - encoded data length is not multiple of 64 bytes.
 	 */
 	static int[] decode(byte[] b, int numSamples, boolean swapBytes,
-			int bias) throws SteimException {
+			int bias) {
 		// Decode Steim1 compression format from the provided byte array, which
 		// contains numSamples number
 		// of samples. swapBytes is set to true if the value words are to be
@@ -123,12 +123,8 @@ class Steim1 {
 	 */
 	static int[] decode(byte[] b, int numSamples, boolean swapBytes) // NO_UCD (test only)
 			throws SteimException {
-		try {
-			// zero-bias version of decode
-			return decode(b, numSamples, swapBytes, 0);
-		} catch (SteimException e) {
-			throw e;
-		}
+		// zero-bias version of decode
+		return decode(b, numSamples, swapBytes, 0);
 	}
 
 	/**

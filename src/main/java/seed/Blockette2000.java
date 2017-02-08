@@ -93,11 +93,7 @@ class Blockette2000 extends Blockette implements Serializable{
 		setRecordNumber(0);
 		setOpaqueByteOrder(DEFAULT_WORD_ORDER);
 		setStrict(false);
-		try {
-			setOpaqueState(OpaqueState.RECORD);
-		} catch (OpaqueStateException ex) {
-			throw ex;
-		}
+		setOpaqueState(OpaqueState.RECORD);
 	}
 
 	/**

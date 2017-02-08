@@ -18,8 +18,7 @@ public class StageData {
 	}
 
 	// blockettes
-	int addBlockette(Blockette blockette)
-			throws DuplicateBlocketteException {
+	int addBlockette(Blockette blockette) {
 		int blocketteNumber = blockette.getNumber();
 		if (blockettes.containsKey(blocketteNumber)) {
 			// MTH: Most of the old IU_ANMO.--.??? channels have duplicate stage

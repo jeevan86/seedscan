@@ -287,7 +287,7 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 	 *             the block size mismatch exception
 	 */
 	synchronized void mergeInto(Sequence seq) throws SequenceIntervalMismatchException, SequenceMergeRangeException,
-			SequenceTimingException, BlockSizeMismatchException {
+			BlockSizeMismatchException {
 		if (m_interval != seq.m_interval) {
 			throw new SequenceIntervalMismatchException();
 		}

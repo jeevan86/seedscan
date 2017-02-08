@@ -57,32 +57,28 @@ public class CrossPower {
 
 		// Get the instrument response for Acceleration and remove it from the
 		// PSD
-		try {
-			Complex[] instrumentResponseX = metricData.getMetaData().getChannelMetadata(channelX)
-					.getResponse(frequencyRaw, ResponseUnits.ACCELERATION);
-			Complex[] instrumentResponseY = metricData.getMetaData().getChannelMetadata(channelY)
-					.getResponse(frequencyRaw, ResponseUnits.ACCELERATION);
+		Complex[] instrumentResponseX = metricData.getMetaData().getChannelMetadata(channelX)
+                .getResponse(frequencyRaw, ResponseUnits.ACCELERATION);
+		Complex[] instrumentResponseY = metricData.getMetaData().getChannelMetadata(channelY)
+                .getResponse(frequencyRaw, ResponseUnits.ACCELERATION);
 
-			// Will hold the 1-sided PSD magnitude
-			this.powerSpectrum = new double[frequencyRaw.length];
-			this.powerSpectrum[0] = 0;
+		// Will hold the 1-sided PSD magnitude
+		this.powerSpectrum = new double[frequencyRaw.length];
+		this.powerSpectrum[0] = 0;
 
 			/*
 			 * We're computing the squared magnitude as we did with the FFT
 			 * above Start from k=1 to skip DC (k=0) where the response=0
 			 */
-			for (int k = 1; k < frequencyRaw.length; k++) {
-				Complex responseMagnitude = instrumentResponseX[k].multiply(instrumentResponseY[k].conjugate());
-				if (responseMagnitude.abs() == 0) {
-					throw new MetricPSDException("responseMagC[k]=0 --> divide by zero!\n");
-				}
-				// Divide out (squared)instrument response & Convert to dB:
-				spectrumRaw[k] = spectrumRaw[k].divide(responseMagnitude);
-				this.powerSpectrum[k] = spectrumRaw[k].abs();
-			}
-		} catch (ChannelMetaException e) {
-			throw e;
-		}
+		for (int k = 1; k < frequencyRaw.length; k++) {
+            Complex responseMagnitude = instrumentResponseX[k].multiply(instrumentResponseY[k].conjugate());
+            if (responseMagnitude.abs() == 0) {
+                throw new MetricPSDException("responseMagC[k]=0 --> divide by zero!\n");
+            }
+            // Divide out (squared)instrument response & Convert to dB:
+            spectrumRaw[k] = spectrumRaw[k].divide(responseMagnitude);
+            this.powerSpectrum[k] = spectrumRaw[k].abs();
+        }
 	}
 
 	public double[] getSpectrum() {

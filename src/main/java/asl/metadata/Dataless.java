@@ -156,24 +156,20 @@ class Dataless {
 			// reported that this should be part of a new blockette, we create
 			// a new blockette, and add this data to it instead.
 
-			try {
-				if ((!blocketteMap.containsKey(blocketteNumber))
-						|| (!blocketteMap.get(blocketteNumber).addFieldData(
-								fieldIdentifier, lineData))) {
-					blockette = new Blockette(blocketteNumber);
-					blocketteMap.put(blocketteNumber, blockette);
-					blockettes.add(blockette);
-					blockette.addFieldData(fieldIdentifier, lineData);
-					// System.out.format("  Dataless.parse(): new blockette number=%d fieldIdentifier=%s\n",
-					// blocketteNumber, fieldIdentifier );
-				}
-			} catch (BlocketteFieldIdentifierFormatException e) {
-				throw e;
-			}
+			if ((!blocketteMap.containsKey(blocketteNumber))
+                    || (!blocketteMap.get(blocketteNumber).addFieldData(
+                            fieldIdentifier, lineData))) {
+                blockette = new Blockette(blocketteNumber);
+                blocketteMap.put(blocketteNumber, blockette);
+                blockettes.add(blockette);
+                blockette.addFieldData(fieldIdentifier, lineData);
+                // System.out.format("  Dataless.parse(): new blockette number=%d fieldIdentifier=%s\n",
+                // blocketteNumber, fieldIdentifier );
+            }
 		}
 	}
 
-	private void assemble() throws BlocketteFieldIdentifierFormatException,
+	private void assemble() throws
 			BlocketteOutOfOrderException, 
 			DuplicateBlocketteException, MissingBlocketteDataException,
 			TimestampFormatException, WrongBlocketteException {
@@ -224,19 +220,15 @@ class Dataless {
 				if (volume == null) {
 					throw new BlocketteOutOfOrderException();
 				}
-				try {
-					StationKey stationKey = new StationKey(blockette);
+				StationKey stationKey = new StationKey(blockette);
 
-					if (!volume.hasStation(stationKey)) {
-						station = new StationData(stationKey.getNetwork(),
-								stationKey.getName());
-						volume.addStation(stationKey, station);
-					} else {
-						station = volume.getStation(stationKey);
-					}
-				} catch (WrongBlocketteException e) {
-					throw e;
-				}
+				if (!volume.hasStation(stationKey)) {
+                    station = new StationData(stationKey.getNetwork(),
+                            stationKey.getName());
+                    volume.addStation(stationKey, station);
+                } else {
+                    station = volume.getStation(stationKey);
+                }
 
 				station.addEpoch(blockette);
 				break;

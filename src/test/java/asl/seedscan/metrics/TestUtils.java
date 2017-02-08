@@ -18,10 +18,8 @@ public class TestUtils {
 	 *            a setup metric
 	 * @param expect
 	 *            the expected results
-	 * @throws Exception
-	 *             any exceptions generated during process or comparison.
 	 */
-	static void testMetric(Metric metric, HashMap<String, Double> expect) throws Exception {
+	static void testMetric(Metric metric, HashMap<String, Double> expect) {
 		metric.process();
 		MetricResult result = metric.getMetricResult();
 		

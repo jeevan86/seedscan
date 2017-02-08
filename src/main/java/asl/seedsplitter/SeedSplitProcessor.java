@@ -613,17 +613,6 @@ public class SeedSplitProcessor implements Runnable {
 					} catch (SequenceMergeRangeException e) {
 						list.add(lastDataSet);
 						lastDataSet = currDataSet;
-						currDataSet = null;
-					} catch (SequenceTimingException e) {
-						logger
-								.error("SequenceTimingException: Sequences could not be correctly paired!",
-										e.getMessage());
-						list.add(lastDataSet);
-						currDataSet.trimStart(lastDataSet.getStartTime());
-						lastDataSet = currDataSet;
-						currDataSet = null;
-						// throw new
-						// RuntimeException("Timing Error. These sequences cannot be correctly paired!");
 					} catch (BlockSizeMismatchException e) {
 						logger
 								.error("BlockSizeMismatchException: BlockPool.addBlock() Impossible situation!",

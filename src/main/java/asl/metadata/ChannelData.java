@@ -50,14 +50,10 @@ public class ChannelData {
 		if (timestampString == null) {
 			throw new MissingBlocketteDataException();
 		}
-		try {
-			LocalDateTime timestamp = BlocketteTimestamp
-					.parseTimestamp(timestampString);
-			comments.put(timestamp, blockette);
-			return timestamp;
-		} catch (TimestampFormatException e) {
-			throw e;
-		}
+		LocalDateTime timestamp = BlocketteTimestamp
+                .parseTimestamp(timestampString);
+		comments.put(timestamp, blockette);
+		return timestamp;
 	}
 
 	public boolean hasComment(LocalDateTime timestamp) {
@@ -81,15 +77,11 @@ public class ChannelData {
 		if (timestampString == null) {
 			throw new MissingBlocketteDataException();
 		}
-		try {
-			LocalDateTime timestamp = BlocketteTimestamp
-					.parseTimestamp(timestampString);
-			EpochData data = new EpochData(blockette);
-			epochs.put(timestamp, data);
-			return timestamp;
-		} catch (TimestampFormatException e) {
-			throw e;
-		}
+		LocalDateTime timestamp = BlocketteTimestamp
+                .parseTimestamp(timestampString);
+		EpochData data = new EpochData(blockette);
+		epochs.put(timestamp, data);
+		return timestamp;
 	}
 
 	public boolean hasEpoch(LocalDateTime timestamp) {

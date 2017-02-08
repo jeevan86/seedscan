@@ -240,16 +240,10 @@ public class DifferencePBM extends PowerBandMetric {
 			}
 			String channelLabel = MetricResult.createResultId(channelX,
 					channelY);
-			try {
-				// plotMaker.addTraceToPanel( new Trace(per, gammaPer,
-				// channelLabel, color, stroke), iPanel);
-				plotMaker.addTraceToPanel(new Trace(per, diffPer, channelLabel,
-						color, stroke), iPanel);
-			} catch (PlotMakerException e) {
-				throw e;
-			} catch (TraceException e) {
-				throw e;
-			}
+			
+			plotMaker.addTraceToPanel(new Trace(per, diffPer, channelLabel,
+					color, stroke), iPanel);
+
 		}
 		return averageValue;
 	} // end computeMetric()
