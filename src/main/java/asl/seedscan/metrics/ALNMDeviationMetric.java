@@ -444,8 +444,7 @@ public class ALNMDeviationMetric extends PowerBandMetric {
 			while ((line = br.readLine()) != null) {
 				String[] args = line.trim().split("\\s+");
 				if (args.length != 2) {
-					String message = "==Error reading ALNM: got " + args.length + " args on one line!\n";
-					throw new MetricException(message.toString());
+					throw new MetricException("==Error reading ALNM: got " + args.length + " args on one line!");
 				}
 				tmpPers.add(Double.valueOf(args[0].trim()));
 				tmpPows.add(Double.valueOf(args[1].trim()));

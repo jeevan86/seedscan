@@ -169,7 +169,7 @@ public class Blockette320 extends Blockette  implements Serializable {
 
 	public String toString() {
 		StringBuilder ret = new StringBuilder();
-		ret.append(String.format("\n== Random Calibration Blockette\n"));
+		ret.append("\n== Random Calibration Blockette\n");
 		ret.append(String.format("==   Start Time:%s\n", timestamp.toString()));
 		ret.append(String.format("==   Calibration Duration: %d\n",
 				calDuration / 1000)); // Convert millisecs --> secs for printing

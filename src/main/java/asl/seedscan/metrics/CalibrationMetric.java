@@ -629,22 +629,22 @@ public class CalibrationMetric extends Metric {
 			BandAverageDiff bandDiff = bandTable.get("midBandDiff");
 			StringBuilder out = new StringBuilder();
 			out.append(String.format("{\"channelId\":\"%s\",\n", channel));
-			out.append(String.format(" \"band\":{\n"));
+			out.append(" \"band\":{\n");
 			out.append(String.format("   \"T1\":%.2f\n", bandDiff.T1));
 			out.append(String.format("   \"T2\":%.2f\n", bandDiff.T2));
 			out.append(String.format("   \"dBDiff\":%.4f\n", bandDiff.ampDiff));
 			out.append(String.format("   \"phDiff\":%.4f\n", bandDiff.phsDiff));
-			out.append(String.format("   }\n"));
+			out.append("   }\n");
 
 			bandDiff = bandTable.get("longTDiff");
-			out.append(String.format(" \"band\":{\n"));
+			out.append(" \"band\":{\n");
 			out.append(String.format("   \"T1\":%.2f\n", bandDiff.T1));
 			out.append(String.format("   \"T2\":%.2f\n", bandDiff.T2));
 			out.append(String.format("   \"dBDiff\":%.4f\n", bandDiff.ampDiff));
 			out.append(String.format("   \"phDiff\":%.4f\n", bandDiff.phsDiff));
-			out.append(String.format("   }\n"));
+			out.append("   }\n");
 
-			out.append(String.format("}"));
+			out.append("}");
 
 			return out.toString();
 		}

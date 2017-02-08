@@ -361,10 +361,7 @@ public abstract class Metric {
 	public final void add(String name, String value)
 			throws NoSuchFieldException {
 		if (!arguments.containsKey(name)) {
-			StringBuilder message = new StringBuilder();
-			message.append(String.format("Argument '" + name
-					+ "' is not recognized.\n"));
-			throw new NoSuchFieldException(message.toString());
+			throw new NoSuchFieldException("Argument '" + name + "' is not recognized.");
 		}
 		arguments.put(name, value);
 
@@ -392,10 +389,7 @@ public abstract class Metric {
 	 */
 	public final String get(String name) throws NoSuchFieldException {
 		if (!arguments.containsKey(name)) {
-			StringBuilder message = new StringBuilder();
-			message.append(String.format("Argument '" + name
-					+ "' is not recognized.\n"));
-			throw new NoSuchFieldException(message.toString());
+			throw new NoSuchFieldException("Argument '" + name + "' is not recognized.");
 		}
 		String argumentValue = arguments.get(name);
 		if ((argumentValue == null) || (argumentValue.equals(""))) {

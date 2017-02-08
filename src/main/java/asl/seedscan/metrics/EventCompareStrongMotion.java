@@ -313,13 +313,13 @@ public class EventCompareStrongMotion extends Metric {
 		if (arrivals.get(0).getName().equals("P")) {
 			arrivalTimeP = arrivals.get(0).getTime();
 		} else {
-			logger.info(String.format("Expected P arrival time not found"));
+			logger.info("Expected P arrival time not found");
 		}
 		double arrivalTimeS = 0.;
 		if (arrivals.get(1).getName().equals("S")) {
 			arrivalTimeS = arrivals.get(1).getTime();
 		} else {
-			logger.info(String.format("Expected S arrival time not found"));
+			logger.info("Expected S arrival time not found");
 		}
 
 		logger.info(String.format(

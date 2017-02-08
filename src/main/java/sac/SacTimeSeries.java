@@ -220,7 +220,7 @@ public class SacTimeSeries {
 		while (numAdded < d.length) {
 			if (byteOrder == IntelByteOrder) {
 				d[numAdded++] = Float
-						.intBitsToFloat(((dataBytes[i++] & 0xff) << 0)
+						.intBitsToFloat(((dataBytes[i++] & 0xff))
 								+ ((dataBytes[i++] & 0xff) << 8)
 								+ ((dataBytes[i++] & 0xff) << 16)
 								+ ((dataBytes[i++] & 0xff) << 24));
@@ -229,7 +229,7 @@ public class SacTimeSeries {
 						.intBitsToFloat(((dataBytes[i++] & 0xff) << 24)
 								+ ((dataBytes[i++] & 0xff) << 16)
 								+ ((dataBytes[i++] & 0xff) << 8)
-								+ ((dataBytes[i++] & 0xff) << 0));
+								+ ((dataBytes[i++] & 0xff)));
 			}
 		}
 	}

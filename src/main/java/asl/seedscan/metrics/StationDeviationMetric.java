@@ -318,9 +318,8 @@ public class StationDeviationMetric extends PowerBandMetric {
 				// MTH: This is hard-wired for Adam's station model files which
 				// have 7 columns:
 				if (args.length != 7) {
-					String message = "== reading Station Model File: got "
-							+ args.length + " args on one line!";
-					throw new MetricException(message.toString());
+					throw new MetricException("== reading Station Model File: got "
+							+ args.length + " args on one line!");
 				}
 				try {
 					tmpPers.add(Double.valueOf(args[0].trim()));

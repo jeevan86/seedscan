@@ -109,10 +109,7 @@ public class CoherencePBM extends PowerBandMetric {
 				}
 				else
 				{
-					StringBuilder message = new StringBuilder();
-					message.append(String.format("computePSD(): srateX (=" + srateX
-							+ ") != srateY (=" + srateY + ")\n"));
-					logger.info(message.toString());
+					logger.info("computePSD(): srateX = {} != srateY = {}", srateX, srateY);
 					completeCompute = false; 
 					continue; 
 				}
