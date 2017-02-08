@@ -32,7 +32,6 @@ class Steim2 {
 	private static final Logger logger = LoggerFactory
 			.getLogger(seed.Steim2.class);
 	private static boolean dbg;
-	private static boolean strictRIC = false;
 	private static boolean traceBackErrors;
 	private static String reverseError;
 	private static String sampleCountError;
@@ -190,6 +189,7 @@ class Steim2 {
 			// System.out.println("Steim2 illegal # current");
 			throw new SteimException("Found no samples in block");
 		}
+		boolean strictRIC = false;
 		if (samples[current - 1] != end && (end != 0 || strictRIC)) { // if end
 																		// is
 																		// zero,
