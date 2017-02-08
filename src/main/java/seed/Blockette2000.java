@@ -249,11 +249,9 @@ class Blockette2000 extends Blockette implements Serializable{
 	}
 
 	public Collection<String> getTags() {
-		ArrayList<String> tags = new ArrayList<String>(getTagCount());
+		ArrayList<String> tags = new ArrayList<>(getTagCount());
 		String[] parts = getTagString().split("~");
-		for (int i = 0; i < getTagCount(); i++) {
-			tags.add(parts[i]);
-		}
+		tags.addAll(Arrays.asList(parts).subList(0, getTagCount()));
 		return tags;
 	}
 
