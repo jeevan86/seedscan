@@ -276,11 +276,9 @@ public class CalibrationMetric extends Metric {
 		} else if (stage.getStageType() == 'B') {
 			s = 1.;
 		} else {
-			StringBuilder message = new StringBuilder();
-			message.append(String
+			throw new MetricException(String
 					.format("station=[%s] channel[%s] day=[%s]: Unrecognized stage1 type != {'A' || 'B'} --> can't compute!",
 							station, channel.toString(), day));
-			throw new MetricException(message.toString());
 		}
 
 		PSD psdXY = new PSD(inData, outData, dt);

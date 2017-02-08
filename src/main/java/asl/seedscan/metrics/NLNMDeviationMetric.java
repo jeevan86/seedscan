@@ -6,6 +6,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -118,11 +119,8 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 				bands = "LH,BH,HH";
 			}
 
-		} catch (Exception e) {
-			StringBuilder message = new StringBuilder();
-			message.append(String.format("station=[%s] day=[%s]: Failed to get a noise model file from config.xml:\n",
-					station, day));
-			logger.error(message.toString(), e);
+		}  catch (NoSuchFieldException | MalformedURLException e) {
+			logger.error("station=[{}] day=[{}]: Failed to load a noise model file", station, day);
 		}
 
 		// Low noise model (NLNM) MUST exist or we can't compute the metric
@@ -286,11 +284,9 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 		}
 
 		if (nPeriods == 0) {
-			StringBuilder message = new StringBuilder();
-			message.append(String.format(
+			throw new MetricException(String.format(
 					"station=[%s] day=[%s]: Requested band [%f - %f sec] contains NO periods within NLNM\n", station,
 					day, lowPeriod, highPeriod));
-			throw new MetricException(message.toString());
 		}
 		deviation = deviation / (double) nPeriods;
 
@@ -330,10 +326,7 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 	private void makePlots(Channel channel, String day, double xdata[], double ydata[])
 			throws MetricException, PlotMakerException, TraceException {
 		if (xdata.length != ydata.length) {
-			StringBuilder message = new StringBuilder();
-			message.append(
-					String.format("day=%s makePlots(): xdata.len=%d != ydata.len=%d", day, xdata.length, ydata.length));
-			throw new MetricException(message.toString());
+			throw new MetricException(String.format("day=%s makePlots(): xdata.len=%d != ydata.len=%d", day, xdata.length, ydata.length));
 		}
 		if (plotMaker == null) {
 			String date = String.format("%04d%03d", metricResult.getDate().getYear(),

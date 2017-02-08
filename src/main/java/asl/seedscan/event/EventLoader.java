@@ -351,19 +351,13 @@ public class EventLoader {
 								}
 								dayCMTs.put(idString, eventCMT);
 							} catch (NumberFormatException e) {
-								StringBuilder message = new StringBuilder();
-								message.append(String.format(
-										"Caught NumberFormatException while trying to read cmtFile=[%s]\n", cmtFile));
-								logger.error(message.toString(), e);
+								logger.error("Caught NumberFormatException while trying to read cmtFile=[{}]", cmtFile);
 							}
 						} // else line != null
 
 					} // end try to read cmtFile
 					catch (IOException e) {
-						StringBuilder message = new StringBuilder();
-						message.append(
-								String.format("Caught IOException while trying to read cmtFile=[%s]\n", cmtFile));
-						logger.error(message.toString(), e);
+						logger.error("Caught IOException while trying to read cmtFile=[{}]", cmtFile);
 					} finally {
 						try {
 							if (br != null)

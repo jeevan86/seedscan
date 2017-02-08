@@ -80,23 +80,17 @@ public abstract class PowerBandMetric extends Metric {
 			double highPeriod, double Tmin, double Tmax) {
 
 		if (lowPeriod >= highPeriod) {
-			StringBuilder message = new StringBuilder();
-			message.append(String
+			logger.warn(String
 					.format("checkPowerBand: Requested band [%f - %f] has lowPeriod >= highPeriod\n",
 							lowPeriod, highPeriod));
-			// throw new RuntimeException(message.toString());
-			logger.warn(message.toString());
 			return false;
 		}
 		// Make sure that we only compare to Noise Model within the range of
 		// useable periods/frequencies for this channel
 		if (lowPeriod < Tmin || highPeriod > Tmax) {
-			StringBuilder message = new StringBuilder();
-			message.append(String
-					.format("checkPowerBand: Requested band [%f - %f] lies outside channel's Useable band [%f - %f]\n",
-							lowPeriod, highPeriod, Tmin, Tmax));
-			// throw new RuntimeException(message.toString());
-			logger.warn(message.toString());
+
+			logger.warn("checkPowerBand: Requested band [{} - {}] lies outside channel's Useable band [{} - {}]",
+							lowPeriod, highPeriod, Tmin, Tmax);
 			return false;
 		}
 

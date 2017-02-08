@@ -210,11 +210,9 @@ public class StationDeviationMetric extends PowerBandMetric {
 		}
 
 		if (nPeriods == 0) {
-			StringBuilder message = new StringBuilder();
-			message.append(String
+			throw new MetricException(String
 					.format("%s: Requested band [%f - %f] contains NO periods within station model\n",
 							getDay(), lowPeriod, highPeriod));
-			throw new MetricException(message.toString());
 		}
 
 		deviation = deviation / (double) nPeriods;
@@ -237,11 +235,9 @@ public class StationDeviationMetric extends PowerBandMetric {
 	private void makePlots(Channel channel, double xdata[], double ydata[])
 			throws MetricException, PlotMakerException, TraceException {
 		if (xdata.length != ydata.length) {
-			StringBuilder message = new StringBuilder();
-			message.append(String.format(
+			throw new MetricException(String.format(
 					"makePlots() %s: xdata.len=%d != ydata.len=%d", getDay(),
 					xdata.length, ydata.length));
-			throw new MetricException(message.toString());
 		}
 		if (plotMaker == null) {
 			String date = String.format("%04d%03d",
@@ -265,30 +261,22 @@ public class StationDeviationMetric extends PowerBandMetric {
 		} else if (channel.getChannel().equals("LH2")
 				|| channel.getChannel().equals("LHE")) {
 			iPanel = 2;
-		} else { // ??
-			StringBuilder message = new StringBuilder();
-			message.append(String.format(
+		} else {
+			throw new MetricException(String.format(
 					"makePlots() %s: Don't know how to plot channel=%s",
 					getDay(), channel));
-			throw new MetricException(message.toString());
 		}
 
 		if (channel.getLocation().equals("00")) {
 			color = Color.green;
 		} else if (channel.getLocation().equals("10")) {
 			color = Color.red;
-		} else { // ??
 		}
 
-		try {
-			plotMaker.addTraceToPanel(
-					new Trace(xdata, ydata, channel.toString(), color, stroke),
-					iPanel);
-		} catch (PlotMakerException e) {
-			throw e;
-		} catch (TraceException e) {
-			throw e;
-		}
+		plotMaker.addTraceToPanel(
+				new Trace(xdata, ydata, channel.toString(), color, stroke),
+				iPanel);
+
 	}
 
 	private boolean readModel(String fName) throws MetricException {
@@ -298,12 +286,8 @@ public class StationDeviationMetric extends PowerBandMetric {
 
 		// First see if the file exists
 		if (!(new File(fileName).exists())) {
-			// System.out.format("=== %s: ModelFile=%s does NOT exist!\n",
-			// getName(), fileName);
-			StringBuilder message = new StringBuilder();
-			message.append(String.format("== ModelFile=%s does NOT exist!\n",
-					fileName));
-			logger.warn(message.toString());
+			logger.warn("== ModelFile={} does NOT exist!",
+					fileName);
 			return false;
 		}
 		// Temp ArrayList(s) to read in unknown number of (x,y) pairs:
@@ -325,11 +309,9 @@ public class StationDeviationMetric extends PowerBandMetric {
 					tmpPers.add(Double.valueOf(args[0].trim()));
 					tmpPows.add(Double.valueOf(args[2].trim()));
 				} catch (NumberFormatException e) {
-					StringBuilder message = new StringBuilder();
-					message.append(String.format(
+					logger.error(String.format(
 							"== %s: Error reading modelFile=[%s]: \n",
-							getDay(), fName));
-					logger.error(message.toString(), e);
+							getDay(), fName), e);
 					return false;
 				}
 			}

@@ -168,24 +168,23 @@ public class Blockette320 extends Blockette  implements Serializable {
 	}
 
 	public String toString() {
-		StringBuilder ret = new StringBuilder();
-		ret.append("\n== Random Calibration Blockette\n");
-		ret.append(String.format("==   Start Time:%s\n", timestamp.toString()));
-		ret.append(String.format("==   Calibration Duration: %d\n",
-				calDuration / 1000)); // Convert millisecs --> secs for printing
-		ret.append(String.format(
-				"==   Noise Type [%s]  Calibration Amplitude:%f\n",
-				calNoiseType, calPeakAmp));
-		ret.append(String.format("==   Calibration Input Channel:%s\n",
-				calInputChannel));
-		ret.append(String.format("==   Reference Amplitude:%f\n", calRefAmp));
-		ret.append(String.format("==   Coupling Method:%s\n", calCoupling));
-		ret.append(String.format(
-				"==   Filtering Type:%s          Calibration Flags:[%02x]\n",
-				calFilter, calFlags));
-		ret.append("====================================");
+		String ret = "\n== Random Calibration Blockette\n" +
+				String.format("==   Start Time:%s\n", timestamp.toString()) +
+				String.format("==   Calibration Duration: %d\n",
+						calDuration / 1000) + // Convert millisecs --> secs for printing
+				String.format(
+						"==   Noise Type [%s]  Calibration Amplitude:%f\n",
+						calNoiseType, calPeakAmp) +
+				String.format("==   Calibration Input Channel:%s\n",
+						calInputChannel) +
+				String.format("==   Reference Amplitude:%f\n", calRefAmp) +
+				String.format("==   Coupling Method:%s\n", calCoupling) +
+				String.format(
+						"==   Filtering Type:%s          Calibration Flags:[%02x]\n",
+						calFilter, calFlags) +
+				"====================================";
 
-		return ret.toString();
+		return ret;
 	}
 
 	public long getCalibrationEpoch() {

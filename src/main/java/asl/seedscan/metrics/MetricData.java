@@ -512,10 +512,7 @@ public class MetricData implements Serializable {
 		int ndata = timeseries.length;
 
 		if (srate == 0) {
-			StringBuilder message = new StringBuilder();
-			message.append(
-					String.format("channel=[%s] date=[%s] Got srate=0\n", channel.toString(), metadata.getDate()));
-			throw new MetricException(message.toString());
+			throw new MetricException(String.format("channel=[%s] date=[%s] Got srate=0\n", channel.toString(), metadata.getDate()));
 		}
 
 		// Find smallest power of 2 >= ndata:
@@ -896,11 +893,9 @@ public class MetricData implements Serializable {
 			double srate1 = getChannelData(channel1).get(0).getSampleRate();
 			double srate2 = getChannelData(channel2).get(0).getSampleRate();
 			if (srate1 != srate2) {
-				StringBuilder message = new StringBuilder();
-				message.append(String.format(
-						"createRotatedChannels: channel1=[%s] and/or channel2=[%s] date=[%s]: srate1 != srate2 !!\n",
+				throw new MetricException(String.format(
+						"createRotatedChannels: channel1=[%s] and/or channel2=[%s] date=[%s]: srate1 != srate2 !!",
 						channel1, channel2, metadata.getDate()));
-				throw new MetricException(message.toString());
 			}
 
 			double[] chanNData = new double[ndata];

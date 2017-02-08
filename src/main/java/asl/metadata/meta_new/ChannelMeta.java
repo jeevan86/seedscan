@@ -302,26 +302,18 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 		 * expectChannel0 = false; }
 		 **/
 		if (getNumberOfStages() == 0) {
-			// System.out.format("ChannelMeta.invalidResponse(): Error: No stages have been loaded for chan-loc=%s-%s\n"
-			// ,this.getLocation(), this.getName() );
-			StringBuilder message = new StringBuilder();
-			message.append(String
+			logger.error(String
 					.format("invalidResponse: No stages have been loaded for chan-loc=%s-%s date=%s\n",
 							this.getLocation(), this.getName(), this.getDate()));
-			logger.error(message.toString());
 			return true;
 		}
 
 		if (isSeismicChannel) {
 			if (!hasStage(0) || !hasStage(1) || !hasStage(2)) {
-				// System.out.format("ChannelMeta.invalidResponse(): Error: All Stages[=0,1,2] have NOT been loaded for chan-loc=%s-%s\n"
-				// ,this.getLocation(), this.getName() );
-				StringBuilder message = new StringBuilder();
-				message.append(String
+				logger.error(String
 						.format("invalidResponse: All Stages[=0,1,2] have NOT been loaded for chan-loc=%s-%s date=%s\n",
 								this.getLocation(), this.getName(),
 								this.getDate()));
-				logger.error(message.toString());
 				return true;
 			}
 			double stageGain0 = stages.get(0).getStageGain(); // Really this is
@@ -331,14 +323,10 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 			double stageGain2 = stages.get(2).getStageGain();
 
 			if (stageGain0 <= 0 || stageGain1 <= 0 || stageGain2 <= 0) {
-				// System.out.format("ChannelMeta.invalidResponse(): Error: Gain =0 for either stages 0, 1 or 2 for chan-loc=%s-%s\n"
-				// ,this.getLocation(), this.getName() );
-				StringBuilder message = new StringBuilder();
-				message.append(String
+				logger.error(String
 						.format("invalidResponse: Gain =0 for either stages 0, 1 or 2 for chan-loc=%s-%s date=%s\n",
 								this.getLocation(), this.getName(),
 								this.getDate()));
-				logger.error(message.toString());
 				return true;
 			}
 			// Check stage1Gain * stage2Gain against the mid-level sensitivity
@@ -347,16 +335,11 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 			diff *= 100;
 			// MTH: Adam says that some Q680's have this problem and we should
 			// use the Sensitivity (stageGain0) instead:
-			if (diff > 10) { // Alert user that difference is > 1% of
-								// Sensitivity
-				// System.out.format("***Alert: stageGain0=%f VS. stage1=%f * stage2=%f (diff=%f%%)\n",
-				// stageGain0, stageGain1, stageGain2, diff);
-				StringBuilder message = new StringBuilder();
-				message.append(String
+			if (diff > 10) { // Alert user that difference is > 1% of Sensitivity
+				logger.warn(String
 						.format("***Alert: stageGain0=%f VS. stage1=%f * stage2=%f (diff=%f%%) date=%s\n",
 								stageGain0, stageGain1, stageGain2, diff,
 								this.getDate()));
-				logger.warn(message.toString());
 			}
 
 			// MTH: We could also check here that the PoleZero stage(s) was
@@ -567,16 +550,10 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 								stageNumber, 'D', Gain, frequencyOfGain);
 						this.addStage(stageNumber, digitalStage);
 						if (stageNumber != 0) {
-							// System.out.format("== Warning: MetaGenerator: [%s_%s %s-%s] stage:%d has NO Blockette B054\n",
-							// station.getNetwork(), station.getStation(),
-							// location, name, stageNumber);
-							StringBuilder message = new StringBuilder();
-							message.append(String
-									.format("== Warning: MetaGenerator: [%s_%s %s-%s] date:%s stage:%d has NO Blockette B054\n",
+							logger.warn("== Warning: MetaGenerator: [{}_{} {}-{}] date:{} stage:{} has NO Blockette B054",
 											station.getNetwork(),
 											station.getStation(), location,
-											name, this.getDate(), stageNumber));
-							logger.warn(message.toString());
+											name, this.getDate(), stageNumber);
 						}
 					}
 				}
@@ -758,14 +735,11 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 
 	@Override
 	public String toString() {
-		StringBuilder result = new StringBuilder();
-		result.append(String.format("%15s%s\t%15s%.2f\t%15s%.2f\n", "Channel:",
-				name, "sampleRate:", sampleRate, "Depth:", depth));
-		result.append(String.format("%15s%s\t%15s%.2f\t%15s%.2f\n",
-				"Location:", location, "Azimuth:", azimuth, "Dip:", dip));
-		result.append(String.format("%15s%s", "num of stages:", stages.size()));
-		// result.append(NEW_LINE);
-		return result.toString();
+		return String.format("%15s%s\t%15s%.2f\t%15s%.2f\n", "Channel:",
+				name, "sampleRate:", sampleRate, "Depth:", depth) +
+				String.format("%15s%s\t%15s%.2f\t%15s%.2f\n",
+						"Location:", location, "Azimuth:", azimuth, "Dip:", dip) +
+				String.format("%15s%s", "num of stages:", stages.size());
 	}
 
 }

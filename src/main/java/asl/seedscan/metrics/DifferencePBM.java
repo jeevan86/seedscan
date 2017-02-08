@@ -142,21 +142,17 @@ public class DifferencePBM extends PowerBandMetric {
 		double[] Gxy = crossPower.getSpectrum();
 
 		if (dfX != dfY) { // Oops - spectra have different frequency sampling!
-			StringBuilder message = new StringBuilder();
-			message.append(String
+			throw new MetricException(String
 					.format("station=[%s] channelX[%s] channelY=[%s] day=[%s]: dfX != dfY --> Can't continue\n",
 							station, channelX, channelY, day));
-			throw new MetricException(message.toString());
 		}
 		double df = dfX;
 
 		if (Gxx.length != Gyy.length || Gxx.length != Gxy.length) { // Something's
 			// wrong ...
-			StringBuilder message = new StringBuilder();
-			message.append(String
+			throw new MetricException(String
 					.format("station=[%s] channelX[%s] channelY=[%s] day=[%s]: Gxx.length != Gyy.length --> Can't continue\n",
 							station, channelX, channelY, day));
-			throw new MetricException(message.toString());
 		}
 
 		int nf = Gxx.length;
@@ -206,12 +202,10 @@ public class DifferencePBM extends PowerBandMetric {
 		}
 
 		if (nPeriods == 0) {
-			StringBuilder message = new StringBuilder();
-			message.append(String
+			throw new MetricException(String
 					.format("station=[%s] channelX=[%s] channelY=[%s] day=[%s]: Requested band [%f - %f] contains NO periods --> divide by zero!\n",
 							station, channelX, channelY, day, lowPeriod,
 							highPeriod));
-			throw new MetricException(message.toString());
 		}
 		averageValue /= (double) nPeriods;
 		/**

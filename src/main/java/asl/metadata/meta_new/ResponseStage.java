@@ -200,13 +200,11 @@ public abstract class ResponseStage implements Comparable<ResponseStage>, Serial
 	 */
 	@Override
 	public String toString() {
-		StringBuilder result = new StringBuilder();
-		result.append(String.format(
+		return String.format(
 				"Stage:%d  [Type='%1s'] Gain=%.2f FreqOfGain=%.2f\n",
-				stageNumber, stageType, stageGain, stageGainFrequency));
-		result.append(String.format("Units In:[%s]  Units Out:[%s]\n",
-				inputUnitsString, outputUnitsString));
-		return result.toString();
+				stageNumber, stageType, stageGain, stageGainFrequency) +
+				String.format("Units In:[%s]  Units Out:[%s]\n",
+						inputUnitsString, outputUnitsString);
 	}
 
 	/**

@@ -2023,11 +2023,9 @@ public class MiniSeed {
 					samples = Steim2.decode(frames, getNsamp(), swap, rev);
 
 			} else {
-				StringBuilder message = new StringBuilder();
-				message.append(String
-						.format("BlockSizeException: (blockSize:[{%s}]) > (dataOffset:[{%s}])\n",
+				throw new BlockSizeException(String
+						.format("BlockSizeException: (blockSize:[{%s}]) > (dataOffset:[{%s}])",
 								getBlockSize(), dataOffset));
-				throw new BlockSizeException(message.toString());
 			}
 		} catch (SteimException e) {
 			throw e;

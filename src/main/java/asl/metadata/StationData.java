@@ -128,11 +128,8 @@ public class StationData {
 					endTimeStamp = BlocketteTimestamp
 							.parseTimestamp(timestampString);
 				} catch (TimestampFormatException e) {
-					StringBuilder message = new StringBuilder();
-					message.append(String
-							.format("StationData.printEpochs() Error converting timestampString=%s",
-									timestampString));
-					logger.error(message.toString(), e);
+					logger.error("StationData.printEpochs() [{}-{}] Error converting timestampString={}",
+							network, name, timestampString);
 				}
 			}
 			if (endTimeStamp == null) { // This Epoch is open

@@ -88,12 +88,9 @@ public class ChannelKey extends Key implements Comparable<ChannelKey>, Serializa
 		}
 
 		if (location.length() != 2) {
-			// RuntimeException e = new RuntimeException(message.toString());
-			StringBuilder message = new StringBuilder();
-			message.append(String
+			throw new ChannelKeyException(String
 					.format("Location code=[%s] chan=[%s] is NOT a valid 2-char code (e.g., %s)\n",
 							location, name, validCodes));
-			throw new ChannelKeyException(message.toString());
 		}
 		Pattern pattern = Pattern.compile("^[0-9][0-9]$");
 		Matcher matcher = pattern.matcher(location);
@@ -115,12 +112,9 @@ public class ChannelKey extends Key implements Comparable<ChannelKey>, Serializa
 		// MTH: For now we'll allow either 3-char ("LHZ") or 4-char ("LHND")
 		// channels
 		if (channel.length() < 3 || channel.length() > 4) {
-			// RuntimeException e = new RuntimeException(message.toString());
-			StringBuilder message = new StringBuilder();
-			message.append(String
+			throw new ChannelKeyException(String
 					.format("Channel code=[%s] is NOT valid (must be 3 or 4-chars long)\n",
 							channel));
-			throw new ChannelKeyException(message.toString());
 		}
 		this.name = channel;
 	}

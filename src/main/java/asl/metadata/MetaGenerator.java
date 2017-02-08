@@ -146,13 +146,7 @@ public class MetaGenerator {
 				dataless.processVolume();
 				volume = dataless.getVolume();
 			} catch (Exception e) {
-				// System.out.format("== MetaGenerator: Error processing dataless volume for file=[%s]:%s\n",
-				// fileName, e.getMessage());
-				StringBuilder message = new StringBuilder();
-				message.append(String.format(
-						"== processing dataless volume for file=[%s]\n",
-						fileName));
-				logger.error(message.toString(), e);
+				logger.error("== processing dataless volume for file=[{}]",	fileName);
 			}
 
 			if (volume == null) {
@@ -168,13 +162,8 @@ public class MetaGenerator {
 	private void addVolume(SeedVolume volume) {
 		NetworkKey networkKey = volume.getNetworkKey();
 		if (volumes.containsKey(networkKey)) {
-			// System.out.format("== MetaGenerator Error: Attempting to load volume networkKey=[%s] --> Already loaded!\n",
-			// networkKey);
-			StringBuilder message = new StringBuilder();
-			message.append(String
-					.format("== Attempting to load volume networkKey=[%s] --> Already loaded!\n",
-							networkKey));
-			logger.error(message.toString());
+			logger.error("== Attempting to load volume networkKey=[{}] --> Already loaded!",
+					networkKey);
 		} else {
 			volumes.put(networkKey, volume);
 		}
