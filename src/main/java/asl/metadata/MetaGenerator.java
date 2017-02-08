@@ -26,7 +26,6 @@ import java.io.InputStreamReader;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.TreeSet;
@@ -249,7 +248,7 @@ public class MetaGenerator {
 	 * loadDataless() reads in the entire dataless seed file (all stations)
 	 * getStationData returns the metadata for a single station for all epochs
 	 * It is called by
-	 * {@link asl.metadata.MetaGenerator#getStationMeta(Station, Calendar)}
+	 * {@link asl.metadata.MetaGenerator#getStationMeta(Station, LocalDateTime)}
 	 * below.
 	 * 
 	 * @param station
