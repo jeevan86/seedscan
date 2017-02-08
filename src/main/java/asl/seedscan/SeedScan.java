@@ -3,6 +3,7 @@ package asl.seedscan;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -48,9 +49,7 @@ public class SeedScan {
 				List<String> networks = new ArrayList<String>();
 				if (Global.CONFIG.getNetworkSubset() != null) {
 					logger.debug("Filter on Network Subset=[{}]", Global.CONFIG.getNetworkSubset());
-					for (String network : Global.CONFIG.getNetworkSubset().split(",")) {
-						networks.add(network);
-					}
+					Collections.addAll(networks, Global.CONFIG.getNetworkSubset().split(","));
 				}
 
 				metaGenerator = new MetaGenerator(Global.CONFIG.getDatalessDir(), networks);
