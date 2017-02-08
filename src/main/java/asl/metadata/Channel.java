@@ -79,7 +79,7 @@ public class Channel {
 			return false;
 		}
 		Pattern pattern = Pattern
-				.compile("[F,G,D,C,E,S,H,B,M,L,V,U,R,P,T,Q,A,O]");
+				.compile("[FGDCESHBMLVURPTQAO]");
 		Matcher matcher = pattern.matcher(band);
 		if (!matcher.matches()) {
 			return false;
@@ -102,7 +102,7 @@ public class Channel {
 		if (instrument.length() != 1) {
 			return false;
 		}
-		Pattern pattern = Pattern.compile("[H,L,G,M,N,D,F,I,K,R,W,C,E]");
+		Pattern pattern = Pattern.compile("[HLGMNDFIKRWCE]");
 		Matcher matcher = pattern.matcher(instrument);
 		return matcher.matches();
 	}
@@ -141,7 +141,7 @@ public class Channel {
 		if (orientation.length() != 1) {
 			return false;
 		}
-		Pattern pattern = Pattern.compile("[1,2,3,N,E,Z,U,V,W]");
+		Pattern pattern = Pattern.compile("[123NEZUVW]");
 		Matcher matcher = pattern.matcher(orientation);
 		return matcher.matches();
 	}
