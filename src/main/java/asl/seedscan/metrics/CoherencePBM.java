@@ -146,7 +146,6 @@ public class CoherencePBM extends PowerBandMetric {
 					.format("station=[%s] channelX[%s] channelY=[%s] day=[%s]: dfX != dfY --> Can't continue\n",
 							station, channelX, channelY, day));
 		}
-		double df = dfX;
 
 		if (Gxx.length != Gyy.length || Gxx.length != Gxy.length) { // Something's
 			// wrong ...
@@ -162,7 +161,7 @@ public class CoherencePBM extends PowerBandMetric {
 
 		// Compute gamma[f] and fill freq array
 		for (int k = 0; k < nf; k++) {
-			freq[k] = (double) k * df;
+			freq[k] = (double) k * dfX;
 			gamma[k] = (Gxy[k] * Gxy[k]) / (Gxx[k] * Gyy[k]);
 			gamma[k] = Math.sqrt(gamma[k]);
 		}
@@ -193,8 +192,8 @@ public class CoherencePBM extends PowerBandMetric {
 		double highPeriod = band.getHigh();
 
 		if (!checkPowerBand(lowPeriod, highPeriod, Tmin, Tmax)) {
-			System.out.format(
-					"%s powerBand Error: Skipping channel:%s day:%s\n",
+			logger.info(
+					"{} powerBand Error: Skipping channel:{} day:{}",
 					getName(), channelX, getDay());
 			return NO_RESULT;
 		}

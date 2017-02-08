@@ -146,7 +146,6 @@ public class DifferencePBM extends PowerBandMetric {
 					.format("station=[%s] channelX[%s] channelY=[%s] day=[%s]: dfX != dfY --> Can't continue\n",
 							station, channelX, channelY, day));
 		}
-		double df = dfX;
 
 		if (Gxx.length != Gyy.length || Gxx.length != Gxy.length) { // Something's
 			// wrong ...
@@ -161,7 +160,7 @@ public class DifferencePBM extends PowerBandMetric {
 
 		// Compute diff[f] and fill freq array
 		for (int k = 0; k < nf; k++) {
-			freq[k] = (double) k * df;
+			freq[k] = (double) k * dfX;
 			diff[k] = 10 * Math.log10(Gxx[k]) - 10 * Math.log10(Gyy[k]);
 		}
 		diff[0] = 0;
@@ -183,8 +182,8 @@ public class DifferencePBM extends PowerBandMetric {
 		double highPeriod = band.getHigh();
 
 		if (!checkPowerBand(lowPeriod, highPeriod, Tmin, Tmax)) {
-			System.out.format(
-					"%s powerBand Error: Skipping channel:%s day:%s\n",
+			logger.warn(
+					"{} powerBand Error: Skipping channel:{} day:{}",
 					getName(), channelX, getDay());
 			return NO_RESULT;
 		}

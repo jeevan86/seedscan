@@ -168,7 +168,8 @@ public class Blockette320 extends Blockette  implements Serializable {
 	}
 
 	public String toString() {
-		String ret = "\n== Random Calibration Blockette\n" +
+
+		return "\n== Random Calibration Blockette\n" +
 				String.format("==   Start Time:%s\n", timestamp.toString()) +
 				String.format("==   Calibration Duration: %d\n",
 						calDuration / 1000) + // Convert millisecs --> secs for printing
@@ -183,8 +184,6 @@ public class Blockette320 extends Blockette  implements Serializable {
 						"==   Filtering Type:%s          Calibration Flags:[%02x]\n",
 						calFilter, calFlags) +
 				"====================================";
-
-		return ret;
 	}
 
 	public long getCalibrationEpoch() {

@@ -436,14 +436,7 @@ public class MetricData implements Serializable {
 					metadata.getNetwork(), metadata.getStation(), channel, metadata.getDate());
 			return null;
 		}
-		try {
-			double filtered[] = removeInstrumentAndFilter(responseUnits, channel, timeseries, f1, f2, f3, f4);
-			return filtered;
-		} catch (ChannelMetaException e) {
-			throw e;
-		} catch (MetricException e) {
-			throw e;
-		}
+		return removeInstrumentAndFilter(responseUnits, channel, timeseries, f1, f2, f3, f4);
 	}
 
 	/**

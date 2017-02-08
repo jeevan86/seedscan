@@ -104,8 +104,7 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 	}
 
 	ChannelMeta copy(Channel channel){
-		ChannelMeta copyChan = copy(channel.getChannel());
-		return copyChan;
+		return copy(channel.getChannel());
 	}
 
 	private ChannelMeta copy(String name){
@@ -361,8 +360,7 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 		PoleZeroStage pz = (PoleZeroStage) this.getStage(1);
 		if (pz != null) {
 			try {
-				Complex[] pzresp = pz.getResponse(freqs);
-				return pzresp;
+				return pz.getResponse(freqs);
 			} catch (PoleZeroStageException e) {
 				logger.error("PoleZeroStageException:", e);
 				return null;
