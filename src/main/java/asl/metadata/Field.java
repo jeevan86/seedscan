@@ -50,7 +50,7 @@ public class Field implements Serializable {
 	public String getValue(int index) {
 		String value = null;
 		if (values.size() > index) {
-			value = new String(values.get(index));
+			value = values.get(index);
 		}
 		return value;
 	}

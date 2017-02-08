@@ -109,8 +109,8 @@ public class MemberDigestTest {
 	 */
 	@Test
 	public final void testAddDigestMembers() throws Exception {
-		digest2 = new GenericDigest(new String("SHA-256"), new Integer(-100), new Long(4221372026214775806L),
-				new Double(123456.1), new Character('q'));
+		digest2 = new GenericDigest("SHA-256", -100, 4221372026214775806L,
+				123456.1, 'q');
 		digest2.addDigestMembers();
 	}
 
@@ -125,12 +125,12 @@ public class MemberDigestTest {
 	 */
 	@Test
 	public void testAddToDigestCharacter() throws Exception {
-		digest1 = new GenericDigest(new Integer(54654), new Long(78901342789L), new Double(0.0000001),
-				new Character('j'));
-		digest2 = new GenericDigest(new Integer(54654), new Long(78901342789L), new Double(0.0000001),
-				new Character('k'));
-		digest3 = new GenericDigest(new Integer(54654), new Long(78901342789L), new Double(0.0000001),
-				new Character('k'));
+		digest1 = new GenericDigest(54654, 78901342789L, 0.0000001,
+				'j');
+		digest2 = new GenericDigest(54654, 78901342789L, 0.0000001,
+				'k');
+		digest3 = new GenericDigest(54654, 78901342789L, 0.0000001,
+				'k');
 
 		ByteBuffer bytes1 = digest1.getDigestBytes();
 		String hex1 = DatatypeConverter.printHexBinary(bytes1.array());
@@ -158,9 +158,9 @@ public class MemberDigestTest {
 	 */
 	@Test
 	public void testAddToDigestDouble() throws Exception {
-		digest1 = new GenericDigest(new Integer(0), new Long(-1000000000), new Double(2512.124), new Character('z'));
-		digest2 = new GenericDigest(new Integer(0), new Long(-1000000000), new Double(-2512.124), new Character('z'));
-		digest3 = new GenericDigest(new Integer(0), new Long(-1000000000), new Double(-2512.124), new Character('z'));
+		digest1 = new GenericDigest(0, (long) -1000000000, 2512.124, 'z');
+		digest2 = new GenericDigest(0, (long) -1000000000, -2512.124, 'z');
+		digest3 = new GenericDigest(0, (long) -1000000000, -2512.124, 'z');
 
 		ByteBuffer bytes1 = digest1.getDigestBytes();
 		String hex1 = DatatypeConverter.printHexBinary(bytes1.array());
@@ -188,12 +188,12 @@ public class MemberDigestTest {
 	 */
 	@Test
 	public void testAddToDigestInteger() throws Exception {
-		digest1 = new GenericDigest(new Integer(64000), new Long(9454565754L), new Double(121231.000124),
-				new Character('@'));
-		digest2 = new GenericDigest(new Integer(64), new Long(9454565754L), new Double(121231.000124),
-				new Character('@'));
-		digest3 = new GenericDigest(new Integer(64), new Long(9454565754L), new Double(121231.000124),
-				new Character('@'));
+		digest1 = new GenericDigest(64000, 9454565754L, 121231.000124,
+				'@');
+		digest2 = new GenericDigest(64, 9454565754L, 121231.000124,
+				'@');
+		digest3 = new GenericDigest(64, 9454565754L, 121231.000124,
+				'@');
 
 		ByteBuffer bytes1 = digest1.getDigestBytes();
 		String hex1 = DatatypeConverter.printHexBinary(bytes1.array());
@@ -221,10 +221,10 @@ public class MemberDigestTest {
 	 */
 	@Test
 	public void testAddToDigestLong() throws Exception {
-		digest1 = new GenericDigest(new Integer(52465), new Long(-163245646544L), new Double(32512.124),
-				new Character('1'));
-		digest2 = new GenericDigest(new Integer(52465), new Long(0L), new Double(32512.124), new Character('1'));
-		digest3 = new GenericDigest(new Integer(52465), new Long(0L), new Double(32512.124), new Character('1'));
+		digest1 = new GenericDigest(52465, -163245646544L, 32512.124,
+				'1');
+		digest2 = new GenericDigest(52465, 0L, 32512.124, '1');
+		digest3 = new GenericDigest(52465, 0L, 32512.124, '1');
 
 		ByteBuffer bytes1 = digest1.getDigestBytes();
 		String hex1 = DatatypeConverter.printHexBinary(bytes1.array());
@@ -250,9 +250,9 @@ public class MemberDigestTest {
 	 */
 	@Test
 	public final void testGetDigestBytes() throws Exception {
-		digest1 = new GenericDigest(new Integer(12), new Long(9221372026854775806L), new Double(57.21),
-				new Character('e'));
-		String expected = new String("CC8BDBC838EC258DEC6273F66FDE3449");
+		digest1 = new GenericDigest(12, 9221372026854775806L, 57.21,
+				'e');
+		String expected = "CC8BDBC838EC258DEC6273F66FDE3449";
 		ByteBuffer bytes = digest1.getDigestBytes();
 		String hex = DatatypeConverter.printHexBinary(bytes.array());
 		assertEquals(expected, hex);
@@ -266,8 +266,7 @@ public class MemberDigestTest {
 	 */
 	@Test
 	public final void testMemberDigest() throws Exception {
-		digest1 = new GenericDigest(new Integer(12), new Long(9221372026854775806L), new Double(-10000.21),
-				new Character('e'));
+		digest1 = new GenericDigest(12, 9221372026854775806L, -10000.21, 'e');
 	}
 
 	/**
@@ -278,8 +277,8 @@ public class MemberDigestTest {
 	 */
 	@Test
 	public final void testMemberDigestString() throws Exception {
-		digest2 = new GenericDigest(new String("SHA-1"), new Integer(12), new Long(9221372026854775806L),
-				new Double(57.21), new Character('e'));
+		digest2 = new GenericDigest("SHA-1", 12, 9221372026854775806L,
+				57.21, 'e');
 	}
 
 	/**
@@ -294,17 +293,17 @@ public class MemberDigestTest {
 	@Test
 	public final void testMultiBuffer() throws Exception {
 		ArrayList<ByteBuffer> digests = new ArrayList<ByteBuffer>();
-		digest1 = new GenericDigest(new Integer(0), new Long(9221372026154775806L), new Double(5.0000001),
-				new Character('d'));
-		digest2 = new GenericDigest(new Integer(52465), new Long(0L), new Double(32512.124), new Character('1'));
-		digest3 = new GenericDigest(new Integer(-1234), new Long(12L), new Double(4561.321), new Character('L'));
+		digest1 = new GenericDigest(0, 9221372026154775806L, 5.0000001,
+				'd');
+		digest2 = new GenericDigest(52465, 0L, 32512.124, '1');
+		digest3 = new GenericDigest(-1234, 12L, 4561.321, 'L');
 
 		digests.add(digest1.getDigestBytes());
 		digests.add(digest2.getDigestBytes());
 		digests.add(digest3.getDigestBytes());
 
 		ByteBuffer bytes = MemberDigest.multiBuffer(digests);
-		String expected = new String("4927E27583FE47AFC5C5BAB83442E627");
+		String expected = "4927E27583FE47AFC5C5BAB83442E627";
 
 		String hex = DatatypeConverter.printHexBinary(bytes.array());
 		assertEquals(expected, hex);

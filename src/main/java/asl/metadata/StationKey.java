@@ -56,7 +56,7 @@ class StationKey extends Key implements Comparable<StationKey> {
 	 * @return the network code
 	 */
 	public String getNetwork() {
-		return new String(network);
+		return network;
 	}
 
 	/**
@@ -65,7 +65,7 @@ class StationKey extends Key implements Comparable<StationKey> {
 	 * @return the station name
 	 */
 	public String getName() {
-		return new String(name);
+		return name;
 	}
 
 	/*
@@ -76,7 +76,7 @@ class StationKey extends Key implements Comparable<StationKey> {
 	 * @return [network code]_[station name]
 	 */
 	public String toString() {
-		return new String(network + "_" + name);
+		return network + "_" + name;
 	}
 
 	/*

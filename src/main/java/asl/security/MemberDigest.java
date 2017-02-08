@@ -234,7 +234,7 @@ public abstract class MemberDigest implements Serializable {
 	 */
 	private void writeObject(ObjectOutputStream out) throws IOException {
 		out.defaultWriteObject();
-		out.writeObject(new String(this.digest.getAlgorithm()));
+		out.writeObject(this.digest.getAlgorithm());
 	}
 
 	/**

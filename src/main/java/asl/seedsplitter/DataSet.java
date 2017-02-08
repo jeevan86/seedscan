@@ -54,7 +54,7 @@ public class DataSet extends Sequence implements Serializable {
 	 *            network code
 	 */
 	public void setNetwork(String network) {
-		m_network = new String(network);
+		m_network = network;
 	}
 
 	/**
@@ -64,7 +64,7 @@ public class DataSet extends Sequence implements Serializable {
 	 *            station code
 	 */
 	public void setStation(String station) {
-		m_station = new String(station);
+		m_station = station;
 	}
 
 	/**
@@ -74,7 +74,7 @@ public class DataSet extends Sequence implements Serializable {
 	 *            location code
 	 */
 	public void setLocation(String location) {
-		m_location = new String(location);
+		m_location = location;
 	}
 
 	/**
@@ -84,7 +84,7 @@ public class DataSet extends Sequence implements Serializable {
 	 *            channel name
 	 */
 	public void setChannel(String channel) {
-		m_channel = new String(channel);
+		m_channel = channel;
 	}
 
 	/**

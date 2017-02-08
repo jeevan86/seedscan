@@ -125,11 +125,11 @@ public class ChannelKey extends Key implements Comparable<ChannelKey>, Serializa
 
 	// identifiers
 	public String getLocation() {
-		return new String(location);
+		return location;
 	}
 
 	public String getName() {
-		return new String(name);
+		return name;
 	}
 
 	/*
@@ -139,7 +139,7 @@ public class ChannelKey extends Key implements Comparable<ChannelKey>, Serializa
 	 */
 	@Override
 	public String toString() {
-		return new String(location + "-" + name);
+		return location + "-" + name;
 	}
 
 	/*

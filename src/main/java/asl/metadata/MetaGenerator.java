@@ -75,7 +75,7 @@ public class MetaGenerator {
 		/* Create List of network subset IDs '<ID>.dataless' */
 		final List<String> networkExt = new ArrayList<String>();
 		if (networkSubset != null) {
-			String ext = new String();
+			String ext = "";
 			for (String key : networkSubset) {
 				ext = key + ".dataless";
 				networkExt.add(ext);
