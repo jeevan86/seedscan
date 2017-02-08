@@ -242,8 +242,8 @@ public class EventCompareSynthetic extends Metric {
 	/**
 	 * Sac array to double.
 	 * 
-	 * @param sacArray
-	 *            the sac array
+	 * @param sac
+	 *            the sac timeseries data
 	 * @return the array list
 	 */
 	private double[] sacArrayToDouble(SacTimeSeries sac) {
