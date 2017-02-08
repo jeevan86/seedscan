@@ -190,7 +190,7 @@ public class SeedInputStream implements Runnable {
 
 						//Restrict the data to the allowed quality flags. Typically 'D' 'M' 'Q' 'R' 
 						String qualityFlagsStr = Global.CONFIG.getQualityflags();
-						List<String> qualityFlags = (List<String>)Arrays.asList(qualityFlagsStr.split(","));
+						List<String> qualityFlags = Arrays.asList(qualityFlagsStr.split(","));
 						if(
 								  qualityFlags.contains("All") || 
 								  qualityFlags.contains(String.valueOf((char)indicator)) // converts from int to String

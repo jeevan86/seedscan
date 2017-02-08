@@ -170,7 +170,7 @@ public class PlotMaker {
 		seriesCollection.addSeries(series1);
 		seriesCollection.addSeries(series1b);
 
-		final XYPlot xyplot = new XYPlot((XYDataset) seriesCollection, null,
+		final XYPlot xyplot = new XYPlot(seriesCollection, null,
 				verticalAxis, renderer);
 		// final XYPlot xyplot = new XYPlot((XYDataset)seriesCollection,
 		// horizontalAxis, verticalAxis, renderer);
@@ -186,7 +186,7 @@ public class PlotMaker {
 		final XYSeriesCollection seriesCollection2 = new XYSeriesCollection();
 		seriesCollection2.addSeries(series2);
 		seriesCollection2.addSeries(series2b);
-		final XYPlot xyplot2 = new XYPlot((XYDataset) seriesCollection2, null,
+		final XYPlot xyplot2 = new XYPlot(seriesCollection2, null,
 				phaseAxis, renderer2);
 
 		// CombinedXYPlot combinedPlot = new CombinedXYPlot( horizontalAxis,
@@ -295,7 +295,7 @@ public class PlotMaker {
 		final XYSeriesCollection seriesCollection = new XYSeriesCollection();
 		seriesCollection.addSeries(series1);
 
-		final XYPlot xyplot = new XYPlot((XYDataset) seriesCollection, null,
+		final XYPlot xyplot = new XYPlot(seriesCollection, null,
 				verticalAxis, renderer);
 		// final XYPlot xyplot = new XYPlot((XYDataset)seriesCollection,
 		// horizontalAxis, verticalAxis, renderer);
@@ -310,7 +310,7 @@ public class PlotMaker {
 		phaseAxis.setTickUnit(new NumberTickUnit(30));
 		final XYSeriesCollection seriesCollection2 = new XYSeriesCollection();
 		seriesCollection2.addSeries(series2);
-		final XYPlot xyplot2 = new XYPlot((XYDataset) seriesCollection2, null,
+		final XYPlot xyplot2 = new XYPlot(seriesCollection2, null,
 				phaseAxis, renderer2);
 
 		// CombinedXYPlot combinedPlot = new CombinedXYPlot( horizontalAxis,

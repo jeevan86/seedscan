@@ -152,7 +152,7 @@ public class PlotMaker2 {
 
 			XYSeriesCollection seriesCollection = new XYSeriesCollection();
 			XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
-			XYPlot xyplot = new XYPlot((XYDataset) seriesCollection,
+			XYPlot xyplot = new XYPlot(seriesCollection,
 					horizontalAxis, verticalAxis, renderer);
 			xyplot.setDomainGridlinesVisible(true);
 			xyplot.setRangeGridlinesVisible(true);

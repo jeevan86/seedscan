@@ -817,7 +817,7 @@ public class MetricData implements Serializable {
 			
 			for (int j = 0; j < length; j++) {
 				if (k < data.length) {
-					data[k] = (double) (series[j] - k*slope - yOffset);
+					data[k] = series[j] - k*slope - yOffset;
 				}
 				k++;
 			}

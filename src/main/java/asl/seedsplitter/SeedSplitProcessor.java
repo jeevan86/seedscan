@@ -586,7 +586,7 @@ public class SeedSplitProcessor implements Runnable {
 						+ " tree elements for '" + chanKey + "'");
 				iter = tree.iterator();
 				currDataSet = null;
-				lastDataSet = (DataSet) iter.next();
+				lastDataSet = iter.next();
 				// MTH
 				// System.out.format("== chanKey:[%s] First DataSet:[%s - %s] BlockCount=[%d] Length=[%d]\n",
 				// chanKey,
@@ -595,7 +595,7 @@ public class SeedSplitProcessor implements Runnable {
 				// lastDataSet.getBlockCount(), lastDataSet.getLength() );
 
 				while (iter.hasNext()) {
-					currDataSet = (DataSet) iter.next();
+					currDataSet = iter.next();
 					// MTH
 					// System.out.format("== chanKey:[%s] Next DataSet:[%s - %s] BlockCount=[%d] Length=[%d]\n",
 					// chanKey,
