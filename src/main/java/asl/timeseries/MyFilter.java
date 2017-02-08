@@ -53,9 +53,7 @@ public class MyFilter {
 		int nf = nfft / 2 + 1;
 
 		double[] data = new double[ndata];
-		for (int i = 0; i < ndata; i++) {
-			data[i] = timeseries[i];
-		}
+		System.arraycopy(timeseries, 0, data, 0, ndata);
 		TimeseriesUtils.detrend(data);
 		TimeseriesUtils.demean(data);
 		TimeseriesUtils.costaper(data, .01);

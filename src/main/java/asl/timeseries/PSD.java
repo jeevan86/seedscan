@@ -240,9 +240,6 @@ public class PSD {
 
 		// Copy Frequency smoothed spectrum back into psd[f] and proceed as
 		// before
-		for (int k = 0; k < singleSideSize; k++) {
-			// psd[k] = psdCFsmooth[k].mag();
-			psd[k] = psdCFsmooth[k];
-		}
+		System.arraycopy(psdCFsmooth, 0, psd, 0, singleSideSize);
 	}
 }
