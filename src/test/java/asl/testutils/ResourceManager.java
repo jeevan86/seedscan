@@ -55,13 +55,13 @@ public abstract class ResourceManager { // NO_UCD (test only)
 	 * 
 	 * Synchronized to prevent multiple tests from simulaneously loading the same resources.
 	 * 
-	 * @param fileName
+	 * @param fileName filename to try loading
 	 * @param trashableCopy
 	 *            returns a copy that is not shared with any other class. Any
 	 *            test using shared objects must not destruct the object
 	 * @return decompressed object
-	 * @throws IOException
-	 * @throws ClassNotFoundException
+	 * @throws IOException If the file cannot be loaded.
+	 * @throws ClassNotFoundException If the file cannot be deserialized
 	 */
 	public synchronized static Object loadCompressedObject(String fileName, boolean trashableCopy)
 			throws IOException, ClassNotFoundException {

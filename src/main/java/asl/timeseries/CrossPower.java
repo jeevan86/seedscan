@@ -29,8 +29,6 @@ public class CrossPower {
 	 *            - Y-channel used for power-spectral-density computation
 	 * @param metricData
 	 *            - data to use as source of CrossPower computation
-	 * @return psd[f] - Contains smoothed crosspower-spectral density computed
-	 *         for nf = nfft/2 + 1 frequencies (+ve freqs + DC + Nyq)
 	 * @throws ChannelMetaException
 	 *             the channel metadata exception
 	 * @throws MetricPSDException

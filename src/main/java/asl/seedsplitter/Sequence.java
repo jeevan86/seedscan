@@ -281,8 +281,6 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 	 *             the sequence interval mismatch exception
 	 * @throws SequenceMergeRangeException
 	 *             the sequence merge range exception
-	 * @throws SequenceTimingException
-	 *             the sequence timing exception
 	 * @throws BlockSizeMismatchException
 	 *             the block size mismatch exception
 	 */

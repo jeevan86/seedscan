@@ -16,7 +16,7 @@ public class Time {
 	/**
 	 * Converts LocalDateTime to epoch microseconds, assuming it is UTC
 	 * 
-	 * @param timestamp
+	 * @param timestamp date time for conversion, Assumed UTC
 	 * @return microseconds since 1970-01-01:00:00:00.0
 	 */
 	public static long calculateEpochMicroSeconds(LocalDateTime timestamp) {
@@ -27,8 +27,8 @@ public class Time {
 
 	/**
 	 * Converts LocalDateTime to epoch milliseconds, assuming it is UTC
-	 * 
-	 * @param timestamp
+	 *
+	 * @param timestamp date time for conversion, Assumed UTC
 	 * @return milliseconds since 1970-01-01:00:00:00.0
 	 */
 	public static long calculateEpochMilliSeconds(LocalDateTime timestamp) {

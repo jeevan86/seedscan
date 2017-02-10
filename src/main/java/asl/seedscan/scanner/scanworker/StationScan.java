@@ -47,8 +47,8 @@ public class StationScan extends ScanWorker {
 
 	/**
 	 * Start the first day of the scan
-	 * @param manager
-	 * @param databaseScan
+	 * @param manager The managing object
+	 * @param databaseScan The correct database for results.
 	 */
 	StationScan(ScanManager manager, DatabaseScan databaseScan) {
 		super(manager);
@@ -59,8 +59,8 @@ public class StationScan extends ScanWorker {
 
 	/**
 	 * Scan a specified day with provided metricData
-	 * @param manager
-	 * @param databaseScan
+	 * @param manager The managing object
+	 * @param databaseScan The correct database for results.
 	 * @param date The day to scan
 	 * @param metricData The days preloaded MetricData. Can be null
 	 */

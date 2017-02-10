@@ -294,7 +294,7 @@ public class MetricDatabase {
 	/**
 	 * Insert a non scan specific error into the database logs.
 	 * 
-	 * @param message
+	 * @param message error message
 	 */
 	public void insertError(String message) {
 		Connection connection = null;
@@ -436,7 +436,7 @@ public class MetricDatabase {
 	 * Reset any existing station scans that are taken. This prevents orphaned
 	 * scans, if seedscan dies while running a scan.
 	 * 
-	 * @throws SQLException
+	 * @throws SQLException for any exception from the JDBC driver
 	 */
 	private void resetStationScans() throws SQLException {
 		Connection connection = null;

@@ -22,7 +22,7 @@ public abstract class ScanWorker implements Comparable<ScanWorker>, Runnable {
 	 * workers of the same type, then its priority can vary within the ones
 	 * place. Other fine ordering can occur in getFinePriority()
 	 * 
-	 * @return the priority of this worker.
+	 * @return the rough priority of this worker.
 	 */
 	abstract Integer getBasePriority();
 
@@ -31,7 +31,7 @@ public abstract class ScanWorker implements Comparable<ScanWorker>, Runnable {
 	 * workers of the same type. Its methodology may differ based on what child
 	 * ScanWorker type is being used.
 	 * 
-	 * @return
+	 * @return the fine detailed priority
 	 */
 	abstract Long getFinePriority();
 

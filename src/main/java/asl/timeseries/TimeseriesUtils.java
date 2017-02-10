@@ -63,8 +63,8 @@ public class TimeseriesUtils {
 	/**
 	 * Performs an in place cosine taper on passed array of data.
 	 * 
-	 * @param timeseries
-	 * @param width
+	 * @param timeseries time series
+	 * @param width width of cosine taper
 	 * @return double related to power loss from taper.
 	 */
 	public static double costaper(double[] timeseries, double width) {
@@ -88,12 +88,12 @@ public class TimeseriesUtils {
 	 * Expects arrays with +1 offset: x[1,...,n], etc. - we will pass it arrays
 	 * with 0 offset: x[0,1,...,n] and ignore the first points.
 	 * 
-	 * @param x
-	 * @param y
-	 * @param n
-	 * @param yp1
-	 * @param ypn
-	 * @param y2
+	 * @param x x
+	 * @param y y
+	 * @param n n
+	 * @param yp1 yp1
+	 * @param ypn ypn
+	 * @param y2 y2
 	 */
 	private static void spline(double[] x, double[] y, int n, double yp1, double ypn, double[] y2) {
 
@@ -132,12 +132,12 @@ public class TimeseriesUtils {
 	 * Same as above (+1 offset arrays) & y=double[1] is used to pass out the
 	 * interpolated value (y=f(x)).
 	 * 
-	 * @param xa
-	 * @param ya
-	 * @param y2a
-	 * @param n
-	 * @param x
-	 * @param y
+	 * @param xa xa
+	 * @param ya ya
+	 * @param y2a y2a
+	 * @param n n
+	 * @param x x
+	 * @param y y
 	 */
 	private static void splint(double[] xa, double[] ya, double[] y2a, int n, double x, double[] y) {
 
@@ -171,10 +171,10 @@ public class TimeseriesUtils {
 	 * We know Y[X] = Y at values of X <br>
 	 * We want Y[Z] = Y interpolated to values of Z<br>
 	 * 
-	 * @param X
-	 * @param Y
-	 * @param Z
-	 * @return
+	 * @param X Measured X series
+	 * @param Y Measured Y series
+	 * @param Z Desired X coordinates to interpolate
+	 * @return interpolated array of Y values corresponding to input Z
 	 */
 	public static double[] interpolate(double[] X, double[] Y, double[] Z) {
 

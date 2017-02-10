@@ -72,7 +72,7 @@ public class Channel {
 	/**
 	 * Valids that the band code follows SEED Conventions in Appendix A
 	 * @param band 1 character band code
-	 * @return
+	 * @return true if valid Band Code was provided
 	 */
 	public static boolean validBandCode(String band) {
 		if (band.length() != 1) {
@@ -108,7 +108,7 @@ public class Channel {
 	 * Returns true if the channelFlags indicate a continuous channel.
 	 * If first char is C, it is continous.
 	 * If it is only a G or H, then we guess it is continous.
-	 * @param channelFlags
+	 * @param channelFlags Channel flags used to test for Continous
 	 * @return true if continuous, false otherwise
 	 */
 	public static boolean isContinousChannel(String channelFlags){
@@ -121,7 +121,7 @@ public class Channel {
 	 * 
 	 * Standard channels are exactly 3 characters EG LH1.
 	 * Derived channels are more EG LHED
-	 * @return
+	 * @return true if derived channel
 	 */
 	public boolean isDerivedChannel(){
 		return channel != null && channel.length() != 3;

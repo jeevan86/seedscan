@@ -121,8 +121,8 @@ public abstract class Metric {
 	/**
 	 * Creates the identifier for multiple channels.
 	 *
-	 * @param channelA
-	 * @param channelB
+	 * @param channelA first channel
+	 * @param channelB second channel
 	 * @return the metric value identifier
 	 */
 	public MetricValueIdentifier createIdentifier(Channel channelA,
@@ -153,8 +153,8 @@ public abstract class Metric {
 	/**
 	 * Gets the cross power.
 	 *
-	 * @param channelA
-	 * @param channelB
+	 * @param channelA first channel
+	 * @param channelB second channel
 	 * @return the cross power
 	 */
 	protected CrossPower getCrossPower(Channel channelA, Channel channelB) {

@@ -31,8 +31,8 @@ class MetricException extends Exception {
 	 * Instantiates metric exception with a cause.
 	 * Used when multiple exceptions cause exception in a single method.
 	 * 
-	 * @param message
-	 * @param cause
+	 * @param message Error message
+	 * @param cause Causing Throwable
 	 */
 	public MetricException(String message, Throwable cause) {
 		super(message, cause);

@@ -51,7 +51,7 @@ public class ChannelKey extends Key implements Comparable<ChannelKey>, Serializa
 	 * If the location code is HR it is changed to 10.
 	 * 
 	 * @param location valid codes include --, "", HR, 00, 10, etc
-	 * @throws ChannelKeyException
+	 * @throws ChannelKeyException if an invalid location code was provided
 	 */
 	private void setLocation(String location) throws ChannelKeyException {
 
