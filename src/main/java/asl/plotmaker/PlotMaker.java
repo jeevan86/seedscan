@@ -19,6 +19,8 @@
 
 package asl.plotmaker;
 
+import asl.metadata.Channel;
+import asl.metadata.Station;
 import java.awt.Color;
 import java.awt.Paint;
 import java.awt.Rectangle;
@@ -27,7 +29,6 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.LogarithmicAxis;
@@ -38,14 +39,10 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.data.Range;
-import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import asl.metadata.Channel;
-import asl.metadata.Station;
 
 /**
  * @author Mike Hagerty hagertmb@bc.edu
@@ -74,14 +71,6 @@ public class PlotMaker {
 	public void plotSpecAmp2(double freq[], double[] amp1, double[] phase1,
 			double[] amp2, double[] phase2, String plotTitle, String pngName) {
 
-		/**
-		 * final String plotTitle = String.format("%04d%03d.%s.%s %s",
-		 * date.get(Calendar.YEAR), date.get(Calendar.DAY_OF_YEAR) ,station,
-		 * channel, plotString); final String pngName =
-		 * String.format("%s/%04d%03d.%s.%s.%s.png", outputDir,
-		 * date.get(Calendar.YEAR), date.get(Calendar.DAY_OF_YEAR) ,station,
-		 * channel, plotString);
-		 **/
 		File outputFile = new File(pngName);
 
 		// Check that we will be able to output the file without problems and if

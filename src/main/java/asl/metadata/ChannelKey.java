@@ -64,14 +64,14 @@ public class ChannelKey extends Key implements Comparable<ChannelKey>, Serializa
 		// P1 - Princeton Modes Synthetic - seen in II seed files
 		// P3 - Princeton SEM Synthetic - seen in II seed files
 
-		/**
-		 * // Temp fix for station US_WMOK which has some channel blockettes
-		 * tagged with location="HR" if (location.equals("HR")) { // Add to this
-		 * any unruly location code you want to flag ... location = "XX";
-		 * logger.warn( String.format(
-		 * "ChannelKey.setLocation: Got location code=HR chan=%s--> I'll set it to XX and continue parsing dataless"
-		 * , name) ); }
-		 **/
+		/*
+		   Temp fix for station US_WMOK which has some channel blockettes
+		  tagged with location="HR" if (location.equals("HR")) { // Add to this
+		  any unruly location code you want to flag ... location = "XX";
+		  logger.warn( String.format(
+		  "ChannelKey.setLocation: Got location code=HR chan=%s--> I'll set it to XX and continue parsing dataless"
+		  , name) ); }
+		 */
 
 		// Set Default location codes:
 		if (location == null || location.equals("--") || location.equals("")) {

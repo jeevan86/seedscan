@@ -64,30 +64,30 @@ public class TestMetric extends Metric {
 		}
 
 		// Test EventCMT cal
-		/**
-		 * GregorianCalendar gcal = new GregorianCalendar(
-		 * TimeZone.getTimeZone("GMT") ); gcal.set(Calendar.YEAR, 2012);
-		 * gcal.set(Calendar.DAY_OF_YEAR, 100); gcal.set(Calendar.HOUR_OF_DAY,
-		 * 20); gcal.set(Calendar.MINUTE, 30); gcal.set(Calendar.SECOND, 40);
-		 * gcal.set(Calendar.MILLISECOND, 500);
-		 * 
-		 * EventCMT eventCMT = new
-		 * EventCMT.Builder("TestEvent").calendar(gcal).latitude
-		 * (45.45).longitude(-75.55).depth(12.5).build(); eventCMT.printCMT();
-		 * gcal.set(Calendar.YEAR, 2010);
-		 * 
-		 * Calendar cal2 = eventCMT.getCalendar();
-		 * System.out.format("== eventCMT.timeInMillis = [%d]\n",
-		 * cal2.getTimeInMillis() );
-		 * 
-		 * System.out.format("== Old cal2 = [%s]\n",
-		 * EpochData.epochToDateString(cal2) ); cal2.setTimeInMillis(
-		 * cal2.getTimeInMillis() + 86400000L );
-		 * System.out.format("== New cal2 = [%s]\n",
-		 * EpochData.epochToDateString(cal2) );
-		 * 
-		 * eventCMT.printCMT();
-		 **/
+		/*
+		  GregorianCalendar gcal = new GregorianCalendar(
+		  TimeZone.getTimeZone("GMT") ); gcal.set(Calendar.YEAR, 2012);
+		  gcal.set(Calendar.DAY_OF_YEAR, 100); gcal.set(Calendar.HOUR_OF_DAY,
+		  20); gcal.set(Calendar.MINUTE, 30); gcal.set(Calendar.SECOND, 40);
+		  gcal.set(Calendar.MILLISECOND, 500);
+
+		  EventCMT eventCMT = new
+		  EventCMT.Builder("TestEvent").calendar(gcal).latitude
+		  (45.45).longitude(-75.55).depth(12.5).build(); eventCMT.printCMT();
+		  gcal.set(Calendar.YEAR, 2010);
+
+		  Calendar cal2 = eventCMT.getCalendar();
+		  System.out.format("== eventCMT.timeInMillis = [%d]\n",
+		  cal2.getTimeInMillis() );
+
+		  System.out.format("== Old cal2 = [%s]\n",
+		  EpochData.epochToDateString(cal2) ); cal2.setTimeInMillis(
+		  cal2.getTimeInMillis() + 86400000L );
+		  System.out.format("== New cal2 = [%s]\n",
+		  EpochData.epochToDateString(cal2) );
+
+		  eventCMT.printCMT();
+		 */
 
 		// Plot PoleZero Amp & Phase Response of this channel:
 		ChannelMeta chanMeta = stationMeta.getChannelMetadata(channel);
@@ -95,15 +95,15 @@ public class TestMetric extends Metric {
 		PoleZeroStage pz = (PoleZeroStage) chanMeta.getStage(1);
 		pz.print();
 
-		/**
-		 * // The actual (=from data) number of samples:
-		 * ArrayList<DataSet>datasets = metricData.getChannelData(channel);
-		 * 
-		 * int ndata = 0;
-		 * 
-		 * for (DataSet dataset : datasets) { ndata += dataset.getLength(); } //
-		 * end for each dataset
-		 **/
+		/*
+		  // The actual (=from data) number of samples:
+		  ArrayList<DataSet>datasets = metricData.getChannelData(channel);
+
+		  int ndata = 0;
+
+		  for (DataSet dataset : datasets) { ndata += dataset.getLength(); } //
+		  end for each dataset
+		 */
 
 	} // end computeMetric()
 }

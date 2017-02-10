@@ -40,7 +40,6 @@ public class IllegalSeednameException extends Exception {
 
 	/** Creates a new instance of IllegalSeednameException */
 	public IllegalSeednameException(String s) {
-		/** Creates a new instance of IllegalSeednameException */
 		super(s);
 	}
 

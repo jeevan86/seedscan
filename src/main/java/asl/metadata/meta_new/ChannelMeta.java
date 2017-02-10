@@ -294,12 +294,12 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 			isSeismicChannel = true;
 		}
 
-		/**
-		 * String excludeCodes = "MDIKRW"; // Channel codes that we DON'T expect
-		 * to have a stage 0 (e.g., VM?, LD?, LIO, etc.) if
-		 * (excludeCodes.contains(this.getName().substring(1,2))) {
-		 * expectChannel0 = false; }
-		 **/
+		/*
+		  String excludeCodes = "MDIKRW"; // Channel codes that we DON'T expect
+		  to have a stage 0 (e.g., VM?, LD?, LIO, etc.) if
+		  (excludeCodes.contains(this.getName().substring(1,2))) {
+		  expectChannel0 = false; }
+		 */
 		if (getNumberOfStages() == 0) {
 			logger.error(String
 					.format("invalidResponse: No stages have been loaded for chan-loc=%s-%s date=%s\n",

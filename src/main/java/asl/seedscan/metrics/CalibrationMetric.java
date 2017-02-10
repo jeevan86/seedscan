@@ -108,13 +108,13 @@ public class CalibrationMetric extends Metric {
 					// double) result value
 					// since everything is packed into a JSON String so we'll
 					// just directly call
-					/**
-					 * Temp disable in master branch until James tests the JSON
-					 * injections
-					 * metricResult.addResult(calResult.toJSONString(),
-					 * dummyValue, digest);
-					 * //MetricResult.createChannel(calResult.toJSONString());
-					 **/
+					/*
+					  Temp disable in master branch until James tests the JSON
+					  injections
+					  metricResult.addResult(calResult.toJSONString(),
+					  dummyValue, digest);
+					  //MetricResult.createChannel(calResult.toJSONString());
+					 */
 				}
 			} catch (MetricException e) {
 				logger.error("Exception:", e);
@@ -250,13 +250,13 @@ public class CalibrationMetric extends Metric {
 		}
 
 		// MTH
-		/**
-		 * String fileName1 = getStation() + "." + channel + ".sac"; String
-		 * fileName2 = getStation() + "." + channelExtension + ".sac";
-		 * Timeseries.writeSacFile(outData, srate, fileName1, getStation(),
-		 * channel.getChannel()); Timeseries.writeSacFile(inData, srate,
-		 * fileName2, getStation(), channelExtension);
-		 **/
+		/*
+		  String fileName1 = getStation() + "." + channel + ".sac"; String
+		  fileName2 = getStation() + "." + channelExtension + ".sac";
+		  Timeseries.writeSacFile(outData, srate, fileName1, getStation(),
+		  channel.getChannel()); Timeseries.writeSacFile(inData, srate,
+		  fileName2, getStation(), channelExtension);
+		 */
 
 		// Compute/Get the 1-sided psd[f] using Peterson's algorithm (24 hrs, 13
 		// segments, etc.)

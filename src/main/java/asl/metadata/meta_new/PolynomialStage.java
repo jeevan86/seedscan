@@ -94,12 +94,12 @@ public class PolynomialStage extends ResponseStage implements Serializable {
 			values[i] = coefficients.get(i).getReal(); // Only expecting REAL
 													// coeffs for now ...
 		}
-		/**
-		 * This is a proto where we pack the bound limits in with the coeffs ..
-		 * values[i] = getLowerApproximationBound(); values[++i] =
-		 * getUpperApproximationBound(); values[++i] = getLowerFrequencyBound();
-		 * values[++i] = getUpperFrequencyBound();
-		 **/
+		/*
+		  This is a proto where we pack the bound limits in with the coeffs ..
+		  values[i] = getLowerApproximationBound(); values[++i] =
+		  getUpperApproximationBound(); values[++i] = getLowerFrequencyBound();
+		  values[++i] = getUpperFrequencyBound();
+		 */
 		return values;
 	}
 }

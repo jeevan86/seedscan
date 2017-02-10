@@ -95,12 +95,12 @@ public abstract class DataLoader {
 		File[] files = null;
 		boolean dataExists = true;
 
-		/**
-		 * MTH: There are some non-seed files (e.g., data_avail.txt) included in
-		 * files[]. For some reason the file netday.index causes the splitter to
-		 * hang. Either restrict the file list to .seed files (as I do below)
-		 * -or- Debug splitter so it drops non-seed/miniseed files.
-		 **/
+		/*
+		  MTH: There are some non-seed files (e.g., data_avail.txt) included in
+		  files[]. For some reason the file netday.index causes the splitter to
+		  hang. Either restrict the file list to .seed files (as I do below)
+		  -or- Debug splitter so it drops non-seed/miniseed files.
+		 */
 		FilenameFilter textFilter = new FilenameFilter() {
 			public boolean accept(File dir, String name) {
 				String lowercaseName = name.toLowerCase();

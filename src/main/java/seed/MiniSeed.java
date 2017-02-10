@@ -1921,11 +1921,6 @@ public class MiniSeed {
 	}
 
 	/**
-	 * the unit test main.
-	 *
-	 * @param n the new b1000 length
-	 */
-	/**
 	 * Set the length of the packet to n in the Blockette 1000
 	 * 
 	 * @param n

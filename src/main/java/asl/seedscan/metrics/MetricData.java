@@ -147,11 +147,11 @@ public class MetricData implements Serializable {
 	 * @return true, if channel data exists, false if it does not.
 	 */
 	boolean hasChannels(String location, String band) {
-		/**
-		 * Not sure why this is here: if (!Channel.validLocationCode(location))
-		 * { return false; } if (!Channel.validBandCode(band.substring(0,1)) ||
-		 * !Channel.validInstrumentCode(band.substring(1,2)) ) { return false; }
-		 **/
+		/*
+		  Not sure why this is here: if (!Channel.validLocationCode(location))
+		  { return false; } if (!Channel.validBandCode(band.substring(0,1)) ||
+		  !Channel.validInstrumentCode(band.substring(1,2)) ) { return false; }
+		 */
 		// First try kcmp = "Z", "1", "2"
 		ChannelArray chanArray = new ChannelArray(location, band + "Z", band + "1", band + "2");
 		if (hasChannelArrayData(chanArray)) {
@@ -892,17 +892,17 @@ public class MetricData implements Serializable {
 			double az2 = (metadata.getChannelMetadata(channel2)).getAzimuth();
 
 			TimeseriesUtils.rotate_xy_to_ne(az1, az2, chan1Data, chan2Data, chanNData, chanEData);
-			/**
-			 * az1 = azimuth of the H1 channel/vector. az2 = azimuth of the
-			 * H2 channel/vector // Find the smallest (<= 180) angle between
-			 * them --> This *should* be 90 (=orthogonal channels) double azDiff
-			 * = Math.abs(az1 - az2); if (azDiff > 180) azDiff = Math.abs(az1 -
-			 * az2 - 360);
-			 * 
-			 * if ( Math.abs( azDiff - 90. ) > 0.2 ) { System.out.format(
-			 * "== createRotatedChannels: channels are NOT perpendicular! az1-az2 = %f\n"
-			 * , Math.abs(az1 - az2) ); }
-			 **/
+			/*
+			  az1 = azimuth of the H1 channel/vector. az2 = azimuth of the
+			  H2 channel/vector // Find the smallest (<= 180) angle between
+			  them --> This *should* be 90 (=orthogonal channels) double azDiff
+			  = Math.abs(az1 - az2); if (azDiff > 180) azDiff = Math.abs(az1 -
+			  az2 - 360);
+
+			  if ( Math.abs( azDiff - 90. ) > 0.2 ) { System.out.format(
+			  "== createRotatedChannels: channels are NOT perpendicular! az1-az2 = %f\n"
+			  , Math.abs(az1 - az2) ); }
+			 */
 
 			// Here we need to convert the Series intArray[] into a DataSet with
 			// header, etc ...
@@ -1178,7 +1178,7 @@ public class MetricData implements Serializable {
 			availabilityMetric = true;
 		}
 
-		/** Return null to skip non availability metric. */
+		/* Return null to skip non availability metric. */
 		if (!hasChannelArrayData(channelArray) && !availabilityMetric) { // Return
 			return null;
 		}
@@ -1189,7 +1189,7 @@ public class MetricData implements Serializable {
 			logger.warn("Digest of [{}, {}, {}, {}] = null", strdate, metricName, station, channelId);
 		}
 
-		/** This can occur if MetricData was loaded from a serialized file. */
+		/* This can occur if MetricData was loaded from a serialized file. */
 		if (metricReader == null) {
 			return newDigest; // Go ahead and recompute the metric.
 		}

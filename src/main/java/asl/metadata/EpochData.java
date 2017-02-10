@@ -84,21 +84,21 @@ public class EpochData {
 		this.instrumentType = info.getFieldValue(6, 0);
 		this.channelFlags = info.getFieldValue(21, 0);
 
-		/**
-		 * MTH: This is what Blockette B052 looks like: B052F04 Channel: HNZ
-		 * B052F03 Location: 20 B052F05 Subchannel: 0 B052F06 Instrument lookup:
-		 * 12 Kinemetrics FBA ES-T EpiSensor Accelerometer B052F07 Comment:
-		 * (null) B052F08 Signal units lookup: 7 M/S**2 - Acceleration in Meters
-		 * Per Second Per Second B052F09 Calibration units lookup: 0 No
-		 * Abbreviation Referenced B052F10 Latitude: 34.945913 B052F11
-		 * Longitude: -106.457295 B052F12 Elevation: 1816.000000 B052F13 Local
-		 * depth: 0.000000 B052F14 Azimuth: 0.000000 B052F15 Dip: 0.000000
-		 * B052F16 Format lookup: 2 Format Information Follows B052F17 Log2 of
-		 * Data record length: 9 B052F18 Sample rate: 100 B052F19 Clock
-		 * tolerance: 0 B052F21 Channel flags: CG B052F22 Start date: 2011,109
-		 * B052F23 End date: (null) B052F24 Update flag: N ... B030F03 Format
-		 * Name: Steim2 Integer Compression Format B030F05 Data family: 50
-		 **/
+		/*
+		  MTH: This is what Blockette B052 looks like: B052F04 Channel: HNZ
+		  B052F03 Location: 20 B052F05 Subchannel: 0 B052F06 Instrument lookup:
+		  12 Kinemetrics FBA ES-T EpiSensor Accelerometer B052F07 Comment:
+		  (null) B052F08 Signal units lookup: 7 M/S**2 - Acceleration in Meters
+		  Per Second Per Second B052F09 Calibration units lookup: 0 No
+		  Abbreviation Referenced B052F10 Latitude: 34.945913 B052F11
+		  Longitude: -106.457295 B052F12 Elevation: 1816.000000 B052F13 Local
+		  depth: 0.000000 B052F14 Azimuth: 0.000000 B052F15 Dip: 0.000000
+		  B052F16 Format lookup: 2 Format Information Follows B052F17 Log2 of
+		  Data record length: 9 B052F18 Sample rate: 100 B052F19 Clock
+		  tolerance: 0 B052F21 Channel flags: CG B052F22 Start date: 2011,109
+		  B052F23 End date: (null) B052F24 Update flag: N ... B030F03 Format
+		  Name: Steim2 Integer Compression Format B030F05 Data family: 50
+		 */
 	}
 
 	public EpochData(Blockette format, Blockette info) {

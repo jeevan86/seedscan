@@ -1,19 +1,19 @@
 package seed;
 
-/**
- * Util.java contains various static methods needed routinely in many places.
- *Its purpose is to hold all of these little helper functions in one place 
- *rather that creating a lot of little classes whose names would have to be 
- *remembered.
- *
- * Created on March 14, 2000, 3:58 PMt
- */
+
 
 import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
-
+/**
+ * Util.java contains various static methods needed routinely in many places.
+ *Its purpose is to hold all of these little helper functions in one place
+ *rather that creating a lot of little classes whose names would have to be
+ *remembered.
+ *
+ * Created on March 14, 2000, 3:58 PMt
+ */
 class Util {
 	/**
 	 * Print a string in all printable characers, take non-printable to their

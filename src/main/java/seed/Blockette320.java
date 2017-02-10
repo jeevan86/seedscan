@@ -110,14 +110,14 @@ public class Blockette320 extends Blockette  implements Serializable {
 		LocalTime localTime = LocalTime.of(hour, min, sec, partialSeconds *10000);
 		this.timestamp = LocalDateTime.of(localDate,localTime);
 
-		/**
-		 * byte calFlags = 1<<4; if (calFlags & 0x10) --> bit 4 set = calFlags =
-		 * 16 [Random Cal] if (calFlags & 0x08) --> bit 3 set = calFlags = 08
-		 * [Continuation] if (calFlags & 0x04) --> bit 2 set = calFlags = 04
-		 * [Automatic Cal] for (int ibit=0; ibit<8; ibit++){ //if ((calFlags &
-		 * 0x01<<ibit) == calFlags) { if ((calFlags & 1<<ibit) == calFlags) { }
-		 * else { } }
-		 **/
+		/*
+		  byte calFlags = 1<<4; if (calFlags & 0x10) --> bit 4 set = calFlags =
+		  16 [Random Cal] if (calFlags & 0x08) --> bit 3 set = calFlags = 08
+		  [Continuation] if (calFlags & 0x04) --> bit 2 set = calFlags = 04
+		  [Automatic Cal] for (int ibit=0; ibit<8; ibit++){ //if ((calFlags &
+		  0x01<<ibit) == calFlags) { if ((calFlags & 1<<ibit) == calFlags) { }
+		  else { } }
+		 */
 		// Save duration in millisecs
 		// int duration = bb.getInt()/10000; // number of .0001 second ticks for
 		// the duration of calibration
@@ -143,10 +143,10 @@ public class Blockette320 extends Blockette  implements Serializable {
 		charBuf = new char[12];
 		for (int i = 0; i < 12; i++) {
 			charBuf[i] = (char) bb.get();
-			/**
-			 * char c = (char)bb.get(); if (Character.isLetterOrDigit(c)) {
-			 * charBuf[i] = (char) bb.get(); } else { charBuf[i] = ' '; }
-			 **/
+			/*
+			  char c = (char)bb.get(); if (Character.isLetterOrDigit(c)) {
+			  charBuf[i] = (char) bb.get(); } else { charBuf[i] = ' '; }
+			 */
 		}
 		String rolloff = new String(charBuf);
 
