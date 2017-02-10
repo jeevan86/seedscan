@@ -44,6 +44,10 @@ License
 ######MiniSEED Library
     Source:         seedscan/src/seed
     License:        GPL Version 3 or later
+######SeedCodec
+    License:        GPL v3
+    Website:        http://www.seis.sc.edu/seedCodec.html
+                    https://github.com/crotwell/seedCodec
 ######SeisFile Sac Library
     Source:         seedscan/src/sac
     License:        GPL Version 3 or later
@@ -57,8 +61,7 @@ License
     License:        BSD License
     Website:        http://jdbc.postgresql.org/
 ######TauP
-    Source:         seedscan/lib/TauP-2.1.0-source.tgz
-    Object Code:    seedscan/lib/TauP-2.1.0.jar
+    Copyright (C) 1998-2000 University of South Carolina
     License:        GPL v3 or later (See https://github.com/crotwell/TauP/blob/master/doc/taup.pdf)
     Website:        http://www.seis.sc.edu/taup/
                     https://github.com/crotwell/TauP
