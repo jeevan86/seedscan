@@ -16,6 +16,7 @@ out/
 rdseed.err_log*
 schema/*
 seedscan.lock
+seedscan.iml
 seedscan.ipr
 seedscan.iws
 .settings
