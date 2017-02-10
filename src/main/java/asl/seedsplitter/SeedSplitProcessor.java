@@ -37,7 +37,8 @@ import seed.Blockette320;
 import seed.IllegalSeednameException;
 import seed.MiniSeed;
 import seed.SeedUtil;
-import seed.SteimException;
+
+import edu.iris.dmc.seedcodec.SteimException;
 
 /**
  * @author Joel D. Edwards
@@ -448,74 +449,62 @@ public class SeedSplitProcessor implements Runnable {
 						}
 
 						record = new MiniSeed(recordBytes);
+
 						samples = record.decomp();
 
-						// MTH: decomp() will return null in the event of Steim2
-						// Exception, etc.
-						if (samples == null) {
-							logger
-									.error("Caught SteimException --> Skip this block");
-						} else { // samples != null
+						// blockettes = record.getBlockettes();
+						lastSequenceNumber = record.getSequence();
+						tempData.extend(samples, 0, samples.length);
 
-							// blockettes = record.getBlockettes();
-							lastSequenceNumber = record.getSequence();
-							tempData.extend(samples, 0, samples.length);
+						// MTH: Get timing quality from the current miniseed
+						// block and store it for this key
+						int quality = record.getTimingQuality();
 
-							// MTH: Get timing quality from the current miniseed
-							// block and store it for this key
-							int quality = record.getTimingQuality();
-
-							if (m_qualityTable == null) {
-								m_qualityTable = new Hashtable<String, ArrayList<Integer>>();
-							}
-
-							ArrayList<Integer> qualityArray = null;
-							if (m_qualityTable.get(key) == null) {
-								qualityArray = new ArrayList<Integer>();
-								m_qualityTable.put(key, qualityArray);
-							} else {
-								qualityArray = m_qualityTable.get(key);
-							}
-							if (quality >= 0) { // getTimingQuality() return -1
-												// if no B1001 block found
-								qualityArray.add(quality);
-							}
-
-							// MTH: Get calibration block from the current
-							// miniseed block and store it for this key
-							// byteBuf320 = 64-byte Blockette320 as per SEED
-							// Manual HOWEVER, D. Ketcham's
-							// MiniSeed.getBlockette320()
-							// only returns 32-bytes ?? --> modified to return
-							// 64-bytes
-							byte[] byteBuf320 = record.getBlockette320();
-							if (byteBuf320 != null) {
-								// System.out.format("== SeedSplitProcessor: Blockette320 found for key=%s kept=[%d] discarded=[%d]\n",
-								// key, kept, discarded);
-								Blockette320 blockette320 = new Blockette320(
-										byteBuf320);
-								// System.out.format("== blockette320: epoch secs=[%d]\n",
-								// blockette320.getCalibrationEpoch() );
-
-								if (m_calTable == null) {
-									m_calTable = new Hashtable<String, ArrayList<Blockette320>>();
-								}
-
-								ArrayList<Blockette320> calBlock = null;
-								if (m_calTable.get(key) == null) {
-									calBlock = new ArrayList<Blockette320>();
-									m_calTable.put(key, calBlock);
-								} else {
-									calBlock = m_calTable.get(key);
-								}
-								calBlock.add(blockette320);
-							} else {
-								// System.out.format("== SeedSplitProcessor: BLOCKETTE320 *NOT* FOUND for key=%s kept=[%d] discarded=[%d]\n",
-								// key, kept, discarded);
-							}
-
+						if (m_qualityTable == null) {
+							m_qualityTable = new Hashtable<String, ArrayList<Integer>>();
 						}
 
+						ArrayList<Integer> qualityArray = null;
+						if (m_qualityTable.get(key) == null) {
+							qualityArray = new ArrayList<Integer>();
+							m_qualityTable.put(key, qualityArray);
+						} else {
+							qualityArray = m_qualityTable.get(key);
+						}
+						if (quality >= 0) { // getTimingQuality() return -1
+							// if no B1001 block found
+							qualityArray.add(quality);
+						}
+
+						// MTH: Get calibration block from the current
+						// miniseed block and store it for this key
+						// byteBuf320 = 64-byte Blockette320 as per SEED
+						// Manual HOWEVER, D. Ketcham's
+						// MiniSeed.getBlockette320()
+						// only returns 32-bytes ?? --> modified to return
+						// 64-bytes
+						byte[] byteBuf320 = record.getBlockette320();
+						if (byteBuf320 != null) {
+							// System.out.format("== SeedSplitProcessor: Blockette320 found for key=%s kept=[%d] discarded=[%d]\n",
+							// key, kept, discarded);
+							Blockette320 blockette320 = new Blockette320(
+									byteBuf320);
+							// System.out.format("== blockette320: epoch secs=[%d]\n",
+							// blockette320.getCalibrationEpoch() );
+
+							if (m_calTable == null) {
+								m_calTable = new Hashtable<String, ArrayList<Blockette320>>();
+							}
+
+							ArrayList<Blockette320> calBlock = null;
+							if (m_calTable.get(key) == null) {
+								calBlock = new ArrayList<Blockette320>();
+								m_calTable.put(key, calBlock);
+							} else {
+								calBlock = m_calTable.get(key);
+							}
+							calBlock.add(blockette320);
+						}
 					}
 
 				} catch (SteimException e) {

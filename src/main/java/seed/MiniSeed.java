@@ -17,6 +17,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.GregorianCalendar;
 import java.util.List;
+import edu.iris.dmc.seedcodec.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -2013,9 +2014,9 @@ public class MiniSeed {
             byte[] frames = new byte[framelen];
             System.arraycopy(buf, dataOffset, frames, 0, framelen);
 
-            if (getEncoding() == 10)
+            if (getEncoding() == B1000Types.STEIM1)
                 samples = Steim1.decode(frames, getNsamp(), swap, rev);
-            if (getEncoding() == 11)
+            if (getEncoding() == B1000Types.STEIM2)
                 samples = Steim2.decode(frames, getNsamp(), swap, rev);
 
         } else {
@@ -2023,20 +2024,6 @@ public class MiniSeed {
                     .format("BlockSizeException: (blockSize:[{%s}]) > (dataOffset:[{%s}])",
                             getBlockSize(), dataOffset));
         }
-
-		// Would adding this block "as is" cause a reverse constant error (or
-		// steim error)? If so, restore block
-		// to state before adding this one, write it out, and make this block
-		// the beginning of next output block
-		if (Steim2.hadReverseError() || Steim2.hadSampleCountError()) {
-			if (Steim2.hadReverseError())
-				logger.error("Decomp  " + Steim2.getReverseError() + " "
-						+ toString());
-			if (Steim2.hadSampleCountError())
-				logger.error("decomp " + Steim2.getSampleCountError() + " "
-						+ toString());
-			return null;
-		}
 		return samples;
 	}
 }
