@@ -81,15 +81,13 @@ public class MetaGenerator {
 				networkExt.add(ext);
 			}
 		}
-		FilenameFilter textFilter = new FilenameFilter() {
-			public boolean accept(File dir, String name) {
-				if (!networkExt.isEmpty()) {
-					return networkExt.contains(name);
-				} else {
-					return name.endsWith(".dataless") && (name.length() == 11) || name.endsWith(".dataless") && (name.length() == 10);
-				}
-			}
-		};
+		FilenameFilter textFilter = (dir1, name) -> {
+      if (!networkExt.isEmpty()) {
+        return networkExt.contains(name);
+      } else {
+        return name.endsWith(".dataless") && (name.length() == 11) || name.endsWith(".dataless") && (name.length() == 10);
+      }
+    };
 
 		String[] files = dir.list(textFilter);
 		if (files == null) {

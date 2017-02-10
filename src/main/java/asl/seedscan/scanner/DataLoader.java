@@ -101,13 +101,11 @@ public abstract class DataLoader {
 		  hang. Either restrict the file list to .seed files (as I do below)
 		  -or- Debug splitter so it drops non-seed/miniseed files.
 		 */
-		FilenameFilter textFilter = new FilenameFilter() {
-			public boolean accept(File dir, String name) {
-				String lowercaseName = name.toLowerCase();
-				File file = new File(dir + "/" + name);
-				return lowercaseName.endsWith(".seed") && (file.length() > 0);
-			}
-		};
+		FilenameFilter textFilter = (dir1, name) -> {
+      String lowercaseName = name.toLowerCase();
+      File file = new File(dir1 + "/" + name);
+      return lowercaseName.endsWith(".seed") && (file.length() > 0);
+    };
 
 		if (!dir.exists()) {
 			logger.info("Path '" + dir + "' does not exist.");

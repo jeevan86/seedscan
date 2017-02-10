@@ -133,14 +133,12 @@ public class EventLoader {
 		if (dayCMTs == null)
 			return null; // Not sure why this would happen
 
-		FilenameFilter sacFilter = new FilenameFilter() {
-			public boolean accept(File dir, String name) {
-				File file = new File(dir + "/" + name);
-				// if (name.startsWith(station.getStation()) &&
-				// name.endsWith(".sac") && (file.length() != 0) ) {
-				return name.startsWith(station.getStation()) && name.contains(".sac") && (file.length() != 0);
-			}
-		};
+		FilenameFilter sacFilter = (dir, name) -> {
+      File file = new File(dir + "/" + name);
+      // if (name.startsWith(station.getStation()) &&
+      // name.endsWith(".sac") && (file.length() != 0) ) {
+      return name.startsWith(station.getStation()) && name.contains(".sac") && (file.length() != 0);
+    };
 
 		Hashtable<String, Hashtable<String, SacTimeSeries>> allEventSynthetics = null;
 
@@ -253,12 +251,10 @@ public class EventLoader {
 																// ../xs0/events/2012
 
 		// File filter to catch dir names like "C201204112255A"
-		FilenameFilter eventFilter = new FilenameFilter() {
-			public boolean accept(File dir, String name) {
-				File file = new File(dir + "/" + name);
-				return name.contains(yyyymmdd) && file.isDirectory();
-			}
-		};
+		FilenameFilter eventFilter = (dir, name) -> {
+      File file = new File(dir + "/" + name);
+      return name.contains(yyyymmdd) && file.isDirectory();
+    };
 
 		// Check that yearDir exists and is a Directory:
 
