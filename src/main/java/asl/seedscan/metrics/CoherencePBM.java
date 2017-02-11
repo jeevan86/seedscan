@@ -93,9 +93,7 @@ public class CoherencePBM extends PowerBandMetric {
 					try { // computeMetric (MetricException)
 						double result = computeMetric(channelX, channelY, station, day,
 								metric);
-						if (result == NO_RESULT) {
-							// Do nothing --> skip to next channel
-						} else {
+						if (result != NO_RESULT) {
 							metricResult.addResult(channelX, channelY, result, digest);
 						}
 					} catch (MetricException e) {

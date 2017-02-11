@@ -94,9 +94,7 @@ public class DifferencePBM extends PowerBandMetric {
 					try { // computeMetric (MetricException)
 						double result = computeMetric(channelX, channelY, station, day,
 								metric);
-						if (result == NO_RESULT) {
-							// Do nothing --> skip to next channel
-						} else {
+						if (result != NO_RESULT) {
 							metricResult.addResult(channelX, channelY, result, digest);
 						}
 					} catch (MetricException e) {
@@ -236,7 +234,6 @@ public class DifferencePBM extends PowerBandMetric {
 				iPanel = 1;
 			} else if (channelX.getChannel().equals("LHED")) {
 				iPanel = 2;
-			} else { // ??
 			}
 			String channelLabel = MetricResult.createResultId(channelX,
 					channelY);

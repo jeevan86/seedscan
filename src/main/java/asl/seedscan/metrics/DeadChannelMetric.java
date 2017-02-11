@@ -90,9 +90,7 @@ public class DeadChannelMetric extends PowerBandMetric {
 			}
 
 			double result = 0.0;
-			if (NLNMValue == null) {
-				// Do nothing --> skip to next channel
-			} else {
+			if (NLNMValue != null) {
 				// Dead channel if -7dB below NLNM
 				if (NLNMValue <= threshold) {
 					result = 0.0;
