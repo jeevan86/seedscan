@@ -59,14 +59,6 @@ public class StationData {
 		return timestamp;
 	}
 
-	public boolean hasComment(Calendar timestamp) {
-		return comments.containsKey(timestamp);
-	}
-
-	public Blockette getComment(Calendar timestamp) {
-		return comments.get(timestamp);
-	}
-
 	// epochs
 	public LocalDateTime addEpoch(Blockette blockette)
 			throws TimestampFormatException, WrongBlocketteException,
