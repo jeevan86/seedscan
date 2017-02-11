@@ -98,9 +98,7 @@ public class StationDeviationMetric extends PowerBandMetric {
 
 			try { // computeMetric() handle
 				double result = computeMetric(channel);
-				if (result == NO_RESULT) {
-					// Metric computation failed --> do nothing
-				} else {
+				if (result != NO_RESULT) {
 					metricResult.addResult(channel, result, digest);
 				}
 			} catch (MetricException e) {

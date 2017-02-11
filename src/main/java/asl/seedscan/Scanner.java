@@ -111,9 +111,6 @@ class Scanner implements Runnable {
 
 			if (eventCMTs != null) {
 				eventSynthetics = eventLoader.getDaySynthetics(currentDate, station);
-			} else {
-				// System.out.format("== Scanner: NO CMTs FOUND for this
-				// day\n");
 			}
 
 			// [2] Read in all the seed files for this station, for this day &
@@ -175,8 +172,7 @@ class Scanner implements Runnable {
 					// MetricResult.getResult(id) returns value = String
 
 					MetricResult results = metric.getMetricResult();
-					if (results == null) {
-					} else {
+					if (results != null) {
 						for (String id : results.getIdSortedSet()) {
 							double value = results.getResult(id);
 							/* @formatter:off */

@@ -147,8 +147,7 @@ public class StationScan extends ScanWorker {
 					crossPowerMap = metric.getCrossPowerMap();
 
 					MetricResult results = metric.getMetricResult();
-					if (results == null) {
-					} else {
+					if (results != null) {
 						for (String id : results.getIdSortedSet()) {
 							double value = results.getResult(id);
 						/* @formatter:off */

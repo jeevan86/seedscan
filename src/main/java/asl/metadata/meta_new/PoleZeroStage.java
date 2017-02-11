@@ -116,13 +116,13 @@ public class PoleZeroStage extends ResponseStage implements Cloneable, Serializa
 	Complex[] getResponse(double[] freqs) throws PoleZeroStageException {
 		// Some polezero responses (e.g., ANMO.IU.20.BN?) appear to have NO
 		// zeros
-		// if (poleAdded && zeroAdded && normalizationSet) {
-		if (poleAdded && normalizationSet) {
-			// Looks like the polezero info has been loaded ... so continue ...
-		} else {
+		if (!poleAdded || !normalizationSet) {
 			throw new PoleZeroStageException(
 					"[ PoleZeroStage-->getResponse Error: PoleZero info does not appear to be loaded! ]");
 		}
+
+		// Looks like the polezero info has been loaded ... so continue ...
+
 		if (!(freqs.length > 0)) {
 			throw new PoleZeroStageException(
 					"[ PoleZeroStage-->getResponse Error: Input freqs[] has no zero length! ]");
@@ -134,8 +134,6 @@ public class PoleZeroStage extends ResponseStage implements Cloneable, Serializa
 			} catch (PoleZeroStageException e) {
 				logger.error("PoleZeroStageException:", e);
 			}
-			// System.out.format("%12.4f\t%12.4f\n",freqs[i], response[i].mag()
-			// );
 		}
 		return response;
 	}
