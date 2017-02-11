@@ -412,11 +412,8 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 				logger.error("PoleZeroStageException:", e);
 				throw new ChannelMetaException("PoleZeroStageException");
 			}
-
-			if (outUnits == 0) {
-				// Default response (in SEED Units) requested --> Don't
-				// integrate or differentiate
-			} else { // Convert response to desired responseOut Units
+			/*Default response (in SEED Units) requested = 0 --> Don't integrate or differentiate */
+			if (outUnits != 0) { // Convert response to desired responseOut Units
 				int inUnits = stage.getInputUnits(); // e.g., 0=Unknown ;
 														// 1=Disp(m) ;
 														// 2=Vel(m/s^2) ; 3=Acc
@@ -677,7 +674,6 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 					this.addStage(stageNumber, digitalStage);
 				}
 
-			} else { // No Stage stageNumber: What we do here ...
 			}
 		}
 
