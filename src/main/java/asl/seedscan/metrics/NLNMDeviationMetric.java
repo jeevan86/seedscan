@@ -106,7 +106,7 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 			if (nlnmPath == null) {
 				NLNMFile = this.getClass().getResource(DEFAULT_NLNM_PATH);
 			} else {
-				new File(get("nlnm-modelfile")).toURI().toURL();
+				NLNMFile = new File(get("nlnm-modelfile")).toURI().toURL();
 			}
 
 			if (nhnmPath == null) {
