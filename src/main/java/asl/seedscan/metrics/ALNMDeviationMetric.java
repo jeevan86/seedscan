@@ -106,7 +106,7 @@ public class ALNMDeviationMetric extends PowerBandMetric {
 			if (alnmPath == null) {
 				ALNMFile = this.getClass().getResource(DEFAULT_ALNM_PATH);
 			} else {
-				new File(get("alnm-modelfile")).toURI().toURL();
+				ALNMFile = new File(get("alnm-modelfile")).toURI().toURL();
 			}
 
 			if (ahnmPath == null) {
