@@ -158,9 +158,7 @@ public class ALNMDeviationMetric extends PowerBandMetric {
 
 			try { // computeMetric() MetricException handle
 				double result = computeMetric(channel, station, day, metric);
-				if (result == NO_RESULT) {
-					// Do nothing --> skip to next channel
-				} else {
+				if (result != NO_RESULT) {
 					metricResult.addResult(channel, result, digest);
 				}
 			} catch (MetricException e) {

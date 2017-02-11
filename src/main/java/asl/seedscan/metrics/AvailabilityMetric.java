@@ -80,9 +80,9 @@ public class AvailabilityMetric extends Metric {
 		}
 
 		// Initialize availability and sample rates
-		double availability = 0;
-		double metaSR = 0.0;
-		double dataSR = 0.0;
+		double availability;
+		double metaSR;
+		double dataSR;
 
 		// The expected (=from metadata) number of samples:
 		ChannelMeta chanMeta = stationMeta.getChannelMetadata(channel);

@@ -64,7 +64,7 @@ public class BlockPool implements Serializable{
 	 *         pool is empty.
 	 */
 	public synchronized int[] getNewBlock() {
-		int[] block = null;
+		int[] block;
 		if (m_pool.size() > 0) {
 			block = m_pool.remove(0);
 		} else {

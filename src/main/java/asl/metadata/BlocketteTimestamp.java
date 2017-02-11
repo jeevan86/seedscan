@@ -8,7 +8,7 @@ import java.time.LocalTime;
 public class BlocketteTimestamp {
 	public static LocalDateTime parseTimestamp(String timestampString)
 			throws TimestampFormatException {
-		int year = 1;
+		int year;
 		int dayOfYear = 1;
 		int hour = 0;
 		int minute = 0;

@@ -181,8 +181,8 @@ public class BlockLocator extends
 		DataSet tempData = null;
 		ContiguousBlock oldBlock = null;
 		ContiguousBlock newBlock = null;
-		long startTime = 0;
-		long endTime = 0;
+		long startTime;
+		long endTime;
 
 		for (int dataIndex = 0, blockIndex = 0; (dataIndex < dataList.size())
 				&& (blockIndex < blockList.size());) {
