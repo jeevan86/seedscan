@@ -697,7 +697,6 @@ public class MetricData implements Serializable {
 		}
 		int j = 0;
 
-		// int istart = (int)((windowStartEpoch - dataStartEpoch) / interval);
 		// MTH: this seems to line it up better with rdseed output window but
 		// doesn't seem right ...
 		int istart = (int) ((windowStartEpoch - dataStartEpoch) / interval) + 1;
@@ -707,8 +706,6 @@ public class MetricData implements Serializable {
 				dataArray[i] = (double) series1[i + istart];
 			} else if (j < nextData.getLength()) {
 				dataArray[i] = (double) series2[j++];
-			} else {
-				// We should never be here!
 			}
 		}
 
@@ -1253,11 +1250,10 @@ public class MetricData implements Serializable {
 				digests.add(chanMeta.getDigestBytes());
 			}
 
-			if (!hasChannelData(channel)) {
-				// Go ahead and pass back the digests for the metadata alone
-				// The only Metric that should get to here is the
-				// AvailabilityMetric
-			} else { // Add in the data digests
+			/* If there is no channelData - Go ahead and pass back the digests for the metadata alone
+			 The only Metric that should get to here is the
+			 AvailabilityMetric */
+			if (hasChannelData(channel)) { // Add in the data digests
 				ArrayList<DataSet> datasets = getChannelData(channel);
 				if (datasets == null) {
 					logger.warn(String.format("getHash(): Data not found for requested channel:%s date:%s\n", channel,
@@ -1265,7 +1261,6 @@ public class MetricData implements Serializable {
 					return null;
 				} else {
 					for (int i = 0; i < datasets.size(); i++) {
-						// digests.add(datasets.get(0).getDigestBytes());
 						digests.add(datasets.get(i).getDigestBytes());
 					}
 				}
