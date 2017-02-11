@@ -5,6 +5,7 @@ config.xml
 config.xml.*
 config.xml~
 .gradle/
+gradle*
 .idea/
 *.jar
 logs/*
