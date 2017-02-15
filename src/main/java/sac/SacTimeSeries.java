@@ -138,7 +138,7 @@ public class SacTimeSeries {
 
 	private int numPtsRead = 0;
 
-	public void read(File sacFile) throws FileNotFoundException, IOException {
+	public void read(File sacFile) throws IOException {
 		if (sacFile.length() < data_offset) {
 			throw new IOException(sacFile.getName()
 					+ " does not appear to be a sac file! File size ("
