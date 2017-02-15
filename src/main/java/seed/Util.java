@@ -1,11 +1,6 @@
 package seed;
 
 
-
-import java.text.DecimalFormat;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.TimeZone;
 /**
  * Util.java contains various static methods needed routinely in many places.
  *Its purpose is to hold all of these little helper functions in one place
@@ -32,49 +27,6 @@ class Util {
 			else
 				sb.append(s.charAt(i));
 		return sb.toString();
-	}
-
-	// This sets the default time zone to GMT so that GregorianCalendar uses GMT
-	// as the local time zone!
-	public static void setModeGMT() {
-		TimeZone tz = TimeZone.getTimeZone("GMT+0");
-		TimeZone.setDefault(tz);
-	}
-
-	private static DecimalFormat df;
-	private static DecimalFormat df3;
-
-	/**
-	 * return a time string to the millisecond from a GregorianCalendar
-	 * 
-	 * @param d
-	 *            A gregorian calendar to translate to time hh:mm:ss.mmm
-	 * @return the time string hh:mm:ss.mmm
-	 */
-	static String asctime2(GregorianCalendar d) {
-		if (df == null)
-			df = new DecimalFormat("00");
-		if (df3 == null)
-			df3 = new DecimalFormat("000");
-		return df.format(d.get(Calendar.HOUR_OF_DAY)) + ":"
-				+ df.format(d.get(Calendar.MINUTE)) + ":"
-				+ df.format(d.get(Calendar.SECOND)) + "."
-				+ df3.format(d.get(Calendar.MILLISECOND));
-	}
-
-	/***
-	 * return the given GreogoianCalendar date as yyyy/mm/dd
-	 * 
-	 * @param d
-	 *            A GregorianCalendar to translate
-	 * @return The current data
-	 */
-	static String ascdate(GregorianCalendar d) {
-		if (df == null)
-			df = new DecimalFormat("00");
-		return d.get(Calendar.YEAR) + "/"
-				+ df.format(d.get(Calendar.MONTH) + 1) + "/"
-				+ df.format(d.get(Calendar.DAY_OF_MONTH));
 	}
 
 	/**
@@ -108,7 +60,7 @@ class Util {
 	 *            The item to convert to hex
 	 * @return The hex string
 	 */
-	public static String toHex(byte b) {
+	static String toHex(byte b) {
 		return toHex(((long) b) & 0xFFL);
 	}
 
@@ -119,7 +71,7 @@ class Util {
 	 *            The item to convert to hex
 	 * @return The hex string
 	 */
-	public static String toHex(short b) {
+	static String toHex(short b) {
 		return toHex(((long) b) & 0xFFFFL);
 	}
 
@@ -130,7 +82,7 @@ class Util {
 	 *            The item to convert to hex
 	 * @return The hex string
 	 */
-	public static String toHex(int b) {
+	static String toHex(int b) {
 		return toHex(((long) b) & 0xFFFFFFFFL);
 	}
 
