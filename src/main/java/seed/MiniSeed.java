@@ -836,7 +836,6 @@ public class MiniSeed {
 			sec = timebuf.get();
 			timebuf.get();
 			husec = timebuf.getShort();
-			julian = SeedUtil.toJulian(year, day);
 
 			// Note : jan 1, 1970 is time zero so 1 must be subtracted from the
 			// day
@@ -1408,16 +1407,6 @@ public class MiniSeed {
 	public int getHuseconds() {
 		crack();
 		return husec;
-	}
-
-	/**
-	 * return Julian day (a big integer) of the first sample's year and day.
-	 *
-	 * @return The 1st sample time
-	 */
-	public int getJulian() {
-		crack();
-		return julian;
 	}
 
 	/**
