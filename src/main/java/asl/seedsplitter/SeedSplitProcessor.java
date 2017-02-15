@@ -18,6 +18,10 @@
  */
 package asl.seedsplitter;
 
+import asl.util.Time;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.Hashtable;
@@ -207,15 +211,6 @@ public class SeedSplitProcessor implements Runnable {
 		double sampleRate = 0.0;
 		long interval = 0;
 
-		int[] ymd = null;
-		int year;
-		int month;
-		int day;
-		int doy;
-		int hour;
-		int minute;
-		int second;
-		int husec;
 		long startTime = 0;
 
 		byte[] recordBytes = null;
@@ -324,25 +319,15 @@ public class SeedSplitProcessor implements Runnable {
 
 						TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
 
-						year = MiniSeed.crackYear(recordBytes);
-						doy = MiniSeed.crackDOY(recordBytes);
-						ymd = SeedUtil.ymd_from_doy(year, doy);
-						month = ymd[1] - 1;
-						day = ymd[2];
-						timeComp = MiniSeed.crackTime(recordBytes);
-						hour = timeComp[0];
-						minute = timeComp[1];
-						second = timeComp[2];
-						husec = timeComp[3];
+						int year = MiniSeed.crackYear(recordBytes);
+						int doy = MiniSeed.crackDOY(recordBytes);
 
-						// System.out.format("== SeedSplitProcessor: key=%s [%d/%d/%d %2d:%2d:%2d]\n",
-						// key, year,month,day,hour,minute,second);
-						cal = new GregorianCalendar(m_tz);
-						cal.set(year, month, day, hour, minute, second);
-						cal.setTimeInMillis((cal.getTimeInMillis() / 1000L * 1000L)
-								+ (husec / 10));
-						startTime = (cal.getTimeInMillis() * 1000)
-								+ (husec % 10) * 100;
+						/*See SEED manual Chapter 3*/
+						int[] btime = MiniSeed.crackTime(recordBytes);
+
+						LocalDateTime dateTime = Time.btimeToLocalDateTime(year, doy, btime[0], btime[1], btime[2], btime[3]);
+
+						startTime = Time.calculateEpochMicroSeconds(dateTime);
 
 						if (!temps.containsKey(key)) {
 							tempData = null;
