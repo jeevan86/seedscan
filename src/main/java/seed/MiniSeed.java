@@ -694,7 +694,7 @@ public class MiniSeed {
 			
 			bb.position(39); // position # of blockettes that follow
 			int nblks = bb.get(); // get it
-			int offset = 0;
+			int offset;
 			if (nblks > 0) {
 				bb.position(46); // position offset to first blockette
 				offset = bb.getShort();
@@ -729,7 +729,7 @@ public class MiniSeed {
 						bb.position(oldoffset + 5); // this should be word order
 						if (bb.get() == 0) {
 							if (swap)
-								return swap;
+								return true;
 							logger.error("Offset said swap but order byte in b1000 said not to! "
 									+ toStringRaw(buf));
 							return false;
@@ -1134,7 +1134,7 @@ public class MiniSeed {
 							b2000 = new Blockette2000(buf2000);
 						}
 						if (b2000s == null) {
-							b2000s = new ArrayList<Blockette2000>();
+							b2000s = new ArrayList<>();
 						}
 						b2000s.add(b2000);
 						break;
