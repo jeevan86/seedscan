@@ -18,10 +18,10 @@
  */
 package asl.seedsplitter;
 
+import asl.concurrent.FallOffQueue;
 import asl.util.Time;
-import java.time.LocalDate;
+import edu.iris.dmc.seedcodec.SteimException;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.Hashtable;
@@ -31,18 +31,12 @@ import java.util.TreeSet;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import asl.concurrent.FallOffQueue;
 import seed.BlockSizeException;
 import seed.Blockette320;
 import seed.IllegalSeednameException;
 import seed.MiniSeed;
-import seed.SeedUtil;
-
-import edu.iris.dmc.seedcodec.SteimException;
 
 /**
  * @author Joel D. Edwards
@@ -63,7 +57,6 @@ public class SeedSplitProcessor implements Runnable {
 	private boolean m_running;
 	private Hashtable<String, TreeSet<DataSet>> m_trees = null;
 	private Hashtable<String, ArrayList<DataSet>> m_table = null;
-	private static TimeZone m_tz = TimeZone.getTimeZone("GMT");
 
 	// MTH:
 	private Hashtable<String, ArrayList<Integer>> m_qualityTable = null;
@@ -85,7 +78,7 @@ public class SeedSplitProcessor implements Runnable {
 	public SeedSplitProcessor(LinkedBlockingQueue<ByteBlock> queue,
 			FallOffQueue<SeedSplitProgress> progressQueue) {
 		_construct(queue, progressQueue,
-				new Hashtable<String, ArrayList<DataSet>>());
+				new Hashtable<>());
 	}
 
 	/**
@@ -122,7 +115,7 @@ public class SeedSplitProcessor implements Runnable {
 		m_progressQueue = progressQueue;
 		m_running = false;
 		m_table = table;
-		m_trees = new Hashtable<String, TreeSet<DataSet>>();
+		m_trees = new Hashtable<>();
 
 	}
 
@@ -215,16 +208,15 @@ public class SeedSplitProcessor implements Runnable {
 
 		byte[] recordBytes = null;
 		int[] samples = null;
-		int[] timeComp = null;
-		GregorianCalendar cal = null;
+
 		String seedstring = null;
 		// total number of bytes that have been received from the queue
 		long byteTotal = 0;
 		SeedSplitProgress progress = null;
 		String key = null;
 		TreeSet<DataSet> tree = null;
-		Hashtable<String, DataSet> temps = new Hashtable<String, DataSet>();
-		Hashtable<String, Integer> recordCounts = new Hashtable<String, Integer>();
+		Hashtable<String, DataSet> temps = new Hashtable<>();
+		Hashtable<String, Integer> recordCounts = new Hashtable<>();
 
 		Matcher matcher = null;
 
@@ -336,7 +328,7 @@ public class SeedSplitProcessor implements Runnable {
 						}
 
 						if (!m_trees.containsKey(key)) {
-							tree = new TreeSet<DataSet>();
+							tree = new TreeSet<>();
 							m_trees.put(key, tree);
 						} else {
 							tree = m_trees.get(key);
@@ -446,12 +438,12 @@ public class SeedSplitProcessor implements Runnable {
 						int quality = record.getTimingQuality();
 
 						if (m_qualityTable == null) {
-							m_qualityTable = new Hashtable<String, ArrayList<Integer>>();
+							m_qualityTable = new Hashtable<>();
 						}
 
 						ArrayList<Integer> qualityArray = null;
 						if (m_qualityTable.get(key) == null) {
-							qualityArray = new ArrayList<Integer>();
+							qualityArray = new ArrayList<>();
 							m_qualityTable.put(key, qualityArray);
 						} else {
 							qualityArray = m_qualityTable.get(key);
@@ -478,12 +470,12 @@ public class SeedSplitProcessor implements Runnable {
 							// blockette320.getCalibrationEpoch() );
 
 							if (m_calTable == null) {
-								m_calTable = new Hashtable<String, ArrayList<Blockette320>>();
+								m_calTable = new Hashtable<>();
 							}
 
 							ArrayList<Blockette320> calBlock = null;
 							if (m_calTable.get(key) == null) {
-								calBlock = new ArrayList<Blockette320>();
+								calBlock = new ArrayList<>();
 								m_calTable.put(key, calBlock);
 							} else {
 								calBlock = m_calTable.get(key);
@@ -554,7 +546,7 @@ public class SeedSplitProcessor implements Runnable {
 		DataSet lastDataSet;
 		for (String chanKey : m_trees.keySet()) {
 			tree = m_trees.get(chanKey);
-			ArrayList<DataSet> list = new ArrayList<DataSet>(tree.size());
+			ArrayList<DataSet> list = new ArrayList<>(tree.size());
 			if (!tree.isEmpty()) {
 				logger.debug("Processing " + tree.size()
 						+ " tree elements for '" + chanKey + "'");
