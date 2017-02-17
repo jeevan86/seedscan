@@ -104,7 +104,7 @@ public class EventLoader {
 	 *            the timestamp
 	 * @return the string
 	 */
-	private final String makeKey(LocalDate date) {
+	private String makeKey(LocalDate date) {
 		return date.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 	}
 
