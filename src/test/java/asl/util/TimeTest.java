@@ -4,43 +4,40 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-/**
- * Created by jholland on 2/15/17.
- */
 public class TimeTest {
 
   @Test
-  public void calculateEpochMicroSeconds() throws Exception {
+  public void testCalculateEpochMicroSeconds() throws Exception {
     throw new RuntimeException("not yet implemented");
 
   }
 
   @Test
-  public void calculateEpochMilliSeconds() throws Exception {
+  public void testCalculateEpochMilliSeconds() throws Exception {
     throw new RuntimeException("not yet implemented");
 
   }
 
   @Test
-  public void decimillisecondsToNanoSeconds() throws Exception {
+  public void testDecimillisecondsToNanoSeconds() throws Exception {
     throw new RuntimeException("not yet implemented");
 
   }
 
   @Test
-  public void btimeToLocalDateTime_Leap_Second() throws Exception {
+  public void testBtimeToLocalDateTime_Leap_Second() throws Exception {
     throw new RuntimeException("not yet implemented");
 
   }
 
   @Test
-  public void btimeToLocalDateTime_Standard() throws Exception {
+  public void testBtimeToLocalDateTime_Standard() throws Exception {
     throw new RuntimeException("not yet implemented");
 
   }
 
   @Test
-  public void btimeToLocalDateTime_Leap_Year() throws Exception {
+  public void testBtimeToLocalDateTime_Leap_Year() throws Exception {
     throw new RuntimeException("not yet implemented");
 
   }
