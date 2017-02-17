@@ -1265,12 +1265,9 @@ public class MetricData implements Serializable {
 			} else if (channel.getChannel().contains("ED")) {
 				channelPrefix = channel.getChannel().replace("ED", "");
 			} else {
-				/*James:
-				Should this be a continue? If we are passed a list with Z, ED, and ND, won't it fail to
-				rotate any since Z came first.
-				TODO: Write up test cases.
-				 */
-				return;
+				/*We want to check for remaining channels.
+				This may have been a list with LHZ*/
+				continue;
 			}
 
 			// Check here since each derived channel (e.g., "00-LHND") will
