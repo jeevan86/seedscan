@@ -1,51 +1,59 @@
-/*
- * Copyright 2011, United States Geological Survey or
- * third-party contributors as indicated by the @author tags.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
- *
- */
-
 package asl.metadata;
 
 import java.util.ArrayList;
 
 public class ChannelArray {
-	private ArrayList<Channel> channels = null;
 
-	public ChannelArray(String location, String channel1, String channel2,
-			String channel3) {
-		channels = new ArrayList<Channel>();
-		channels.add(new Channel(location, channel1));
-		channels.add(new Channel(location, channel2));
-		channels.add(new Channel(location, channel3));
-	}
+  private ArrayList<Channel> channels = null;
 
-	public ChannelArray(String location, String channel1) // For testing
-	{
-		channels = new ArrayList<Channel>();
-		channels.add(new Channel(location, channel1));
-	}
+  /**
+   * Create triplet of Channels from Location Code and Channel Codes.
+   * Created channels will share the location.
+   *
+   * @param location location code EG 00
+   * @param channel1 channel code EG LH1
+   * @param channel2 channel code EG LH2
+   * @param channel3 channel code EG LHZ
+   */
+  public ChannelArray(String location, String channel1, String channel2,
+      String channel3) {
+    channels = new ArrayList<>();
+    channels.add(new Channel(location, channel1));
+    channels.add(new Channel(location, channel2));
+    channels.add(new Channel(location, channel3));
+  }
 
-	public ChannelArray(Channel channelA, Channel channelB) {
-		channels = new ArrayList<Channel>();
-		channels.add(channelA);
-		channels.add(channelB);
-	}
+  /**
+   * Create Channel Array with a single Channel.
+   * Used when testing individual channels for rotation in MetricData
+   *
+   * @param location location code EG 10
+   * @param channel1 channel code EG LHED
+   */
+  public ChannelArray(String location, String channel1) // For testing
+  {
+    channels = new ArrayList<>();
+    channels.add(new Channel(location, channel1));
+  }
 
-	public ArrayList<Channel> getChannels() {
-		return channels;
-	}
+  /**
+   * Create pair of channels from Channel objects.
+   * Location may differ between Channels
+   *
+   * @param channelA first Channel
+   * @param channelB second Channel
+   */
+  public ChannelArray(Channel channelA, Channel channelB) {
+    channels = new ArrayList<>();
+    channels.add(channelA);
+    channels.add(channelB);
+  }
+
+  /**
+   * @return list of Channels
+   */
+  public ArrayList<Channel> getChannels() {
+    return channels;
+  }
 
 }
