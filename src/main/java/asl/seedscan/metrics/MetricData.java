@@ -251,16 +251,12 @@ public class MetricData implements Serializable {
 	 * @return Double = metric value for given channel, station and date
 	 */
 	Double getMetricValue(LocalDate date, String metricName, Station station, Channel channel) {
-		Double metricVal = null;
-
 		// Retrieve metric value from Database
 		if (metricReader.isConnected()) {
-			metricVal = metricReader.getMetricValue(date, metricName, station, channel);
-			return metricVal;
+			return metricReader.getMetricValue(date, metricName, station, channel);
 		} else {
-			metricVal = null;
 			logger.warn("getMetricValue: Metric Reader is not connected");
-			return metricVal;
+			return null;
 		}
 	}
 
@@ -277,11 +273,10 @@ public class MetricData implements Serializable {
 	private ArrayList<DataSet> getChannelData(String location, String name) {
 		String locationName = location + "-" + name;
 		Set<String> keys = data.keySet();
-		for (String key : keys) { // key looks like "IU_ANMO 00-BHZ (20.0 Hz)"
+		for (String key : keys) {
+			// key looks like "IU_ANMO 00-BHZ (20.0 Hz)"
 			if (key.contains(locationName)) {
-				// System.out.format(" key=%s contains locationName=%s\n", key,
-				// locationName);
-				return data.get(key); // return ArrayList<DataSet>
+				return data.get(key);
 			}
 		}
 		return null;
@@ -597,8 +592,8 @@ public class MetricData implements Serializable {
 		DataSet data = null;
 		boolean windowFound = false;
 
-		for (int i = 0; i < datasets.size(); i++) {
-			data = datasets.get(i);
+		for (DataSet dataset : datasets) {
+			data = dataset;
 			long startEpoch = data.getStartTime() / 1000; // Convert microsecs
 			// --> millisecs
 			long endEpoch = data.getEndTime() / 1000; // ...
@@ -953,7 +948,7 @@ public class MetricData implements Serializable {
 			}
 			northDataSet.extend(intArray, 0, ndata);
 
-			ArrayList<DataSet> dataList = new ArrayList<DataSet>();
+			ArrayList<DataSet> dataList = new ArrayList<>();
 			dataList.add(northDataSet);
 			data.put(northKey, dataList);
 
@@ -971,7 +966,7 @@ public class MetricData implements Serializable {
 			}
 			eastDataSet.extend(intArray, 0, ndata);
 
-			dataList = new ArrayList<DataSet>();
+			dataList = new ArrayList<>();
 			dataList.add(eastDataSet);
 			data.put(eastKey, dataList);
 		} catch (TimeseriesException | ChannelException | IllegalSampleRateException e){
@@ -992,7 +987,7 @@ public class MetricData implements Serializable {
 	 */
 	private double[][] getChannelOverlap(Channel channelX, Channel channelY, long[] startTime) {
 
-		ArrayList<ArrayList<DataSet>> dataLists = new ArrayList<ArrayList<DataSet>>();
+		ArrayList<ArrayList<DataSet>> dataLists = new ArrayList<>();
 
 		ArrayList<DataSet> channelXData = getChannelData(channelX);
 		ArrayList<DataSet> channelYData = getChannelData(channelY);
@@ -1237,7 +1232,7 @@ public class MetricData implements Serializable {
 	 * @return the hash
 	 */
 	private synchronized ByteBuffer getHash(ChannelArray channelArray) {
-		ArrayList<ByteBuffer> digests = new ArrayList<ByteBuffer>();
+		ArrayList<ByteBuffer> digests = new ArrayList<>();
 
 		ArrayList<Channel> channels = channelArray.getChannels();
 		for (Channel channel : channels) {
@@ -1260,8 +1255,8 @@ public class MetricData implements Serializable {
 							metadata.getDate()));
 					return null;
 				} else {
-					for (int i = 0; i < datasets.size(); i++) {
-						digests.add(datasets.get(i).getDigestBytes());
+					for (DataSet dataset : datasets) {
+						digests.add(dataset.getDigestBytes());
 					}
 				}
 			}
