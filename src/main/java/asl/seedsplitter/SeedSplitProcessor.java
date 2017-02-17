@@ -23,10 +23,8 @@ import asl.util.Time;
 import edu.iris.dmc.seedcodec.SteimException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.GregorianCalendar;
 import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.TimeZone;
 import java.util.TreeSet;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.regex.Matcher;
@@ -110,7 +108,6 @@ public class SeedSplitProcessor implements Runnable {
 	private void _construct(LinkedBlockingQueue<ByteBlock> queue,
 			FallOffQueue<SeedSplitProgress> progressQueue,
 			Hashtable<String, ArrayList<DataSet>> table) {
-		TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
 		m_queue = queue;
 		m_progressQueue = progressQueue;
 		m_running = false;
@@ -308,8 +305,6 @@ public class SeedSplitProcessor implements Runnable {
 						} else {
 							recordCounts.put(key, recordCounts.get(key) + 1);
 						}
-
-						TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
 
 						int year = MiniSeed.crackYear(recordBytes);
 						int doy = MiniSeed.crackDOY(recordBytes);
@@ -553,21 +548,9 @@ public class SeedSplitProcessor implements Runnable {
 				iter = tree.iterator();
 				currDataSet = null;
 				lastDataSet = iter.next();
-				// MTH
-				// System.out.format("== chanKey:[%s] First DataSet:[%s - %s] BlockCount=[%d] Length=[%d]\n",
-				// chanKey,
-				// DataSet.timestampToString(lastDataSet.getStartTime()),
-				// DataSet.timestampToString(lastDataSet.getEndTime()),
-				// lastDataSet.getBlockCount(), lastDataSet.getLength() );
 
 				while (iter.hasNext()) {
 					currDataSet = iter.next();
-					// MTH
-					// System.out.format("== chanKey:[%s] Next DataSet:[%s - %s] BlockCount=[%d] Length=[%d]\n",
-					// chanKey,
-					// DataSet.timestampToString(currDataSet.getStartTime()),
-					// DataSet.timestampToString(currDataSet.getEndTime()),
-					// currDataSet.getBlockCount(), currDataSet.getLength() );
 
 					try {
 						logger.debug("Merging DataSets...");
@@ -591,13 +574,7 @@ public class SeedSplitProcessor implements Runnable {
 				logger.debug("Empty tree for '" + chanKey + "'");
 			}
 		}
-		/*
-		 * for (String tableKey : m_table.keySet()) { ArrayList<DataSet> tmpList
-		 * = m_table.get(tableKey); for (int i = 0; i < tmpList.size(); i++) {
-		 * DataSet dset = tmpList.get(i); double SR = dset.getSampleRate();
-		 * //System.out.format("m_table[%s] SampleRate = %f\n", tableKey, SR); }
-		 * }
-		 */
+
 		logger.debug("<SeedSplitProcessor Thread> Yeah, we're done.");
 		logger.debug("Kept " + kept + " records");
 		logger.debug("Discarded " + discarded + " records");
