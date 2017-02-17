@@ -1011,8 +1011,6 @@ public class MetricData implements Serializable {
 		locator.doInBackground();
 		blocks = locator.getBlocks();
 
-		// System.out.println("Found " + blocks.size() + " Contiguous Blocks");
-
 		ContiguousBlock largestBlock = null;
 		ContiguousBlock lastBlock = null;
 		for (ContiguousBlock block : blocks) {
@@ -1024,27 +1022,16 @@ public class MetricData implements Serializable {
 						((block.getStartTime() - lastBlock.getEndTime()) / block.getInterval()),
 						(block.getStartTime() - lastBlock.getEndTime()));
 			}
-			// System.out.println(" Time Range: " +
-			// Sequence.timestampToString(block.getStartTime()) + " - " +
-			// Sequence.timestampToString(block.getEndTime()) + " (" +
-			// ((block.getEndTime() - block.getStartTime()) /
-			// block.getInterval() + 1) + " data points)");
 			lastBlock = block;
 		}
 
 		double[][] channels = { null, null };
-		int[] channel = null;
+		int[] channel;
 
 		for (int i = 0; i < 2; i++) {
-			boolean found = false;
 			for (DataSet set : dataLists.get(i)) {
-				if ((!found) && set.containsRange(largestBlock.getStartTime(), largestBlock.getEndTime())) {
+				if (set.containsRange(largestBlock.getStartTime(), largestBlock.getEndTime())) {
 					try {
-						// System.out.println(" DataSet[" +i+ "]: " +
-						// Sequence.timestampToString(set.getStartTime()) +
-						// " - " + Sequence.timestampToString(set.getEndTime())
-						// + " (" + ((set.getEndTime() - set.getStartTime()) /
-						// set.getInterval() + 1) + " data points)");
 						channel = set.getSeries(largestBlock.getStartTime(), largestBlock.getEndTime());
 						channels[i] = intArrayToDoubleArray(channel);
 					} catch (SequenceRangeException e) {
@@ -1052,7 +1039,6 @@ public class MetricData implements Serializable {
 					} catch (IndexOutOfBoundsException e) {
 						logger.error("IndexOutOfBoundsException:", e);
 					}
-					found = true;
 					break;
 				}
 			}
