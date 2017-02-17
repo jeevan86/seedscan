@@ -906,7 +906,7 @@ public class MetricData implements Serializable {
 
 			// keys look like "IU_ANMO 00-BH1 (20.0 Hz)"
 			// or "IU_ANMO 10-BH1 (20.0 Hz)"
-			String lookupString = null;
+			String lookupString;
 			if (use12) {
 				lookupString = location + "-" + channelPrefix + "1"; // e.g.,
 				// "10-BH1"
@@ -1002,14 +1002,9 @@ public class MetricData implements Serializable {
 		dataLists.add(channelXData);
 		dataLists.add(channelYData);
 
-		// System.out.println("Locating contiguous blocks...");
-
-		ArrayList<ContiguousBlock> blocks = null;
 		BlockLocator locator = new BlockLocator(dataLists);
-		// Thread blockThread = new Thread(locator);
-		// blockThread.start();
-		locator.doInBackground();
-		blocks = locator.getBlocks();
+		locator.doInBackground(); //Not actually in background.
+		ArrayList<ContiguousBlock> blocks = locator.getBlocks();
 
 		ContiguousBlock largestBlock = null;
 		ContiguousBlock lastBlock = null;
@@ -1263,17 +1258,18 @@ public class MetricData implements Serializable {
 		ArrayList<Channel> channels = channelArray.getChannels();
 		for (Channel channel : channels) {
 
-			// channelPrefix = channel band + instrument code e.g., 'L' + 'H' =
-			// "LH"
-			String channelPrefix = null;
+			/* channelPrefix = channel band + instrument code e.g., 'L' + 'H' ="LH"*/
+			String channelPrefix;
 			if (channel.getChannel().contains("ND")) {
 				channelPrefix = channel.getChannel().replace("ND", "");
 			} else if (channel.getChannel().contains("ED")) {
 				channelPrefix = channel.getChannel().replace("ED", "");
 			} else {
-				// System.out.format("== MetricData.checkForRotatedChannels:
-				// Request for UNKNOWN channel=%s\n",
-				// channel);
+				/*James:
+				Should this be a continue? If we are passed a list with Z, ED, and ND, won't it fail to
+				rotate any since Z came first.
+				TODO: Write up test cases.
+				 */
 				return;
 			}
 
