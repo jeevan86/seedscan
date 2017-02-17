@@ -1,21 +1,3 @@
-/*
- * Copyright 2012, United States Geological Survey or
- * third-party contributors as indicated by the @author tags.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
- *
- */
 package asl.seedsplitter;
 
 import asl.concurrent.FallOffQueue;
@@ -77,22 +59,6 @@ public class SeedSplitProcessor implements Runnable {
 			FallOffQueue<SeedSplitProgress> progressQueue) {
 		_construct(queue, progressQueue,
 				new Hashtable<>());
-	}
-
-	/**
-	 * Constructor
-	 * 
-	 * @param queue
-	 *            The queue from which MiniSEED records are received.
-	 * @param progressQueue
-	 *            The queue into which progress information is pushed.
-	 * @param table
-	 *            An initial hash table to which new data should be added.
-	 */
-	public SeedSplitProcessor(LinkedBlockingQueue<ByteBlock> queue,
-			FallOffQueue<SeedSplitProgress> progressQueue,
-			Hashtable<String, ArrayList<DataSet>> table) {
-		_construct(queue, progressQueue, table);
 	}
 
 	/**
@@ -171,14 +137,6 @@ public class SeedSplitProcessor implements Runnable {
 
 	public Hashtable<String, ArrayList<Blockette320>> getCalTable() {
 		return m_calTable;
-	}
-
-	/**
-	 * Halts SeedSplitProcessor cleanly.
-	 */
-	public void halt() {
-		m_running = false;
-		m_queue.offer(new ByteBlock(null, 0, true, true));
 	}
 
 	private volatile int lastSequenceNumber = 0;

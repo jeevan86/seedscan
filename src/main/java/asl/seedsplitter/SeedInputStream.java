@@ -1,21 +1,3 @@
-/*
- * Copyright 2012, United States Geological Survey or
- * third-party contributors as indicated by the @author tags.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
- *
- */
 package asl.seedsplitter;
 
 import java.io.DataInputStream;
@@ -47,8 +29,8 @@ public class SeedInputStream implements Runnable {
 			.getLogger(asl.seedsplitter.SeedInputStream.class);
 	private static final Formatter formatter = new Formatter();
 
-	private static int MAX_RECORD_SIZE = 16384;
-	private static int BLOCK_SIZE = 256;
+	private static final int MAX_RECORD_SIZE = 16384;
+	private static final int BLOCK_SIZE = 256;
 
 	private DataInputStream m_inputStream = null;
 	private LinkedBlockingQueue<ByteBlock> m_queue = null;
@@ -109,20 +91,6 @@ public class SeedInputStream implements Runnable {
 	}
 
 	/**
-	 * Constructor.
-	 * 
-	 * @param inStream
-	 *            The stream from which to read MiniSEED records.
-	 * @param queue
-	 *            The processing queue into which the MiniSEED records are
-	 *            placed.
-	 */
-	public SeedInputStream(DataInputStream inStream,
-			LinkedBlockingQueue<ByteBlock> queue) {
-		this(inStream, queue, true, false);
-	}
-
-	/**
 	 * Returns this stream's MessageDigest
 	 * 
 	 * @return the raw digest for this stream.
@@ -137,13 +105,6 @@ public class SeedInputStream implements Runnable {
 			}
 		}
 		return result;
-	}
-
-	/**
-	 * Causes this thread to halt gracefully.
-	 */
-	public void halt() {
-		m_running = false;
 	}
 
 	/**
