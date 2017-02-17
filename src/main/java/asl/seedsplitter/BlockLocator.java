@@ -31,6 +31,10 @@ import org.slf4j.LoggerFactory;
  *         The BlockLocator class takes a ArrayList of {@code ArrayList<DataSet>}
  *         objects and builds a list of contiguous data segments which are
  *         common across all of the {@code ArrayList<DataSet>} objects.
+ *
+ *         This class extends SwingWorker, but this aspect never seems to be actually used.
+ *         If it is determined that we want to make this runnable, we will want to convert to
+ *         either a ScanWorker or a basic Runnable.
  */
 public class BlockLocator extends
 		SwingWorker<ArrayList<ContiguousBlock>, ContiguousBlock> {
