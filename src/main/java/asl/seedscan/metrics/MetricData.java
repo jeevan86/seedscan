@@ -1181,8 +1181,8 @@ public class MetricData implements Serializable {
 						 * metric computation
 						 */
 						logger.info(
-								"== valueDigestChanged: metricName={} date={} Digests are Equal BUT forceUpdate=[{}] so compute the metric anyway!\n",
-								metricName, strdate, forceUpdate);
+								"== valueDigestChanged: metricName={} date={} Digests are Equal BUT forceUpdate=[true] so compute the metric anyway.",
+								metricName, strdate);
 					} else {
 						newDigest = null;
 					}
