@@ -1,11 +1,6 @@
 package asl.util;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
+import java.time.*;
 
 /**
  * This class contains basic utility functions when using Java 8 Time classes.
@@ -51,6 +46,11 @@ public class Time {
 	/**
 	 * Creates a LocalDateTime object from the values in a BTIME field in the SEED format.
 	 * See Chapter 3 in Seed Manual
+	 *
+	 * Note that Java implementation of Time does not permit leap seconds.
+	 * Java spreads the leap second evenly across the last 1000 seconds of the day.
+	 * In the chance that a btime has a leap time, it will be regarded as 23:59:59.999999999
+	 *
 	 * @param year Year (e.g., 1987)
 	 * @param dayOfYear Day of Year (Jan 1 is 1)
 	 * @param hour Hours of day (0-23)
@@ -60,10 +60,23 @@ public class Time {
 	 * @return the LocalDateTime version of provided data
 	 */
 	public static LocalDateTime btimeToLocalDateTime(int year, int dayOfYear, int hour, int minute, int second, int dmSecond){
-		LocalDate date = LocalDate.ofYearDay(year, dayOfYear);
-		LocalTime time = LocalTime.of(hour, minute, second, Time.decimillisecondsToNanoSeconds(dmSecond));
+		try {
+			LocalDate date = LocalDate.ofYearDay(year, dayOfYear);
+			LocalTime time = LocalTime.of(hour, minute, second, Time.decimillisecondsToNanoSeconds(dmSecond));
 
-		return LocalDateTime.of(date, time);
+			return LocalDateTime.of(date, time);
+		}catch(DateTimeException e){
+			//There could theoretically be a 61st leap second as well.
+			if(second == 60 || second == 61) {
+				LocalDate date = LocalDate.ofYearDay(year, dayOfYear);
+				LocalTime time = LocalTime.of(hour, minute, 59, 999999999);
+				return LocalDateTime.of(date, time);
+			}
+			else {
+				//Not caused by leap second, throw it.
+				throw e;
+			}
+		}
 
 	}
 }
