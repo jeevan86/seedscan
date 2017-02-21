@@ -166,3 +166,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 ######Creating a JAR
     Executing "gradle jar" will create a jar file within build/libs/. The jar will create a logs folder wherever it is run, it looks for config.xml file in the folder it is located.
+
+###Contributions  
+######Code Style
+    This project uses the Google Java Style Guide for consistency. See [https://google.github.io/styleguide/javaguide.html](https://google.github.io/styleguide/javaguide.html) and [https://github.com/google/styleguide](https://github.com/google/styleguide) for IDE specific formatters.  
