@@ -32,7 +32,9 @@ dependencies {
         compile group: 'org.postgresql', name: 'postgresql', version: '9.4.1212'
         compile group: 'com.mchange', name: 'c3p0', version: '0.9.5.2'
         compile 'edu.sc.seis:seedCodec:1.0.11'
-        compile 'edu.sc.seis:TauP:2.4.1'
+        compile ('edu.sc.seis:TauP:2.4.1') {
+            exclude group: 'org.slf4j'
+        }
        // compile files('lib/TauP-2.1.0.jar')
 
         testCompile group: 'org.mockito', name: 'mockito-all', version: '1.10.19'
