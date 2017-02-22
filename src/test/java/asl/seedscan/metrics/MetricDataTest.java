@@ -14,6 +14,7 @@ import java.util.HashMap;
 
 import javax.xml.bind.DatatypeConverter;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import asl.metadata.Channel;
@@ -24,17 +25,56 @@ import asl.seedscan.database.MetricValueIdentifier;
 import asl.seedsplitter.DataSet;
 import asl.testutils.ResourceManager;
 import seed.Blockette320;
+import asl.seedscan.database.MetricDatabaseMock;
 
 public class MetricDataTest {
+
+	private static MetricDatabaseMock database;
+	private static MetricData data;
+	private static StationMeta metadata;
+
+
+	@BeforeClass
+	public static void setUpBeforeClass() throws Exception {
+		data = (MetricData) ResourceManager
+				.loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
+		metadata = (StationMeta) ResourceManager
+				.loadCompressedObject("/metadata/CU.BCIP.2015.228.StationMeta.ser.gz", false);
+		database = new MetricDatabaseMock();
+
+		// BCIP - Digest and data
+		LocalDate expectDate = LocalDate.parse("2014-07-12");
+		Station expectStation = new Station("CU", "BCIP");
+		String expectMetricName = "AvailabilityMetric";
+
+		Channel expectChannel = new Channel("00", "LHZ");
+		database.insertMockData(new MetricValueIdentifier(expectDate, expectMetricName, expectStation, expectChannel), 35.123456, ByteBuffer.wrap("Same".getBytes()));
+
+		expectChannel = new Channel("00", "LH1");
+		database.insertMockData(new MetricValueIdentifier(expectDate, expectMetricName, expectStation, expectChannel), 99.999, ByteBuffer.wrap("Same".getBytes()));
+
+		expectChannel = new Channel("00", "LH2");
+		database.insertMockData(new MetricValueIdentifier(expectDate, expectMetricName, expectStation, expectChannel), 0.00, ByteBuffer.wrap("Different".getBytes()));
+
+		// ANMO - Digest only tests
+		expectDate = LocalDate.parse("2015-08-16");
+		expectStation = new Station("IU", "ANMO");
+
+		expectChannel = new Channel("10", "BH1"); // Precomputed the digest
+		database.insertMockDigest(new MetricValueIdentifier(expectDate, expectMetricName, expectStation, expectChannel),
+				ByteBuffer.wrap(DatatypeConverter.parseHexBinary("9A4FE3A10FD60F93526F464B0DB9580E")));
+		expectChannel = new Channel("00", "LH2");
+		database.insertMockDigest(new MetricValueIdentifier(expectDate, expectMetricName, expectStation, expectChannel),
+				ByteBuffer.wrap("Different".getBytes()));
+	}
+
 
 	/*
 	 * Tests the missing data constructor.
 	 */
 	@Test
 	public final void testMetricDataMetricReaderStationMeta() throws Exception {
-		StationMeta metadata = (StationMeta) ResourceManager
-				.loadCompressedObject("/metadata/CU.BCIP.2015.228.StationMeta.ser.gz", false);
-		MetricData metricData = new MetricData(new MockReader(), metadata);
+		MetricData metricData = new MetricData(new MetricDatabaseMock(), metadata);
 		assertNotNull(metricData);
 	}
 
@@ -44,7 +84,6 @@ public class MetricDataTest {
 	 */
 	@Test
 	public final void testGetMetaData() throws Exception {
-		MetricData data = (MetricData) ResourceManager.loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
 		StationMeta metadata = data.getMetaData();
 		assertNotNull(metadata);
 		assertEquals("2015:206", metadata.getDate());
@@ -58,7 +97,6 @@ public class MetricDataTest {
 	 */
 	@Test
 	public final void testHasChannels() throws Exception {
-		MetricData data = (MetricData) ResourceManager.loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
 		// Should exist
 		assertTrue(data.hasChannels("00", "LH"));
 		assertTrue(data.hasChannels("10", "BH"));
@@ -73,7 +111,6 @@ public class MetricDataTest {
 		assertFalse(data.hasChannels("35", "LD"));
 		// Flipped parameters
 		assertFalse(data.hasChannels("BH", "00"));
-
 	}
 
 	/*
@@ -81,10 +118,7 @@ public class MetricDataTest {
 	 */
 	@Test
 	public final void testGetMetricValue() throws Exception {
-		StationMeta metadata = (StationMeta) ResourceManager
-				.loadCompressedObject("/metadata/CU.BCIP.2015.228.StationMeta.ser.gz", false);
-		MockReader reader = new MockReader();
-		MetricData metricData = new MetricData(reader, metadata);
+		MetricData metricData = new MetricData(database, metadata);
 
 		LocalDate date = LocalDate.parse("2014-07-12");
 		Station station = new Station("CU", "BCIP");
@@ -100,9 +134,8 @@ public class MetricDataTest {
 		
 
 		// Check disconnected reader
-		reader.setConnected(false);
+		database.setConnected(false);
 		assertNull(metricData.getMetricValue(date, metricName, station, channel));
-
 	}
 
 	/*
@@ -110,7 +143,6 @@ public class MetricDataTest {
 	 */
 	@Test
 	public final void testGetChannelDataChannel() throws Exception {
-		MetricData data = (MetricData) ResourceManager.loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
 		ArrayList<DataSet> channelData = data.getChannelData(new Channel("00", "LHZ"));
 
 		assertNotNull(channelData);
@@ -122,7 +154,6 @@ public class MetricDataTest {
 		assertEquals("ANMO", dataSet.getStation());
 		assertEquals("00", dataSet.getLocation());
 		assertEquals("LHZ", dataSet.getChannel());
-
 	}
 
 	/*
@@ -131,14 +162,9 @@ public class MetricDataTest {
 	 */
 	@Test
 	public final void testHasCalibrationData() throws Exception {
-		MetricData data = (MetricData) ResourceManager.loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
 		assertFalse(data.hasCalibrationData());
-
-		StationMeta metadata = (StationMeta) ResourceManager
-				.loadCompressedObject("/metadata/CU.BCIP.2015.228.StationMeta.ser.gz", false);
-		MetricData metricData = new MetricData(new MockReader(), metadata);
+		MetricData metricData = new MetricData(new MetricDatabaseMock(), metadata);
 		assertFalse(metricData.hasCalibrationData());
-
 	}
 
 	/*
@@ -149,7 +175,6 @@ public class MetricDataTest {
 	public final void testGetChannelCalDataChannel() throws Exception {
 		ArrayList<Blockette320> calData;
 
-		MetricData data = (MetricData) ResourceManager.loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
 		calData = data.getChannelCalData(new Channel("00", "LHZ"));
 		assertNull(calData);
 	}
@@ -157,8 +182,6 @@ public class MetricDataTest {
 	@Test
 	public final void testGetChannelTimingQualityDataChannel() throws Exception {
 		ArrayList<Integer> timingQuality;
-
-		MetricData data = (MetricData) ResourceManager.loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
 
 		timingQuality = data.getChannelTimingQualityData(new Channel("10", "BH1"));
 
@@ -177,22 +200,19 @@ public class MetricDataTest {
 	@Test
 	public final void testValueDigestChanged() throws Exception {
 		// NO DATA
-		StationMeta metadata = (StationMeta) ResourceManager
-				.loadCompressedObject("/metadata/CU.BCIP.2015.228.StationMeta.ser.gz", false);
-		MockReader reader = new MockReader();
-		MetricData metricData = new MetricData(reader, metadata);
+		MetricData metricData = new MetricData(database, metadata);
 
 		LocalDate date = LocalDate.parse("2014-07-12");
 		Station station = new Station("CU", "BCIP");
 		String metricName = "AvailabilityMetric";
 
-		// No data, digest in Reader, no force update
+		// No data, digest in database, no force update
 		Channel channel = new Channel("00", "LHZ");
 		ByteBuffer digest = metricData.valueDigestChanged(channel,
 				new MetricValueIdentifier(date, metricName, station, channel), false);
 		assertNull(digest);
 
-		// No data, digest not in Reader, no force update
+		// No data, digest not in database, no force update
 		// Should come back with something.
 		channel = new Channel("00", "BH1"); // Not set in reader
 		digest = metricData.valueDigestChanged(channel, new MetricValueIdentifier(date, metricName, station, channel),
@@ -207,16 +227,16 @@ public class MetricDataTest {
 
 		// No data, digest in Reader, reader disconnected
 		channel = new Channel("00", "LHZ");
-		reader.setConnected(false);
+		database.setConnected(false);
 		digest = metricData.valueDigestChanged(channel, new MetricValueIdentifier(date, metricName, station, channel),
 				false);
 		assertNotNull(digest);
 
-		reader.setConnected(true);
+		database.setConnected(true);
 
 		// DATA
-		metricData = (MetricData) ResourceManager.loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
-		metricData.setMetricReader(reader);
+		metricData = (MetricData) ResourceManager.loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", true);
+		metricData.setMetricReader(database);
 		date = LocalDate.parse("2015-08-16");
 
 		station = new Station("IU", "ANMO");
@@ -240,11 +260,11 @@ public class MetricDataTest {
 		assertNotNull(digest);
 
 		// Data, digest match in Reader, reader disconnected
-		reader.setConnected(false);
+		database.setConnected(false);
 		digest = metricData.valueDigestChanged(channel, new MetricValueIdentifier(date, metricName, station, channel),
 				false);
 		assertNotNull(digest);
-		reader.setConnected(true);
+		database.setConnected(true);
 
 		// Data, digest mismatch in Reader, no force update
 		channel = new Channel("00", "LH2");
@@ -252,82 +272,5 @@ public class MetricDataTest {
 				false);
 		assertNotNull(digest);
 
-	}
-
-	private class MockReader extends MetricDatabase {
-
-		private boolean mockConnected;
-
-		public MockReader() {
-			super(); //Call required because of extension.
-			this.mockConnected = true;
-		}
-
-		@Override
-		public boolean isConnected() {
-			return mockConnected;
-		}
-
-		public void setConnected(boolean isConnected) {
-			this.mockConnected = isConnected;
-		}
-
-		/**
-		 * Reserved channels that must be missing include 00-BH*
-		 */
-		public Double getMetricValue(LocalDate date, String metricName, Station station, Channel channel) {
-			HashMap<MetricValueIdentifier, Double> expect = new HashMap<MetricValueIdentifier, Double>();
-			LocalDate expectDate = LocalDate.parse("2014-07-12");
-			Station expectStation = new Station("CU", "BCIP");
-			String expectMetricName = "AvailabilityMetric";
-
-			Channel expectChannel = new Channel("00", "LHZ");
-			expect.put(new MetricValueIdentifier(expectDate, expectMetricName, expectStation, expectChannel), 35.123456);
-
-			expectChannel = new Channel("00", "LH1");
-			expect.put(new MetricValueIdentifier(expectDate, expectMetricName, expectStation, expectChannel), 99.999);
-
-			expectChannel = new Channel("00", "LH2");
-			expect.put(new MetricValueIdentifier(expectDate, expectMetricName, expectStation, expectChannel), 0.00);
-
-			return expect.get(new MetricValueIdentifier(date, metricName, station, channel));
-		}
-
-		/**
-		 * Currently getMetricValueDigest() is the only method called (from the
-		 * MetricData class)
-		 */
-		public ByteBuffer getMetricValueDigest(LocalDate date, String metricName, Station station, Channel channel) {
-			HashMap<MetricValueIdentifier, ByteBuffer> expect = new HashMap<MetricValueIdentifier, ByteBuffer>();
-			LocalDate expectDate = LocalDate.parse("2014-07-12");
-			Station expectStation = new Station("CU", "BCIP");
-			String expectMetricName = "AvailabilityMetric";
-
-			Channel expectChannel = new Channel("00", "LHZ");
-			expect.put(new MetricValueIdentifier(expectDate, expectMetricName, expectStation, expectChannel),
-					ByteBuffer.wrap("Same".getBytes()));
-
-			expectChannel = new Channel("00", "LH1");
-			expect.put(new MetricValueIdentifier(expectDate, expectMetricName, expectStation, expectChannel),
-					ByteBuffer.wrap("Same".getBytes()));
-
-			expectChannel = new Channel("00", "LH2");
-			expect.put(new MetricValueIdentifier(expectDate, expectMetricName, expectStation, expectChannel),
-					ByteBuffer.wrap("Different".getBytes()));
-
-			// ANMO
-			expectDate = LocalDate.parse("2015-08-16");
-			expectStation = new Station("IU", "ANMO");
-			expectMetricName = "AvailabilityMetric";
-
-			expectChannel = new Channel("10", "BH1"); // Precomputed the digest
-			expect.put(new MetricValueIdentifier(expectDate, expectMetricName, expectStation, expectChannel),
-					ByteBuffer.wrap(DatatypeConverter.parseHexBinary("9A4FE3A10FD60F93526F464B0DB9580E")));
-			expectChannel = new Channel("00", "LH2");
-			expect.put(new MetricValueIdentifier(expectDate, expectMetricName, expectStation, expectChannel),
-					ByteBuffer.wrap("Different".getBytes()));
-
-			return expect.get(new MetricValueIdentifier(date, metricName, station, channel));
-		}
 	}
 }
