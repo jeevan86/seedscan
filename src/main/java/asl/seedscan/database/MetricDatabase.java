@@ -73,7 +73,7 @@ public class MetricDatabase {
 	 * @throws SQLException
 	 *             if the database is unable to be communicated with.
 	 */
-	private MetricDatabase(String URI, String username, String password) throws SQLException {
+	MetricDatabase(String URI, String username, String password) throws SQLException {
 		this.URI = URI;
 		this.username = username;
 		logger.info("MetricDatabase Constructor(): Attempting to connect to the database");
