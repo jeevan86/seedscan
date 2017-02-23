@@ -71,6 +71,10 @@ jar {
     }
 }
 
+test {
+    maxParallelForks = 4;
+}
+
 /*Turn off doclint since it is far too strict and breaks the javadoc everytime*/
 if (JavaVersion.current().isJava8Compatible()) {
     allprojects {
