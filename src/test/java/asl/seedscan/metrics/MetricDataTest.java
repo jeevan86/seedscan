@@ -38,7 +38,7 @@ public class MetricDataTest {
     database = new MetricDatabaseMock();
 
     // BCIP - Digest and data
-    LocalDate expectDate = LocalDate.parse("2014-07-12");
+    LocalDate expectDate = LocalDate.parse("2015-08-16");
     Station expectStation = new Station("CU", "BCIP");
     String expectMetricName = "AvailabilityMetric";
 
@@ -75,7 +75,7 @@ public class MetricDataTest {
 
     // ANMO - Digest only tests
     expectMetricName = "AvailabilityMetric";
-    expectDate = LocalDate.parse("2015-08-16");
+    expectDate = LocalDate.parse("2015-07-25");
     expectStation = new Station("IU", "ANMO");
 
     expectChannel = new Channel("10", "BH1"); // Precomputed the digest
@@ -149,7 +149,7 @@ public class MetricDataTest {
   public final void testGetMetricValue_KnownValues() throws Exception {
     MetricData metricData = new MetricData(database, metadata);
 
-    LocalDate date = LocalDate.parse("2014-07-12");
+    LocalDate date = LocalDate.parse("2015-08-16");
     Station station = new Station("CU", "BCIP");
     String metricName = "AvailabilityMetric";
     Channel channel = new Channel("00", "LHZ");
@@ -166,7 +166,7 @@ public class MetricDataTest {
   public final void testGetMetricValue_Disconnected() throws Exception {
     //Mock Data
     MetricDatabaseMock tempDatabase = new MetricDatabaseMock();
-    LocalDate date = LocalDate.parse("2014-07-12");
+    LocalDate date = LocalDate.parse("2015-08-16");
     Station station = new Station("CU", "BCIP");
     String metricName = "RandomMetric";
 
@@ -262,7 +262,7 @@ public class MetricDataTest {
       throws Exception {
     MetricData metricData = new MetricData(database, metadata);
 
-    LocalDate date = LocalDate.parse("2014-07-12");
+    LocalDate date = LocalDate.parse("2015-08-16");
     Station station = new Station("CU", "BCIP");
     String metricName = "NotAvailMetric";
     Channel channel = new Channel("00", "BH1"); // Not set in reader
@@ -278,7 +278,7 @@ public class MetricDataTest {
       throws Exception {
     MetricData metricData = new MetricData(database, metadata);
 
-    LocalDate date = LocalDate.parse("2014-07-12");
+    LocalDate date = LocalDate.parse("2015-08-16");
     Station station = new Station("CU", "BCIP");
     String metricName = "AvailabilityMetric";
     Channel channel = new Channel("00", "BH1"); // Not set in reader
@@ -294,7 +294,7 @@ public class MetricDataTest {
       throws Exception {
     MetricData metricData = new MetricData(database, metadata);
 
-    LocalDate date = LocalDate.parse("2014-07-12");
+    LocalDate date = LocalDate.parse("2015-08-16");
     Station station = new Station("CU", "BCIP");
     String metricName = "AnyMetric";
 
@@ -311,7 +311,7 @@ public class MetricDataTest {
       throws Exception {
     MetricData metricData = new MetricData(database, metadata);
 
-    LocalDate date = LocalDate.parse("2014-07-12");
+    LocalDate date = LocalDate.parse("2015-08-16");
     Station station = new Station("CU", "BCIP");
     String metricName = "AvailabilityMetric";
 
@@ -329,7 +329,7 @@ public class MetricDataTest {
       throws Exception {
     MetricData metricData = new MetricData(database, metadata);
 
-    LocalDate date = LocalDate.parse("2014-07-12");
+    LocalDate date = LocalDate.parse("2015-08-16");
     Station station = new Station("CU", "BCIP");
     String metricName = "AnyMetric";
 
@@ -345,7 +345,7 @@ public class MetricDataTest {
       throws Exception {
     MetricData metricData = new MetricData(database, metadata);
 
-    LocalDate date = LocalDate.parse("2014-07-12");
+    LocalDate date = LocalDate.parse("2015-08-16");
     Station station = new Station("CU", "BCIP");
     String metricName = "AvailabilityMetric";
 
@@ -361,7 +361,7 @@ public class MetricDataTest {
       throws Exception {
     MetricData metricData = new MetricData(database, metadata);
 
-    LocalDate date = LocalDate.parse("2014-07-12");
+    LocalDate date = LocalDate.parse("2015-08-16");
     Station station = new Station("CU", "BCIP");
     String metricName = "AnyMetric";
 
@@ -378,7 +378,7 @@ public class MetricDataTest {
       throws Exception {
     MetricData metricData = new MetricData(database, metadata);
 
-    LocalDate date = LocalDate.parse("2014-07-12");
+    LocalDate date = LocalDate.parse("2015-08-16");
     Station station = new Station("CU", "BCIP");
     String metricName = "AvailabilityMetric";
 
@@ -398,7 +398,7 @@ public class MetricDataTest {
       throws Exception {
     //Mock Data
     MetricDatabaseMock tempDatabase = new MetricDatabaseMock();
-    LocalDate date = LocalDate.parse("2014-07-12");
+    LocalDate date = LocalDate.parse("2015-08-16");
     Station station = new Station("CU", "BCIP");
     /*Metric name should match exact this should not count as AvailabilityMetric*/
     String metricName = "NotAvailabilityMetric";
@@ -423,7 +423,7 @@ public class MetricDataTest {
       throws Exception {
     //Mock Data
     MetricDatabaseMock tempDatabase = new MetricDatabaseMock();
-    LocalDate date = LocalDate.parse("2014-07-12");
+    LocalDate date = LocalDate.parse("2015-08-16");
     Station station = new Station("CU", "BCIP");
     String metricName = "AvailabilityMetric";
 
@@ -464,7 +464,7 @@ public class MetricDataTest {
     MetricData metricData = (MetricData) ResourceManager
         .loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", true);
     metricData.setMetricReader(database);
-    LocalDate date = LocalDate.parse("2015-08-16");
+    LocalDate date = LocalDate.parse("2015-07-25");
 
     Station station = new Station("IU", "ANMO");
     String metricName = "AnyMetric";
@@ -481,7 +481,7 @@ public class MetricDataTest {
     MetricData metricData = (MetricData) ResourceManager
         .loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", true);
     metricData.setMetricReader(database);
-    LocalDate date = LocalDate.parse("2015-08-16");
+    LocalDate date = LocalDate.parse("2015-07-25");
 
     Station station = new Station("IU", "ANMO");
     String metricName = "AnyMetric";
