@@ -1,5 +1,6 @@
 package asl.seedscan.metrics;
 
+import static javax.xml.bind.DatatypeConverter.printHexBinary;
 import static org.junit.Assert.assertEquals;
 
 import java.util.HashMap;
@@ -27,6 +28,11 @@ public class TestUtils {
 		
 		for (String id : result.getIdSet()) {
 			//System.out.println(id+"   "+result.getResult(id));
+			/*System.out.println("database.insertMockData(\n"
+					+ "        new MetricValueIdentifier(expectDate, metricName, station, new Channel(\""
+					+id.split(",")[0]+"\",\""+ id.split(",")[1]+"\")),\n"
+					+ "        "+result.getResult(id)+", ByteBuffer.wrap(DatatypeConverter.parseHexBinary(\""+printHexBinary(result.getDigest(id).array())+"\")));");
+			*/
 			Double expected = (double) Math.round(expect.get(id) * 1000000d) / 1000000d;
 			Double resulted = (double) Math.round(result.getResult(id) * 1000000d) / 1000000d;
 			assertEquals(id + " result: ", expected, resulted);
