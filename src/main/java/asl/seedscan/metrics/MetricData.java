@@ -1110,7 +1110,7 @@ public class MetricData implements Serializable {
 		 */
 
     boolean availabilityMetric = false;
-    if (id.getMetricName().contains("AvailabilityMetric")) {
+    if (id.getMetricName().equals("AvailabilityMetric")) {
       availabilityMetric = true;
     }
 
