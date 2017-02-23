@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.math3.complex.Complex;
@@ -1215,7 +1216,7 @@ public class MetricData implements Serializable {
 	private synchronized ByteBuffer getHash(ChannelArray channelArray) {
 		ArrayList<ByteBuffer> digests = new ArrayList<>();
 
-		ArrayList<Channel> channels = channelArray.getChannels();
+		List<Channel> channels = channelArray.getChannels();
 		for (Channel channel : channels) {
 			ChannelMeta chanMeta = getMetaData().getChannelMetadata(channel);
 			if (chanMeta == null) {
@@ -1255,7 +1256,7 @@ public class MetricData implements Serializable {
 	 *            the channel array
 	 */
 	synchronized void checkForRotatedChannels(ChannelArray channelArray) {
-		ArrayList<Channel> channels = channelArray.getChannels();
+		List<Channel> channels = channelArray.getChannels();
 		for (Channel channel : channels) {
 
 			/* channelPrefix = channel band + instrument code e.g., 'L' + 'H' ="LH"*/

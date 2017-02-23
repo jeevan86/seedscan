@@ -1,6 +1,9 @@
 package asl.metadata;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 public class ChannelArray {
 
@@ -50,10 +53,10 @@ public class ChannelArray {
   }
 
   /**
-   * @return list of Channels
+   * @return unmodifiable list of Channels
    */
-  public ArrayList<Channel> getChannels() {
-    return channels;
+  public List<Channel> getChannels() {
+    return Collections.unmodifiableList(channels);
   }
 
 }
