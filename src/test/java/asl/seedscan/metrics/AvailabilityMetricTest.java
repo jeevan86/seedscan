@@ -3,6 +3,7 @@ package asl.seedscan.metrics;
 import static org.junit.Assert.assertEquals;
 
 import asl.metadata.Channel;
+import asl.metadata.ChannelArray;
 import asl.metadata.Station;
 import asl.metadata.meta_new.StationMeta;
 import asl.seedscan.database.MetricDatabaseMock;
@@ -73,6 +74,7 @@ public class AvailabilityMetricTest {
     Metric metric = new AvailabilityMetric();
     metric.setData(data);
 
+    /* Should be no HN data in here as it is Triggered*/
     HashMap<String, Double> expect = new HashMap<>();
     expect.put("00,BH2", 99.99994212966313);
     expect.put("00,BH1", 99.99994212966313);
@@ -381,6 +383,63 @@ public class AvailabilityMetricTest {
 
     HashMap<String, Double> expect = new HashMap<>();
     /* Should have no new results. Availability doesn't replace existing values if it has no data.*/
+    TestUtils.testMetric(metric, expect);
+  }
+
+  @Test
+  public final void testProcess_NoDerivedChannels_NoTriggered() throws Exception {
+    Metric metric = new AvailabilityMetric();
+    MetricData metricData = (MetricData) ResourceManager
+        .loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", true);
+
+    //Rotate and add Derived channels to metricData
+    metricData.checkForRotatedChannels(new ChannelArray("00", "LHND", "LHED", "LHZ"));
+    metric.setData(metricData);
+
+    /* Should be no Triggered HN or HH channels*/
+    /* Should be no Derived channels*/
+    HashMap<String, Double> expect = new HashMap<>();
+    expect.put("00,BH2", 99.99994212966313);
+    expect.put("00,BH1", 99.99994212966313);
+    expect.put("35,LDO", 99.99884260598836);
+    expect.put("00,VM2", 99.9884272653628);
+    expect.put("00,VM1", 99.9884272653628);
+    expect.put("10,BHZ", 99.99997106482319);
+    expect.put("31,LDO", 99.99884260598836);
+    expect.put("50,LKO", 99.99884260598836);
+    expect.put("40,LFZ", 99.99884260598836);
+    expect.put("50,LWS", 99.99884260598836);
+    expect.put("10,VMW", 99.9884272653628);
+    expect.put("10,VMV", 99.9884272653628);
+    expect.put("10,VH2", 99.9884272653628);
+    expect.put("10,VMU", 99.9884272653628);
+    expect.put("10,VH1", 99.9884272653628);
+    expect.put("00,VHZ", 99.9884272653628);
+    expect.put("50,LWD", 99.99884260598836);
+    expect.put("10,LH2", 99.99884260598836);
+    expect.put("10,LH1", 99.99884260598836);
+    expect.put("30,LDO", 99.99884260598836);
+    expect.put("00,LHZ", 99.99884260598836);
+    expect.put("50,LDO", 99.99884260598836);
+    expect.put("60,HDF", 99.99998842592727);
+    expect.put("20,LNZ", 99.99884260598836);
+    expect.put("10,BH2", 99.99997106482319);
+    expect.put("10,BH1", 99.99997106482319);
+    expect.put("40,LF2", 99.99884260598836);
+    expect.put("40,LF1", 99.99884260598836);
+    expect.put("00,BHZ", 99.99994212966313);
+    expect.put("00,VMZ", 99.9884272653628);
+    expect.put("00,VH2", 99.9884272653628);
+    expect.put("00,VH1", 99.9884272653628);
+    expect.put("10,VHZ", 99.9884272653628);
+    expect.put("50,LIO", 99.99884260598836);
+    expect.put("00,LH2", 99.99884260598836);
+    expect.put("00,LH1", 99.99884260598836);
+    expect.put("50,LRI", 99.99884260598836);
+    expect.put("20,LN2", 99.99884260598836);
+    expect.put("50,LRH", 99.99884260598836);
+    expect.put("20,LN1", 99.99884260598836);
+    expect.put("10,LHZ", 99.99884260598836);
     TestUtils.testMetric(metric, expect);
   }
 }
