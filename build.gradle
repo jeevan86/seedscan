@@ -76,8 +76,8 @@ test {
     testLogging {
         events "skipped", "failed"
         afterSuite { desc, result ->
-            if (!desc.parent) { // will match the outermost suite
-                println "Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} successes, ${result.failedTestCount} failures, ${result.skippedTestCount} skipped)"
+            if (!desc.parent) {
+                println "Result: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} successes, ${result.failedTestCount} failures, ${result.skippedTestCount} skipped)"
             }
         }
     }
