@@ -9,7 +9,19 @@ public class StationScanTest {
 
   @Ignore
   @Test
-  public void run() throws Exception {
+  public void run_AreAllMetricsAttempted() throws Exception {
+
+  }
+
+  @Ignore
+  @Test
+  public void run_DidTheNextDayGetAdded() throws Exception {
+
+  }
+
+  @Ignore
+  @Test
+  public void run_DoesItStopWhenDone() throws Exception {
 
   }
 
