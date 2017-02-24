@@ -303,11 +303,84 @@ public class AvailabilityMetricTest {
 
   @Test
   public final void testProcess_NoData_NoDB() throws Exception {
-    throw new RuntimeException("not yet implemented");
+    Metric metric = new AvailabilityMetric();
+    MetricData metricData = new MetricData(new MetricDatabaseMock(), metadata);
+    metric.setData(metricData);
+    HashMap<String, Double> expect = new HashMap<>();
+    expect.put("20,LNZ", 0.0);
+    expect.put("00,VMW", 0.0);
+    expect.put("00,BH2", 0.0);
+    expect.put("00,VMV", 0.0);
+    expect.put("00,BH1", 0.0);
+    expect.put("00,VMU", 0.0);
+    expect.put("00,LH2", 0.0);
+    expect.put("00,LH1", 0.0);
+    expect.put("00,BHZ", 0.0);
+    expect.put("00,LHZ", 0.0);
+    expect.put("20,LN2", 0.0);
+    expect.put("20,LN1", 0.0);
+    TestUtils.testMetric(metric, expect);
   }
 
   @Test
   public final void testProcess_NoData_HasDB() throws Exception {
-    throw new RuntimeException("not yet implemented");
+    MetricDatabaseMock database = new MetricDatabaseMock();
+    LocalDate expectDate = LocalDate.parse("2015-08-16");
+    Station station = new Station("CU", "BCIP");
+    String metricName = "AvailabilityMetric";
+    database.insertMockData(
+        new MetricValueIdentifier(expectDate, metricName, station, new Channel("20", "LNZ")),
+        100.0,
+        ByteBuffer.wrap(DatatypeConverter.parseHexBinary("6E04CC6659D82C1DC784A36371BF0335")));
+    database.insertMockData(
+        new MetricValueIdentifier(expectDate, metricName, station, new Channel("00", "VMW")),
+        99.9,
+        ByteBuffer.wrap(DatatypeConverter.parseHexBinary("C8280EC927F64731B993EFA825D52929")));
+    database.insertMockData(
+        new MetricValueIdentifier(expectDate, metricName, station, new Channel("00", "BH2")),
+        98.0,
+        ByteBuffer.wrap(DatatypeConverter.parseHexBinary("828D4BDF7B8194E4F721B6D701C6ED44")));
+    database.insertMockData(
+        new MetricValueIdentifier(expectDate, metricName, station, new Channel("00", "VMV")),
+        40.5,
+        ByteBuffer.wrap(DatatypeConverter.parseHexBinary("C8280EC927F64731B993EFA825D52929")));
+    database.insertMockData(
+        new MetricValueIdentifier(expectDate, metricName, station, new Channel("00", "BH1")),
+        35.5,
+        ByteBuffer.wrap(DatatypeConverter.parseHexBinary("828D4BDF7B8194E4F721B6D701C6ED44")));
+    database.insertMockData(
+        new MetricValueIdentifier(expectDate, metricName, station, new Channel("00", "VMU")),
+        10.23,
+        ByteBuffer.wrap(DatatypeConverter.parseHexBinary("C8280EC927F64731B993EFA825D52929")));
+    database.insertMockData(
+        new MetricValueIdentifier(expectDate, metricName, station, new Channel("00", "LH2")),
+        0.0, ByteBuffer.wrap(DatatypeConverter.parseHexBinary("346999B1DBB719CCD2E117DC95832B83")));
+    database.insertMockData(
+        new MetricValueIdentifier(expectDate, metricName, station, new Channel("00", "LH1")),
+        78.9,
+        ByteBuffer.wrap(DatatypeConverter.parseHexBinary("346999B1DBB719CCD2E117DC95832B83")));
+    database.insertMockData(
+        new MetricValueIdentifier(expectDate, metricName, station, new Channel("00", "BHZ")),
+        5.0, ByteBuffer.wrap(DatatypeConverter.parseHexBinary("828D4BDF7B8194E4F721B6D701C6ED44")));
+    database.insertMockData(
+        new MetricValueIdentifier(expectDate, metricName, station, new Channel("00", "LHZ")),
+        10.0,
+        ByteBuffer.wrap(DatatypeConverter.parseHexBinary("346999B1DBB719CCD2E117DC95832B83")));
+    database.insertMockData(
+        new MetricValueIdentifier(expectDate, metricName, station, new Channel("20", "LN2")),
+        100.0,
+        ByteBuffer.wrap(DatatypeConverter.parseHexBinary("6E04CC6659D82C1DC784A36371BF0335")));
+    database.insertMockData(
+        new MetricValueIdentifier(expectDate, metricName, station, new Channel("20", "LN1")),
+        100.0,
+        ByteBuffer.wrap(DatatypeConverter.parseHexBinary("6E04CC6659D82C1DC784A36371BF0335")));
+
+    Metric metric = new AvailabilityMetric();
+    MetricData metricData = new MetricData(database, metadata);
+    metric.setData(metricData);
+
+    HashMap<String, Double> expect = new HashMap<>();
+    /* Should have no new results. Availability doesn't replace existing values if it has no data.*/
+    TestUtils.testMetric(metric, expect);
   }
 }
