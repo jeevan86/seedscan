@@ -73,6 +73,14 @@ jar {
 
 test {
     maxParallelForks = 4;
+    testLogging {
+        events "skipped", "failed"
+        afterSuite { desc, result ->
+            if (!desc.parent) { // will match the outermost suite
+                println "Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} successes, ${result.failedTestCount} failures, ${result.skippedTestCount} skipped)"
+            }
+        }
+    }
 }
 
 /*Turn off doclint since it is far too strict and breaks the javadoc everytime*/
