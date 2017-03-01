@@ -25,6 +25,7 @@ One thread can run an entire day of data for one station in 30 minutes to 1 hour
 ```xml
     <cfg:network_subset>IU</cfg:network_subset>  
     <cfg:network_subset>IU,NE</cfg:network_subset>  
+```
 
 ######Data Quality Restrictions
     The available quality flags are {All, D, Q, R, M}. The program will
