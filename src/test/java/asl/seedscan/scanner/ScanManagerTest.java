@@ -21,13 +21,25 @@ public class ScanManagerTest {
 
   @Ignore
   @Test
-  public void scan() throws Exception {
+  public void scan_doesEmptyQueueQueryTheDatabase() throws Exception {
 
   }
 
   @Ignore
   @Test
-  public void addTask() throws Exception {
+  public void scan_doesScanPeriodicallyCheckForNewScans() throws Exception {
+
+  }
+
+  @Ignore
+  @Test
+  public void addTask_doesTaskExecuteAfterBeingAdded_singleTask() throws Exception {
+
+  }
+
+  @Ignore
+  @Test
+  public void addTask_doesTaskExecuteAfterBeingAdded_ManyTasks() throws Exception {
 
   }
 
