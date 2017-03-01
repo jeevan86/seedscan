@@ -70,6 +70,24 @@ public class RetrieveScanTest {
 
   @Ignore
   @Test
+  public void run_SplitScan_StationsSeparatedByCommas() throws Exception {
+
+  }
+
+  @Ignore
+  @Test
+  public void run_SplitScan_NetworksSeparatedByCommas() throws Exception {
+
+  }
+
+  @Ignore
+  @Test
+  public void run_NullScanFromDatabase_DoNotAddRetrieveScanToQueue() throws Exception {
+
+  }
+
+  @Ignore
+  @Test
   public void getBasePriority() throws Exception {
 
   }
