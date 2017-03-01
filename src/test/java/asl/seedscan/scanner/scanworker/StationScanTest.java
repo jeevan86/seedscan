@@ -21,7 +21,31 @@ public class StationScanTest {
 
   @Ignore
   @Test
-  public void run_DoesItStopWhenDone() throws Exception {
+  public void run_DoesItStopWhenDaysFinish() throws Exception {
+
+  }
+
+  @Ignore
+  @Test
+  public void run_NoMetadataForDay() throws Exception {
+
+  }
+
+  @Ignore
+  @Test
+  public void run_NoDataForDay() throws Exception {
+
+  }
+
+  @Ignore
+  @Test
+  public void run_NoEventsOnDay() throws Exception {
+
+  }
+
+  @Ignore
+  @Test
+  public void run_EventsOnDay() throws Exception {
 
   }
 
