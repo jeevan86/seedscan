@@ -330,14 +330,21 @@ public class ALNMDeviationMetric extends PowerBandMetric {
 		Color color = Color.black;
 		BasicStroke stroke = new BasicStroke(2.0f);
 
-		if (channel.getChannel().equals("LNZ")) {
-			iPanel = 0;
-		} else if (channel.getChannel().equals("LN1") || channel.getChannel().equals("LNN")) {
-			iPanel = 1;
-		} else if (channel.getChannel().equals("LN2") || channel.getChannel().equals("LNE")) {
-			iPanel = 2;
-		} else {
-			throw new MetricException(String.format("day=%s makePlots(): Don't know how to plot channel=%s\n", day, channel));
+		switch (channel.getChannel()) {
+			case "LNZ":
+				iPanel = 0;
+				break;
+			case "LN1":
+			case "LNN":
+				iPanel = 1;
+				break;
+			case "LN2":
+			case "LNE":
+				iPanel = 2;
+				break;
+			default:
+				throw new MetricException(
+						String.format("day=%s makePlots(): Don't know how to plot channel=%s\n", day, channel));
 		}
 
 		if (channel.getLocation().equals("10")) {

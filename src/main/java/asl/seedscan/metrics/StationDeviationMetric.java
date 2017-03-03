@@ -251,18 +251,22 @@ public class StationDeviationMetric extends PowerBandMetric {
 		Color color = Color.black;
 		BasicStroke stroke = new BasicStroke(2.0f);
 
-		if (channel.getChannel().equals("LHZ")) {
-			iPanel = 0;
-		} else if (channel.getChannel().equals("LH1")
-				|| channel.getChannel().equals("LHN")) {
-			iPanel = 1;
-		} else if (channel.getChannel().equals("LH2")
-				|| channel.getChannel().equals("LHE")) {
-			iPanel = 2;
-		} else {
-			throw new MetricException(String.format(
-					"makePlots() %s: Don't know how to plot channel=%s",
-					getDay(), channel));
+		switch (channel.getChannel()) {
+			case "LHZ":
+				iPanel = 0;
+				break;
+			case "LH1":
+			case "LHN":
+				iPanel = 1;
+				break;
+			case "LH2":
+			case "LHE":
+				iPanel = 2;
+				break;
+			default:
+				throw new MetricException(String.format(
+						"makePlots() %s: Don't know how to plot channel=%s",
+						getDay(), channel));
 		}
 
 		if (channel.getLocation().equals("00")) {

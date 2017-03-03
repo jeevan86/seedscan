@@ -337,14 +337,20 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 		Color color = Color.black;
 		BasicStroke stroke = new BasicStroke(2.0f);
 
-		if (channel.getChannel().equals("LHZ")) {
-			iPanel = 0;
-		} else if (channel.getChannel().equals("LH1") || channel.getChannel().equals("LHN")) {
-			iPanel = 1;
-		} else if (channel.getChannel().equals("LH2") || channel.getChannel().equals("LHE")) {
-			iPanel = 2;
-		} else {
-			return;
+		switch (channel.getChannel()) {
+			case "LHZ":
+				iPanel = 0;
+				break;
+			case "LH1":
+			case "LHN":
+				iPanel = 1;
+				break;
+			case "LH2":
+			case "LHE":
+				iPanel = 2;
+				break;
+			default:
+				return;
 		}
 
 		if (channel.getLocation().equals("00")) {

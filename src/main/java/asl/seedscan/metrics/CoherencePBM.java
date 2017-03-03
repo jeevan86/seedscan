@@ -239,12 +239,16 @@ public class CoherencePBM extends PowerBandMetric {
 
 			BasicStroke stroke = new BasicStroke(2.0f);
 
-			if (channelX.getChannel().equals("LHZ")) {
-				iPanel = 0;
-			} else if (channelX.getChannel().equals("LHND")) {
-				iPanel = 1;
-			} else if (channelX.getChannel().equals("LHED")) {
-				iPanel = 2;
+			switch (channelX.getChannel()) {
+				case "LHZ":
+					iPanel = 0;
+					break;
+				case "LHND":
+					iPanel = 1;
+					break;
+				case "LHED":
+					iPanel = 2;
+					break;
 			}
 
 			String channelLabel = MetricResult.createResultId(channelX,
