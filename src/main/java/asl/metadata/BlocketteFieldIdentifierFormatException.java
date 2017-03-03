@@ -6,17 +6,10 @@ package asl.metadata;
  * 
  * @author Joel Edwards - USGS
  */
-public class BlocketteFieldIdentifierFormatException extends Exception {
+class BlocketteFieldIdentifierFormatException extends Exception {
 	
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
-
-	/**
-	 * Instantiates a new blockette field identifier format exception.
-	 */
-	public BlocketteFieldIdentifierFormatException() {
-		super();
-	}
 
 	/**
 	 * Instantiates a new blockette field identifier format exception.
@@ -25,7 +18,7 @@ public class BlocketteFieldIdentifierFormatException extends Exception {
 	 * 
 	 * @see asl.metadata.Blockette#addFieldData(String, String)
 	 */
-	public BlocketteFieldIdentifierFormatException(String message) {
+	BlocketteFieldIdentifierFormatException(String message) {
 		super(message);
 	}
 }

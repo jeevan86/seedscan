@@ -11,13 +11,6 @@ class BlockSizeMismatchException extends Exception {
 	public static final long serialVersionUID = 1L;
 
 	/**
-	 * Default constructor.
-	 */
-	BlockSizeMismatchException() {
-		super();
-	}
-
-	/**
 	 * Constructor which accepts a description of the exception.
 	 * 
 	 * @param message

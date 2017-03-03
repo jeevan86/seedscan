@@ -11,13 +11,6 @@ class MetricException extends Exception {
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * Instantiates a new metric exception. This isn't used.
-	 */
-	MetricException() {
-		super();
-	}
-
-	/**
 	 * Instantiates a new metric exception.
 	 * 
 	 * @param message
