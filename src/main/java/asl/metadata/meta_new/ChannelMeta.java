@@ -1,32 +1,4 @@
-/*
- * Copyright 2012, United States Geological Survey or
- * third-party contributors as indicated by the @author tags.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/  >.
- *
- */
-
 package asl.metadata.meta_new;
-
-import java.io.Serializable;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Hashtable;
-
-import org.apache.commons.math3.complex.Complex;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import asl.metadata.Blockette;
 import asl.metadata.Channel;
@@ -34,8 +6,14 @@ import asl.metadata.ChannelKey;
 import asl.metadata.EpochData;
 import asl.metadata.StageData;
 import asl.metadata.Station;
-import asl.plotmaker.PlotMaker;
 import asl.security.MemberDigest;
+import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Hashtable;
+import org.apache.commons.math3.complex.Complex;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A ChannelMeta consists of a series of ResponseStages. Typically there will be
@@ -686,46 +664,6 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 
 	} // end processEpochData
 
-	public void plotPoleZeroResp() {
-
-		int magMin = -4; // .0001 Hz
-		int magMax = 2; // 100 Hz
-		int nMags = magMax - magMin + 1; // +1 for 0 (for 10^0)
-		int nfreqPerMag = 45; // This should be factor of 9 ...
-		int factor = nfreqPerMag / 9;
-
-		int nf = nMags * nfreqPerMag;
-		double freq[] = new double[nf];
-
-		int kk = 0;
-		for (int im = magMin; im < magMax; im++) {
-			double f0 = Math.pow(10, im);
-			double df = f0 / (double) factor;
-			for (int i = 0; i < nfreqPerMag; i++) {
-				freq[kk++] = f0 + i * df;
-			}
-		}
-
-		PoleZeroStage pz = (PoleZeroStage) this.getStage(1);
-		try {
-			Complex[] instResponse = pz.getResponse(freq);
-
-			double[] instRespAmp = new double[nf];
-			double[] instRespPhs = new double[nf];
-			for (int k = 0; k < nf; k++) {
-				instRespAmp[k] = instResponse[k].abs();
-				instRespPhs[k] = instResponse[k].getArgument() * 180. / Math.PI;
-			}
-
-			PlotMaker plotMaker = new PlotMaker(this.getStation(),
-					this.getChannel(), this.getTimestamp());
-			// plotMaker.plotSpecAmp(freq, instRespAmp, "pzResponse");
-			plotMaker.plotSpecAmp(freq, instRespAmp, instRespPhs, "pzResponse");
-		} catch (PoleZeroStageException e) {
-			logger.error("PoleZeroStageException:", e);
-		}
-	} // end plotResp
-
 	@Override
 	public String toString() {
 		return String.format("%15s%s\t%15s%.2f\t%15s%.2f\n", "Channel:",
@@ -734,5 +672,4 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 						"Location:", location, "Azimuth:", azimuth, "Dip:", dip) +
 				String.format("%15s%s", "num of stages:", stages.size());
 	}
-
 }
