@@ -1,5 +1,10 @@
 package asl.seedscan.metrics;
 
+import asl.metadata.Channel;
+import asl.metadata.meta_new.ChannelMeta;
+import asl.metadata.meta_new.ResponseStage;
+import asl.seedsplitter.DataSet;
+import asl.timeseries.PSD;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -8,17 +13,9 @@ import java.nio.ByteBuffer;
 import java.time.format.DateTimeFormatter;
 import java.util.Hashtable;
 import java.util.List;
-
 import org.apache.commons.math3.complex.Complex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import asl.metadata.Channel;
-import asl.metadata.meta_new.ChannelMeta;
-import asl.metadata.meta_new.ResponseStage;
-import asl.plotmaker.PlotMaker;
-import asl.seedsplitter.DataSet;
-import asl.timeseries.PSD;
 import seed.Blockette320;
 
 public class CalibrationMetric extends Metric {
@@ -431,21 +428,8 @@ public class CalibrationMetric extends Metric {
 			calibration.addBand("longTDiff", bandDiff);
 		}
 
-		if (getMakePlots()) {
-			final String plotTitle = String.format(
-					"[ Date: %s ] [ Station: %s ] [ Channel: %s ] Calibration",
-					metricResult.getDate().format(DateTimeFormatter.ISO_ORDINAL_DATE), getStation(), channel);
-			final String pngName = String.format("%s.%s.%s.png",
-					getOutputDir(), channel, "calib");
-
-			PlotMaker plotMaker = new PlotMaker(metricResult.getStation(),
-					channel, metricResult.getDate());
-			plotMaker.plotSpecAmp2(freq, ampResponse, phsResponse, calAmp,
-					calPhs, plotTitle, pngName);
-		}
-
 		return calibration;
-	} // end computeMetric()
+	}
 
 	/**
 	 * I think the danger with double check synchronization is *not* that the
