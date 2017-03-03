@@ -16,8 +16,8 @@ public class TimeTest {
   @Test
   public void testCalculateEpochMicroSeconds() throws Exception {
     //2010-02-17 05:58:28 + 101001 nanoseconds (101.001 microseconds
-    LocalDateTime dateTime = LocalDateTime.ofEpochSecond(1266386308l, 101001, ZoneOffset.UTC);
-    Long expectedMicroSeconds = 1000000 * 1266386308l + 101001 / 1000;
+    LocalDateTime dateTime = LocalDateTime.ofEpochSecond(1266386308L, 101001, ZoneOffset.UTC);
+    Long expectedMicroSeconds = 1000000 * 1266386308L + 101001 / 1000;
 
     Long resultMicroSeconds = calculateEpochMicroSeconds(dateTime);
     assertEquals(expectedMicroSeconds, resultMicroSeconds);
@@ -26,8 +26,8 @@ public class TimeTest {
   @Test
   public void testCalculateEpochMilliSeconds() throws Exception {
     //2020-07-25 13:23:12 + 123 milliseconds
-    LocalDateTime dateTime = LocalDateTime.ofEpochSecond(1595704992l, 123000000, ZoneOffset.UTC);
-    Long expectedMilliSeconds = 1595704992123l;
+    LocalDateTime dateTime = LocalDateTime.ofEpochSecond(1595704992L, 123000000, ZoneOffset.UTC);
+    Long expectedMilliSeconds = 1595704992123L;
 
     Long resultMilliSeconds = calculateEpochMilliSeconds(dateTime);
     assertEquals(expectedMilliSeconds, resultMilliSeconds);
@@ -66,8 +66,8 @@ public class TimeTest {
     LocalDateTime dateTime = btimeToLocalDateTime(2001, 182, 8, 30, 35, 1234);
     assertEquals(expected, dateTime);
 
-    expected = LocalDateTime.of(2025, Month.DECEMBER, 21, 11, 10, 01, 652100000);
-    dateTime = btimeToLocalDateTime(2025, 355, 11, 10, 01, 6521);
+    expected = LocalDateTime.of(2025, Month.DECEMBER, 21, 11, 10, 1, 652100000);
+    dateTime = btimeToLocalDateTime(2025, 355, 11, 10, 1, 6521);
     assertEquals(expected, dateTime);
   }
 
@@ -77,8 +77,8 @@ public class TimeTest {
     LocalDateTime dateTime = btimeToLocalDateTime(2000, 183, 8, 12, 24, 1000);
     assertEquals(expected, dateTime);
 
-    expected = LocalDateTime.of(2020, Month.DECEMBER, 21, 11, 10, 01, 652100000);
-    dateTime = btimeToLocalDateTime(2020, 356, 11, 10, 01, 6521);
+    expected = LocalDateTime.of(2020, Month.DECEMBER, 21, 11, 10, 1, 652100000);
+    dateTime = btimeToLocalDateTime(2020, 356, 11, 10, 1, 6521);
     assertEquals(expected, dateTime);
   }
 
