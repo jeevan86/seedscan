@@ -205,12 +205,6 @@ public class DifferencePBM extends PowerBandMetric {
 							highPeriod));
 		}
 		averageValue /= (double) nPeriods;
-		/*
-		  if (getMakePlots()) { // Output files like 2012160.IU_ANMO.00-LHZ.png
-		  = psd PlotMaker plotMaker = new PlotMaker(metricResult.getStation(),
-		  channelX, channelY, metricResult.getDate());
-		  plotMaker.plotCoherence(per, gammaPer, "coher"); }
-		 */
 
 		if (getMakePlots()) { // Output files like 2012160.IU_ANMO.00-LHZ.png =
 			// psd
