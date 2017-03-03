@@ -293,8 +293,8 @@ public class StationDeviationMetric extends PowerBandMetric {
 			return false;
 		}
 		// Temp ArrayList(s) to read in unknown number of (x,y) pairs:
-		ArrayList<Double> tmpPers = new ArrayList<Double>();
-		ArrayList<Double> tmpPows = new ArrayList<Double>();
+		ArrayList<Double> tmpPers = new ArrayList<>();
+		ArrayList<Double> tmpPows = new ArrayList<>();
 		BufferedReader br = null;
 		try {
 			String line;

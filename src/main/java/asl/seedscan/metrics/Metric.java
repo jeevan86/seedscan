@@ -66,8 +66,8 @@ public abstract class Metric {
 	 * Instantiates a new metric.
 	 */
 	public Metric() {
-		arguments = new Hashtable<String, String>();
-		crossPowerMap = new Hashtable<CrossPowerKey, CrossPower>();
+		arguments = new Hashtable<>();
+		crossPowerMap = new Hashtable<>();
 
 		// MTH: 03-18-13: Added to allow these optional arguments to each
 		// cfg:metric in config.xml

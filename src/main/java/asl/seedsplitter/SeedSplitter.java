@@ -79,7 +79,7 @@ public class SeedSplitter extends
 		m_files = fileList;
 		m_table = null;
 
-		m_recordQueue = new LinkedBlockingQueue<ByteBlock>(1024);
+		m_recordQueue = new LinkedBlockingQueue<>(1024);
 		// m_dataQueue = new LinkedBlockingQueue<DataSet>(64);
 
 		// We want things to drop off this queue quickly so the GUI stays
@@ -88,7 +88,7 @@ public class SeedSplitter extends
 		// ensures that the GUI don't wait on progress updates for too long.
 		// Keep an eye on this so we can decrease the size if the GUI lags,
 		// or increase the size if the GUI is jerky.
-		m_progressQueue = new FallOffQueue<SeedSplitProgress>(1);
+		m_progressQueue = new FallOffQueue<>(1);
 	}
 
 	/**

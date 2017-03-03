@@ -9,7 +9,7 @@ public class StageData {
 	// Constructor(s)
 	StageData(int stageID) {
 		this.stageID = stageID;
-		blockettes = new Hashtable<Integer, Blockette>();
+		blockettes = new Hashtable<>();
 	}
 
 	// stageID

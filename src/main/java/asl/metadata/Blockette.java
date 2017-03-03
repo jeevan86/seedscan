@@ -39,7 +39,7 @@ public class Blockette implements java.io.Serializable {
 	 */
 	public Blockette(int number) {
 		this.number = number;
-		fields = new Hashtable<Integer, Field>();
+		fields = new Hashtable<>();
 	}
 
 	/**

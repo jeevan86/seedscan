@@ -25,9 +25,9 @@ public class StationData {
 
 	// Constructor(s)
 	public StationData(String network, String name) {
-		comments = new Hashtable<LocalDateTime, Blockette>();
-		epochs = new Hashtable<LocalDateTime, Blockette>();
-		channels = new Hashtable<ChannelKey, ChannelData>();
+		comments = new Hashtable<>();
+		epochs = new Hashtable<>();
+		channels = new Hashtable<>();
 		this.name = name;
 		this.network = network;
 	}
@@ -96,7 +96,7 @@ public class StationData {
 	// Return the correct Blockette 050 for the requested epochTime
 	// Return null if epochTime not contained
 	public Blockette getBlockette(LocalDateTime epochTime) {
-		ArrayList<LocalDateTime> epochtimes = new ArrayList<LocalDateTime>();
+		ArrayList<LocalDateTime> epochtimes = new ArrayList<>();
 		epochtimes.addAll(epochs.keySet());
 		Collections.sort(epochtimes);
 		Collections.reverse(epochtimes);
@@ -137,7 +137,7 @@ public class StationData {
 	// Loop through all station (=Blockette 050) epochs and print summary
 
 	public void printEpochs() {
-		TreeSet<LocalDateTime> epochtimes = new TreeSet<LocalDateTime>();
+		TreeSet<LocalDateTime> epochtimes = new TreeSet<>();
 		epochtimes.addAll(epochs.keySet());
 
 		for (LocalDateTime timestamp : epochtimes) {
@@ -163,7 +163,7 @@ public class StationData {
 
 	// Sort channels and print out
 	public void printChannels() {
-		TreeSet<ChannelKey> keys = new TreeSet<ChannelKey>();
+		TreeSet<ChannelKey> keys = new TreeSet<>();
 		keys.addAll(channels.keySet());
 
 		for (ChannelKey key : keys) {

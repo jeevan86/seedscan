@@ -57,8 +57,8 @@ public class EpochData {
 	// Constructors
 	public EpochData(Blockette info) {
 		this.info = info;
-		misc = new ArrayList<Blockette>();
-		stages = new Hashtable<Integer, StageData>();
+		misc = new ArrayList<>();
+		stages = new Hashtable<>();
 		String startDateString = info.getFieldValue(22, 0);
 		String endDateString = info.getFieldValue(23, 0);
 		if (!startDateString.equals("(null)")) {
@@ -104,8 +104,8 @@ public class EpochData {
 	public EpochData(Blockette format, Blockette info) {
 		this.format = format;
 		this.info = info;
-		misc = new ArrayList<Blockette>();
-		stages = new Hashtable<Integer, StageData>();
+		misc = new ArrayList<>();
+		stages = new Hashtable<>();
 	}
 
 	// Info

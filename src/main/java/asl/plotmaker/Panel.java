@@ -31,7 +31,7 @@ public class Panel {
 	// constructor(s)
 	public Panel(String panelTitle) {
 		this.panelTitle = panelTitle;
-		traces = new ArrayList<Trace>();
+		traces = new ArrayList<>();
 	}
 
 	public String getTitle() {

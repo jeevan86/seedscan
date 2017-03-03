@@ -24,8 +24,8 @@ public class MetricResult {
 		this.date = stationInfo.getTimestamp().toLocalDate();
 		this.station = new Station(stationInfo.getNetwork(),
 				stationInfo.getStation());
-		this.valueMap = new Hashtable<String, Double>();
-		this.digestMap = new Hashtable<String, ByteBuffer>();
+		this.valueMap = new Hashtable<>();
+		this.digestMap = new Hashtable<>();
 	}
 
 	public String getMetricName() {
@@ -71,7 +71,7 @@ public class MetricResult {
 	}
 
 	public SortedSet<String> getIdSortedSet() {
-		return new TreeSet<String>(valueMap.keySet());
+		return new TreeSet<>(valueMap.keySet());
 	}
 
 	// Static methods

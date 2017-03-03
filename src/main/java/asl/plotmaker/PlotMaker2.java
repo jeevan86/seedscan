@@ -74,7 +74,7 @@ public class PlotMaker2 {
 	public void initialize3Panels(String subTitle1, String subTitle2,
 			String subTitle3) {
 		if (panels == null) {
-			panels = new ArrayList<Panel>(3);
+			panels = new ArrayList<>(3);
 		}
 		Panel panel1 = new Panel(subTitle1);
 		panels.add(panel1);

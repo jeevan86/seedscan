@@ -95,7 +95,7 @@ public class StationMeta implements Serializable {
 		this.latitude = Double.parseDouble(blockette.getFieldValue(4, 0));
 		this.longitude = Double.parseDouble(blockette.getFieldValue(5, 0));
 		this.elevation = Double.parseDouble(blockette.getFieldValue(6, 0));
-		channels = new Hashtable<ChannelKey, ChannelMeta>();
+		channels = new Hashtable<>();
 		this.metaTimestamp = timestamp;
 		this.metaDate = (EpochData.epochToDateString(this.metaTimestamp));
 		this.blockette50 = blockette;
@@ -236,10 +236,10 @@ public class StationMeta implements Serializable {
 	 * @return the channel array
 	 */
 	public List<Channel> getChannelArray(String bands, boolean ignoreTriggered, boolean ignoreDerived) {
-		TreeSet<ChannelKey> keys = new TreeSet<ChannelKey>();
+		TreeSet<ChannelKey> keys = new TreeSet<>();
 		keys.addAll(channels.keySet());
 
-		ArrayList<Channel> channelArrayList = new ArrayList<Channel>();
+		ArrayList<Channel> channelArrayList = new ArrayList<>();
 
 		String[] bandArray = bands.split(",");
 
@@ -318,10 +318,10 @@ public class StationMeta implements Serializable {
 	 * @return the continuous channels
 	 */
 	public List<Channel> getContinuousChannels() {
-		TreeSet<ChannelKey> keys = new TreeSet<ChannelKey>();
+		TreeSet<ChannelKey> keys = new TreeSet<>();
 		keys.addAll(channels.keySet());
 
-		ArrayList<Channel> channelArrayList = new ArrayList<Channel>();
+		ArrayList<Channel> channelArrayList = new ArrayList<>();
 
 		for (ChannelKey channelKey : keys) {
 			Channel channel = channelKey.toChannel();
@@ -340,10 +340,10 @@ public class StationMeta implements Serializable {
 	 * @return the derived channels
 	 */
 	public List<Channel> getRotatableChannels() {
-		TreeSet<ChannelKey> keys = new TreeSet<ChannelKey>();
+		TreeSet<ChannelKey> keys = new TreeSet<>();
 		keys.addAll(channels.keySet());
 
-		ArrayList<Channel> channelArrayList = new ArrayList<Channel>();
+		ArrayList<Channel> channelArrayList = new ArrayList<>();
 
 		for (ChannelKey channelKey : keys) {
 			Channel channel = channelKey.toChannel();

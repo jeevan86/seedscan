@@ -429,8 +429,8 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 		logger.info("Read in Noise Model from file=[{}]", fileURL.toString());
 
 		// Temporary ArrayList(s) to read in unknown number of (x,y) pairs:
-		ArrayList<Double> tmpPers = new ArrayList<Double>();
-		ArrayList<Double> tmpPows = new ArrayList<Double>();
+		ArrayList<Double> tmpPers = new ArrayList<>();
+		ArrayList<Double> tmpPows = new ArrayList<>();
 		BufferedReader br = null;
 		try {
 			String line;

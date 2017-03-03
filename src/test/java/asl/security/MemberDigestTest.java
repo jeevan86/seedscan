@@ -292,7 +292,7 @@ public class MemberDigestTest {
 	 */
 	@Test
 	public final void testMultiBuffer() throws Exception {
-		ArrayList<ByteBuffer> digests = new ArrayList<ByteBuffer>();
+		ArrayList<ByteBuffer> digests = new ArrayList<>();
 		digest1 = new GenericDigest(0, 9221372026154775806L, 5.0000001,
 				'd');
 		digest2 = new GenericDigest(52465, 0L, 32512.124, '1');

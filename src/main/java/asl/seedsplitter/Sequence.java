@@ -77,7 +77,7 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 	 */
 	private void _reset() {
 		m_length = 0;
-		m_blocks = new ArrayList<int[]>(8);
+		m_blocks = new ArrayList<>(8);
 		this._addBlock();
 	}
 

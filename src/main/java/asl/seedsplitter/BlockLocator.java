@@ -57,7 +57,7 @@ public class BlockLocator extends
 	public BlockLocator(ArrayList<ArrayList<DataSet>> dataLists) {
 		super();
 		m_dataLists = dataLists;
-		m_blockList = new ArrayList<ContiguousBlock>(16);
+		m_blockList = new ArrayList<>(16);
 	}
 
 	/**
@@ -145,7 +145,7 @@ public class BlockLocator extends
 	 */
 	private ArrayList<ContiguousBlock> _buildFirstList(
 			ArrayList<DataSet> dataList) {
-		ArrayList<ContiguousBlock> resultList = new ArrayList<ContiguousBlock>();
+		ArrayList<ContiguousBlock> resultList = new ArrayList<>();
 		DataSet tempData = null;
 		ContiguousBlock tempBlock = null;
 
@@ -181,7 +181,7 @@ public class BlockLocator extends
 	private ArrayList<ContiguousBlock> _buildDependentList(
 			ArrayList<DataSet> dataList, ArrayList<ContiguousBlock> blockList)
 			throws BlockIntervalMismatchException {
-		ArrayList<ContiguousBlock> resultList = new ArrayList<ContiguousBlock>();
+		ArrayList<ContiguousBlock> resultList = new ArrayList<>();
 		DataSet tempData = null;
 		ContiguousBlock oldBlock = null;
 		ContiguousBlock newBlock = null;

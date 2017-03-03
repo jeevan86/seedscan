@@ -92,7 +92,7 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 		this.metaTimestamp = metaTimestamp;
 		this.metaDate = (EpochData.epochToDateString(this.metaTimestamp));
 		this.station = station;
-		stages = new Hashtable<Integer, ResponseStage>();
+		stages = new Hashtable<>();
 	}
 
 	private ChannelMeta(ChannelKey channel, LocalDateTime metaTimestamp){

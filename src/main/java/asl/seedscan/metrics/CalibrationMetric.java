@@ -460,7 +460,7 @@ public class CalibrationMetric extends Metric {
 			return false;
 		}
 
-		sensorTable = new Hashtable<String, SensorInfo>();
+		sensorTable = new Hashtable<>();
 
 		// First see if the file exists
 		if (!(new File(fileName).exists())) {
@@ -602,7 +602,7 @@ public class CalibrationMetric extends Metric {
 			this.calInputChannel = calInputChannel;
 			this.calStartDate = calStartDate;
 			this.calDuration = calDuration;
-			bandTable = new Hashtable<String, BandAverageDiff>();
+			bandTable = new Hashtable<>();
 		}
 
 		private void setSensorName(String sensorName) {

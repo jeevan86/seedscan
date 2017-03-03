@@ -57,8 +57,8 @@ public class PoleZeroStage extends ResponseStage implements Cloneable, Serializa
 	PoleZeroStage(int stageNumber, char stageType, double stageGain,
 			double stageFrequency) {
 		super(stageNumber, stageType, stageGain, stageFrequency);
-		poles = new ArrayList<Complex>();
-		zeros = new ArrayList<Complex>();
+		poles = new ArrayList<>();
+		zeros = new ArrayList<>();
 	}
 
 	void addPole(Complex pole) {

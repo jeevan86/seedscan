@@ -145,7 +145,7 @@ public class EventLoader {
 		String year = key.substring(0, 4);
 		String yearDir = eventsDirectory + "/" + year;
 
-		SortedSet<String> keys = new TreeSet<String>(dayCMTs.keySet());
+		SortedSet<String> keys = new TreeSet<>(dayCMTs.keySet());
 		for (String idString : keys) {
 			// System.out.format("== getDaySynthetics: Got EventCMT
 			// idString=[%s] --> [%s]\n",idString,
@@ -172,14 +172,14 @@ public class EventLoader {
 					continue;
 				}
 				if (eventSynthetics == null) {
-					eventSynthetics = new Hashtable<String, SacTimeSeries>();
+					eventSynthetics = new Hashtable<>();
 				}
 				eventSynthetics.put(sacFile.getName(), sac); // e.g.,
 																// key="HRV.XX.LXZ.modes.sac.proc"
 			}
 
 			if (allEventSynthetics == null) {
-				allEventSynthetics = new Hashtable<String, Hashtable<String, SacTimeSeries>>();
+				allEventSynthetics = new Hashtable<>();
 			}
 
 			if (eventSynthetics != null) { // Add this event synthetics IF we
@@ -217,7 +217,7 @@ public class EventLoader {
 				return cmtTree.get(key);
 			}
 		} else {
-			cmtTree = new Hashtable<String, Hashtable<String, EventCMT>>();
+			cmtTree = new Hashtable<>();
 		}
 
 		// System.out.format("== EventLoader.getDayEvents: key=[%s] NOT FOUND
@@ -331,7 +331,7 @@ public class EventLoader {
 								// eventCMT.printCMT();
 								// Add EventCMT to this Day's event CMTs:
 								if (dayCMTs == null) {
-									dayCMTs = new Hashtable<String, EventCMT>();
+									dayCMTs = new Hashtable<>();
 								}
 								dayCMTs.put(idString, eventCMT);
 							} catch (NumberFormatException e) {

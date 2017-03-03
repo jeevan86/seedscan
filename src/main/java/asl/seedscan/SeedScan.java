@@ -46,7 +46,7 @@ public class SeedScan {
 		try {
 			//Change of scope for Garbage collection since setup objects may exist for life of program.
 			{
-				List<String> networks = new ArrayList<String>();
+				List<String> networks = new ArrayList<>();
 				if (Global.CONFIG.getNetworkSubset() != null) {
 					logger.debug("Filter on Network Subset=[{}]", Global.CONFIG.getNetworkSubset());
 					Collections.addAll(networks, Global.CONFIG.getNetworkSubset().split(","));

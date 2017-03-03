@@ -21,7 +21,7 @@ public abstract class ResourceManager { // NO_UCD (test only)
 	 * Stores a copy of the resources that is shared between tests. Tests that
 	 * use shared objects, must not modify the object in a destructive manner.
 	 */
-	private static HashMap<String, Object> resources = new HashMap<String, Object>();
+	private static HashMap<String, Object> resources = new HashMap<>();
 
 	/**
 	 * Compress using GZIPOutputStream and write to file specific in fileName.

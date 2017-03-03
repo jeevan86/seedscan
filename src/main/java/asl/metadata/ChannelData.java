@@ -25,8 +25,8 @@ public class ChannelData {
 	ChannelData(ChannelKey channelKey) {
 		this.location = channelKey.getLocation();
 		this.name = channelKey.getName();
-		comments = new Hashtable<LocalDateTime, Blockette>();
-		epochs = new Hashtable<LocalDateTime, EpochData>();
+		comments = new Hashtable<>();
+		epochs = new Hashtable<>();
 	}
 
 	// identifiers
@@ -103,7 +103,7 @@ public class ChannelData {
 	LocalDateTime containsEpoch(LocalDateTime epochTime) {
 		boolean containsEpochTime = false;
 
-		ArrayList<LocalDateTime> epochtimes = new ArrayList<LocalDateTime>();
+		ArrayList<LocalDateTime> epochtimes = new ArrayList<>();
 		epochtimes.addAll(epochs.keySet());
 		Collections.sort(epochtimes);
 		Collections.reverse(epochtimes);
@@ -171,7 +171,7 @@ public class ChannelData {
 		// TreeSet<Calendar> epochtimes = new TreeSet<Calendar>();
 		// epochtimes.addAll(epochs.keySet());
 
-		ArrayList<LocalDateTime> epochtimes = new ArrayList<LocalDateTime>();
+		ArrayList<LocalDateTime> epochtimes = new ArrayList<>();
 		epochtimes.addAll(epochs.keySet());
 		Collections.sort(epochtimes);
 

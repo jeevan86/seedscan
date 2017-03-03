@@ -27,7 +27,7 @@ public class BlockPool implements Serializable{
 	 */
 	BlockPool(int blockSize) {
 		m_blockSize = blockSize;
-		m_pool = new ArrayList<int[]>(8);
+		m_pool = new ArrayList<>(8);
 	}
 
 	/**

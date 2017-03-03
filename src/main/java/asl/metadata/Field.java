@@ -20,7 +20,7 @@ public class Field implements Serializable {
 	public Field(int fieldID, String description) {
 		this.fieldID = fieldID;
 		this.description = description;
-		values = new ArrayList<String>();
+		values = new ArrayList<>();
 	}
 
 	public int getID() {

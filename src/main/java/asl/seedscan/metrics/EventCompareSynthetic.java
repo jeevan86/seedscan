@@ -147,7 +147,7 @@ public class EventCompareSynthetic extends Metric {
 				int nEvents = 0;
 				// Loop over Events for this day
 				try { // getFilteredDisplacement
-					SortedSet<String> eventKeys = new TreeSet<String>(eventCMTs.keySet());
+					SortedSet<String> eventKeys = new TreeSet<>(eventCMTs.keySet());
 					for (String key : eventKeys) {
 						Hashtable<String, SacTimeSeries> synthetics = getEventSynthetics(key);
 						if (synthetics == null) {

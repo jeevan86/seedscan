@@ -47,7 +47,7 @@ public abstract class Global {
 		// Default locations of config and schema files
 		File configFile = new File("config.xml");
 		URL schemaFile = Global.class.getResource("/schemas/SeedScanConfig.xsd");
-		ArrayList<URL> schemaFiles = new ArrayList<URL>();
+		ArrayList<URL> schemaFiles = new ArrayList<>();
 		schemaFiles.add(schemaFile);
 
 		// ==== Configuration Read and Parse Actions ====
@@ -69,7 +69,7 @@ public abstract class Global {
 			System.exit(1);
 		}
 
-		ArrayList<MetricWrapper> metrics = new ArrayList<MetricWrapper>();
+		ArrayList<MetricWrapper> metrics = new ArrayList<>();
 		for (MetricT met : Global.CONFIG.getMetrics().getMetric()) {
 			try {
 				Class<?> metricClass = Class.forName(met.getClassName());

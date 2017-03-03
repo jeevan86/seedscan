@@ -61,7 +61,7 @@ public class MetaGenerator {
 	 * @param networkSubset the network subset to parse
 	 */
 	public MetaGenerator(String datalessDir, List<String> networkSubset) {
-		volumes = new Hashtable<NetworkKey, SeedVolume>();
+		volumes = new Hashtable<>();
 		
 		File dir = new File(datalessDir);
 		if (!dir.exists()) {
@@ -73,7 +73,7 @@ public class MetaGenerator {
 		}
 
 		/* Create List of network subset IDs '<ID>.dataless' */
-		final List<String> networkExt = new ArrayList<String>();
+		final List<String> networkExt = new ArrayList<>();
 		if (networkSubset != null) {
 			String ext = "";
 			for (String key : networkSubset) {
@@ -102,7 +102,7 @@ public class MetaGenerator {
 			ProcessBuilder pb = new ProcessBuilder("rdseed", "-s", "-f",
 					datalessFile);
 
-			ArrayList<String> strings = new ArrayList<String>();
+			ArrayList<String> strings = new ArrayList<>();
 
 			SeedVolume volume = null;
 
@@ -163,7 +163,7 @@ public class MetaGenerator {
 		if (volumes == null) {
 			return null;
 		}
-		ArrayList<Station> allStations = new ArrayList<Station>();
+		ArrayList<Station> allStations = new ArrayList<>();
 		for (NetworkKey key : volumes.keySet()) {
 			SeedVolume volume = volumes.get(key);
 			List<Station> stations = volume.getStationList();
@@ -186,7 +186,7 @@ public class MetaGenerator {
 			return null;
 		}
 		
-		List<Station> allStations = new ArrayList<Station>();
+		List<Station> allStations = new ArrayList<>();
 		
 		if(networks != null && stations != null){
 			for (String network : networks) {
@@ -300,7 +300,7 @@ public class MetaGenerator {
 
 		// Get this StationData's ChannelKeys and sort:
 		Hashtable<ChannelKey, ChannelData> channels = stationData.getChannels();
-		TreeSet<ChannelKey> keys = new TreeSet<ChannelKey>();
+		TreeSet<ChannelKey> keys = new TreeSet<>();
 		keys.addAll(channels.keySet());
 		for (ChannelKey key : keys) {
             // System.out.println("==Channel:"+key );

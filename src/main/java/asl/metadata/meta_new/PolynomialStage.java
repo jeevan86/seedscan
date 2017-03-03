@@ -42,7 +42,7 @@ public class PolynomialStage extends ResponseStage implements Serializable {
 	PolynomialStage(int stageNumber, char stageType, double stageGain,
 			double stageFrequency) {
 		super(stageNumber, stageType, stageGain, stageFrequency);
-		coefficients = new ArrayList<Complex>();
+		coefficients = new ArrayList<>();
 	}
 
 	void addCoefficient(Complex coefficient) {

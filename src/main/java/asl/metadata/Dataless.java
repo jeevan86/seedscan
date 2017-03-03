@@ -117,8 +117,8 @@ class Dataless {
 			return;
 		}
 
-		blockettes = new ArrayList<Blockette>();
-		Hashtable<Integer, Blockette> blocketteMap = new Hashtable<Integer, Blockette>();
+		blockettes = new ArrayList<>();
+		Hashtable<Integer, Blockette> blocketteMap = new Hashtable<>();
 
 		total = rawDataless.size();
 		count = 0.0;

@@ -35,8 +35,8 @@ public class SeedVolume {
 	 * Instantiates a new seed volume.
 	 */
 	public SeedVolume() {
-		stations = new Hashtable<StationKey, StationData>();
-		stationLocators = new ArrayList<Blockette>();
+		stations = new Hashtable<>();
+		stationLocators = new ArrayList<>();
 	}
 
 	/**
@@ -52,8 +52,8 @@ public class SeedVolume {
 		} catch (WrongBlocketteException e) {
 			logger.error("== WrongBlocketteException:", e);
 		}
-		stations = new Hashtable<StationKey, StationData>();
-		stationLocators = new ArrayList<Blockette>();
+		stations = new Hashtable<>();
+		stationLocators = new ArrayList<>();
 	}
 
 	/**
@@ -144,8 +144,8 @@ public class SeedVolume {
 	 * @return the station list
 	 */
 	public List<Station> getStationList() {
-		ArrayList<Station> stns = new ArrayList<Station>();
-		TreeSet<StationKey> keys = new TreeSet<StationKey>();
+		ArrayList<Station> stns = new ArrayList<>();
+		TreeSet<StationKey> keys = new TreeSet<>();
 		keys.addAll(stations.keySet());
 
 		for (StationKey key : keys) {
