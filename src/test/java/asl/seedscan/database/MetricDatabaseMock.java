@@ -5,7 +5,6 @@ import asl.metadata.Station;
 import java.nio.ByteBuffer;
 import java.time.LocalDate;
 import java.util.HashMap;
-import javax.xml.bind.DatatypeConverter;
 
 public class MetricDatabaseMock extends MetricDatabase {
 

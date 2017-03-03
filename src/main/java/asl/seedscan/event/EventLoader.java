@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 import asl.metadata.Station;
 import sac.SacTimeSeries;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class EventLoader.
  */
