@@ -195,15 +195,6 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 		return name;
 	}
 
-	public Channel getChannel() {
-		return new Channel(this.getLocation(), this.getName());
-	}
-
-	public Station getStation() {
-		return new Station(station.getNetwork(), station.getStation());
-		// return station;
-	}
-
 	public double getDepth() {
 		return depth;
 	}
