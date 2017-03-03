@@ -270,9 +270,6 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 	 * 
 	 * A SequenceMergeRangeException is thrown when the Sequences are not
 	 * contiguous, or do not overlap.
-	 * 
-	 * A SequenceTimingException is thrown when the Sequences startTimes are not
-	 * synchronized by a factor of the interval.
 	 *
 	 * @param seq
 	 *            The Sequence into which the data points from this sequence
@@ -290,9 +287,6 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 			throw new SequenceIntervalMismatchException();
 		}
 
-		// if ((Math.abs(m_startTime - seq.m_startTime) % m_interval) != 0) {
-		// throw new SequenceTimingException();
-		// }
 		/*
 		 * Allow for a fudge factor of 1 millisecond if sample rate is less than
 		 * 100 Hz.
