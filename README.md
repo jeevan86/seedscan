@@ -10,6 +10,7 @@ SeedScan
 Java 1.8  
 Gradle 2.5  
 Postgresql 9.x  
+rdseed (see https://ds.iris.edu/ds/nodes/dmc/software/downloads/rdseed/)  
 
 ######Hardware
 This is dependent upon the quantity of data that is scanned.  
