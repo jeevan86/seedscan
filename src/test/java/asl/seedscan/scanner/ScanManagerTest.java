@@ -13,13 +13,14 @@ import org.junit.Test;
 
 public class ScanManagerTest {
 
-  private ScanManager manager;
   private static MetaGenerator metaGenerator;
 
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
     try {
-     // metaGenerator = new MetaGenerator()
+      metaGenerator = new MetaGenerator(
+          ResourceManager.getDirectoryPath("/dataless"),
+          null);
     } catch (Exception e) {
       e.printStackTrace();
     }
