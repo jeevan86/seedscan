@@ -12,7 +12,6 @@ import asl.metadata.MetaGenerator;
 import asl.seedscan.database.MetricDatabase;
 import asl.seedscan.scanner.scanworker.RetrieveScan;
 import asl.seedscan.scanner.scanworker.ScanWorker;
-import asl.util.Logging;
 
 public class ScanManager {
 
@@ -120,5 +119,6 @@ public class ScanManager {
     if (scanThread != null) {
       scanThread.interrupt();
     }
+    threadPool.shutdownNow();
   }
 }
