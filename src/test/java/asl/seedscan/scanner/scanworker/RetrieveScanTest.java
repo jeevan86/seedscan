@@ -19,6 +19,7 @@ public class RetrieveScanTest {
 
   private static MetaGenerator metaGenerator;
   private MetricDatabaseMock database;
+  private ScanManager manager;
 
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
@@ -41,12 +42,12 @@ public class RetrieveScanTest {
   @Before
   public void setUp() throws Exception {
     database = new MetricDatabaseMock();
-
+    manager = new ScanManager(database, metaGenerator);
   }
 
   @After
   public void tearDown() throws Exception {
-
+    manager.halt();
   }
 
   @Ignore
