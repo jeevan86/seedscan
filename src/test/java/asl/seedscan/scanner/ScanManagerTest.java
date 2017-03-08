@@ -4,12 +4,15 @@ import static org.junit.Assert.assertTrue;
 
 import asl.metadata.MetaGenerator;
 import asl.seedscan.database.MetricDatabaseMock;
+import asl.seedscan.scanner.scanworker.ScanWorker;
 import asl.testutils.Dependent;
 import asl.testutils.ResourceManager;
+import asl.testutils.ThreadUtils.MutableFlag;
+import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class ScanManagerTest {
@@ -40,10 +43,10 @@ public class ScanManagerTest {
 
   @After
   public void tearDown() throws Exception {
-
+    manager.halt();
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test(expected = IllegalStateException.class, timeout = 20000)
   public void scan_ExceptionOnMultipleScanCalls_DatabaseErrorInserted() throws Exception {
     Runnable first = () -> manager.scan();
     try {
@@ -51,34 +54,89 @@ public class ScanManagerTest {
       Thread.sleep(500);
       manager.scan();
     } finally {
-      manager.halt();
       //Should have also inserted an error into the db.
       assertTrue(database.getNumberErrors() > 0);
     }
 
   }
 
-  @Test
-  public void scan_doesEmptyQueueQueryTheDatabase() throws Exception {
+  @Test(timeout = 20000)
+  public void scan_doesEmptyQueueQueryTheDatabase_doesScanPeriodicallyCheckForNewScans()
+      throws Exception {
+    Runnable scanner = () -> manager.scan();
+    manager.setQueryTime(500);
+    new Thread(scanner).start();
+    //Sleep first to allow default starts to clear up.
+    Thread.sleep(500);
+    int count = database.getNumberOfScanRequests();
+    Thread.sleep(500);
 
+    assertTrue(count < database.getNumberOfScanRequests());
   }
 
-  @Ignore
-  @Test
-  public void scan_doesScanPeriodicallyCheckForNewScans() throws Exception {
-
-  }
-
-  @Ignore
-  @Test
+  /**
+   * @throws Exception if a timeout occurs, meaning the task did not run.
+   */
+  @Test(timeout = 20000)
   public void addTask_doesTaskExecuteAfterBeingAdded_singleTask() throws Exception {
+    MutableFlag flag = new MutableFlag();
 
+    ScanWorker worker = new ScanWorker(manager) {
+      @Override
+      protected Integer getBasePriority() {
+        return 1;
+      }
+
+      @Override
+      protected Long getFinePriority() {
+        return 1L;
+      }
+
+      @Override
+      public void run() {
+        flag.set(true);
+      }
+    };
+
+    manager.addTask(worker);
+    while (!flag.get()) {
+      Thread.sleep(5);
+    }
   }
 
-  @Ignore
-  @Test
+  @Test(timeout = 20000)
   public void addTask_doesTaskExecuteAfterBeingAdded_ManyTasks() throws Exception {
+    Queue<MutableFlag> flags = new LinkedBlockingQueue<>();
 
+    for (int i = 0; i < 100; i++) {
+      MutableFlag flag = new MutableFlag();
+      flags.offer(flag);
+      ScanWorker worker = new ScanWorker(manager) {
+        @Override
+        protected Integer getBasePriority() {
+          return 1;
+        }
+
+        @Override
+        protected Long getFinePriority() {
+          return 1L;
+        }
+
+        @Override
+        public void run() {
+          flag.set(true);
+        }
+      };
+
+      manager.addTask(worker);
+    }
+
+    while (!flags.isEmpty()) {
+      MutableFlag flag = flags.poll();
+      while (!flag.get()) {
+        Thread.sleep(5);
+      }
+    }
   }
 
 }
