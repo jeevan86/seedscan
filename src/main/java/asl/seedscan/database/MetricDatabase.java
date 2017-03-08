@@ -467,7 +467,7 @@ public class MetricDatabase {
 	 * copy of the queue. Priority in the database queue may not exactly match
 	 * priority in Seedscan.
 	 * 
-	 * @return A Scan object to be added to the Priority Queue.
+	 * @return A Scan object to be added to the Priority Queue or null if empty
 	 */
 	public DatabaseScan takeNextScan() {
 		Connection connection = null;
