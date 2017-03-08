@@ -2,16 +2,45 @@ package asl.seedscan.scanner.scanworker;
 
 import static org.junit.Assert.*;
 
+import asl.metadata.MetaGenerator;
+import asl.seedscan.database.MetricDatabaseMock;
+import asl.seedscan.scanner.ScanManager;
+import asl.testutils.Dependent;
+import asl.testutils.ResourceManager;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
 
 public class RetrieveScanTest {
 
+  private static MetaGenerator metaGenerator;
+  private MetricDatabaseMock database;
+
+  @BeforeClass
+  public static void setUpBeforeClass() throws Exception {
+    Dependent.assumeRDSeed();
+
+    try {
+      metaGenerator = new MetaGenerator(
+          ResourceManager.getDirectoryPath("/dataless"),
+          null);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  @AfterClass
+  public static void tearDownAfterClass() throws Exception {
+    metaGenerator = null;
+  }
+
   @Before
   public void setUp() throws Exception {
+    database = new MetricDatabaseMock();
 
   }
 

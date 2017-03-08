@@ -24,7 +24,6 @@ public class ScanManagerTest {
 
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
-
     Dependent.assumeRDSeed();
 
     try {
