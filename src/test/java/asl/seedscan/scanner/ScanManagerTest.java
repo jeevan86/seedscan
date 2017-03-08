@@ -11,6 +11,7 @@ import asl.testutils.ThreadUtils.MutableFlag;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -33,6 +34,11 @@ public class ScanManagerTest {
     } catch (Exception e) {
       e.printStackTrace();
     }
+  }
+
+  @AfterClass
+  public static void tearDownAfterClass() throws Exception {
+    metaGenerator = null;
   }
 
   @Before
