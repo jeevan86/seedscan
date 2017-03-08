@@ -91,13 +91,13 @@ public class RetrieveScan extends ScanWorker {
   }
 
   @Override
-  Integer getBasePriority() {
+  public Integer getBasePriority() {
     // This should always run after everything else.
     return Integer.MAX_VALUE;
   }
 
   @Override
-  Long getFinePriority() {
+  public Long getFinePriority() {
     // This should always run after everything else.
     return Long.MAX_VALUE;
   }

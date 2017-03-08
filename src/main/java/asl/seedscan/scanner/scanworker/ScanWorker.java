@@ -6,7 +6,7 @@ public abstract class ScanWorker implements Comparable<ScanWorker>, Runnable {
 
 	protected final ScanManager manager;
 
-	ScanWorker(ScanManager manager) {
+	protected ScanWorker(ScanManager manager) {
 		this.manager = manager;
 	}
 
@@ -24,7 +24,7 @@ public abstract class ScanWorker implements Comparable<ScanWorker>, Runnable {
 	 * 
 	 * @return the rough priority of this worker.
 	 */
-	abstract Integer getBasePriority();
+	protected abstract Integer getBasePriority();
 
 	/**
 	 * This is used after base priority comparison. This is used to compare
@@ -33,7 +33,7 @@ public abstract class ScanWorker implements Comparable<ScanWorker>, Runnable {
 	 * 
 	 * @return the fine detailed priority
 	 */
-	abstract Long getFinePriority();
+	protected abstract Long getFinePriority();
 
 	/**
 	 * This compares first the base priority, then the fine priority.
