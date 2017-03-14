@@ -1,5 +1,11 @@
 package asl.seedscan.scanner;
 
+import asl.metadata.Station;
+import asl.metadata.meta_new.StationMeta;
+import asl.seedscan.ArchivePath;
+import asl.seedscan.metrics.MetricData;
+import asl.seedsplitter.DataSet;
+import asl.seedsplitter.SeedSplitter;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.time.LocalDate;
@@ -13,23 +19,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import asl.metadata.Station;
-import asl.metadata.meta_new.StationMeta;
-import asl.seedscan.ArchivePath;
-import asl.seedscan.Global;
-import asl.seedscan.metrics.MetricData;
-import asl.seedsplitter.DataSet;
-import asl.seedsplitter.SeedSplitter;
 import seed.Blockette320;
 
 public abstract class DataLoader {
 	
 	private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.scanner.DataLoader.class);
-	
+
 	// Class to assign seedplitter object and seedsplitter table
 	private static class SplitterObject {
 		private SeedSplitter splitter;
@@ -78,11 +75,16 @@ public abstract class DataLoader {
 		return new SplitterObject(splitter, table);
 	}
 
-	
+
 	/**
 	 * Return a MetricData object for the station + timestamp
+	 * @param date The date to load
+	 * @param station Station to load
+	 * @param manager ScanManager that contains metadata and database for the MetricData
+	 * @param dataDirectory The miniseed directory string from config file.
+	 * @return complete MetricData object for station day.
 	 */
-	public static MetricData getMetricData(LocalDate date, Station station, ScanManager manager) {
+	public static MetricData getMetricData(LocalDate date, Station station, ScanManager manager, String dataDirectory) {
 
 		StationMeta stationMeta = manager.metaGenerator.getStationMeta(station, date.atStartOfDay());
 		if (stationMeta == null) {
@@ -90,7 +92,7 @@ public abstract class DataLoader {
 		}
 
 		ArchivePath pathEngine = new ArchivePath(date.atStartOfDay(), station);
-		String path = pathEngine.makePath(Global.CONFIG.getPath());
+		String path = pathEngine.makePath(dataDirectory);
 		File dir = new File(path);
 		File[] files = null;
 		boolean dataExists = true;
