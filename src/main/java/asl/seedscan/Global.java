@@ -18,7 +18,6 @@ import asl.seedscan.config.MetricT;
 import asl.seedscan.metrics.MetricWrapper;
 
 /**
- * 
  * This class parses the configuration file (config.xml) when the application is
  * started, and makes the parsed data "globally" accessible throughout the
  * application.
@@ -26,137 +25,136 @@ import asl.seedscan.metrics.MetricWrapper;
 
 public abstract class Global {
 
-	/**
-	 * Contains the getters and setters for xml structures defined as children
-	 * to the ConfigT complex type in SeedScanConfig.xsd
-	 **/
-	private static ConfigT CONFIG;
+  /**
+   * Contains the getters and setters for xml structures defined as children
+   * to the ConfigT complex type in SeedScanConfig.xsd
+   **/
+  private static ConfigT CONFIG;
 
-	/**
-	 * Object that prevents two Seedscan processes from running at the same time
-	 **/
-	public static LockFile lock;
-	
-	/**
-	 * An unmodifiable list of Metrics from the config file.
-	 */
-	protected static List<MetricWrapper> metrics;
-	protected static List<String> networkRestrictions;
+  /**
+   * Object that prevents two Seedscan processes from running at the same time
+   **/
+  public static LockFile lock;
 
-	protected static final Logger logger = LoggerFactory.getLogger(asl.seedscan.Global.class);
-	protected static String datalessDir;
-	protected static DatabaseT database;
-	protected static String plotsDir;
-	protected static String path;
-	protected static String eventsDir;
-	protected static String qualityflags;
-	protected static String lockfile;
+  /**
+   * An unmodifiable list of Metrics from the config file.
+   */
+  protected static List<MetricWrapper> metrics;
+  protected static List<String> networkRestrictions;
 
-
-	static void loadConfig(String configPath) throws FileNotFoundException  {
-		
-		// Default locations of config and schema files
-		File configFile = new File(configPath);
-		URL schemaFile = Global.class.getResource("/schemas/SeedScanConfig.xsd");
-		ArrayList<URL> schemaFiles = new ArrayList<>();
-		schemaFiles.add(schemaFile);
-
-		// ==== Configuration Read and Parse Actions ====
-		ConfigParser parser = new ConfigParser(schemaFiles);
-		CONFIG = parser.parseConfig(configFile);
-
-		// ===== CONFIG: QUALITY FLAGS =====
+  protected static final Logger logger = LoggerFactory.getLogger(asl.seedscan.Global.class);
+  protected static String datalessDir;
+  protected static DatabaseT database;
+  protected static String plotsDir;
+  protected static String path;
+  protected static String eventsDir;
+  protected static String qualityflags;
+  protected static String lockfile;
 
 
-		ArrayList<MetricWrapper> metrics = new ArrayList<>();
-		for (MetricT met : Global.CONFIG.getMetrics().getMetric()) {
-			try {
-				Class<?> metricClass = Class.forName(met.getClassName());
-				MetricWrapper wrapper = new MetricWrapper(metricClass);
-				for (ArgumentT arg : met.getArgument()) {
-					wrapper.add(arg.getName(), arg.getValue());
-				}
-				metrics.add(wrapper);
-			} catch (ClassNotFoundException ex) {
-				String message = "No such metric class '" + met.getClassName() + "'";
-				logger.error(message, ex);
-				System.exit(1);
-			} catch (InstantiationException ex) {
-				String message = "Could not dynamically instantiate class '" + met.getClassName() + "'";
-				logger.error(message, ex);
-				System.exit(1);
-			} catch (IllegalAccessException ex) {
-				String message = "Illegal access while loading class '" + met.getClassName() + "'";
-				logger.error(message, ex);
-				System.exit(1);
-			} catch (NoSuchFieldException ex) {
-				String message = "Invalid dynamic argument to Metric subclass '" + met.getClassName() + "'";
-				logger.error(message, ex);
-				System.exit(1);
-			}
-		}
+  static void loadConfig(String configPath) throws FileNotFoundException {
 
-		Global.metrics = Collections.unmodifiableList(metrics);
+    // Default locations of config and schema files
+    File configFile = new File(configPath);
+    URL schemaFile = Global.class.getResource("/schemas/SeedScanConfig.xsd");
+    ArrayList<URL> schemaFiles = new ArrayList<>();
+    schemaFiles.add(schemaFile);
 
-		List<String> networks = new ArrayList<>();
-		if (Global.CONFIG.getNetworkSubset() != null) {
-			logger.debug("Filter on Network Subset=[{}]", Global.CONFIG.getNetworkSubset());
-			Collections.addAll(networks, Global.CONFIG.getNetworkSubset().split(","));
-		}
+    // ==== Configuration Read and Parse Actions ====
+    ConfigParser parser = new ConfigParser(schemaFiles);
+    CONFIG = parser.parseConfig(configFile);
 
-		networkRestrictions = Collections.unmodifiableList(networks);
+    // ===== CONFIG: QUALITY FLAGS =====
 
-		datalessDir = CONFIG.getDatalessDir();
-		database = CONFIG.getDatabase();
+    ArrayList<MetricWrapper> metrics = new ArrayList<>();
+    for (MetricT met : Global.CONFIG.getMetrics().getMetric()) {
+      try {
+        Class<?> metricClass = Class.forName(met.getClassName());
+        MetricWrapper wrapper = new MetricWrapper(metricClass);
+        for (ArgumentT arg : met.getArgument()) {
+          wrapper.add(arg.getName(), arg.getValue());
+        }
+        metrics.add(wrapper);
+      } catch (ClassNotFoundException ex) {
+        String message = "No such metric class '" + met.getClassName() + "'";
+        logger.error(message, ex);
+        System.exit(1);
+      } catch (InstantiationException ex) {
+        String message = "Could not dynamically instantiate class '" + met.getClassName() + "'";
+        logger.error(message, ex);
+        System.exit(1);
+      } catch (IllegalAccessException ex) {
+        String message = "Illegal access while loading class '" + met.getClassName() + "'";
+        logger.error(message, ex);
+        System.exit(1);
+      } catch (NoSuchFieldException ex) {
+        String message = "Invalid dynamic argument to Metric subclass '" + met.getClassName() + "'";
+        logger.error(message, ex);
+        System.exit(1);
+      }
+    }
 
-		lockfile = CONFIG.getLockfile();
+    Global.metrics = Collections.unmodifiableList(metrics);
 
-		qualityflags = CONFIG.getQualityflags();
-		if (qualityflags == null) {
-			logger.error("No data quality flags in configuration: Using default \"All\"");
-			qualityflags = "All";
-		}
+    List<String> networks = new ArrayList<>();
+    if (Global.CONFIG.getNetworkSubset() != null) {
+      logger.debug("Filter on Network Subset=[{}]", Global.CONFIG.getNetworkSubset());
+      Collections.addAll(networks, Global.CONFIG.getNetworkSubset().split(","));
+    }
 
-		plotsDir = CONFIG.getPlotsDir();
+    networkRestrictions = Collections.unmodifiableList(networks);
 
-		path = CONFIG.getPath();
+    datalessDir = CONFIG.getDatalessDir();
+    database = CONFIG.getDatabase();
 
-		eventsDir = CONFIG.getEventsDir();
-	}
+    lockfile = CONFIG.getLockfile();
 
-	public static List<String> getNetworkRestrictions() {
-		return networkRestrictions;
-	}
+    qualityflags = CONFIG.getQualityflags();
+    if (qualityflags == null) {
+      logger.error("No data quality flags in configuration: Using default \"All\"");
+      qualityflags = "All";
+    }
 
-	public static String getDatalessDir() {
-		return datalessDir;
-	}
+    plotsDir = CONFIG.getPlotsDir();
 
-	public static DatabaseT getDatabase() {
-		return database;
-	}
+    path = CONFIG.getPath();
 
-	public static List<MetricWrapper> getMetrics() {
-		return metrics;
-	}
+    eventsDir = CONFIG.getEventsDir();
+  }
 
-	public static String getPlotsDir() {
-		return plotsDir;
-	}
+  public static List<String> getNetworkRestrictions() {
+    return networkRestrictions;
+  }
 
-	public static String getPath() {
-		return path;
-	}
+  public static String getDatalessDir() {
+    return datalessDir;
+  }
 
-	public static String getEventsDir() {
-		return eventsDir;
-	}
+  public static DatabaseT getDatabase() {
+    return database;
+  }
 
-	public static String getQualityflags() {
-		return qualityflags;
-	}
+  public static List<MetricWrapper> getMetrics() {
+    return metrics;
+  }
 
-	public static String getLockfile() {
-		return lockfile;
-	}
+  public static String getPlotsDir() {
+    return plotsDir;
+  }
+
+  public static String getPath() {
+    return path;
+  }
+
+  public static String getEventsDir() {
+    return eventsDir;
+  }
+
+  public static String getQualityflags() {
+    return qualityflags;
+  }
+
+  public static String getLockfile() {
+    return lockfile;
+  }
 }

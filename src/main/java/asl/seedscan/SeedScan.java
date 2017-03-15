@@ -16,79 +16,78 @@ import asl.seedscan.scanner.ScanManager;
 
 /**
  * The Class SeedScan.
- * 
+ *
  * @author James Holland - USGS
  * @author Joel Edwards - USGS
  * @author Mike Hagerty
  * @author Alejandro Gonzales - Honeywell
  * @author Nick Falco - Honeywell
- * 
  */
 public class SeedScan {
 
-	/** The logger. */
-	private static Logger logger = LoggerFactory.getLogger(asl.seedscan.SeedScan.class);
+  /**
+   * The logger.
+   */
+  private static Logger logger = LoggerFactory.getLogger(asl.seedscan.SeedScan.class);
 
-	/**
-	 * The main method for seedscan.
-	 *
-	 * @param args
-	 *            command line arguments.
-	 */
-	public static void main(String args[]) {
-		// Some components like JFreeChart try to behave like a GUI, this fixes
-		// that
-		System.setProperty("java.awt.headless", "true");
+  /**
+   * The main method for seedscan.
+   *
+   * @param args command line arguments.
+   */
+  public static void main(String args[]) {
+    /* Some components like JFreeChart try to behave like a GUI, this fixes
+		 that*/
+    System.setProperty("java.awt.headless", "true");
 
-		ScanManager scanManager;
-		MetaGenerator metaGenerator;
-		MetricDatabase database = null;
-		LockFile lock = null;
+    ScanManager scanManager;
+    MetaGenerator metaGenerator;
+    MetricDatabase database = null;
+    LockFile lock = null;
 
-		try {
+    try {
 
-			try{
-			Global.loadConfig("config.xml");
-			} catch (FileNotFoundException e) {
-				logger.error("Unable to load configuration file: config.xml");
-				throw e;
-			}
+      try {
+        Global.loadConfig("config.xml");
+      } catch (FileNotFoundException e) {
+        logger.error("Unable to load configuration file: config.xml");
+        throw e;
+      }
 
-			lock = new LockFile(Global.getLockfile());
-			if (!lock.acquire()) {
-				throw new IOException("Unable to acquire lock.");
-			}
+      lock = new LockFile(Global.getLockfile());
+      if (!lock.acquire()) {
+        throw new IOException("Unable to acquire lock.");
+      }
 
-			metaGenerator = new MetaGenerator(Global.getDatalessDir(), Global.getNetworkRestrictions());
-			database = new MetricDatabase(Global.getDatabase());
-			scanManager = new ScanManager(database, metaGenerator);
+      metaGenerator = new MetaGenerator(Global.getDatalessDir(), Global.getNetworkRestrictions());
+      database = new MetricDatabase(Global.getDatabase());
+      scanManager = new ScanManager(database, metaGenerator);
 
-			logger.info("Handing control to ScanManager");
-			// Blocking call to begin scanning.
-			scanManager.scan();
+      logger.info("Handing control to ScanManager");
+      // Blocking call to begin scanning.
+      scanManager.scan();
 
-			// Will likely never get here.
-			logger.info("ScanManager is [ FINISHED ] --> stop the injector and reader threads");
-
+      // Will likely never get here.
+      logger.info("ScanManager is [ FINISHED ] --> stop the injector and reader threads");
 
 
-		} catch (IOException e) {
-			logger.error(exceptionToString(e));
-		} catch (SQLException e) {
-			logger.error("Unable to communicate with Database");
-			logger.error(exceptionToString(e));
-		}finally {
-			logger.info("Release seedscan lock and quit metaServer");
-			try {
-				if (lock != null) {
-					lock.release();
-				}
-			} catch (IOException ignored) {
-			}
-			if (database != null){
-				database.close();
-			}
-		}
-	} // main()
+    } catch (IOException e) {
+      logger.error(exceptionToString(e));
+    } catch (SQLException e) {
+      logger.error("Unable to communicate with Database");
+      logger.error(exceptionToString(e));
+    } finally {
+      logger.info("Release seedscan lock and quit metaServer");
+      try {
+        if (lock != null) {
+          lock.release();
+        }
+      } catch (IOException ignored) {
+      }
+      if (database != null) {
+        database.close();
+      }
+    }
+  }
 
-} // class SeedScan
+}
