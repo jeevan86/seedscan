@@ -158,30 +158,8 @@ public class StationScan extends ScanWorker {
 
           MetricResult results = metric.getMetricResult();
           if (results != null) {
-            for (String id : results.getIdSortedSet()) {
-              double value = results.getResult(id);
-						/* @formatter:off */
-              logger.info("{} [{}] [{}] {}:{}", results.getMetricName(),
-                  results.getStation(),
-                  results.getDate().format(DateTimeFormatter.ISO_ORDINAL_DATE), id, value);
-
-              //These checks are not needed. Database catches this
-              if (Double.isNaN(value)) {
-                logger.error("{} [{}] [{}] {}: ERROR: metric value = [ NaN ] !!\n",
-                    results.getMetricName(), results.getStation(),
-                    results.getDate().format(DateTimeFormatter.ISO_ORDINAL_DATE), id);
-              }
-              if (Double.isInfinite(value)) {
-                logger.error("{} [{}] [{}] {}: ERROR: metric value = [ Infinity ] !!\n",
-                    results.getMetricName(), results.getStation(),
-                    results.getDate().format(DateTimeFormatter.ISO_ORDINAL_DATE), id);
-              }
-						/* @formatter:on */
-            }
             if (manager.database.isConnected()) {
               manager.database.insertMetricData(results);
-            } else {
-              logger.warn("Injector *IS NOT* connected --> Don't inject");
             }
           }
         } // end loop over metrics
