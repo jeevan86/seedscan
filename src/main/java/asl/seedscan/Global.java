@@ -1,6 +1,9 @@
 package asl.seedscan;
 
+import asl.seedscan.config.DatabaseT;
+import asl.util.LockFile;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,7 +30,7 @@ public abstract class Global {
 	 * Contains the getters and setters for xml structures defined as children
 	 * to the ConfigT complex type in SeedScanConfig.xsd
 	 **/
-	public static final ConfigT CONFIG;
+	private static ConfigT CONFIG;
 
 	/**
 	 * Object that prevents two Seedscan processes from running at the same time
@@ -37,15 +40,23 @@ public abstract class Global {
 	/**
 	 * An unmodifiable list of Metrics from the config file.
 	 */
-	public static List<MetricWrapper> METRICS;
+	protected static List<MetricWrapper> metrics;
+	protected static List<String> networkRestrictions;
 
-	private static Logger logger = LoggerFactory.getLogger(asl.seedscan.Global.class);
+	protected static final Logger logger = LoggerFactory.getLogger(asl.seedscan.Global.class);
+	protected static String datalessDir;
+	protected static DatabaseT database;
+	protected static String plotsDir;
+	protected static String path;
+	protected static String eventsDir;
+	protected static String qualityflags;
+	protected static String lockfile;
 
 
-	static {
+	static void loadConfig(String configPath) throws FileNotFoundException  {
 		
 		// Default locations of config and schema files
-		File configFile = new File("config.xml");
+		File configFile = new File(configPath);
 		URL schemaFile = Global.class.getResource("/schemas/SeedScanConfig.xsd");
 		ArrayList<URL> schemaFiles = new ArrayList<>();
 		schemaFiles.add(schemaFile);
@@ -54,20 +65,8 @@ public abstract class Global {
 		ConfigParser parser = new ConfigParser(schemaFiles);
 		CONFIG = parser.parseConfig(configFile);
 
-		// ===== CONFIG: LOCK FILE =====
-		File lockFile = new File(CONFIG.getLockfile());
-		logger.info("SeedScan lock file is '" + lockFile + "'");
-		lock = new LockFile(lockFile);
-		if (!lock.acquire()) {
-			logger.error("Could not acquire lock.");
-			System.exit(1);
-		}
-
 		// ===== CONFIG: QUALITY FLAGS =====
-		if (CONFIG.getQualityflags() == null) {
-			logger.error("No data quality flags in configuration.");
-			System.exit(1);
-		}
+
 
 		ArrayList<MetricWrapper> metrics = new ArrayList<>();
 		for (MetricT met : Global.CONFIG.getMetrics().getMetric()) {
@@ -97,7 +96,67 @@ public abstract class Global {
 			}
 		}
 
-		METRICS = Collections.unmodifiableList(metrics);
+		Global.metrics = Collections.unmodifiableList(metrics);
+
+		List<String> networks = new ArrayList<>();
+		if (Global.CONFIG.getNetworkSubset() != null) {
+			logger.debug("Filter on Network Subset=[{}]", Global.CONFIG.getNetworkSubset());
+			Collections.addAll(networks, Global.CONFIG.getNetworkSubset().split(","));
+		}
+
+		networkRestrictions = Collections.unmodifiableList(networks);
+
+		datalessDir = CONFIG.getDatalessDir();
+		database = CONFIG.getDatabase();
+
+		lockfile = CONFIG.getLockfile();
+
+		qualityflags = CONFIG.getQualityflags();
+		if (qualityflags == null) {
+			logger.error("No data quality flags in configuration: Using default \"All\"");
+			qualityflags = "All";
+		}
+
+		plotsDir = CONFIG.getPlotsDir();
+
+		path = CONFIG.getPath();
+
+		eventsDir = CONFIG.getEventsDir();
 	}
 
+	public static List<String> getNetworkRestrictions() {
+		return networkRestrictions;
+	}
+
+	public static String getDatalessDir() {
+		return datalessDir;
+	}
+
+	public static DatabaseT getDatabase() {
+		return database;
+	}
+
+	public static List<MetricWrapper> getMetrics() {
+		return metrics;
+	}
+
+	public static String getPlotsDir() {
+		return plotsDir;
+	}
+
+	public static String getPath() {
+		return path;
+	}
+
+	public static String getEventsDir() {
+		return eventsDir;
+	}
+
+	public static String getQualityflags() {
+		return qualityflags;
+	}
+
+	public static String getLockfile() {
+		return lockfile;
+	}
 }

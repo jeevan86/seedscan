@@ -90,7 +90,7 @@ public class StationScan extends ScanWorker {
           currentDate.format(DateTimeFormatter.ISO_ORDINAL_DATE), Thread.currentThread().getId());
 
       // CMT Event loader - use to load events for each day
-      EventLoader eventLoader = new EventLoader(Global.CONFIG.getEventsDir());
+      EventLoader eventLoader = new EventLoader(Global.getEventsDir());
 
       LocalDate nextDayTimestamp = currentDate.plusDays(1);
 
@@ -107,9 +107,9 @@ public class StationScan extends ScanWorker {
 
       // May have been passed from previous day
       if (currentMetricData == null) {
-        currentMetricData = DataLoader.getMetricData(currentDate, station, manager, Global.CONFIG.getPath());
+        currentMetricData = DataLoader.getMetricData(currentDate, station, manager, Global.getPath());
       }
-      nextMetricData = DataLoader.getMetricData(nextDayTimestamp, station, manager, Global.CONFIG.getPath());
+      nextMetricData = DataLoader.getMetricData(nextDayTimestamp, station, manager, Global.getPath());
 
       if (currentMetricData != null) {
         // This doesn't mean nextMetricData isn't null!
@@ -131,9 +131,9 @@ public class StationScan extends ScanWorker {
          * TODO: The contents of this for loop should be extracted out into a task and run in the pool.
 				 * Skipping adding tests for it now.
 				 */
-        for (MetricWrapper wrapper : Global.METRICS) {
+        for (MetricWrapper wrapper : Global.getMetrics()) {
           Metric metric = wrapper.getNewInstance();
-          metric.setBaseOutputDir(Global.CONFIG.getPlotsDir());
+          metric.setBaseOutputDir(Global.getPlotsDir());
 
           if (currentMetricData == null) {
             metric.setData(new MetricData(manager.database, stnMeta));

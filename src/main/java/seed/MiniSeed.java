@@ -679,7 +679,7 @@ public class MiniSeed {
 	private static Boolean swapNeeded(byte[] buf, ByteBuffer bb)
 			throws IllegalSeednameException {
 		
-		String qualityFlagsStr = Global.CONFIG.getQualityflags();
+		String qualityFlagsStr = Global.getQualityflags();
 		List<String> qualityFlags = Arrays.asList(qualityFlagsStr.split(","));
 		
 		boolean swap = false;

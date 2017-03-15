@@ -150,7 +150,7 @@ public class SeedInputStream implements Runnable {
 						indicator = m_buffer[6] & 0xFF;
 
 						//Restrict the data to the allowed quality flags. Typically 'D' 'M' 'Q' 'R' 
-						String qualityFlagsStr = Global.CONFIG.getQualityflags();
+						String qualityFlagsStr = Global.getQualityflags();
 						List<String> qualityFlags = Arrays.asList(qualityFlagsStr.split(","));
 						if(
 								  qualityFlags.contains("All") || 

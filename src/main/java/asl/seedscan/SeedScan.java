@@ -1,10 +1,11 @@
 package asl.seedscan;
 
+import static asl.util.Logging.exceptionToString;
+
+import asl.util.LockFile;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,23 +40,28 @@ public class SeedScan {
 		// that
 		System.setProperty("java.awt.headless", "true");
 
-		ScanManager scanManager = null;
-		MetaGenerator metaGenerator = null;
+		ScanManager scanManager;
+		MetaGenerator metaGenerator;
 		MetricDatabase database = null;
+		LockFile lock = null;
 
 		try {
-			//Change of scope for Garbage collection since setup objects may exist for life of program.
-			{
-				List<String> networks = new ArrayList<>();
-				if (Global.CONFIG.getNetworkSubset() != null) {
-					logger.debug("Filter on Network Subset=[{}]", Global.CONFIG.getNetworkSubset());
-					Collections.addAll(networks, Global.CONFIG.getNetworkSubset().split(","));
-				}
 
-				metaGenerator = new MetaGenerator(Global.CONFIG.getDatalessDir(), networks);
-				database = new MetricDatabase(Global.CONFIG.getDatabase());
-				scanManager = new ScanManager(database, metaGenerator);
+			try{
+			Global.loadConfig("config.xml");
+			} catch (FileNotFoundException e) {
+				logger.error("Unable to load configuration file: config.xml");
+				throw e;
 			}
+
+			lock = new LockFile(Global.getLockfile());
+			if (!lock.acquire()) {
+				throw new IOException("Unable to acquire lock.");
+			}
+
+			metaGenerator = new MetaGenerator(Global.getDatalessDir(), Global.getNetworkRestrictions());
+			database = new MetricDatabase(Global.getDatabase());
+			scanManager = new ScanManager(database, metaGenerator);
 
 			logger.info("Handing control to ScanManager");
 			// Blocking call to begin scanning.
@@ -64,16 +70,21 @@ public class SeedScan {
 			// Will likely never get here.
 			logger.info("ScanManager is [ FINISHED ] --> stop the injector and reader threads");
 
-			Global.lock.release();
+
 
 		} catch (IOException e) {
-			logger.error("IOException:", e);
+			logger.error(exceptionToString(e));
 		} catch (SQLException e) {
 			logger.error("Unable to communicate with Database");
-			logger.error(e.getLocalizedMessage());
-		} finally {
+			logger.error(exceptionToString(e));
+		}finally {
 			logger.info("Release seedscan lock and quit metaServer");
-			Global.lock = null;
+			try {
+				if (lock != null) {
+					lock.release();
+				}
+			} catch (IOException ignored) {
+			}
 			if (database != null){
 				database.close();
 			}
