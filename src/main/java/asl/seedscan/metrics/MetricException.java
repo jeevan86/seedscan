@@ -5,7 +5,7 @@ package asl.seedscan.metrics;
  * 
  * This is a generic exception used when a metric needs an exception.
  */
-class MetricException extends Exception {
+public class MetricException extends Exception {
 
 	/** The Constant serial version UID. */
 	private static final long serialVersionUID = 1L;
@@ -16,7 +16,7 @@ class MetricException extends Exception {
 	 * @param message
 	 *            the exception message.
 	 */
-	MetricException(String message) {
+	public MetricException(String message) {
 		super(message);
 	}
 

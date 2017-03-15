@@ -1,12 +1,15 @@
 package asl.seedscan;
 
 import static asl.util.Logging.exceptionToString;
+import static asl.util.Logging.prettyException;
 
+import asl.seedscan.metrics.MetricException;
 import asl.util.LockFile;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.SQLException;
 
+import javax.xml.bind.JAXBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,13 +49,7 @@ public class SeedScan {
     LockFile lock = null;
 
     try {
-
-      try {
-        Global.loadConfig("config.xml");
-      } catch (FileNotFoundException e) {
-        logger.error("Unable to load configuration file: config.xml");
-        throw e;
-      }
+      Global.loadConfig("config.xml");
 
       lock = new LockFile(Global.getLockfile());
       if (!lock.acquire()) {
@@ -71,8 +68,14 @@ public class SeedScan {
       logger.info("ScanManager is [ FINISHED ] --> stop the injector and reader threads");
 
 
-    } catch (IOException e) {
-      logger.error(exceptionToString(e));
+    } catch(FileNotFoundException e) {
+      logger.error("FileNotFoundException: Could not locate config file:");
+      logger.error(prettyException(e));
+    } catch(JAXBException e){
+      logger.error("JAXBException: Could not unmarshal config file:");
+      logger.error(prettyException(e));
+  }catch (IOException | MetricException e) {
+      logger.error(prettyException(e));
     } catch (SQLException e) {
       logger.error("Unable to communicate with Database");
       logger.error(exceptionToString(e));

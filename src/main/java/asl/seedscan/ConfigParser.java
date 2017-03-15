@@ -83,16 +83,16 @@ class ConfigParser {
 	}
 
 	/**
-	 * Parses the config.
+	 * Parse configuration file
 	 *
-	 * @param configFile
-	 *            the config file
-	 * @return the config t
+	 * @param configFile configuration File
+	 * @return parse ConfigT
+	 * @throws FileNotFoundException if the file is not found or readable
+	 * @throws JAXBException if the configuration cannot be marshalled
 	 */
-	ConfigT parseConfig(File configFile) {
+	ConfigT parseConfig(File configFile) throws FileNotFoundException, JAXBException {
 		ConfigT cfg = null;
 
-		try {
 			JAXBContext context = JAXBContext.newInstance("asl.seedscan.config");
 			Unmarshaller unmarshaller = context.createUnmarshaller();
 			unmarshaller.setSchema(schema);
@@ -100,14 +100,6 @@ class ConfigParser {
 			StreamSource source = new StreamSource(stream);
 			JAXBElement<ConfigT> cfgRoot = unmarshaller.unmarshal(source, ConfigT.class);
 			cfg = cfgRoot.getValue();
-		} catch (FileNotFoundException ex) {
-			String message = "FileNotFoundException: Could not locate config file:";
-			logger.error(message, ex);
-
-		} catch (JAXBException ex) {
-			String message = "JAXBException: Could not unmarshal config file:";
-			logger.error(message, ex);
-		}
 
 		return cfg;
 	}

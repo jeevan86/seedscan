@@ -1,6 +1,11 @@
 package asl.seedscan;
 
+import asl.seedscan.config.ArgumentT;
+import asl.seedscan.config.ConfigT;
 import asl.seedscan.config.DatabaseT;
+import asl.seedscan.config.MetricT;
+import asl.seedscan.metrics.MetricException;
+import asl.seedscan.metrics.MetricWrapper;
 import asl.util.LockFile;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -8,14 +13,9 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
+import javax.xml.bind.JAXBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import asl.seedscan.config.ArgumentT;
-import asl.seedscan.config.ConfigT;
-import asl.seedscan.config.MetricT;
-import asl.seedscan.metrics.MetricWrapper;
 
 /**
  * This class parses the configuration file (config.xml) when the application is
@@ -52,7 +52,15 @@ public abstract class Global {
   protected static String lockfile;
 
 
-  static void loadConfig(String configPath) throws FileNotFoundException {
+  /**
+   * Load a configuration file into the global state.
+   * @param configPath path to the configuration file.
+   * @throws MetricException if an exception is encountered generated the available metric list
+   * @throws FileNotFoundException if the file is not found or readable
+   * @throws JAXBException if the configuration cannot be marshalled
+   */
+  static void loadConfig(String configPath)
+      throws MetricException, FileNotFoundException, JAXBException {
 
     // Default locations of config and schema files
     File configFile = new File(configPath);
@@ -76,21 +84,13 @@ public abstract class Global {
         }
         metrics.add(wrapper);
       } catch (ClassNotFoundException ex) {
-        String message = "No such metric class '" + met.getClassName() + "'";
-        logger.error(message, ex);
-        System.exit(1);
+        throw new MetricException("No such metric class '" + met.getClassName() + "'", ex);
       } catch (InstantiationException ex) {
-        String message = "Could not dynamically instantiate class '" + met.getClassName() + "'";
-        logger.error(message, ex);
-        System.exit(1);
+        throw new MetricException("Could not dynamically instantiate class '" + met.getClassName() + "'", ex);
       } catch (IllegalAccessException ex) {
-        String message = "Illegal access while loading class '" + met.getClassName() + "'";
-        logger.error(message, ex);
-        System.exit(1);
+        throw new MetricException("Illegal access while loading class '" + met.getClassName() + "'", ex);
       } catch (NoSuchFieldException ex) {
-        String message = "Invalid dynamic argument to Metric subclass '" + met.getClassName() + "'";
-        logger.error(message, ex);
-        System.exit(1);
+        throw new MetricException("Invalid dynamic argument to Metric subclass '" + met.getClassName() + "'", ex);
       }
     }
 
