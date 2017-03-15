@@ -107,9 +107,9 @@ public class StationScan extends ScanWorker {
 
       // May have been passed from previous day
       if (currentMetricData == null) {
-        currentMetricData = DataLoader.getMetricData(currentDate, station, manager, Global.getDataDir());
+        currentMetricData = DataLoader.getMetricData(currentDate, station, manager);
       }
-      nextMetricData = DataLoader.getMetricData(nextDayTimestamp, station, manager, Global.getDataDir());
+      nextMetricData = DataLoader.getMetricData(nextDayTimestamp, station, manager);
 
       if (currentMetricData != null) {
         // This doesn't mean nextMetricData isn't null!

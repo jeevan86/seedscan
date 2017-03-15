@@ -3,6 +3,7 @@ package asl.seedscan.scanner;
 import asl.metadata.Station;
 import asl.metadata.meta_new.StationMeta;
 import asl.seedscan.ArchivePath;
+import asl.seedscan.Global;
 import asl.seedscan.metrics.MetricData;
 import asl.seedsplitter.DataSet;
 import asl.seedsplitter.SeedSplitter;
@@ -81,10 +82,9 @@ public abstract class DataLoader {
 	 * @param date The date to load
 	 * @param station Station to load
 	 * @param manager ScanManager that contains metadata and database for the MetricData
-	 * @param dataDirectory The miniseed directory string from config file.
 	 * @return complete MetricData object for station day.
 	 */
-	public static MetricData getMetricData(LocalDate date, Station station, ScanManager manager, String dataDirectory) {
+	public static MetricData getMetricData(LocalDate date, Station station, ScanManager manager) {
 
 		StationMeta stationMeta = manager.metaGenerator.getStationMeta(station, date.atStartOfDay());
 		if (stationMeta == null) {
@@ -92,7 +92,7 @@ public abstract class DataLoader {
 		}
 
 		ArchivePath pathEngine = new ArchivePath(date.atStartOfDay(), station);
-		String path = pathEngine.makePath(dataDirectory);
+		String path = pathEngine.makePath(Global.getDataDir());
 		File dir = new File(path);
 		File[] files = null;
 		boolean dataExists = true;
