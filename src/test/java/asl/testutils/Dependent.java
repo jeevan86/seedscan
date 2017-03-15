@@ -1,5 +1,6 @@
 package asl.testutils;
 
+import asl.seedscan.GlobalMock;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -23,4 +24,16 @@ public class Dependent {
             .anyMatch(path -> Files.exists(path.resolve("rdseed"))));
   }
 
+  /**
+   * Setup Global state
+   *
+   * Unfortunately, the way this was designed severely restricts what tests can be performed related
+   * to Global
+   */
+  public static void assumeGlobalState() {
+    String dataPath =
+        ResourceManager.getDirectoryPath("/miniseed") + "${NETWORK}_${STATION}/${YEAR}/${JDAY}";
+    GlobalMock.setDataDir(dataPath);
+    GlobalMock.setQualityFlags("All");
+  }
 }
