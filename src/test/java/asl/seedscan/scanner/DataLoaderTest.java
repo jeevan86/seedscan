@@ -1,12 +1,8 @@
 package asl.seedscan.scanner;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
-import asl.metadata.Channel;
 import asl.metadata.MetaGenerator;
 import asl.metadata.Station;
 import asl.seedscan.GlobalMock;
@@ -16,21 +12,18 @@ import asl.testutils.Dependent;
 import asl.testutils.ResourceManager;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Arrays;
-import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
+
 
 public class DataLoaderTest {
 
   private static MetaGenerator metaGenerator;
   private static ScanManager manager;
 
-  private static String dataPath = ResourceManager.getDirectoryPath("/miniseed") +"${NETWORK}_${STATION}/${YEAR}/${JDAY}";
+  private static String dataPath =
+      ResourceManager.getDirectoryPath("/miniseed") + "${NETWORK}_${STATION}/${YEAR}/${JDAY}";
 
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
@@ -51,16 +44,6 @@ public class DataLoaderTest {
     metaGenerator = null;
     manager.halt();
     manager = null;
-  }
-
-  @Before
-  public void setUp() throws Exception {
-
-  }
-
-  @After
-  public void tearDown() throws Exception {
-
   }
 
   @Test
