@@ -40,7 +40,7 @@ public class SeedScan {
    */
   public static void main(String args[]) {
     /* Some components like JFreeChart try to behave like a GUI, this fixes
-		 that*/
+     that*/
     System.setProperty("java.awt.headless", "true");
 
     ScanManager scanManager;
@@ -68,13 +68,13 @@ public class SeedScan {
       logger.info("ScanManager is [ FINISHED ] --> stop the injector and reader threads");
 
 
-    } catch(FileNotFoundException e) {
+    } catch (FileNotFoundException e) {
       logger.error("FileNotFoundException: Could not locate config file:");
       logger.error(prettyException(e));
-    } catch(JAXBException e){
+    } catch (JAXBException e) {
       logger.error("JAXBException: Could not unmarshal config file:");
       logger.error(prettyException(e));
-  }catch (IOException | MetricException e) {
+    } catch (IOException | MetricException e) {
       logger.error(prettyException(e));
     } catch (SQLException e) {
       logger.error("Unable to communicate with Database");

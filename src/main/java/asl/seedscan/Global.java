@@ -21,6 +21,9 @@ import org.slf4j.LoggerFactory;
  * This class parses the configuration file (config.xml) when the application is
  * started, and makes the parsed data "globally" accessible throughout the
  * application.
+ *
+ * @author James Holland - USGS
+ * @author Nicholas Falco - Honeywell
  */
 
 public abstract class Global {
@@ -46,7 +49,7 @@ public abstract class Global {
   protected static String datalessDir;
   protected static DatabaseT database;
   protected static String plotsDir;
-  protected static String path;
+  protected static String dataDir;
   protected static String eventsDir;
   protected static String qualityflags;
   protected static String lockfile;
@@ -54,7 +57,8 @@ public abstract class Global {
 
   /**
    * Load a configuration file into the global state.
-   * @param configPath path to the configuration file.
+   *
+   * @param configPath dataDir to the configuration file.
    * @throws MetricException if an exception is encountered generated the available metric list
    * @throws FileNotFoundException if the file is not found or readable
    * @throws JAXBException if the configuration cannot be marshalled
@@ -86,11 +90,14 @@ public abstract class Global {
       } catch (ClassNotFoundException ex) {
         throw new MetricException("No such metric class '" + met.getClassName() + "'", ex);
       } catch (InstantiationException ex) {
-        throw new MetricException("Could not dynamically instantiate class '" + met.getClassName() + "'", ex);
+        throw new MetricException(
+            "Could not dynamically instantiate class '" + met.getClassName() + "'", ex);
       } catch (IllegalAccessException ex) {
-        throw new MetricException("Illegal access while loading class '" + met.getClassName() + "'", ex);
+        throw new MetricException("Illegal access while loading class '" + met.getClassName() + "'",
+            ex);
       } catch (NoSuchFieldException ex) {
-        throw new MetricException("Invalid dynamic argument to Metric subclass '" + met.getClassName() + "'", ex);
+        throw new MetricException(
+            "Invalid dynamic argument to Metric subclass '" + met.getClassName() + "'", ex);
       }
     }
 
@@ -117,7 +124,7 @@ public abstract class Global {
 
     plotsDir = CONFIG.getPlotsDir();
 
-    path = CONFIG.getPath();
+    dataDir = CONFIG.getPath();
 
     eventsDir = CONFIG.getEventsDir();
   }
@@ -142,8 +149,8 @@ public abstract class Global {
     return plotsDir;
   }
 
-  public static String getPath() {
-    return path;
+  public static String getDataDir() {
+    return dataDir;
   }
 
   public static String getEventsDir() {
