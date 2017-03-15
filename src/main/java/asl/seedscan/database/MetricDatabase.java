@@ -98,7 +98,7 @@ public class MetricDatabase {
 				dataSource = null;
 			}
 		}
-		// Reset any orphaned scans immiediately after connection.
+		// Reset any orphaned scans immediately after connection.
 		// This also serves as a check if we have write access to the database.
 		resetStationScans();
 	}
