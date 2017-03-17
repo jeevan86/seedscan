@@ -43,7 +43,6 @@ public abstract class Blockette  implements Serializable {
 	}
 
 	void reload(byte[] b) {
-		assert blocketteNumber() == peekBlocketteType(b);
 		if ((buf == null) || (buf.length != b.length)) {
 			allocateBuffer(b.length);
 		}
