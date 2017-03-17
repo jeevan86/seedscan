@@ -15,9 +15,10 @@ log.txt
 .project
 rdseed.err_log*
 /schema/
-seedscan.lock
+seedscan.iml
 seedscan.ipr
 seedscan.iws
+seedscan.lock
 .settings
 /src/main/java/asl/seedscan/config
 *.swp
