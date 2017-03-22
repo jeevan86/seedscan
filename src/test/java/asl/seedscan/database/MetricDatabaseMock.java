@@ -7,7 +7,9 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
+import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class MetricDatabaseMock extends MetricDatabase {
@@ -18,11 +20,12 @@ public class MetricDatabaseMock extends MetricDatabase {
   private HashMap<MetricValueIdentifier, ByteBuffer> digests = new HashMap<>();
 
   private Queue<DatabaseScan> newScans = new LinkedBlockingQueue<>();
-  private List<DatabaseScan> takenScans = new LinkedList<>();
-  private List<DatabaseScan> finishScans = new LinkedList<>();
+  private Map<UUID, DatabaseScan> takenScans = new HashMap<>();
+  private Map<UUID, DatabaseScan> finishedScans = new HashMap<>();
 
   private int scanRequests = 0;
   private int errorsInserted = 0;
+  private int messagesInserted = 0;
 
   public MetricDatabaseMock() {
     super(); //Call required because of extension.
@@ -74,7 +77,7 @@ public class MetricDatabaseMock extends MetricDatabase {
     }
     DatabaseScan scan =  newScans.poll();
 
-    takenScans.add(scan);
+    takenScans.put(scan.scanID, scan);
     return scan;
   }
 
@@ -93,5 +96,23 @@ public class MetricDatabaseMock extends MetricDatabase {
 
   public synchronized int getNumberOfScanRequests(){
     return scanRequests;
+  }
+
+  @Override
+  public synchronized void insertScanMessage(UUID scanID, String network, String station, String location, String channel,
+      String metric, String message) {
+    messagesInserted++;
+  }
+
+  public synchronized int getNumberScanMessages(){
+    return messagesInserted;
+  }
+
+  @Override
+  public void finishScan(UUID pkScanID) {
+    DatabaseScan scan = takenScans.get(pkScanID);
+    takenScans.remove(pkScanID);
+    finishedScans.put(scan.scanID, scan);
+
   }
 }
