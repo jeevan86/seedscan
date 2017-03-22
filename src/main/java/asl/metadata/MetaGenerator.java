@@ -234,7 +234,6 @@ public class MetaGenerator {
 	 */
 	private StationData getStationData(Station station) {
 		SeedVolume volume = volumes.get(new NetworkKey(station.getNetwork()));
-		System.out.println(station.getNetwork());
 		if (volume == null) {
 			logger.error(
 					"== getStationData() - Volume==null for Station=[{}]  Check the volume label in Blockette 10 Field 9. Must be formatted like IU* to work.\n",
