@@ -1,12 +1,5 @@
 package asl.seedscan.scanner.scanworker;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.Hashtable;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import asl.metadata.Station;
 import asl.metadata.meta_new.StationMeta;
 import asl.seedscan.Global;
@@ -22,6 +15,11 @@ import asl.seedscan.scanner.ScanManager;
 import asl.timeseries.CrossPower;
 import asl.timeseries.CrossPowerKey;
 import asl.util.Logging;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Hashtable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sac.SacTimeSeries;
 
 /**
@@ -77,12 +75,6 @@ public class StationScan extends ScanWorker {
     this.currentMetricData = metricData;
   }
 
-
-  /*
-   * (non-Javadoc)
-   *
-   * @see java.lang.Runnable#run()
-   */
   @Override
   public void run() {
     try {
@@ -187,9 +179,6 @@ public class StationScan extends ScanWorker {
     }
   }
 
-  /* (non-Javadoc)
-   * @see asl.seedscan.worker.Worker#getPriorityBase()
-   */
   @Override
   public Integer getBasePriority() {
     //Average StationScan priority.
