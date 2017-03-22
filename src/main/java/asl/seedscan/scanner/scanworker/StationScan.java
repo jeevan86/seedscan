@@ -32,10 +32,10 @@ public class StationScan extends ScanWorker {
   private static final Logger logger = LoggerFactory
       .getLogger(asl.seedscan.scanner.scanworker.StationScan.class);
 
-  private final Station station;
-  private final DatabaseScan databaseScan;
+  final Station station;
+  final DatabaseScan databaseScan;
 
-  private final LocalDate currentDate;
+  final LocalDate currentDate;
 
   /**
    * Data for the day being scanned.
