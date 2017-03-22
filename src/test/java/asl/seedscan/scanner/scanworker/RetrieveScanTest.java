@@ -1,12 +1,13 @@
 package asl.seedscan.scanner.scanworker;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import asl.metadata.MetaGenerator;
 import asl.seedscan.database.MetricDatabaseMock;
-import asl.seedscan.scanner.ScanManager;
+import asl.seedscan.scanner.ScanManagerMock;
 import asl.testutils.Dependent;
 import asl.testutils.ResourceManager;
+import java.util.ArrayList;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -18,20 +19,23 @@ import org.junit.Test;
 public class RetrieveScanTest {
 
   private static MetaGenerator metaGenerator;
+  private ScanManagerMock manager;
   private MetricDatabaseMock database;
-  private ScanManager manager;
 
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
-    Dependent.assumeRDSeed();
 
+    Dependent.assumeRDSeed();
+    Dependent.assumeGlobalState();
     try {
       metaGenerator = new MetaGenerator(
           ResourceManager.getDirectoryPath("/dataless"),
-          null);
+          new ArrayList<>());
+
     } catch (Exception e) {
       e.printStackTrace();
     }
+
   }
 
   @AfterClass
@@ -42,7 +46,7 @@ public class RetrieveScanTest {
   @Before
   public void setUp() throws Exception {
     database = new MetricDatabaseMock();
-    manager = new ScanManager(database, metaGenerator);
+    manager = new ScanManagerMock(database, metaGenerator);
   }
 
   @After
@@ -116,22 +120,16 @@ public class RetrieveScanTest {
 
   }
 
-  @Ignore
   @Test
   public void getBasePriority() throws Exception {
-
+    //This task should always run after every other type.
+    assertEquals(Integer.MAX_VALUE, new RetrieveScan(manager).getBasePriority().intValue());
   }
 
-  @Ignore
   @Test
   public void getFinePriority() throws Exception {
-
-  }
-
-  @Ignore
-  @Test
-  public void compareTo() throws Exception {
-
+    //This task should always run after every other type.
+    assertEquals(Long.MAX_VALUE, new RetrieveScan(manager).getFinePriority().longValue());
   }
 
 }
