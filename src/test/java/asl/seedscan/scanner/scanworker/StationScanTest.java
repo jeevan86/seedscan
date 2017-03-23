@@ -182,6 +182,7 @@ public class StationScanTest {
   public void run_CrossPowerTransferredToNextScan() throws Exception {
 
   }
+
   @Test
   public void getBasePriority() throws Exception {
     DatabaseScan dbScan = new DatabaseScan(

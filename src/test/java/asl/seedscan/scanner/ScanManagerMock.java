@@ -27,22 +27,22 @@ public class ScanManagerMock extends ScanManager {
 
   @Override
   public synchronized void addTask(ScanWorker task) {
-    if(executeTasks){
+    if (executeTasks) {
       super.addTask(task);
     }
     testQueue.offer(task);
     numberTasksAdded++;
   }
 
-  public synchronized int getNumberTasksAdded(){
+  public synchronized int getNumberTasksAdded() {
     return numberTasksAdded;
   }
 
-  public synchronized Queue<ScanWorker> getWorkQueue(){
+  public synchronized Queue<ScanWorker> getWorkQueue() {
     return testQueue;
   }
 
-  public void setExecuteTasks(boolean executeTasks){
+  public void setExecuteTasks(boolean executeTasks) {
     this.executeTasks = executeTasks;
   }
 }
