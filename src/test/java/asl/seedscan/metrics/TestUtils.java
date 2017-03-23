@@ -29,7 +29,7 @@ public class TestUtils {
       //System.out.println("expect.put(\""+id+"\", "+ result.getResult(id) +");");
 
       /*System.out.println("database.insertMockData(\n"
-					+ "        new MetricValueIdentifier(expectDate, metricName, station, new Channel(\""
+          + "        new MetricValueIdentifier(expectDate, metricName, station, new Channel(\""
 					+id.split(",")[0]+"\",\""+ id.split(",")[1]+"\")),\n"
 					+ "        "+result.getResult(id)+", ByteBuffer.wrap(DatatypeConverter.parseHexBinary(\""+printHexBinary(result.getDigest(id).array())+"\")));");
       */

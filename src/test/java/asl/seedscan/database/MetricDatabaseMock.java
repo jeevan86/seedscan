@@ -43,12 +43,12 @@ public class MetricDatabaseMock extends MetricDatabase {
     return mockConnected;
   }
 
-  public void insertMockData(MetricValueIdentifier id, Double value, ByteBuffer digest){
+  public void insertMockData(MetricValueIdentifier id, Double value, ByteBuffer digest) {
     values.put(id, value);
     digests.put(id, digest);
   }
 
-  public void insertMockDigest(MetricValueIdentifier id, ByteBuffer digest){
+  public void insertMockDigest(MetricValueIdentifier id, ByteBuffer digest) {
     digests.put(id, digest);
   }
 
@@ -56,7 +56,8 @@ public class MetricDatabaseMock extends MetricDatabase {
    * Reserved channels that must be missing include 00-BH*
    */
   @Override
-  public Double getMetricValue(LocalDate date, String metricName, Station station, Channel channel) {
+  public Double getMetricValue(LocalDate date, String metricName, Station station,
+      Channel channel) {
     return values.get(new MetricValueIdentifier(date, metricName, station, channel));
   }
 
@@ -65,25 +66,25 @@ public class MetricDatabaseMock extends MetricDatabase {
    * MetricData class)
    */
   @Override
-  public ByteBuffer getMetricValueDigest(LocalDate date, String metricName, Station station, Channel channel) {
+  public ByteBuffer getMetricValueDigest(LocalDate date, String metricName, Station station,
+      Channel channel) {
     return digests.get(new MetricValueIdentifier(date, metricName, station, channel));
   }
-
 
 
   @Override
   public synchronized DatabaseScan takeNextScan() {
     scanRequests++;
-    if(newScans.isEmpty()){
+    if (newScans.isEmpty()) {
       return null;
     }
-    DatabaseScan scan =  newScans.poll();
+    DatabaseScan scan = newScans.poll();
 
     takenScans.put(scan.scanID, scan);
     return scan;
   }
 
-  public void offerNewScan(DatabaseScan scan){
+  public void offerNewScan(DatabaseScan scan) {
     newScans.offer(scan);
   }
 
@@ -92,21 +93,23 @@ public class MetricDatabaseMock extends MetricDatabase {
     errorsInserted++;
   }
 
-  public synchronized int getNumberErrors(){
+  public synchronized int getNumberErrors() {
     return errorsInserted;
   }
 
-  public synchronized int getNumberOfScanRequests(){
+  public synchronized int getNumberOfScanRequests() {
     return scanRequests;
   }
 
   @Override
-  public synchronized void insertScanMessage(UUID scanID, String network, String station, String location, String channel,
+  public synchronized void insertScanMessage(UUID scanID, String network, String station,
+      String location, String channel,
       String metric, String message) {
     messagesInserted++;
   }
 
-  public void insertChildScan(UUID parentID, String network, String station, String location, String channel,
+  public void insertChildScan(UUID parentID, String network, String station, String location,
+      String channel,
       String metric, LocalDate startDate, LocalDate endDate, int priority, boolean deleteExisting) {
     numberOfInsertedChildScans++;
 
@@ -114,13 +117,13 @@ public class MetricDatabaseMock extends MetricDatabase {
         null,
         parentID,
         metric,
-        network,station, location, channel,
+        network, station, location, channel,
         startDate, endDate,
         priority,
         deleteExisting));
   }
 
-  public synchronized int getNumberScanMessages(){
+  public synchronized int getNumberScanMessages() {
     return messagesInserted;
   }
 

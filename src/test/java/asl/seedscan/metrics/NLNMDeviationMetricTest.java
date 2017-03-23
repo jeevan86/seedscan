@@ -3,14 +3,12 @@ package asl.seedscan.metrics;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import asl.testutils.ResourceManager;
 import java.util.HashMap;
-
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import asl.testutils.ResourceManager;
 
 public class NLNMDeviationMetricTest {
 
@@ -139,7 +137,7 @@ public class NLNMDeviationMetricTest {
     metric = new NLNMDeviationMetric();
     metric.add("lower-limit", "90");
     metric.add("upper-limit", "110");
-		/* This has to come after adding the limits */
+    /* This has to come after adding the limits */
     metric.setData(data1);
   }
 

@@ -2,13 +2,11 @@ package asl.seedscan.metrics;
 
 import static org.junit.Assert.assertEquals;
 
+import asl.testutils.ResourceManager;
 import java.util.HashMap;
-
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import asl.testutils.ResourceManager;
 
 public class DifferencePBMTest {
 

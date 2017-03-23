@@ -1,11 +1,9 @@
 package asl.testutils;
 
-import asl.metadata.MetaGenerator;
 import asl.seedscan.GlobalMock;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.regex.Pattern;
 import org.junit.Assume;
 
@@ -14,6 +12,7 @@ import org.junit.Assume;
  * Examples include requiring that rdseed exists to setup a MetaGenerator.
  */
 public class Dependent {
+
   /**
    * Make sure rdseed exists otherwise the test can't run
    */

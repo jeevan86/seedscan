@@ -2,15 +2,13 @@ package asl.seedscan.metrics;
 
 import static org.junit.Assert.assertEquals;
 
+import asl.seedscan.event.EventLoader;
+import asl.testutils.ResourceManager;
 import java.time.LocalDate;
 import java.util.HashMap;
-
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import asl.seedscan.event.EventLoader;
-import asl.testutils.ResourceManager;
 
 public class EventCompareStrongMotionTest {
 

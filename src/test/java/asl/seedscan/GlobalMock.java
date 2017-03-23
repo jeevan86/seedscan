@@ -5,13 +5,13 @@ package asl.seedscan;
  *
  * @author James Holland - usgs
  */
-public class GlobalMock extends Global{
+public class GlobalMock extends Global {
 
-  public static void setQualityFlags(String flag){
+  public static void setQualityFlags(String flag) {
     qualityflags = flag;
   }
 
-  public static void setDataDir(String directory){
+  public static void setDataDir(String directory) {
     dataDir = directory;
   }
 
