@@ -192,8 +192,9 @@ public class MetaGenerator {
 			for (String network : networks) {
 				SeedVolume volume = volumes.get(new NetworkKey(network));
 				for(String station : stations){
-					volume.hasStation(new StationKey(network, station));
-					allStations.add(new Station(network, station));
+					if(volume.hasStation(new StationKey(network, station))) {
+						allStations.add(new Station(network, station));
+					}
 				}
 			}
 		}
@@ -209,8 +210,9 @@ public class MetaGenerator {
 			for (NetworkKey networkKey : volumes.keySet()) {
 				SeedVolume volume = volumes.get(networkKey);
 				for(String station : stations){
-					volume.hasStation(new StationKey(networkKey.network, station));
-					allStations.add(new Station(networkKey.network, station));
+					if(volume.hasStation(new StationKey(networkKey.network, station))) {
+						allStations.add(new Station(networkKey.network, station));
+					}
 				}
 			}
 		}
