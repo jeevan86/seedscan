@@ -22,10 +22,12 @@ public class MetricDatabaseMock extends MetricDatabase {
   private Queue<DatabaseScan> newScans = new LinkedBlockingQueue<>();
   private Map<UUID, DatabaseScan> takenScans = new HashMap<>();
   private Map<UUID, DatabaseScan> finishedScans = new HashMap<>();
+  private List<DatabaseScan> childScans = new LinkedList<>();
 
   private int scanRequests = 0;
   private int errorsInserted = 0;
   private int messagesInserted = 0;
+  private int numberOfInsertedChildScans = 0;
 
   public MetricDatabaseMock() {
     super(); //Call required because of extension.
@@ -104,6 +106,20 @@ public class MetricDatabaseMock extends MetricDatabase {
     messagesInserted++;
   }
 
+  public void insertChildScan(UUID parentID, String network, String station, String location, String channel,
+      String metric, LocalDate startDate, LocalDate endDate, int priority, boolean deleteExisting) {
+    numberOfInsertedChildScans++;
+
+    childScans.add(new DatabaseScan(
+        null,
+        parentID,
+        metric,
+        network,station, location, channel,
+        startDate, endDate,
+        priority,
+        deleteExisting));
+  }
+
   public synchronized int getNumberScanMessages(){
     return messagesInserted;
   }
@@ -114,5 +130,9 @@ public class MetricDatabaseMock extends MetricDatabase {
     takenScans.remove(pkScanID);
     finishedScans.put(scan.scanID, scan);
 
+  }
+
+  public int getNumberOfInsertedChildScans() {
+    return numberOfInsertedChildScans;
   }
 }
