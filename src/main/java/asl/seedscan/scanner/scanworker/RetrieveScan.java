@@ -39,7 +39,7 @@ public class RetrieveScan extends ScanWorker {
         logger.info("Database has no Scans left!");
       }
       /*
-			 * Don't bother adding a new Retrieving Task since DB is empty. A
+       * Don't bother adding a new Retrieving Task since DB is empty. A
 			 * different process will handle this.
 			 */
 
@@ -50,7 +50,7 @@ public class RetrieveScan extends ScanWorker {
     }
   }
 
-  void parseScan(DatabaseScan newScan){
+  void parseScan(DatabaseScan newScan) {
     long dayLength = ChronoUnit.DAYS.between(newScan.startDate, newScan.endDate);
     String[] networks = null;
     if (newScan.network != null) {

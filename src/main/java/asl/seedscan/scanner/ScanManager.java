@@ -1,17 +1,15 @@
 package asl.seedscan.scanner;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.PriorityBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import asl.metadata.MetaGenerator;
 import asl.seedscan.database.MetricDatabase;
 import asl.seedscan.scanner.scanworker.RetrieveScan;
 import asl.seedscan.scanner.scanworker.ScanWorker;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.PriorityBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ScanManager {
 
@@ -80,7 +78,7 @@ public class ScanManager {
       try {
         /*We want to wait a little bit so as to not overload the db with getScan requests.*/
         Thread.sleep(queryWaitTime);
-				/*Update incase available processors changes.
+        /*Update incase available processors changes.
 				 * This is not a constant, but can vary with the OS according to Oracle Javadoc.
 				 */
         if (Runtime.getRuntime().availableProcessors() > this.threadPool.getCorePoolSize()) {
