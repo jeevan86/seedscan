@@ -32,47 +32,7 @@ public class RetrieveScan extends ScanWorker {
       DatabaseScan newScan = manager.database.takeNextScan();
 
       if (newScan != null) {
-        long dayLength = ChronoUnit.DAYS.between(newScan.startDate, newScan.endDate);
-        String[] networks = null;
-        if (newScan.network != null) {
-          networks = newScan.network.split(",");
-        }
-        String[] stations = null;
-        if (newScan.station != null) {
-          stations = newScan.station.split(",");
-        }
-
-        // Check if it is a Station Scan.
-        if (networks != null && stations != null && stations.length == 1 && networks.length == 1
-            && dayLength <= 30) {
-          manager.addTask(new StationScan(manager, newScan));
-        }
-        // Split the non Station Scan into Station Scans
-        else {
-          List<Station> possibleStations = manager.metaGenerator.getStationList(networks, stations);
-          LocalDate start = newScan.startDate;
-          LocalDate end;
-          do {
-            end = start.plusDays(30);
-            if (end.compareTo(newScan.endDate) > 0) {
-              end = newScan.endDate;
-            }
-            for (Station station : possibleStations) {
-              manager.database.insertChildScan(
-                  newScan.scanID,
-                  station.getNetwork(),
-                  station.getStation(),
-                  newScan.location,
-                  newScan.channel,
-                  newScan.metricName,
-                  start, end,
-                  newScan.priority,
-                  newScan.deleteExisting);
-            }
-
-            start = end.plusDays(1);
-          } while (!end.equals(newScan.endDate));
-        }
+        parseScan(newScan);
         // Add new Retriever to queue since we know more probably exist.
         manager.addTask(new RetrieveScan(manager));
       } else {
@@ -87,6 +47,50 @@ public class RetrieveScan extends ScanWorker {
       String message = Logging.exceptionToString(e);
       logger.error(message);
       manager.database.insertError(message);
+    }
+  }
+
+  void parseScan(DatabaseScan newScan){
+    long dayLength = ChronoUnit.DAYS.between(newScan.startDate, newScan.endDate);
+    String[] networks = null;
+    if (newScan.network != null) {
+      networks = newScan.network.split(",");
+    }
+    String[] stations = null;
+    if (newScan.station != null) {
+      stations = newScan.station.split(",");
+    }
+
+    // Check if it is a Station Scan.
+    if (networks != null && stations != null && stations.length == 1 && networks.length == 1
+        && dayLength <= 30) {
+      manager.addTask(new StationScan(manager, newScan));
+    }
+    // Split the non Station Scan into Station Scans
+    else {
+      List<Station> possibleStations = manager.metaGenerator.getStationList(networks, stations);
+      LocalDate start = newScan.startDate;
+      LocalDate end;
+      do {
+        end = start.plusDays(30);
+        if (end.compareTo(newScan.endDate) > 0) {
+          end = newScan.endDate;
+        }
+        for (Station station : possibleStations) {
+          manager.database.insertChildScan(
+              newScan.scanID,
+              station.getNetwork(),
+              station.getStation(),
+              newScan.location,
+              newScan.channel,
+              newScan.metricName,
+              start, end,
+              newScan.priority,
+              newScan.deleteExisting);
+        }
+
+        start = end.plusDays(1);
+      } while (!end.equals(newScan.endDate));
     }
   }
 
