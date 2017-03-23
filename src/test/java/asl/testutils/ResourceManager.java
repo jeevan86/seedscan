@@ -1,9 +1,11 @@
 package asl.testutils;
 
+import asl.metadata.MetaGenerator;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -22,6 +24,8 @@ public abstract class ResourceManager { // NO_UCD (test only)
 	 * use shared objects, must not modify the object in a destructive manner.
 	 */
 	private static HashMap<String, Object> resources = new HashMap<>();
+
+	private static MetaGenerator sharedMetaGenerator;
 
 	/**
 	 * Compress using GZIPOutputStream and write to file specific in fileName.
@@ -98,5 +102,15 @@ public abstract class ResourceManager { // NO_UCD (test only)
 	 */
 	public static String getDirectoryPath(String directory) {
 		return ResourceManager.class.getResource(directory).getPath() + "/";
+	}
+
+	public static synchronized MetaGenerator loadMetaGenerator() throws Exception{
+		Dependent.assumeRDSeed();
+		if(sharedMetaGenerator == null) {
+			sharedMetaGenerator = new MetaGenerator(
+					ResourceManager.getDirectoryPath("/dataless"), null);
+		}
+
+		return sharedMetaGenerator;
 	}
 }

@@ -9,7 +9,6 @@ import asl.seedscan.scanner.ScanManagerMock;
 import asl.testutils.Dependent;
 import asl.testutils.ResourceManager;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.UUID;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -27,18 +26,8 @@ public class RetrieveScanTest {
 
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
-
-    Dependent.assumeRDSeed();
     Dependent.assumeGlobalState();
-    try {
-      metaGenerator = new MetaGenerator(
-          ResourceManager.getDirectoryPath("/dataless"),
-          new ArrayList<>());
-
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-
+    metaGenerator = ResourceManager.loadMetaGenerator();
   }
 
   @AfterClass

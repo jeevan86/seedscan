@@ -24,15 +24,8 @@ public class ScanManagerTest {
 
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
-    Dependent.assumeRDSeed();
-
-    try {
-      metaGenerator = new MetaGenerator(
-          ResourceManager.getDirectoryPath("/dataless"),
-          null);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+    Dependent.assumeGlobalState();
+    metaGenerator = ResourceManager.loadMetaGenerator();
   }
 
   @AfterClass

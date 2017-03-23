@@ -10,7 +10,6 @@ import asl.seedscan.metrics.MetricData;
 import asl.testutils.Dependent;
 import asl.testutils.ResourceManager;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -24,15 +23,8 @@ public class DataLoaderTest {
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
     Dependent.assumeGlobalState();
-    Dependent.assumeRDSeed();
-    try {
-      metaGenerator = new MetaGenerator(
-          ResourceManager.getDirectoryPath("/dataless"),
-          new ArrayList<>());
-      manager = new ScanManager(new MetricDatabaseMock(), metaGenerator);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+    metaGenerator = ResourceManager.loadMetaGenerator();
+    manager = new ScanManager(new MetricDatabaseMock(), metaGenerator);
   }
 
   @AfterClass
