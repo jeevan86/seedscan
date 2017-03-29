@@ -1,0 +1,365 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+  <changeSet author="jholland (generated)" id="1490807934770-1">
+    <createTable tableName="tblGroup">
+      <column autoIncrement="true" name="pkgroupid" type="SERIAL">
+        <constraints primaryKey="true" primaryKeyName="tblnetwork_pkey"/>
+      </column>
+      <column name="name" type="VARCHAR(36)">
+        <constraints nullable="false"/>
+      </column>
+      <column defaultValueBoolean="false" name="isIgnored" type="BOOLEAN">
+        <constraints nullable="false"/>
+      </column>
+      <column name="fkGroupTypeID" type="INT"/>
+    </createTable>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-2">
+    <createTable tableName="tblGroupType">
+      <column autoIncrement="true" name="pkGroupTypeID" type="SERIAL">
+        <constraints primaryKey="true" primaryKeyName="primary_tblGroupType"/>
+      </column>
+      <column name="name" type="VARCHAR(16)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-3">
+    <createTable tableName="tblStationGroupTie">
+      <column name="fkGroupID" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="fkStationID" type="INT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-4">
+    <createTable tableName="tblcalibrationdata">
+      <column autoIncrement="true" name="pkcalibrationdataid" type="SERIAL">
+        <constraints primaryKey="true" primaryKeyName="tblcalibrationdata_pkey"/>
+      </column>
+      <column name="fkchannelid" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="year" type="SMALLINT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="month" type="SMALLINT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="day" type="SMALLINT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="date" type="date">
+        <constraints nullable="false"/>
+      </column>
+      <column name="calyear" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="calmonth" type="SMALLINT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="calday" type="SMALLINT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="caldate" type="date">
+        <constraints nullable="false"/>
+      </column>
+      <column name="fkmetcaltypeid" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="value" type="FLOAT8">
+        <constraints nullable="false"/>
+      </column>
+      <column name="fkmetricid" type="INT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-5">
+    <createTable tableName="tblchannel">
+      <column autoIncrement="true" name="pkchannelid" type="SERIAL">
+        <constraints primaryKey="true" primaryKeyName="tblchannel_pkey"/>
+      </column>
+      <column name="fksensorid" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="name" type="VARCHAR(16)">
+        <constraints nullable="false"/>
+      </column>
+      <column defaultValueNumeric="0" name="derived" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column defaultValueBoolean="false" name="isIgnored" type="BOOLEAN">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-6">
+    <createTable tableName="tblcomputetype">
+      <column autoIncrement="true" name="pkcomputetypeid" type="SERIAL">
+        <constraints primaryKey="true" primaryKeyName="tblcomputetype_pkey"/>
+      </column>
+      <column name="name" type="VARCHAR(8)">
+        <constraints nullable="false"/>
+      </column>
+      <column defaultValue="NULL::character varying" name="description" type="VARCHAR(2000)"/>
+      <column defaultValueBoolean="false" name="iscalibration" type="BOOLEAN">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-7">
+    <createTable tableName="tbldate">
+      <column name="pkdateid" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="date" type="date">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-8">
+    <createTable tableName="tblerrorlog">
+      <column autoIncrement="true" name="pkerrorlogid" type="SERIAL">
+        <constraints primaryKey="true" primaryKeyName="tblerrorlog_pkey"/>
+      </column>
+      <column name="errortime" type="TIMESTAMP(6) WITHOUT TIME ZONE"/>
+      <column defaultValue="NULL::character varying" name="errormessage" type="VARCHAR(20480)"/>
+    </createTable>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-9">
+    <createTable tableName="tblhash">
+      <column autoIncrement="true" name="pkHashID" type="BIGSERIAL">
+        <constraints primaryKey="true" primaryKeyName="pkTblHash"/>
+      </column>
+      <column name="hash" type="BYTEA">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-10">
+    <createTable tableName="tblmetadata">
+      <column name="fkchannelid" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="epoch" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+        <constraints nullable="false"/>
+      </column>
+      <column defaultValue="NULL::character varying" name="sensor_info" type="VARCHAR(64)"/>
+      <column name="raw_metadata" type="BYTEA"/>
+    </createTable>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-11">
+    <createTable tableName="tblmetric">
+      <column autoIncrement="true" name="pkmetricid" type="SERIAL">
+        <constraints primaryKey="true" primaryKeyName="tblmetric_pkey"/>
+      </column>
+      <column name="name" type="VARCHAR(64)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="fkparentmetricid" type="INT"/>
+      <column defaultValue="NULL::character varying" name="legend" type="VARCHAR(128)"/>
+      <column name="fkcomputetypeid" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column defaultValue="NULL::character varying" name="displayname" type="VARCHAR(64)"/>
+    </createTable>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-12">
+    <createTable tableName="tblmetricdata">
+      <column name="fkchannelid" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="date" remarks="Julian date (number of days from Midnight November 4714 BC). This is based on the Gregorian proleptic Julian Day number standard and is natively supported in Postgresql." type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="fkmetricid" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="value" type="FLOAT8">
+        <constraints nullable="false"/>
+      </column>
+      <column name="fkHashID" type="BIGINT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-13">
+    <createTable tableName="tblmetricstringdata">
+      <column name="fkchannelid" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="date" remarks="Julian date (number of days from Midnight November 4714 BC). This is based on the Gregorian proleptic Julian Day number standard and is natively supported in Postgresql." type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="fkmetricid" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="value" type="VARCHAR">
+        <constraints nullable="false"/>
+      </column>
+      <column name="fkHashID" type="BIGINT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-14">
+    <createTable tableName="tblsensor">
+      <column autoIncrement="true" name="pksensorid" type="SERIAL">
+        <constraints primaryKey="true" primaryKeyName="tblsensor_pkey"/>
+      </column>
+      <column name="fkstationid" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="location" type="VARCHAR(16)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-15">
+    <createTable tableName="tblstation">
+      <column autoIncrement="true" name="pkstationid" type="SERIAL">
+        <constraints primaryKey="true" primaryKeyName="tblstation_pkey"/>
+      </column>
+      <column name="fknetworkid" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="name" type="VARCHAR(16)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-16">
+    <addPrimaryKey columnNames="fkGroupID, fkStationID" constraintName="Primary_tblstationGrouptie" tableName="tblStationGroupTie"/>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-17">
+    <addPrimaryKey columnNames="fkmetricid, date, fkchannelid" constraintName="pk_metric_date_channel" tableName="tblmetricdata"/>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-18">
+    <addPrimaryKey columnNames="fkmetricid, date, fkchannelid" constraintName="pkstring_metric_date_channel" tableName="tblmetricstringdata"/>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-19">
+    <addPrimaryKey columnNames="pkdateid" constraintName="tbldate_pkey" tableName="tbldate"/>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-20">
+    <addUniqueConstraint columnNames="fkchannelid, fkmetcaltypeid, calday, calmonth, calyear, day, month, year" constraintName="tblcalibrationdata_fkchannelid_fkmetcaltypeid_calday_calmon_key" tableName="tblcalibrationdata"/>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-21">
+    <addUniqueConstraint columnNames="fksensorid, name" constraintName="tblchannel_fksensorid_name_key" tableName="tblchannel"/>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-22">
+    <addUniqueConstraint columnNames="name" constraintName="tblcomputetype_name_key" tableName="tblcomputetype"/>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-23">
+    <addUniqueConstraint columnNames="date" constraintName="tbldate_date_key" tableName="tbldate"/>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-24">
+    <addUniqueConstraint columnNames="fkchannelid, epoch" constraintName="tblmetadata_fkchannelid_epoch_key" tableName="tblmetadata"/>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-25">
+    <addUniqueConstraint columnNames="fkstationid, location" constraintName="tblsensor_fkstationid_location_key" tableName="tblsensor"/>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-26">
+    <addUniqueConstraint columnNames="fknetworkid, name" constraintName="tblstation_fknetworkid_name_key" tableName="tblstation"/>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-27">
+    <addUniqueConstraint columnNames="name" constraintName="un_name" tableName="tblGroupType"/>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-28">
+    <addUniqueConstraint columnNames="name, fkGroupTypeID" constraintName="un_name_fkGroupType" tableName="tblGroup"/>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-29">
+    <addUniqueConstraint columnNames="hash" constraintName="un_tblHash_hash" tableName="tblhash"/>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-30">
+    <addUniqueConstraint columnNames="name" constraintName="un_tblMetric_name" tableName="tblmetric"/>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-31">
+    <createIndex clustered="true" indexName="tblchannel_pkchannelid_fksensorid_isIgnored_idx" tableName="tblchannel">
+      <column name="pkchannelid"/>
+      <column name="fksensorid"/>
+      <column name="isIgnored"/>
+    </createIndex>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-32">
+    <createIndex clustered="true" indexName="tbldate_pkdateid_date_idx" tableName="tbldate">
+      <column name="pkdateid"/>
+      <column name="date"/>
+    </createIndex>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-33">
+    <createIndex clustered="true" indexName="tblhash_pkHashID_hash_idx" tableName="tblhash">
+      <column name="pkHashID"/>
+      <column name="hash"/>
+    </createIndex>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-34">
+    <createIndex clustered="true" indexName="tblmetricdata_fkmetricid_date_fkchannelid_value_idx" tableName="tblmetricdata">
+      <column name="fkmetricid"/>
+      <column name="date"/>
+      <column name="fkchannelid"/>
+      <column name="value"/>
+    </createIndex>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-35">
+    <createIndex indexName="tblmetricstringdata_fkmetricid_date_fkchannelid_value_idx" tableName="tblmetricstringdata">
+      <column name="fkmetricid"/>
+      <column name="date"/>
+      <column name="fkchannelid"/>
+      <column name="value"/>
+    </createIndex>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-36">
+    <createIndex clustered="true" indexName="tblsensor_pksensorid_fkstationid_idx" tableName="tblsensor">
+      <column name="pksensorid"/>
+      <column name="fkstationid"/>
+    </createIndex>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-37">
+    <createIndex clustered="true" indexName="tblstation_pkstationid_fknetworkid_idx" tableName="tblstation">
+      <column name="pkstationid"/>
+      <column name="fknetworkid"/>
+    </createIndex>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-38">
+    <addForeignKeyConstraint baseColumnNames="fkGroupID" baseTableName="tblStationGroupTie" constraintName="fkStationTieTblGroup" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="CASCADE" referencedColumnNames="pkgroupid" referencedTableName="tblGroup"/>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-39">
+    <addForeignKeyConstraint baseColumnNames="fkStationID" baseTableName="tblStationGroupTie" constraintName="fkStationTieTblStation" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="CASCADE" referencedColumnNames="pkstationid" referencedTableName="tblstation"/>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-40">
+    <addForeignKeyConstraint baseColumnNames="fkchannelid" baseTableName="tblcalibrationdata" constraintName="fk_tblCalibrationData_tblChannel" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="pkchannelid" referencedTableName="tblchannel"/>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-41">
+    <addForeignKeyConstraint baseColumnNames="fkmetricid" baseTableName="tblcalibrationdata" constraintName="fk_tblCalibrationData_tblMetric" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="pkmetricid" referencedTableName="tblmetric"/>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-42">
+    <addForeignKeyConstraint baseColumnNames="fkchannelid" baseTableName="tblmetricdata" constraintName="fk_tblChannel" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="pkchannelid" referencedTableName="tblchannel"/>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-43">
+    <addForeignKeyConstraint baseColumnNames="fkcomputetypeid" baseTableName="tblmetric" constraintName="fk_tblComputeType" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="pkcomputetypeid" referencedTableName="tblcomputetype"/>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-44">
+    <addForeignKeyConstraint baseColumnNames="fkmetricid" baseTableName="tblmetricdata" constraintName="fk_tblMetric" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="pkmetricid" referencedTableName="tblmetric"/>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-45">
+    <addForeignKeyConstraint baseColumnNames="fknetworkid" baseTableName="tblstation" constraintName="fk_tblNetwork" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="pkgroupid" referencedTableName="tblGroup"/>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-46">
+    <addForeignKeyConstraint baseColumnNames="fksensorid" baseTableName="tblchannel" constraintName="fk_tblSensor" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="pksensorid" referencedTableName="tblsensor"/>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-47">
+    <addForeignKeyConstraint baseColumnNames="fkstationid" baseTableName="tblsensor" constraintName="fk_tblStation" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="pkstationid" referencedTableName="tblstation"/>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-48">
+    <addForeignKeyConstraint baseColumnNames="fkGroupTypeID" baseTableName="tblGroup" constraintName="fk_tblgrouptype" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="pkGroupTypeID" referencedTableName="tblGroupType"/>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-49">
+    <addForeignKeyConstraint baseColumnNames="fkchannelid" baseTableName="tblmetricstringdata" constraintName="fkstring_tblChannel" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="pkchannelid" referencedTableName="tblchannel"/>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490807934770-50">
+    <addForeignKeyConstraint baseColumnNames="fkmetricid" baseTableName="tblmetricstringdata" constraintName="fkstring_tblMetric" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="pkmetricid" referencedTableName="tblmetric"/>
+  </changeSet>
+</databaseChangeLog>
