@@ -3,6 +3,7 @@ build
 *.class
 .classpath
 config.xml*
+database.gradle
 .gradle/
 .idea/
 *.jar

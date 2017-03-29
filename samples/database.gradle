@@ -1,0 +1,6 @@
+
+ext {
+      mainUrl = "jdbc:postgresql://vmdevdb.cr.usgs.gov:5432/dqa_dev"
+      mainUsername = "userName"
+      mainPassword = "password"
+}
