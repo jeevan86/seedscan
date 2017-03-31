@@ -30,7 +30,9 @@ public class DataLoaderTest {
   @AfterClass
   public static void tearDownAfterClass() throws Exception {
     metaGenerator = null;
-    manager.halt();
+    if(manager != null) {
+      manager.halt();
+    }
     manager = null;
   }
 
