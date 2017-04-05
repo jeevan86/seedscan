@@ -127,14 +127,14 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 				PoleZeroStage pz = (PoleZeroStage) stage;
 				addToDigest(pz.getNormalization());
 				ArrayList<Complex> poles = pz.getPoles();
-				for (int j = 0; j < poles.size(); j++) {
-					addToDigest(poles.get(j).getReal());
-					addToDigest(poles.get(j).getImaginary());
+				for (Complex pole : poles) {
+					addToDigest(pole.getReal());
+					addToDigest(pole.getImaginary());
 				}
 				ArrayList<Complex> zeros = pz.getZeros();
-				for (int j = 0; j < zeros.size(); j++) {
-					addToDigest(zeros.get(j).getReal());
-					addToDigest(zeros.get(j).getImaginary());
+				for (Complex zero : zeros) {
+					addToDigest(zero.getReal());
+					addToDigest(zero.getImaginary());
 				}
 			}
 			// Add Polynomial Stage to Digest
@@ -144,8 +144,8 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 				addToDigest(poly.getUpperApproximationBound());
 				addToDigest(poly.getNumberOfCoefficients());
 				double[] coeffs = poly.getRealPolynomialCoefficients();
-				for (int j = 0; j < coeffs.length; j++) {
-					addToDigest(coeffs[j]);
+				for (double coeff : coeffs) {
+					addToDigest(coeff);
 				}
 			}
 			// Add Digital Stage to Digest

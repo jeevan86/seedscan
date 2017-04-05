@@ -191,11 +191,7 @@ public class StationMeta implements Serializable {
 	 * @return the channel metadata
 	 */
 	private ChannelMeta getChannelMetadata(ChannelKey chanKey) {
-		if (channels.containsKey(chanKey)) {
-			return channels.get(chanKey);
-		} else {
-			return null;
-		}
+		return channels.getOrDefault(chanKey, null);
 	}
 
 	/**

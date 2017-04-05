@@ -274,11 +274,7 @@ public class SeedSplitProcessor implements Runnable {
 
 						startTime = Time.calculateEpochMicroSeconds(dateTime);
 
-						if (!temps.containsKey(key)) {
-							tempData = null;
-						} else {
-							tempData = temps.get(key);
-						}
+						tempData = temps.getOrDefault(key, null);
 
 						if (!m_trees.containsKey(key)) {
 							tree = new TreeSet<>();
