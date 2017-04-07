@@ -1,4 +1,133 @@
 <?xml version="1.1" encoding="UTF-8" standalone="no"?>
-<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
-  <include file="src/main/resources/asl/seedscan/database/changelog/functions/db.changelog-fnfinishscan.xml"/>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+  <changeSet author="jholland" id="fnfinishscan" runOnChange="true">
+    <createProcedure
+      path="fnfinishscan.sql"
+      procedureName="fnfinishscan"
+      relativeToChangelogFile="true"
+      schemaName="public"/>
+  </changeSet>
+  <changeSet author="jholland" id="fnsclgetchanneldata" runOnChange="true">
+    <createProcedure
+      path="fnsclgetchanneldata.sql"
+      procedureName="fnsclgetchanneldata"
+      relativeToChangelogFile="true"
+      schemaName="public"/>
+  </changeSet>
+  <changeSet author="jholland" id="fnsclgetchannelplotdata" runOnChange="true">
+    <createProcedure
+      path="fnsclgetchannelplotdata.sql"
+      procedureName="fnsclgetchannelplotdata"
+      relativeToChangelogFile="true"
+      schemaName="public"/>
+  </changeSet>
+  <changeSet author="jholland" id="fnsclgetchannels" runOnChange="true">
+    <createProcedure
+      path="fnsclgetchannels.sql"
+      procedureName="fnsclgetchannels"
+      relativeToChangelogFile="true"
+      schemaName="public"/>
+  </changeSet>
+  <changeSet author="jholland" id="fnsclgetdates" runOnChange="true">
+    <createProcedure
+      path="fnsclgetdates.sql"
+      procedureName="fnsclgetdates"
+      relativeToChangelogFile="true"
+      schemaName="public"/>
+  </changeSet>
+  <changeSet author="jholland" id="fnsclgetgroups" runOnChange="true">
+    <createProcedure
+      path="fnsclgetgroups.sql"
+      procedureName="fnsclgetgroups"
+      relativeToChangelogFile="true"
+      schemaName="public"/>
+  </changeSet>
+  <changeSet author="jholland" id="fnsclgetgrouptypes" runOnChange="true">
+    <createProcedure
+      path="fnsclgetgrouptypes.sql"
+      procedureName="fnsclgetgrouptypes"
+      relativeToChangelogFile="true"
+      schemaName="public"/>
+  </changeSet>
+  <changeSet author="jholland" id="fnsclgetmetrics" runOnChange="true">
+    <createProcedure
+      path="fnsclgetmetrics.sql"
+      procedureName="fnsclgetmetrics"
+      relativeToChangelogFile="true"
+      schemaName="public"/>
+  </changeSet>
+  <changeSet author="jholland" id="fnsclgetpercentage" runOnChange="true">
+    <createProcedure
+      path="fnsclgetpercentage.sql"
+      procedureName="fnsclgetpercentage"
+      relativeToChangelogFile="true"
+      schemaName="public"/>
+  </changeSet>
+  <changeSet author="jholland" id="fnsclgetstations" runOnChange="true">
+    <createProcedure
+      path="fnsclgetstations.sql"
+      procedureName="fnsclgetstations"
+      relativeToChangelogFile="true"
+      schemaName="public"/>
+  </changeSet>
+  <changeSet author="jholland" id="fnsclisnumeric" runOnChange="true">
+    <createProcedure
+      path="fnsclisnumeric.sql"
+      procedureName="fnsclisnumeric"
+      relativeToChangelogFile="true"
+      schemaName="public"/>
+  </changeSet>
+  <changeSet author="jholland" id="fntakenextscan" runOnChange="true">
+    <createProcedure
+      path="fntakenextscan.sql"
+      procedureName="fntakenextscan"
+      relativeToChangelogFile="true"
+      schemaName="public"/>
+  </changeSet>
+  <changeSet author="jholland" id="spcomparehash" runOnChange="true">
+    <createProcedure
+      path="spcomparehash.sql"
+      procedureName="spcomparehash"
+      relativeToChangelogFile="true"
+      schemaName="public"/>
+  </changeSet>
+  <changeSet author="jholland" id="spgetmetricvalue" runOnChange="true">
+    <createProcedure
+      path="spcomparehash.sql"
+      procedureName="spcomparehash"
+      relativeToChangelogFile="true"
+      schemaName="public"/>
+  </changeSet>
+  <changeSet author="jholland" id="spgetmetricvaluedigest" runOnChange="true">
+    <createProcedure
+      path="spgetmetricvaluedigest.sql"
+      procedureName="spgetmetricvaluedigest"
+      relativeToChangelogFile="true"
+      schemaName="public"/>
+  </changeSet>
+  <changeSet author="jholland" id="spinsertmetricdata_double" runOnChange="true">
+    <createProcedure
+      path="spinsertmetricdata_double.sql"
+      procedureName="spinsertmetricdata"
+      relativeToChangelogFile="true"
+      schemaName="public"/>
+  </changeSet>
+  <changeSet author="jholland" id="spinsertmetricdata_text" runOnChange="true">
+    <createProcedure
+      path="spinsertmetricdata_text.sql"
+      procedureName="spinsertmetricdata_text"
+      relativeToChangelogFile="true"
+      schemaName="public"/>
+  </changeSet>
+  <changeSet author="jholland" id="spinsertmetricstringdata" runOnChange="true">
+    <createProcedure
+      path="spinsertmetricstringdata.sql"
+      procedureName="spinsertmetricstringdata"
+      relativeToChangelogFile="true"
+      schemaName="public"/>
+  </changeSet>
+
+
 </databaseChangeLog>
