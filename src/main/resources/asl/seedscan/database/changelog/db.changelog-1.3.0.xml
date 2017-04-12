@@ -313,131 +313,249 @@
     </createTable>
   </changeSet>
   <changeSet author="jholland (generated)" id="1490807934770-16">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <primaryKeyExists schemaName="public" primaryKeyName="Primary_tblstationGrouptie" tableName="tblStationGroupTie"/>
+      </not>
+    </preConditions>
     <addPrimaryKey columnNames="fkGroupID, fkStationID" constraintName="Primary_tblstationGrouptie"
       tableName="tblStationGroupTie"/>
   </changeSet>
   <changeSet author="jholland (generated)" id="1490807934770-17">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <primaryKeyExists schemaName="public" primaryKeyName="pk_metric_date_channel" tableName="tblmetricdata"/>
+      </not>
+    </preConditions>
     <addPrimaryKey columnNames="fkmetricid, date, fkchannelid"
       constraintName="pk_metric_date_channel" tableName="tblmetricdata"/>
   </changeSet>
   <changeSet author="jholland (generated)" id="1490807934770-18">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <primaryKeyExists schemaName="public" primaryKeyName="pkstring_metric_date_channel" tableName="tblmetricstringdata"/>
+      </not>
+    </preConditions>
     <addPrimaryKey columnNames="fkmetricid, date, fkchannelid"
       constraintName="pkstring_metric_date_channel" tableName="tblmetricstringdata"/>
   </changeSet>
   <changeSet author="jholland (generated)" id="1490807934770-19">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <primaryKeyExists schemaName="public" primaryKeyName="tbldate_pkey" tableName="tbldate"/>
+      </not>
+    </preConditions>
     <addPrimaryKey columnNames="pkdateid" constraintName="tbldate_pkey" tableName="tbldate"/>
   </changeSet>
   <changeSet author="jholland (generated)" id="1490807934770-20">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="0">SELECT count (*) FROM pg_constraint WHERE conname='tblcalibrationdata_fkchannelid_fkmetcaltypeid_calday_calmon_key'</sqlCheck>
+    </preConditions>
     <addUniqueConstraint
       columnNames="fkchannelid, fkmetcaltypeid, calday, calmonth, calyear, day, month, year"
       constraintName="tblcalibrationdata_fkchannelid_fkmetcaltypeid_calday_calmon_key"
       tableName="tblcalibrationdata"/>
   </changeSet>
   <changeSet author="jholland (generated)" id="1490807934770-21">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="0">SELECT count (*) FROM pg_constraint WHERE conname='tblchannel_fksensorid_name_key'</sqlCheck>
+    </preConditions>
     <addUniqueConstraint columnNames="fksensorid, name"
       constraintName="tblchannel_fksensorid_name_key" tableName="tblchannel"/>
   </changeSet>
   <changeSet author="jholland (generated)" id="1490807934770-22">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="0">SELECT count (*) FROM pg_constraint WHERE conname='tblcomputetype_name_key'</sqlCheck>
+    </preConditions>
     <addUniqueConstraint columnNames="name" constraintName="tblcomputetype_name_key"
       tableName="tblcomputetype"/>
   </changeSet>
   <changeSet author="jholland (generated)" id="1490807934770-23">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="0">SELECT count (*) FROM pg_constraint WHERE conname='tbldate_date_key'</sqlCheck>
+    </preConditions>
     <addUniqueConstraint columnNames="date" constraintName="tbldate_date_key" tableName="tbldate"/>
   </changeSet>
   <changeSet author="jholland (generated)" id="1490807934770-24">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="0">SELECT count (*) FROM pg_constraint WHERE conname='tblmetadata_fkchannelid_epoch_key'</sqlCheck>
+    </preConditions>
     <addUniqueConstraint columnNames="fkchannelid, epoch"
       constraintName="tblmetadata_fkchannelid_epoch_key" tableName="tblmetadata"/>
   </changeSet>
   <changeSet author="jholland (generated)" id="1490807934770-25">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="0">SELECT count (*) FROM pg_constraint WHERE conname='tblsensor_fkstationid_location_key'</sqlCheck>
+    </preConditions>
     <addUniqueConstraint columnNames="fkstationid, location"
       constraintName="tblsensor_fkstationid_location_key" tableName="tblsensor"/>
   </changeSet>
   <changeSet author="jholland (generated)" id="1490807934770-26">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="0">SELECT count (*) FROM pg_constraint WHERE conname='tblstation_fknetworkid_name_key'</sqlCheck>
+    </preConditions>
     <addUniqueConstraint columnNames="fknetworkid, name"
       constraintName="tblstation_fknetworkid_name_key" tableName="tblstation"/>
   </changeSet>
   <changeSet author="jholland (generated)" id="1490807934770-27">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="0">SELECT count (*) FROM pg_constraint WHERE conname='un_name'</sqlCheck>
+    </preConditions>
     <addUniqueConstraint columnNames="name" constraintName="un_name" tableName="tblGroupType"/>
   </changeSet>
   <changeSet author="jholland (generated)" id="1490807934770-28">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="0">SELECT count (*) FROM pg_constraint WHERE conname='un_name_fkGroupType'</sqlCheck>
+    </preConditions>
     <addUniqueConstraint columnNames="name, fkGroupTypeID" constraintName="un_name_fkGroupType"
       tableName="tblGroup"/>
   </changeSet>
   <changeSet author="jholland (generated)" id="1490807934770-29">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="0">SELECT count (*) FROM pg_constraint WHERE conname='un_tblHash_hash'</sqlCheck>
+    </preConditions>
     <addUniqueConstraint columnNames="hash" constraintName="un_tblHash_hash" tableName="tblhash"/>
   </changeSet>
   <changeSet author="jholland (generated)" id="1490807934770-30">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="0">SELECT count (*) FROM pg_constraint WHERE conname='un_tblMetric_name'</sqlCheck>
+    </preConditions>
     <addUniqueConstraint columnNames="name" constraintName="un_tblMetric_name"
       tableName="tblmetric"/>
   </changeSet>
   <changeSet author="jholland (generated)" id="1490807934770-38">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <foreignKeyConstraintExists schemaName="public" foreignKeyName="fkStationTieTblGroup"/>
+      </not>
+    </preConditions>
     <addForeignKeyConstraint baseColumnNames="fkGroupID" baseTableName="tblStationGroupTie"
       constraintName="fkStationTieTblGroup" deferrable="false" initiallyDeferred="false"
       onDelete="CASCADE" onUpdate="CASCADE" referencedColumnNames="pkgroupid"
       referencedTableName="tblGroup"/>
   </changeSet>
   <changeSet author="jholland (generated)" id="1490807934770-39">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <foreignKeyConstraintExists schemaName="public" foreignKeyName="fkStationTieTblStation"/>
+      </not>
+    </preConditions>
     <addForeignKeyConstraint baseColumnNames="fkStationID" baseTableName="tblStationGroupTie"
       constraintName="fkStationTieTblStation" deferrable="false" initiallyDeferred="false"
       onDelete="CASCADE" onUpdate="CASCADE" referencedColumnNames="pkstationid"
       referencedTableName="tblstation"/>
   </changeSet>
   <changeSet author="jholland (generated)" id="1490807934770-40">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <foreignKeyConstraintExists schemaName="public" foreignKeyName="fk_tblCalibrationData_tblChannel"/>
+      </not>
+    </preConditions>
     <addForeignKeyConstraint baseColumnNames="fkchannelid" baseTableName="tblcalibrationdata"
       constraintName="fk_tblCalibrationData_tblChannel" deferrable="false" initiallyDeferred="false"
       onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="pkchannelid"
       referencedTableName="tblchannel"/>
   </changeSet>
   <changeSet author="jholland (generated)" id="1490807934770-41">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <foreignKeyConstraintExists schemaName="public" foreignKeyName="fk_tblCalibrationData_tblMetric"/>
+      </not>
+    </preConditions>
     <addForeignKeyConstraint baseColumnNames="fkmetricid" baseTableName="tblcalibrationdata"
       constraintName="fk_tblCalibrationData_tblMetric" deferrable="false" initiallyDeferred="false"
       onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="pkmetricid"
       referencedTableName="tblmetric"/>
   </changeSet>
   <changeSet author="jholland (generated)" id="1490807934770-42">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <foreignKeyConstraintExists schemaName="public" foreignKeyName="fk_tblChannel"/>
+      </not>
+    </preConditions>
     <addForeignKeyConstraint baseColumnNames="fkchannelid" baseTableName="tblmetricdata"
       constraintName="fk_tblChannel" deferrable="false" initiallyDeferred="false" onDelete="CASCADE"
       onUpdate="NO ACTION" referencedColumnNames="pkchannelid" referencedTableName="tblchannel"/>
   </changeSet>
   <changeSet author="jholland (generated)" id="1490807934770-43">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <foreignKeyConstraintExists schemaName="public" foreignKeyName="fk_tblComputeType"/>
+      </not>
+    </preConditions>
     <addForeignKeyConstraint baseColumnNames="fkcomputetypeid" baseTableName="tblmetric"
       constraintName="fk_tblComputeType" deferrable="false" initiallyDeferred="false"
       onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="pkcomputetypeid"
       referencedTableName="tblcomputetype"/>
   </changeSet>
   <changeSet author="jholland (generated)" id="1490807934770-44">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <foreignKeyConstraintExists schemaName="public" foreignKeyName="fk_tblMetric"/>
+      </not>
+    </preConditions>
     <addForeignKeyConstraint baseColumnNames="fkmetricid" baseTableName="tblmetricdata"
       constraintName="fk_tblMetric" deferrable="false" initiallyDeferred="false" onDelete="CASCADE"
       onUpdate="NO ACTION" referencedColumnNames="pkmetricid" referencedTableName="tblmetric"/>
   </changeSet>
   <changeSet author="jholland (generated)" id="1490807934770-45">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <foreignKeyConstraintExists schemaName="public" foreignKeyName="fk_tblNetwork"/>
+      </not>
+    </preConditions>
     <addForeignKeyConstraint baseColumnNames="fknetworkid" baseTableName="tblstation"
       constraintName="fk_tblNetwork" deferrable="false" initiallyDeferred="false" onDelete="CASCADE"
       onUpdate="NO ACTION" referencedColumnNames="pkgroupid" referencedTableName="tblGroup"/>
   </changeSet>
   <changeSet author="jholland (generated)" id="1490807934770-46">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <foreignKeyConstraintExists schemaName="public" foreignKeyName="fk_tblSensor"/>
+      </not>
+    </preConditions>
     <addForeignKeyConstraint baseColumnNames="fksensorid" baseTableName="tblchannel"
       constraintName="fk_tblSensor" deferrable="false" initiallyDeferred="false" onDelete="CASCADE"
       onUpdate="NO ACTION" referencedColumnNames="pksensorid" referencedTableName="tblsensor"/>
   </changeSet>
   <changeSet author="jholland (generated)" id="1490807934770-47">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <foreignKeyConstraintExists schemaName="public" foreignKeyName="fk_tblStation"/>
+      </not>
+    </preConditions>
     <addForeignKeyConstraint baseColumnNames="fkstationid" baseTableName="tblsensor"
       constraintName="fk_tblStation" deferrable="false" initiallyDeferred="false" onDelete="CASCADE"
       onUpdate="NO ACTION" referencedColumnNames="pkstationid" referencedTableName="tblstation"/>
   </changeSet>
   <changeSet author="jholland (generated)" id="1490807934770-48">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <foreignKeyConstraintExists schemaName="public" foreignKeyName="fk_tblgrouptype"/>
+      </not>
+    </preConditions>
     <addForeignKeyConstraint baseColumnNames="fkGroupTypeID" baseTableName="tblGroup"
       constraintName="fk_tblgrouptype" deferrable="false" initiallyDeferred="false"
       onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="pkGroupTypeID"
       referencedTableName="tblGroupType"/>
   </changeSet>
   <changeSet author="jholland (generated)" id="1490807934770-49">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <foreignKeyConstraintExists schemaName="public" foreignKeyName="fkstring_tblChannel"/>
+      </not>
+    </preConditions>
     <addForeignKeyConstraint baseColumnNames="fkchannelid" baseTableName="tblmetricstringdata"
       constraintName="fkstring_tblChannel" deferrable="false" initiallyDeferred="false"
       onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="pkchannelid"
       referencedTableName="tblchannel"/>
   </changeSet>
   <changeSet author="jholland (generated)" id="1490807934770-50">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <foreignKeyConstraintExists schemaName="public" foreignKeyName="fkstring_tblMetric"/>
+      </not>
+    </preConditions>
     <addForeignKeyConstraint baseColumnNames="fkmetricid" baseTableName="tblmetricstringdata"
       constraintName="fkstring_tblMetric" deferrable="false" initiallyDeferred="false"
       onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="pkmetricid"
