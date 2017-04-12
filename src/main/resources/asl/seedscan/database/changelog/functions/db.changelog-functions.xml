@@ -65,6 +65,20 @@
       relativeToChangelogFile="true"
       schemaName="public"/>
   </changeSet>
+  <changeSet author="jholland" id="fnsclgetstationdata" runOnChange="true">
+    <createProcedure
+      path="fnsclgetstationdata.sql"
+      procedureName="fnsclgetstationdata"
+      relativeToChangelogFile="true"
+      schemaName="public"/>
+  </changeSet>
+  <changeSet author="jholland" id="fnsclgetstationplotdata" runOnChange="true">
+    <createProcedure
+      path="fnsclgetstationplotdata.sql"
+      procedureName="fnsclgetstationplotdata"
+      relativeToChangelogFile="true"
+      schemaName="public"/>
+  </changeSet>
   <changeSet author="jholland" id="fnsclgetstations" runOnChange="true">
     <createProcedure
       path="fnsclgetstations.sql"
@@ -95,8 +109,8 @@
   </changeSet>
   <changeSet author="jholland" id="spgetmetricvalue" runOnChange="true">
     <createProcedure
-      path="spcomparehash.sql"
-      procedureName="spcomparehash"
+      path="spgetmetricvalue.sql"
+      procedureName="spgetmetricvalue"
       relativeToChangelogFile="true"
       schemaName="public"/>
   </changeSet>
