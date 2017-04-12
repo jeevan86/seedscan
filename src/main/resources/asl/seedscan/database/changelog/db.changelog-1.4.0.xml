@@ -1,72 +1,107 @@
 <?xml version="1.1" encoding="UTF-8" standalone="no"?>
-<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
-    <changeSet author="jholland" id="add_uuid-ossp">
-        <sql stripComments="true">
-            CREATE EXTENSION "uuid-ossp"
-            <comment>Add uuid-ossp for use in tblscan</comment>
-        </sql>
-    </changeSet>
-    <changeSet author="jholland (generated)" id="1490823590291-1">
-        <createTable tableName="tblscan">
-            <column defaultValueComputed="uuid_generate_v1mc()" name="pkscanid" remarks="Uses uuid_generate_v1mc() to generate the default value." type="UUID">
-                <constraints nullable="false"/>
-            </column>
-            <column name="fkparentscan" type="UUID"/>
-            <column defaultValueComputed="now()" name="lastupdate" type="TIMESTAMP WITH TIME ZONE"/>
-            <column name="metricfilter" type="VARCHAR"/>
-            <column name="networkfilter" type="VARCHAR"/>
-            <column name="stationfilter" type="VARCHAR"/>
-            <column name="channelfilter" type="VARCHAR"/>
-            <column name="startdate" type="date">
-                <constraints nullable="false"/>
-            </column>
-            <column name="enddate" type="date">
-                <constraints nullable="false"/>
-            </column>
-            <column defaultValueNumeric="10" name="priority" type="INT">
-                <constraints nullable="false"/>
-            </column>
-            <column defaultValueBoolean="false" name="deleteexisting" type="BOOLEAN">
-                <constraints nullable="false"/>
-            </column>
-            <column name="scheduledrun" remarks="Future date when this scan can be run." type="date"/>
-            <column defaultValueBoolean="false" name="finished" type="BOOLEAN">
-                <constraints nullable="false"/>
-            </column>
-            <column defaultValueBoolean="false" name="taken" type="BOOLEAN">
-                <constraints nullable="false"/>
-            </column>
-            <column name="locationfilter" type="VARCHAR(10)"/>
-        </createTable>
-    </changeSet>
-    <changeSet author="jholland (generated)" id="1490823590291-2">
-        <createTable tableName="tblscanmessage">
-            <column autoIncrement="true" name="pkmessageid" type="BIGSERIAL">
-                <constraints primaryKey="true" primaryKeyName="tblscanmessage_pkey"/>
-            </column>
-            <column name="fkscanid" type="UUID">
-                <constraints nullable="false"/>
-            </column>
-            <column name="network" type="CHAR(2)"/>
-            <column name="location" remarks="Allows for comparison metrics 00-10" type="VARCHAR(10)"/>
-            <column name="station" type="VARCHAR(10)"/>
-            <column name="channel" type="VARCHAR(10)"/>
-            <column defaultValueComputed="now()" name="timestamp" type="TIMESTAMP WITH TIME ZONE"/>
-            <column name="metric" type="VARCHAR(50)"/>
-            <column name="message" type="TEXT"/>
-        </createTable>
-    </changeSet>
-    <changeSet author="jholland (generated)" id="1490823590291-3">
-        <addPrimaryKey columnNames="pkscanid" constraintName="pk_tblScan" tableName="tblscan"/>
-    </changeSet>
-    <changeSet author="jholland (generated)" id="1490823590291-4">
-        <addForeignKeyConstraint baseColumnNames="fkparentscan" baseTableName="tblscan" constraintName="tblScan_fkparentscan_fkey" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="pkscanid" referencedTableName="tblscan"/>
-    </changeSet>
-    <changeSet author="jholland (generated)" id="1490823590291-5">
-        <addForeignKeyConstraint baseColumnNames="fkscanid" baseTableName="tblscanmessage" constraintName="tblscanmessage_fkscanid_fkey" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="CASCADE" referencedColumnNames="pkscanid" referencedTableName="tblscan"/>
-    </changeSet>
-    <changeSet author="jholland (generated)" id="1490823590291-12">
-        <addDefaultValue columnDataType="timestamp(29,6)" columnName="errortime" defaultValueComputed="now()" tableName="tblerrorlog"/>
-    </changeSet>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+  <changeSet author="jholland" id="add_uuid-ossp">
+    <sql stripComments="true">
+      CREATE EXTENSION IF NOT EXISTS "uuid-ossp"
+      <comment>Add uuid-ossp for use in tblscan</comment>
+    </sql>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490823590291-1">
+    <createTable tableName="tblscan">
+      <column defaultValueComputed="uuid_generate_v1mc()" name="pkscanid"
+        remarks="Uses uuid_generate_v1mc() to generate the default value." type="UUID">
+        <constraints nullable="false"/>
+      </column>
+      <column name="fkparentscan" type="UUID"/>
+      <column defaultValueComputed="now()" name="lastupdate" type="TIMESTAMP WITH TIME ZONE"/>
+      <column name="metricfilter" type="VARCHAR"/>
+      <column name="networkfilter" type="VARCHAR"/>
+      <column name="stationfilter" type="VARCHAR"/>
+      <column name="channelfilter" type="VARCHAR"/>
+      <column name="startdate" type="date">
+        <constraints nullable="false"/>
+      </column>
+      <column name="enddate" type="date">
+        <constraints nullable="false"/>
+      </column>
+      <column defaultValueNumeric="10" name="priority" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column defaultValueBoolean="false" name="deleteexisting" type="BOOLEAN">
+        <constraints nullable="false"/>
+      </column>
+      <column name="scheduledrun" remarks="Future date when this scan can be run." type="date"/>
+      <column defaultValueBoolean="false" name="finished" type="BOOLEAN">
+        <constraints nullable="false"/>
+      </column>
+      <column defaultValueBoolean="false" name="taken" type="BOOLEAN">
+        <constraints nullable="false"/>
+      </column>
+      <column name="locationfilter" type="VARCHAR(10)"/>
+    </createTable>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490823590291-2">
+    <createTable tableName="tblscanmessage">
+      <column autoIncrement="true" name="pkmessageid" type="BIGSERIAL">
+        <constraints primaryKey="true" primaryKeyName="tblscanmessage_pkey"/>
+      </column>
+      <column name="fkscanid" type="UUID">
+        <constraints nullable="false"/>
+      </column>
+      <column name="network" type="CHAR(2)"/>
+      <column name="location" remarks="Allows for comparison metrics 00-10" type="VARCHAR(10)"/>
+      <column name="station" type="VARCHAR(10)"/>
+      <column name="channel" type="VARCHAR(10)"/>
+      <column defaultValueComputed="now()" name="timestamp" type="TIMESTAMP WITH TIME ZONE"/>
+      <column name="metric" type="VARCHAR(50)"/>
+      <column name="message" type="TEXT"/>
+    </createTable>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490823590291-3">
+    <addPrimaryKey columnNames="pkscanid" constraintName="pk_tblScan" tableName="tblscan"/>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490823590291-4">
+    <addForeignKeyConstraint baseColumnNames="fkparentscan" baseTableName="tblscan"
+      constraintName="tblScan_fkparentscan_fkey" deferrable="false" initiallyDeferred="false"
+      onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="pkscanid"
+      referencedTableName="tblscan"/>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490823590291-5">
+    <addForeignKeyConstraint baseColumnNames="fkscanid" baseTableName="tblscanmessage"
+      constraintName="tblscanmessage_fkscanid_fkey" deferrable="false" initiallyDeferred="false"
+      onDelete="CASCADE" onUpdate="CASCADE" referencedColumnNames="pkscanid"
+      referencedTableName="tblscan"/>
+  </changeSet>
+  <changeSet author="jholland (generated)" id="1490823590291-12">
+    <addDefaultValue columnDataType="timestamp(29,6)" columnName="errortime"
+      defaultValueComputed="now()" tableName="tblerrorlog"/>
+  </changeSet>
+  <changeSet author="jholland" id="insert-dead-hash">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="0">SELECT count(*) from tblhash WHERE "pkHashID"=1</sqlCheck>
+    </preConditions>
+    <sql>INSERT INTO tblhash("pkHashID", hash) VALUES (1, decode('DEADBEEF', 'hex'))</sql>
+  </changeSet>
+  <changeSet author="jholland" id="update-dead-hash">
+    <sql>UPDATE tblhash SET hash=decode('DEADBEEF', 'hex') WHERE "pkHashID"=1</sql>
+  </changeSet>
+  <changeSet author="jholland" id="insert-average-channel-compute-type">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="0">SELECT count(*) FROM tblcomputetype</sqlCheck>
+    </preConditions>
+    <sql>
+      INSERT INTO tblcomputetype(pkcomputetypeid, name, description, iscalibration)
+      VALUES
+      (1,'AVG_CH','Average across total number of values',false),
+      (2,'AVG_DAY','Values are averaged over number of days.',false),
+      (3,'VALUE_CO','Values are totalled over the window of time.',false),
+      (4,'PARENT','Not used in computations.',false),
+      (5,'CAL_DATE','Value is the difference between the Calibrati',true),
+      (6,'CAL_AVG','Values are averaged over the number of values',true),
+      (7,'NONE','Values are not computed',false)
+    </sql>
+  </changeSet>
 </databaseChangeLog>
 
