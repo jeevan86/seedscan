@@ -103,5 +103,18 @@
       (7,'NONE','Values are not computed',false)
     </sql>
   </changeSet>
+  <changeSet author="jholland" id="insert-group-types">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="0">SELECT count(*) FROM "tblGroupType"</sqlCheck>
+    </preConditions>
+    <sql>
+      INSERT INTO "tblGroupType"("pkGroupTypeID", name)
+      VALUES
+      (1, 'Network Code'),
+      (2, 'Groups'),
+      (3, 'Countries'),
+      (4, 'Regions')
+    </sql>
+  </changeSet>
 </databaseChangeLog>
 
