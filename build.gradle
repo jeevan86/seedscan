@@ -29,6 +29,8 @@ repositories {
 }
 
 dependencies {
+        // https://mvnrepository.com/artifact/uk.me.berndporr/iirj
+        compile group: 'uk.me.berndporr', name: 'iirj', version: '1.0'
         compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.+'
         compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.+'
         compile group: 'org.jfree', name: 'jfreechart', version: '1.0.+'

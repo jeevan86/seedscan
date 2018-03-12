@@ -4,6 +4,7 @@ build
 .classpath
 config.xml*
 database.gradle
+.DS_Store
 .gradle/
 .idea/
 *.jar

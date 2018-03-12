@@ -229,6 +229,7 @@ public class EventCompareStrongMotion extends Metric {
 		return result;
 	}
 
+	// NOTE: because n1, n2 are times in seconds, data needs to be at 1Hz sample rate for this to wk
 	private double getCorr(double[] data1, double[] data2, int n1, int n2) {
 		// This function computs the Pearson's correlation value for the two
 		// time series
