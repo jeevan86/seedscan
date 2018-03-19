@@ -67,10 +67,6 @@ public class EventComparePWaveOrientation extends Metric {
 
   @Override
   public void process() {
-
-    ChannelKey[] names = stationMeta.getChannelHashTable().keySet().toArray(new ChannelKey[]{});
-    Arrays.sort(names);
-
     logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
 
     // a bunch of this is copy-pasted from eventCompareSynthetic since it's the same thing
