@@ -34,9 +34,9 @@ public class TestUtils {
 					+ "        "+result.getResult(id)+", ByteBuffer.wrap(DatatypeConverter.parseHexBinary(\""+printHexBinary(result.getDigest(id).array())+"\")));");
       */
 
-      Double expected = (double) Math.round(expect.get(id) * 1000000d) / 1000000d;
-      Double resulted = (double) Math.round(result.getResult(id) * 1000000d) / 1000000d;
-      assertEquals(id + " result: ", expected, resulted);
+      Double expected = expect.get(id);
+      Double resulted = result.getResult(id);
+      assertEquals(id + " result: ", expected, resulted, 1e-7);
     }
   }
 }
