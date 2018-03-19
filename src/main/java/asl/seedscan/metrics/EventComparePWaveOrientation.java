@@ -122,7 +122,7 @@ public class EventComparePWaveOrientation extends Metric {
     // map used for quick access to paired channel data
     // we only do calculations once both N/E channel pairs (or ND/ED)
     // exist in the map
-    Map<String, Channel> chNameMap = new HashMap<String, Channel>();
+    Map<String, Channel> chNameMap = new HashMap<>();
     for (Channel curChannel : channels) {
 
       String name = curChannel.toString();
@@ -172,7 +172,7 @@ public class EventComparePWaveOrientation extends Metric {
       // now we have the angle for which to rotate data
 
       // now to get the synthetics data
-      SortedSet<String> eventKeys = new TreeSet<String>(eventCMTs.keySet());
+      SortedSet<String> eventKeys = new TreeSet<>(eventCMTs.keySet());
       for (String key : eventKeys) {
 
         EventCMT eventMeta = eventCMTs.get(key);
@@ -207,8 +207,7 @@ public class EventComparePWaveOrientation extends Metric {
 
         // get start time of p-wave, then take data 100 secs before that
         SacHeader header = sacSynthetics.getHeader();
-        long eventStartTime = getSacStartTimeInMillis(header);
-        long stationDataStartTime = eventStartTime;
+        long stationDataStartTime = getSacStartTimeInMillis(header);
         try{
           long pTravelTime = getPArrivalTime(eventMeta);
           stationDataStartTime += pTravelTime;
@@ -360,21 +359,15 @@ public class EventComparePWaveOrientation extends Metric {
 
         // now do least squares on the data to get the linearity
         // and then do arctan solving on that to get the angle of orientation
-        MultivariateJacobianFunction slopeCalculation = new MultivariateJacobianFunction() {
-          @Override
-          public Pair<RealVector, RealMatrix> value(final RealVector point) {
-
-            double slope = point.getEntry(0);
-            RealVector value = new ArrayRealVector(east.length);
-            RealMatrix jacobian = new BlockRealMatrix(east.length, 1);
-            for (int i = 0; i < east.length; ++i) {
-              value.setEntry(i, (east[i] * slope));
-              jacobian.setEntry(i, 0, east[i]);
-            }
-
-            return new Pair<RealVector, RealMatrix>(value, jacobian);
-
+        MultivariateJacobianFunction slopeCalculation = point -> {
+          double slope = point.getEntry(0);
+          RealVector value = new ArrayRealVector(east.length);
+          RealMatrix jacobian = new BlockRealMatrix(east.length, 1);
+          for (int i = 0; i < east.length; ++i) {
+            value.setEntry(i, (east[i] * slope));
+            jacobian.setEntry(i, 0, east[i]);
           }
+          return new Pair<>(value, jacobian);
         };
 
         LeastSquaresProblem lsp = new LeastSquaresBuilder().
@@ -403,14 +396,12 @@ public class EventComparePWaveOrientation extends Metric {
           bAzim = ((bAzim + 180) % 360 + 360) % 360;
         }
 
-        double angleDifference = azi-bAzim;;
+        double angleDifference = azi-bAzim;
 
         // add warning before publishing result if it's inconsistent with expected
         if (Math.abs(angleDifference) > 5) {
-          StringBuilder sb = new StringBuilder();
-          sb.append("== {}: Difference btwn calc. and est. azimuth > 5 degrees -- ");
-          sb.append("[({} - {}) - ({} (calc) vs. {} (exp))]");
-          logger.warn(sb.toString(), getName(), name, pairName, bAzim, azi);
+          logger.warn("== {}: Difference btwn calc. and est. azimuth > 5 degrees -- "
+              + "[({} - {}) - ({} (calc) vs. {} (exp))]", getName(), name, pairName, bAzim, azi);
         }
 
         // now, populate the results from this data
@@ -422,8 +413,7 @@ public class EventComparePWaveOrientation extends Metric {
   private static int getXSecondsLength(int secs, double sRate) {
     // input is the sample rate in hertz
     // samples = 15 (s) * sRate (samp/s)
-    int count = (int) Math.ceil(secs * sRate);
-    return count;
+    return (int) Math.ceil(secs * sRate);
   }
 
   public static String getPairedChannelNameString(String channelName) throws MetricException {
@@ -443,12 +433,13 @@ public class EventComparePWaveOrientation extends Metric {
 
   private static char getPairChar(char orient) throws MetricException {
     // get N,E pairs (horizontal data) for orientation calculation
-    if (orient == 'N') {
-      return 'E';
-    } else if (orient == 'E') {
-      return 'N';
-    } else {
-      throw new MetricException("Error with channel orientation label format");
+    switch (orient) {
+      case 'N':
+        return 'E';
+      case 'E':
+        return 'N';
+      default:
+        throw new MetricException("Error with channel orientation label format");
     }
   }
 
@@ -488,7 +479,7 @@ public class EventComparePWaveOrientation extends Metric {
     if (arrivals.get(0).getName().equals("P")) {
       arrivalTimeP = arrivals.get(0).getTime();
     } else {
-      logger.info(String.format("Got an arrival, but it was not a P-wave"));
+      logger.info("Got an arrival, but it was not a P-wave");
       throw new ArrivalTimeException("Arrival time found was not a P-wave");
     }
 
