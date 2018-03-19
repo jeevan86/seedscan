@@ -40,8 +40,8 @@ public class EventComparePWaveOrientation extends Metric {
   private static final Logger logger =
       LoggerFactory.getLogger(asl.seedscan.metrics.EventComparePWaveOrientation.class);
 
-  // length of window to take for p-wave data
-  private static final int P_WAVE_MS = 5000;
+  // length of window to take for p-wave data in seconds
+  private static final int P_WAVE_WINDOW = 5;
 
   // range of degrees (arc length) over which data will be valid
   private static final int MIN_DEGREES = 30;
@@ -51,9 +51,9 @@ public class EventComparePWaveOrientation extends Metric {
    */
   private static final double LOW_PASS_FILTER_CORNER = 0.05;
   /**
-   * 50 second window for p-wave data
+   * 50 second window for p-wave ringing offset data
    */
-  private static final int P_WAVE_RINGING_OFFSET = 10000;
+  private static final int P_WAVE_RINGING_OFFSET = 50;
 
   public EventComparePWaveOrientation() {
     super();
@@ -218,7 +218,7 @@ public class EventComparePWaveOrientation extends Metric {
         // ending of p-wave is this length of time afterward
         // add 100 seconds on each end to compensate for potential filter ringing later
         // (after filtering we will trim the ringing from each side)
-        long stationEventEndTime = stationDataStartTime + P_WAVE_MS + (P_WAVE_RINGING_OFFSET * 1000);
+        long stationEventEndTime = stationDataStartTime + (P_WAVE_WINDOW + P_WAVE_RINGING_OFFSET) * 1000;
         // set window start back by 100 seconds (units in ms here) plus 50s ring-compensation offset
         stationDataStartTime -= (100 + P_WAVE_RINGING_OFFSET) * 1000; // (100 + X) sec * 1000 ms/sec
 
@@ -280,8 +280,7 @@ public class EventComparePWaveOrientation extends Metric {
 
         // evaluate signal-to-noise ratio of data (RMS)
         // noise is first 15 seconds of data (i.e., before p-wave arrival)
-        final int P_WAVE_SECS = P_WAVE_MS / 1000;
-        int noiseLength = getSamplesInTimePeriod(P_WAVE_SECS, sampleRateN);
+        int noiseLength = getSamplesInTimePeriod(P_WAVE_WINDOW, sampleRateN);
         // signal is last 15 seconds of data (i.e., after p-wave arrival);
         int signalOffset = northData.length - noiseLength;
 
@@ -436,7 +435,7 @@ public class EventComparePWaveOrientation extends Metric {
     try {
       timeTool = new TauP_Time("prem");
       timeTool.parsePhaseList("P");
-      timeTool.depthCorrect(eventDepth);
+      timeTool.setSourceDepth(eventDepth);
       timeTool.calculate(greatCircleArc);
     } catch (TauModelException e) {
       //Arrival times are not determinable.
