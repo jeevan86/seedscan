@@ -113,7 +113,6 @@ public class EventComparePWaveOrientation extends Metric {
     List<String> bands;
     bands = Arrays.asList(preSplitBands.split(","));
 
-
     StationMeta stnMeta = metricData.getMetaData();
     // get lat and long to make sure data is within a reasonable range
     double stnLat = stnMeta.getLatitude();
@@ -208,7 +207,7 @@ public class EventComparePWaveOrientation extends Metric {
         // get start time of p-wave, then take data 100 secs before that
         SacHeader header = sacSynthetics.getHeader();
         long stationDataStartTime = getSacStartTimeInMillis(header);
-        try{
+        try {
           long pTravelTime = getPArrivalTime(eventMeta);
           stationDataStartTime += pTravelTime;
         } catch (ArrivalTimeException e) {
@@ -259,8 +258,8 @@ public class EventComparePWaveOrientation extends Metric {
 
         // assume there are filter artifacts in first 50 seconds' worth of data
         int afterRinging = getXSecondsLength(secsOffset, sampleRateN);
-        northData = Arrays.copyOfRange(northData, afterRinging, northData.length-afterRinging);
-        eastData = Arrays.copyOfRange(eastData, afterRinging, eastData.length-afterRinging);
+        northData = Arrays.copyOfRange(northData, afterRinging, northData.length - afterRinging);
+        eastData = Arrays.copyOfRange(eastData, afterRinging, eastData.length - afterRinging);
 
         // detrend operations are done in-place
         TimeseriesUtils.demean(northData);
@@ -396,7 +395,7 @@ public class EventComparePWaveOrientation extends Metric {
           bAzim = ((bAzim + 180) % 360 + 360) % 360;
         }
 
-        double angleDifference = azi-bAzim;
+        double angleDifference = azi - bAzim;
 
         // add warning before publishing result if it's inconsistent with expected
         if (Math.abs(angleDifference) > 5) {
@@ -509,6 +508,7 @@ public class EventComparePWaveOrientation extends Metric {
   }
 
   private class ArrivalTimeException extends Exception {
+
     /**
      *
      */
