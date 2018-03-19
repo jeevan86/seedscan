@@ -306,7 +306,7 @@ public class EventCompareStrongMotion extends Metric {
 		// 97 deg or so)
 		if (arrivals.size() != 2) { // Either we don't have both P & S or we
 									// don't have just P & S
-			logger.info(String.format("Expected P and/or S arrival times not found [gcarc=%8.4f]", gcarc));
+			logger.info("Expected P and/or S arrival times not found [gcarc={}]", gcarc);
 			return null;
 		}
 
