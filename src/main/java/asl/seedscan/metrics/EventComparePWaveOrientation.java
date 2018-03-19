@@ -1,5 +1,13 @@
 package asl.seedscan.metrics;
 
+import asl.metadata.Channel;
+import asl.metadata.meta_new.StationMeta;
+import asl.seedscan.event.EventCMT;
+import asl.timeseries.TimeseriesUtils;
+import edu.sc.seis.TauP.Arrival;
+import edu.sc.seis.TauP.SphericalCoords;
+import edu.sc.seis.TauP.TauModelException;
+import edu.sc.seis.TauP.TauP_Time;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -24,15 +32,6 @@ import org.apache.commons.math3.linear.RealVector;
 import org.apache.commons.math3.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import asl.metadata.Channel;
-import asl.metadata.ChannelKey;
-import asl.metadata.meta_new.StationMeta;
-import asl.seedscan.event.EventCMT;
-import asl.timeseries.TimeseriesUtils;
-import edu.sc.seis.TauP.Arrival;
-import edu.sc.seis.TauP.SphericalCoords;
-import edu.sc.seis.TauP.TauModelException;
-import edu.sc.seis.TauP.TauP_Time;
 import sac.SacHeader;
 import sac.SacTimeSeries;
 import uk.me.berndporr.iirj.Butterworth;
@@ -189,7 +188,7 @@ public class EventComparePWaveOrientation extends Metric {
           continue;
         }
 
-        SacTimeSeries sacSynthetics = null;
+        SacTimeSeries sacSynthetics;
         String fileKey = getStn() + "." + basechannel[0] + "." + basechannel[1].substring(0, 2)
             + channelVal.substring(2, 3) + ".modes.sac.proc";
         // e.g. "ANMO.XX.LXZ.modes.sac.proc"
@@ -447,7 +446,7 @@ public class EventComparePWaveOrientation extends Metric {
     double stlo = stationMeta.getLongitude();
     double gcarc = SphericalCoords.distance(evla, evlo, stla, stlo);
     double azim = SphericalCoords.azimuth(evla, evlo, stla, stlo);
-    TauP_Time timeTool = null;
+    TauP_Time timeTool;
     try {
       timeTool = new TauP_Time("prem");
       timeTool.parsePhaseList("P");
@@ -470,7 +469,7 @@ public class EventComparePWaveOrientation extends Metric {
     }
     */
 
-    double arrivalTimeP = 0.;
+    double arrivalTimeP;
     if (arrivals.get(0).getName().equals("P")) {
       arrivalTimeP = arrivals.get(0).getTime();
     } else {
