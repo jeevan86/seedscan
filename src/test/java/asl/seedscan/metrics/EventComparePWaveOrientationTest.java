@@ -116,35 +116,35 @@ public class EventComparePWaveOrientationTest {
 
   @Test
   public final void testGetCorrectPairedChannelNameNorthDerived() throws MetricException {
-    String init = "IU.ANMO.10.LHND";
+    String init = "10-LHND";
     String result = EventComparePWaveOrientation.getPairedChannelNameString(init);
-    assertTrue(result.equals("IU.ANMO.10.LHED"));
+    assertTrue(result.equals("10-LHED"));
   }
 
   @Test
   public final void testGetCorrectPairedChannelNameEastDerived() throws MetricException {
-    String init = "IU.ANMO.10.LHED";
+    String init = "10-LHED";
     String result = EventComparePWaveOrientation.getPairedChannelNameString(init);
-    assertTrue(result.equals("IU.ANMO.10.LHND"));
+    assertTrue(result.equals("10-LHND"));
   }
 
   @Test
   public final void testGetCorrectPairedChannelNameNorth() throws MetricException {
-    String init = "IU.ANMO.10.LHN";
+    String init = "10-LHN";
     String result = EventComparePWaveOrientation.getPairedChannelNameString(init);
-    assertTrue(result.equals("IU.ANMO.10.LHE"));
+    assertTrue(result.equals("10-LHE"));
   }
 
   @Test
   public final void testGetCorrectPairedChannelNameEast() throws MetricException {
-    String init = "IU.ANMO.10.LHE";
+    String init = "00-LHE";
     String result = EventComparePWaveOrientation.getPairedChannelNameString(init);
-    assertTrue(result.equals("IU.ANMO.10.LHN"));
+    assertTrue(result.equals("00-LHN"));
   }
 
   @Test(expected = MetricException.class)
   public final void testGetCorrectPairedChannelNameException() throws MetricException {
-    String init = "IU.ANMO.10.LH1";
+    String init = "10-LH1";
     EventComparePWaveOrientation.getPairedChannelNameString(init);
   }
 
