@@ -410,7 +410,7 @@ public class EventComparePWaveOrientation extends Metric {
     return (int) Math.ceil(secs * sRate);
   }
 
-  public static String getPairedChannelNameString(String channelName) throws MetricException {
+  static String getPairedChannelNameString(String channelName) throws MetricException {
     // get the string for the
 
     char[] chNameArray = channelName.toCharArray();
@@ -509,13 +509,13 @@ public class EventComparePWaveOrientation extends Metric {
      */
     private static final long serialVersionUID = 6851116640460104395L;
 
-    public ArrivalTimeException(String message) {
+    ArrivalTimeException(String message) {
       super(message);
     }
 
   }
 
-  public static double[] lowPassFilter(double[] toFilt, double sps, double corner) {
+  private static double[] lowPassFilter(double[] toFilt, double sps, double corner) {
     Butterworth casc = new Butterworth();
     casc.lowPass(4, sps, corner);
 
