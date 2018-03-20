@@ -153,11 +153,13 @@ public class EventComparePWaveOrientation extends Metric {
         continue;
       }
 
+      //TODO This is order dependent. If LHND is found before LHED, then this will unneededly skip.
       if (!chNameMap.keySet().contains(pairName)) {
         logger.warn("Could not find data for station with name " + pairName);
         continue;
       }
 
+      //TODO This should be using the valueDigestChanged(ChannelArray version, with both pairs of channels.)
       // this is the function that produces rotated data given the current chanel
       ByteBuffer digest = metricData.valueDigestChanged(curChannel, createIdentifier(curChannel),
           getForceUpdate());
@@ -227,13 +229,13 @@ public class EventComparePWaveOrientation extends Metric {
         double[] eastData = metricData.getWindowedData(pairChannel, stationDataStartTime,
             stationEventEndTime);
         boolean dataMissing = false;
-        if (null == northData) {
+        if (northData == null) {
           logger.error("== {}: {} attempt to get north-facing data returned nothing",
               getName(), getStation());
           dataMissing = true;
         }
         // separate conditionals for each to log if one or both pieces of data not gettable
-        if (null == eastData) {
+        if (eastData == null) {
           logger.error("== {}: {} attempt to get east-facing data returned nothing",
               getName(), getStation());
           dataMissing = true;
