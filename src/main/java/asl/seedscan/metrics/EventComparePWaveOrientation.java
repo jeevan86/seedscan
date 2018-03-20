@@ -132,17 +132,9 @@ public class EventComparePWaveOrientation extends Metric {
         continue;
       }
 
-      int lastCharIdx = channelVal.length() - 1;
-      char last = channelVal.charAt(lastCharIdx);
-      if (last == 'Z' || last == 'E') {
-        // assume vertical sensor component requires no orientation
-        // assume east sensor will be referenced when north is read in
+      //Only process ND channels.
+      if (!curChannel.getChannel().endsWith("ND")) {
         continue;
-      } else if (last == 'D') {
-        if (channelVal.charAt(lastCharIdx - 1) == 'E') {
-          // deal with, say, LHED (east-derived) when we read in LHND (north-derived)
-          continue;
-        }
       }
 
       String pairName;
