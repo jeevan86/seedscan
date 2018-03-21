@@ -2,8 +2,13 @@ package asl.seedscan.metrics;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+
+import asl.metadata.Channel;
 import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -112,6 +117,78 @@ public class EventComparePWaveOrientationTest {
   public final void testGetName() throws Exception {
     metric = new EventComparePWaveOrientation();
     assertEquals("EventComparePWaveOrientation", metric.getName());
+  }
+
+  @Test
+  public final void testFilterChannelsSingleBandPass() throws Exception {
+    List<String> allowedBands = new LinkedList<>();
+    allowedBands.add("LH");
+    Channel channel = new Channel("00", "LHND");
+    assertFalse(EventComparePWaveOrientation.filterChannel(channel, allowedBands));
+  }
+  @Test
+  public final void testFilterChannelsMultiBandPass() throws Exception {
+    List<String> allowedBands = new LinkedList<>();
+    allowedBands.add("LH");
+    allowedBands.add("BH");
+    Channel channel = new Channel("10", "LHND");
+    assertFalse(EventComparePWaveOrientation.filterChannel(channel, allowedBands));
+    channel = new Channel("00", "BHND");
+    assertFalse(EventComparePWaveOrientation.filterChannel(channel, allowedBands));
+  }
+
+  @Test
+  public final void testFilterChannelsMultiBandDifferentOrderingPass() throws Exception {
+    List<String> allowedBands = new LinkedList<>();
+    allowedBands.add("LH");
+    allowedBands.add("BH");
+    Channel channel = new Channel("10", "BHND");
+    assertFalse(EventComparePWaveOrientation.filterChannel(channel, allowedBands));
+    channel = new Channel("00", "LHND");
+    assertFalse(EventComparePWaveOrientation.filterChannel(channel, allowedBands));
+  }
+
+  @Test
+  public final void testFilterChannelsMultiBandReject() throws Exception {
+    List<String> allowedBands = new LinkedList<>();
+    allowedBands.add("LH");
+    allowedBands.add("BH");
+    Channel channel = new Channel("10", "HHND");
+    assertTrue(EventComparePWaveOrientation.filterChannel(channel, allowedBands));
+    channel = new Channel("00", "LNND");
+    assertTrue(EventComparePWaveOrientation.filterChannel(channel, allowedBands));
+  }
+
+  @Test
+  public final void testFilterChannelsSingleBandReject() throws Exception {
+    List<String> allowedBands = new LinkedList<>();
+    allowedBands.add("BH");
+    Channel channel = new Channel("10", "LHND");
+    assertTrue(EventComparePWaveOrientation.filterChannel(channel, allowedBands));
+  }
+
+  @Test
+  public final void testFilterChannelsChannelEastDerivedReject() throws Exception {
+    List<String> allowedBands = new LinkedList<>();
+    allowedBands.add("LH");
+    Channel channel = new Channel("10", "LHED");
+    assertTrue(EventComparePWaveOrientation.filterChannel(channel, allowedBands));
+  }
+
+  @Test
+  public final void testFilterChannelsChannelNorthDerivedPass() throws Exception {
+    List<String> allowedBands = new LinkedList<>();
+    allowedBands.add("LH");
+    Channel channel = new Channel("10", "LHND");
+    assertFalse(EventComparePWaveOrientation.filterChannel(channel, allowedBands));
+  }
+
+  @Test
+  public final void testFilterChannelsChannelZReject() throws Exception {
+    List<String> allowedBands = new LinkedList<>();
+    allowedBands.add("LH");
+    Channel channel = new Channel("10", "LHZ");
+    assertTrue(EventComparePWaveOrientation.filterChannel(channel, allowedBands));
   }
 
   @Test
