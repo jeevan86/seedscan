@@ -186,6 +186,38 @@ public class Channel {
 		this.channel = channel;
 	}
 
+	/**
+	 * Returns a Channel that should be orthogonal to the input Channel.
+	 * This channel may not exist or may not have data associated.
+	 * If the channel is a combined channel EG LH1-LH1, it returns null.
+	 * @return orthogonal Channel to this channel OR null if unable to determine one.
+	 */
+	public Channel getHorizontalOrthogonalChannel() {
+		if (channel.length() > 4)
+			return null;
+
+		//Channel code always has orientation as 3rd char in code regardless of being derived.
+		char[] orthogonalChannel = channel.toCharArray();
+		switch(orthogonalChannel[2]) {
+			case 'N':
+				orthogonalChannel[2] = 'E';
+				break;
+			case 'E':
+				orthogonalChannel[2] = 'N';
+				break;
+			case '1':
+				orthogonalChannel[2] = '2';
+				break;
+			case '2':
+				orthogonalChannel[2] = '1';
+				break;
+			default:
+				return null;
+		}
+
+		return new Channel(this.location, new String(orthogonalChannel));
+	}
+
 	@Override
 	public String toString() {
 		return getLocation() + "-" + getChannel();
