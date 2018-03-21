@@ -71,6 +71,21 @@ public class EventComparePWaveOrientation extends Metric {
     return "EventComparePWaveOrientation";
   }
 
+  /**
+   * Determine if a channel meets the needed criteria.
+   * @param channel Channel to be tested.
+   * @param allowedBands List of allowed bands in String format
+   * @return True if filtered out, False if not
+   */
+  static boolean filterChannel(Channel channel, List<String> allowedBands ){
+    //Only process ND channels.
+    if (!channel.getChannel().endsWith("ND")) {
+      return true;
+    }
+    //Test if in requested bands
+    return !allowedBands.contains(channel.getChannel().substring(0, 2));
+  }
+
   @Override
   public void process() {
     logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
@@ -111,8 +126,7 @@ public class EventComparePWaveOrientation extends Metric {
       logger.info("No band restriction set for Event Compare P Orientation using: "
           + preSplitBands);
     }
-    List<String> bands;
-    bands = Arrays.asList(preSplitBands.split(","));
+    List<String> allowedBands = Arrays.asList(preSplitBands.split(","));
 
     // get lat and long to make sure data is within a reasonable range
     double stationLatitude = stationMeta.getLatitude();
@@ -127,13 +141,8 @@ public class EventComparePWaveOrientation extends Metric {
       String name = curChannel.toString();
       chNameMap.put(name, curChannel);
       String channelVal = name.split("-")[1];
-      if (!bands.contains(channelVal.substring(0, 2))) {
-        // current channel not part of valid band options, skip it
-        continue;
-      }
 
-      //Only process ND channels.
-      if (!curChannel.getChannel().endsWith("ND")) {
+      if (filterChannel(curChannel, allowedBands) ) {
         continue;
       }
 
@@ -142,12 +151,6 @@ public class EventComparePWaveOrientation extends Metric {
         pairName = getPairedChannelNameString(name);
       } catch (MetricException e) {
         logger.error("Error in format of channel name (expected E, N, or Z channel code.): " + name);
-        continue;
-      }
-
-      //TODO This is order dependent. If LHND is found before LHED, then this will unneededly skip.
-      if (!chNameMap.keySet().contains(pairName)) {
-        logger.warn("Could not find data for station with name " + pairName);
         continue;
       }
 
