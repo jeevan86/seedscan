@@ -1,6 +1,7 @@
 package asl.seedscan.metrics;
 
 import asl.metadata.Channel;
+import asl.metadata.ChannelArray;
 import asl.seedscan.event.EventCMT;
 import asl.timeseries.TimeseriesUtils;
 import edu.sc.seis.TauP.Arrival;
@@ -146,20 +147,18 @@ public class EventComparePWaveOrientation extends Metric {
         continue;
       }
 
-      String pairName;
-      try {
-        pairName = getPairedChannelNameString(name);
-      } catch (MetricException e) {
-        logger.error("Error in format of channel name (expected E, N, or Z channel code.): " + name);
+      Channel pairChannel = curChannel.getHorizontalOrthogonalChannel();
+
+      // this is the function that produces rotated data given the current chanel
+      ByteBuffer digest = metricData.valueDigestChanged(new ChannelArray(curChannel, pairChannel), createIdentifier(curChannel, pairChannel),
+          getForceUpdate());
+
+      //Skip if digest is null - Either the value is already computed or there is no data.
+      if (digest == null) {
         continue;
       }
 
-      //TODO This should be using the valueDigestChanged(ChannelArray version, with both pairs of channels.)
-      // this is the function that produces rotated data given the current chanel
-      ByteBuffer digest = metricData.valueDigestChanged(curChannel, createIdentifier(curChannel),
-          getForceUpdate());
 
-      Channel pairChannel = chNameMap.get(pairName);
       double sampleRateN = stationMeta.getChannelMetadata(curChannel).getSampleRate();
       double sampleRateE = stationMeta.getChannelMetadata(pairChannel).getSampleRate();
       // now curChannel, pairChannel the two channels to get the orientation of
@@ -304,7 +303,7 @@ public class EventComparePWaveOrientation extends Metric {
         final double SIGNAL_CUTOFF = 5.;
         if (signalNoiseRatioTotal < SIGNAL_CUTOFF) {
           logger.warn("== {}: Signal to noise ratio under 5 -- [{} - {}], [{} - {}]", getName(),
-              name, signalNoiseRatioNorth, pairName, signalNoiseRatioEast);
+              name, signalNoiseRatioNorth, pairChannel, signalNoiseRatioEast);
           continue;
         }
 
@@ -322,7 +321,7 @@ public class EventComparePWaveOrientation extends Metric {
             (eigenValues.getEntry(1, 1) / eigenValues.getTrace());
         if (linearity < 0.95) {
           logger.warn("== {}: Skipping; data linearity less than .95 -- [({} - {}) - {}]",
-              getName(), name, pairName, linearity);
+              getName(), name, pairChannel, linearity);
           continue;
         }
 
@@ -372,7 +371,7 @@ public class EventComparePWaveOrientation extends Metric {
         // add warning before publishing result if it's inconsistent with expected
         if (Math.abs(angleDifference) > 5) {
           logger.warn("== {}: Difference btwn calc. and est. azimuth > 5 degrees -- "
-              + "[({} - {}) - ({} (calc) vs. {} (exp))]", getName(), name, pairName, backAzimuth, azimuth);
+              + "[({} - {}) - ({} (calc) vs. {} (exp))]", getName(), name, pairChannel, backAzimuth, azimuth);
         }
 
         // now, populate the results from this data
@@ -391,33 +390,6 @@ public class EventComparePWaveOrientation extends Metric {
     // input is the sample rate in hertz
     // samples = 15 (s) * sampleRate (samp/s)
     return (int) Math.ceil(secs * sampleRate);
-  }
-
-  static String getPairedChannelNameString(String channelName) throws MetricException {
-    // get the string for the
-
-    char[] chNameArray = channelName.toCharArray();
-    int lastCharIdx = chNameArray.length - 1;
-    char lastChar = chNameArray[lastCharIdx];
-    if (lastChar == 'D') {
-      --lastCharIdx;
-      lastChar = chNameArray[lastCharIdx];
-    }
-    char pairChar = getPairChar(lastChar);
-    chNameArray[lastCharIdx] = pairChar;
-    return new String(chNameArray);
-  }
-
-  private static char getPairChar(char orient) throws MetricException {
-    // get N,E pairs (horizontal data) for orientation calculation
-    switch (orient) {
-      case 'N':
-        return 'E';
-      case 'E':
-        return 'N';
-      default:
-        throw new MetricException("Error with channel orientation label format");
-    }
   }
 
   private long getPArrivalTime(EventCMT eventCMT) throws ArrivalTimeException {
