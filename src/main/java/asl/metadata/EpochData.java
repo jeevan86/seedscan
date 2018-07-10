@@ -41,6 +41,7 @@ public class EpochData {
 	private double dip;
 	private double azimuth;
 	private double depth;
+	private double elevation;
 	private double sampleRate;
 	private String instrumentType;
 	private String channelFlags;
@@ -77,6 +78,7 @@ public class EpochData {
 			}
 		}
 
+		this.elevation = Double.parseDouble(info.getFieldValue(12, 0));
 		this.depth = Double.parseDouble(info.getFieldValue(13, 0));
 		this.azimuth = Double.parseDouble(info.getFieldValue(14, 0));
 		this.dip = Double.parseDouble(info.getFieldValue(15, 0));
@@ -190,4 +192,6 @@ public class EpochData {
 	public String getChannelFlags() {
 		return channelFlags;
 	}
+
+	public double getElevation() { return elevation; }
 }
