@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import java.time.LocalDate;
 import java.util.HashMap;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -17,15 +18,21 @@ public class EventComparePWaveOrientationTest {
   private EventComparePWaveOrientation metric;
   private static MetricData data, data2;
   private static EventLoader eventLoader;
+  private static Station station;
+  private static LocalDate dataDate;
+
 
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
     try {
-      data = (MetricData) ResourceManager
-          .loadCompressedObject("/data/IU.NWAO.2015.299.MetricData.ser.gz", false);
+      String metadataLocation = "/metadata/rdseed/IU-ANMO-ascii.txt";
+      String seedDataLocation = "/seed_data/IU_ANMO/2018/010";
+      station = new Station("IU", "ANMO");
+      dataDate = LocalDate.of(2018, 1, 10);
+      data = ResourceManager.getMetricData(seedDataLocation, metadataLocation, dataDate, station);
       data2 = (MetricData) ResourceManager
-          .loadCompressedObject("/data/IU.TUC.2018.023.ser.gz", false);
-      eventLoader = new EventLoader(ResourceManager.getDirectoryPath("/events"));
+          .loadCompressedObject("/java_serials/data/IU.TUC.2018.023.ser.gz", false);
+      eventLoader = new EventLoader(ResourceManager.getDirectoryPath("/event_synthetics"));
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -42,12 +49,11 @@ public class EventComparePWaveOrientationTest {
   public void testProcessDefault() throws Exception {
     metric = new EventComparePWaveOrientation();
     metric.setData(data);
-    LocalDate date = LocalDate.of(2015, 10, 26);
-    metric.setEventTable(eventLoader.getDayEvents(date));
-    metric.setEventSynthetics(eventLoader.getDaySynthetics(date, new Station("IU", "NWAO")));
+    metric.setEventTable(eventLoader.getDayEvents(dataDate));
+    metric.setEventSynthetics(eventLoader.getDaySynthetics(dataDate, station));
     HashMap<String, Double> expect = new HashMap<>();
-    expect.put("00,LHND", -2.540952254110209);
-    // expect.put("10,LHND", 0.0); // skipped because linearity not good enough
+    expect.put("00,LHND", -3.3598227091923576);
+    expect.put("10,LHND", -0.43859398446427633);
     TestUtils.testMetric(metric, expect);
   }
 
@@ -55,13 +61,13 @@ public class EventComparePWaveOrientationTest {
   public void testProcessDefaultData2() throws Exception {
     metric = new EventComparePWaveOrientation();
     metric.setData(data2);
-    LocalDate date = LocalDate.of(2018, 01, 23);
+    LocalDate date = LocalDate.of(2018, 1, 23);
     metric.setEventTable(eventLoader.getDayEvents(date));
     metric.setEventSynthetics(eventLoader.getDaySynthetics(date, new Station("IU", "TUC")));
     HashMap<String, Double> expect = new HashMap<>();
-    expect.put("00,LHND", -6.2504661649869036);
-    //expect.put("10,LHND", 0.5574496184388522);
-    expect.put("60,LHND", -0.5888912051460125);
+    // expect.put("00,LHND", -6.2504661649869036);
+    expect.put("10,LHND", -0.15767736353728878);
+    // expect.put("60,LHND", -0.5888912051460125);
     TestUtils.testMetric(metric, expect);
   }
 
@@ -75,12 +81,11 @@ public class EventComparePWaveOrientationTest {
     metric.add("channel-restriction", "LH");
 
     metric.setData(data);
-    LocalDate date = LocalDate.of(2015, 10, 26);
-    metric.setEventTable(eventLoader.getDayEvents(date));
-    metric.setEventSynthetics(eventLoader.getDaySynthetics(date, new Station("IU", "NWAO")));
+    metric.setEventTable(eventLoader.getDayEvents(dataDate));
+    metric.setEventSynthetics(eventLoader.getDaySynthetics(dataDate, station));
     HashMap<String, Double> expect = new HashMap<>();
-    expect.put("00,LHND", -2.540952254110209);
-    // expect.put("10,LHND", 0.0);
+    expect.put("00,LHND", -3.3598227091923576);
+    expect.put("10,LHND", -0.43859398446427633);
     TestUtils.testMetric(metric, expect);
   }
 
@@ -94,9 +99,8 @@ public class EventComparePWaveOrientationTest {
     metric.add("channel-restriction", "BH");
 
     metric.setData(data);
-    LocalDate date = LocalDate.of(2015, 10, 26);
-    metric.setEventTable(eventLoader.getDayEvents(date));
-    metric.setEventSynthetics(eventLoader.getDaySynthetics(date, new Station("IU", "NWAO")));
+    metric.setEventTable(eventLoader.getDayEvents(dataDate));
+    metric.setEventSynthetics(eventLoader.getDaySynthetics(dataDate, station));
     HashMap<String, Double> expect = new HashMap<>();
     // expect should be empty because no BH synthetic data exists!
     TestUtils.testMetric(metric, expect);
@@ -112,6 +116,14 @@ public class EventComparePWaveOrientationTest {
   public final void testGetName() throws Exception {
     metric = new EventComparePWaveOrientation();
     assertEquals("EventComparePWaveOrientation", metric.getName());
+  }
+
+  @Test
+  public final void testCalculateCorrectSampleCount() {
+    int secs = 20;
+    double sampleRate = 15;
+    int samples = EventComparePWaveOrientation.getSamplesInTimePeriod(secs, sampleRate);
+    assertEquals(300, samples);
   }
 
   @Test
