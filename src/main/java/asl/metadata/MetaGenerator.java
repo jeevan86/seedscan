@@ -39,9 +39,9 @@ import asl.metadata.meta_new.StationMeta;
 /**
  * MetaGenerator - Holds metadata for all networks x stations x channels x
  * epochs Currently reads metadata in from network dataless seed files
- * 
+ *
  * @author Mike Hagerty hagertmb@bc.edu
- * 
+ *
  */
 public class MetaGenerator {
 	private static final Logger logger = LoggerFactory
@@ -51,7 +51,14 @@ public class MetaGenerator {
 	 * Each datalessDir/XX.dataless file is read into a separate SeedVolume
 	 * keyed by network (e.g., XX)
 	 */
-	private Hashtable<NetworkKey, SeedVolume> volumes = null;
+	protected Hashtable<NetworkKey, SeedVolume> volumes = null;
+
+	/**
+	 * Private class meant to enable mock test class to inherit from this without running other function
+	 */
+	protected MetaGenerator() {
+        volumes = new Hashtable<>();
+	}
 
 	/**
 	 * Look in datalessDir for all files of form XX.dataless
@@ -62,7 +69,7 @@ public class MetaGenerator {
 	 */
 	public MetaGenerator(String datalessDir, List<String> networkSubset) {
 		volumes = new Hashtable<>();
-		
+
 		File dir = new File(datalessDir);
 		if (!dir.exists()) {
 			logger.error("Path '" + dir + "' does not exist.");
@@ -127,11 +134,10 @@ public class MetaGenerator {
 				logger.error("InterruptedException:", e);
 			}
 
-			Dataless dataless = new Dataless(strings);
+
 
 			try {
-				dataless.processVolume();
-				volume = dataless.getVolume();
+				volume = buildVolumesFromStringData(strings);
 			} catch (Exception e) {
 				logger.error("== processing dataless volume for file=[{}]",	fileName);
 			}
@@ -146,7 +152,13 @@ public class MetaGenerator {
 		} // end for loop over XX.dataless files
 	}
 
-	private void addVolume(SeedVolume volume) {
+	SeedVolume buildVolumesFromStringData(List<String> strings) throws DatalessParseException {
+		Dataless dataless = new Dataless(strings);
+		dataless.processVolume();
+		return dataless.getVolume();
+	}
+
+	protected void addVolume(SeedVolume volume) {
 		NetworkKey networkKey = volume.getNetworkKey();
 		if (volumes.containsKey(networkKey)) {
 			logger.error("== Attempting to load volume networkKey=[{}] --> Already loaded!",
@@ -171,7 +183,7 @@ public class MetaGenerator {
 		}
 		return allStations;
 	}
-	
+
 	/**
 	 * Return a list of all stations matching parameters.
 	 *
@@ -180,14 +192,14 @@ public class MetaGenerator {
 	 * @return the station list
 	 */
 	public List<Station> getStationList(String[] networks, String[] stations) {
-		
+
 		logger.info("Generating list of stations for: {}  | {}", networks, stations);
 		if (volumes == null) {
 			return null;
 		}
-		
+
 		List<Station> allStations = new ArrayList<>();
-		
+
 		if(networks != null && stations != null){
 			for (String network : networks) {
 				SeedVolume volume = volumes.get(new NetworkKey(network));
@@ -228,7 +240,7 @@ public class MetaGenerator {
 	 * It is called by
 	 * {@link asl.metadata.MetaGenerator#getStationMeta(Station, LocalDateTime)}
 	 * below.
-	 * 
+	 *
 	 * @param station
 	 *            the station
 	 * @return the station data - this can be null if seed files are
@@ -253,10 +265,10 @@ public class MetaGenerator {
 	 * getStationMeta Calls getStationData to get the metadata for all epochs
 	 * for this station, Then scans through the epochs to find and return the
 	 * requested epoch metadata.
-	 * 
+	 *
 	 * @param station The station for which metadata is requested
 	 * @param timestamp The (epoch) timestamp for which metadata is requested
-	 * 
+	 *
 	 *            ChannelData - Contains all Blockettes for a particular
 	 *            channel, for ALL epochs EpochData - Constains all Blockettes
 	 *            for a particular channel, for the REQUESTED epoch only.
