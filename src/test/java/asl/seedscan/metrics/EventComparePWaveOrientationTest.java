@@ -59,8 +59,8 @@ public class EventComparePWaveOrientationTest {
     metric.setEventTable(eventLoader.getDayEvents(dataDate));
     metric.setEventSynthetics(eventLoader.getDaySynthetics(dataDate, station));
     HashMap<String, Double> expect = new HashMap<>();
-    expect.put("00,LHND", -3.3598227091923576);
-    expect.put("10,LHND", -0.43859398446427633);
+    expect.put("00,LHND", -3.3368944966479717);
+    expect.put("10,LHND", -0.41953005553062894);
     TestUtils.testMetric(metric, expect);
   }
 
@@ -71,8 +71,8 @@ public class EventComparePWaveOrientationTest {
     metric.setEventTable(eventLoader.getDayEvents(dataDate));
     metric.setEventSynthetics(eventLoader.getDaySynthetics(dataDate, station3));
     HashMap<String, Double> expect = new HashMap<>();
-    expect.put("00,LHND", -3.3598227091923576);
-    expect.put("10,LHND", -0.43859398446427633);
+    expect.put("00,LHND", -0.667560607749266);
+    expect.put("10,LHND", -1.002255698396624);
     TestUtils.testMetric(metric, expect);
   }
 
@@ -84,9 +84,7 @@ public class EventComparePWaveOrientationTest {
     metric.setEventTable(eventLoader.getDayEvents(date));
     metric.setEventSynthetics(eventLoader.getDaySynthetics(date, new Station("IU", "TUC")));
     HashMap<String, Double> expect = new HashMap<>();
-    // expect.put("00,LHND", -6.2504661649869036);
-    expect.put("10,LHND", -0.15767736353728878);
-    // expect.put("60,LHND", -0.5888912051460125);
+    expect.put("10,LHND", -1.5645897364311736);
     TestUtils.testMetric(metric, expect);
   }
 
@@ -103,8 +101,8 @@ public class EventComparePWaveOrientationTest {
     metric.setEventTable(eventLoader.getDayEvents(dataDate));
     metric.setEventSynthetics(eventLoader.getDaySynthetics(dataDate, station));
     HashMap<String, Double> expect = new HashMap<>();
-    expect.put("00,LHND", -3.3598227091923576);
-    expect.put("10,LHND", -0.43859398446427633);
+    expect.put("00,LHND", -3.3368944966479717);
+    expect.put("10,LHND", -0.41953005553062894);
     TestUtils.testMetric(metric, expect);
   }
 
