@@ -17,9 +17,9 @@ public class EventComparePWaveOrientationTest {
 
 
   private EventComparePWaveOrientation metric;
-  private static MetricData data, data2;
+  private static MetricData data, data2, data3;
   private static EventLoader eventLoader;
-  private static Station station;
+  private static Station station, station3;
   private static LocalDate dataDate;
 
 
@@ -28,11 +28,17 @@ public class EventComparePWaveOrientationTest {
     try {
       String metadataLocation = "/metadata/rdseed/IU-ANMO-ascii.txt";
       String seedDataLocation = "/seed_data/IU_ANMO/2018/010";
+
+      String metadataLocation3 = "/metadata/rdseed/IU-SSPA-ascii.txt";
+      String seedDataLocation3 = "/seed_data/IU_SSPA/2018/010";
+
       station = new Station("IU", "ANMO");
+      station3 = new Station("IU", "SSPA");
       dataDate = LocalDate.of(2018, 1, 10);
       data = ResourceManager.getMetricData(seedDataLocation, metadataLocation, dataDate, station);
       data2 = (MetricData) ResourceManager
           .loadCompressedObject("/java_serials/data/IU.TUC.2018.023.ser.gz", false);
+      data3 = ResourceManager.getMetricData(seedDataLocation3, metadataLocation3, dataDate, station3);
       eventLoader = new EventLoader(ResourceManager.getDirectoryPath("/event_synthetics"));
     } catch (Exception e) {
       e.printStackTrace();
@@ -52,6 +58,18 @@ public class EventComparePWaveOrientationTest {
     metric.setData(data);
     metric.setEventTable(eventLoader.getDayEvents(dataDate));
     metric.setEventSynthetics(eventLoader.getDaySynthetics(dataDate, station));
+    HashMap<String, Double> expect = new HashMap<>();
+    expect.put("00,LHND", -3.3598227091923576);
+    expect.put("10,LHND", -0.43859398446427633);
+    TestUtils.testMetric(metric, expect);
+  }
+
+  @Test
+  public void testProcess90DegreesOut() throws Exception {
+    metric = new EventComparePWaveOrientation();
+    metric.setData(data3);
+    metric.setEventTable(eventLoader.getDayEvents(dataDate));
+    metric.setEventSynthetics(eventLoader.getDaySynthetics(dataDate, station3));
     HashMap<String, Double> expect = new HashMap<>();
     expect.put("00,LHND", -3.3598227091923576);
     expect.put("10,LHND", -0.43859398446427633);
