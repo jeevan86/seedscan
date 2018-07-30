@@ -418,7 +418,7 @@ public class EventComparePWaveOrientation extends Metric {
         while (correctedAzimuth > maxValue) {
             correctedAzimuth -= 90;
         }
-        return correctedAzimuth;
+        return correctedAzimuth % 360;
     }
 
     /**
