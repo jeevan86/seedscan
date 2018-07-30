@@ -18,17 +18,11 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.TreeSet;
-import org.apache.commons.math3.fitting.leastsquares.LeastSquaresBuilder;
-import org.apache.commons.math3.fitting.leastsquares.LeastSquaresOptimizer;
-import org.apache.commons.math3.fitting.leastsquares.LeastSquaresProblem;
-import org.apache.commons.math3.fitting.leastsquares.LevenbergMarquardtOptimizer;
-import org.apache.commons.math3.fitting.leastsquares.MultivariateJacobianFunction;
-import org.apache.commons.math3.linear.ArrayRealVector;
+
 import org.apache.commons.math3.linear.BlockRealMatrix;
 import org.apache.commons.math3.linear.EigenDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
-import org.apache.commons.math3.linear.RealVector;
-import org.apache.commons.math3.util.Pair;
+import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sac.SacHeader;
@@ -55,7 +49,7 @@ public class EventComparePWaveOrientation extends Metric {
    */
   private static final int P_WAVE_RINGING_OFFSET = 50;
 
-  public EventComparePWaveOrientation() {
+  EventComparePWaveOrientation() {
     super();
     addArgument("base-channel");
     addArgument("channel-restriction");
@@ -177,7 +171,7 @@ public class EventComparePWaveOrientation extends Metric {
         EventCMT eventMeta = eventCMTs.get(key);
         double eventLatitude = eventMeta.getLatitude();
         double eventLongitude = eventMeta.getLongitude();
-        // derived data has azimuth of 0
+        // derived data has azimuth of 0 -- can use this w/ station coords to get azimuth relative to event
         double azimuth = SphericalCoords.azimuth(stationLatitude, stationLongitude, eventLatitude, eventLongitude);
 
         double angleBetween = SphericalCoords.distance(eventLatitude, eventLongitude, stationLatitude, stationLongitude);
@@ -358,42 +352,23 @@ public class EventComparePWaveOrientation extends Metric {
     return (signalNorth + signalEast) / (noiseNorth + noiseEast);
   }
 
-  private double calculateBackAzimuth(double[] north, double[] east, double metaAzimuth) {
+  private double calculateBackAzimuth(double[] north, double[] east, double evtAzimuth) {
 
-    // now do least squares on the data to get the linearity
-    // and then do arctan solving on that to get the angle of orientation
-    MultivariateJacobianFunction slopeCalculation = point -> {
-      double slope = point.getEntry(0);
-      RealVector value = new ArrayRealVector(east.length);
-      RealMatrix jacobian = new BlockRealMatrix(east.length, 1);
-      for (int i = 0; i < east.length; ++i) {
-        value.setEntry(i, (east[i] * slope));
-        jacobian.setEntry(i, 0, east[i]);
-      }
-      return new Pair<>(value, jacobian);
-    };
-
-    LeastSquaresProblem lsp = new LeastSquaresBuilder().
-            start(new double[]{0.}).
-            target(north).
-            model(slopeCalculation).
-            lazyEvaluation(false).
-            maxEvaluations(Integer.MAX_VALUE).
-            maxIterations(Integer.MAX_VALUE).
-            build();
-
-    LeastSquaresOptimizer.Optimum opt = new LevenbergMarquardtOptimizer().optimize(lsp);
-    LeastSquaresProblem.Evaluation initEval = lsp.evaluate(opt.getPoint());
-    double backAzimuth = Math.atan(initEval.getPoint().getEntry(0));
+    // we don'fintt care a but the intercept, only the slope
+    SimpleRegression slopeCalculation = new SimpleRegression(false);
+    for (int i = 0; i < north.length; ++i) {
+      slopeCalculation.addData(north[i], east[i]);
+    }
+    double backAzimuth = Math.atan(1./slopeCalculation.getSlope());
     backAzimuth = Math.toDegrees(backAzimuth);
 
-    metaAzimuth = ((metaAzimuth % 360) + 360) % 360;
+    evtAzimuth = ((evtAzimuth % 360) + 360) % 360;
 
     // correct backAzimuth value (i.e., make an actual azimuth)
     if (backAzimuth < 0) {
       backAzimuth = Math.abs(backAzimuth) + 90;
     }
-    if (Math.abs(metaAzimuth - (backAzimuth + 180)) < Math.abs(metaAzimuth - backAzimuth)) {
+    if (Math.abs(evtAzimuth - (backAzimuth + 180)) < Math.abs(evtAzimuth - backAzimuth)) {
       // recall that Java modulo permits negative numbers up to -(modulus)
       backAzimuth = ((backAzimuth + 180) % 360 + 360) % 360;
     }
