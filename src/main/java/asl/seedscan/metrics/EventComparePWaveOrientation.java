@@ -289,7 +289,8 @@ public class EventComparePWaveOrientation extends Metric {
                 // add warning before publishing result if it's inconsistent with expected
                 if (Math.abs(angleDifference) > 5) {
                     logger.warn("== {}: Difference btwn calc. and est. azimuth > 5 degrees -- "
-                            + "[({} - {}) - ({} (calc) vs. {} (exp))]", getName(), name, pairName, backAzimuth, azimuth);
+                            + "[Station=[{}], Channels=({} - {}), Azimuths: ({} (calc) vs. {} (exp))]",
+                            getName(), getStation(), name, pairName, backAzimuth, azimuth);
                 }
                 // now, populate the results from this data
                 metricResult.addResult(curChannel, angleDifference, digest);
