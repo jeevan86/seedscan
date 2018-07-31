@@ -396,7 +396,7 @@ public class EventComparePWaveOrientation extends Metric {
 
     }
 
-    double correctBackAzimuthQuadrant(double azimuth, int signumN, int signumE, int signumZ) {
+    static double correctBackAzimuthQuadrant(double azimuth, int signumN, int signumE, int signumZ) {
         double correctedAzimuth = ((azimuth % 360) + 360) % 360;
         double minValue = 0;
         double maxValue = 360;

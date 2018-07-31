@@ -1,5 +1,6 @@
 package asl.seedscan.metrics;
 
+import static asl.seedscan.metrics.EventComparePWaveOrientation.correctBackAzimuthQuadrant;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import java.time.LocalDate;
@@ -121,6 +122,46 @@ public class EventComparePWaveOrientationTest {
     HashMap<String, Double> expect = new HashMap<>();
     // expect should be empty because no BH synthetic data exists!
     TestUtils.testMetric(metric, expect);
+  }
+
+  @Test
+  public final void getNorthOutOfPhaseCorrectQuadrant() {
+    int north = 1;
+    int east = -1;
+    int vert = -1;
+    double angle = 46;
+    double correctedAngle = correctBackAzimuthQuadrant(angle, north, east, vert);
+    assertEquals(270 + angle, correctedAngle, 1E-5);
+  }
+
+  @Test
+  public final void getEastOutOfPhaseCorrectQuadrant() {
+    int north = 1;
+    int east = -1;
+    int vert = 1;
+    double angle = 46;
+    double correctedAngle = correctBackAzimuthQuadrant(angle, north, east, vert);
+    assertEquals(90 + angle, correctedAngle, 1E-5);
+  }
+
+  @Test
+  public final void getVertOutOfPhaseCorrectQuadrant() {
+    int north = -1;
+    int east = -1;
+    int vert = 1;
+    double angle = 46;
+    double correctedAngle = correctBackAzimuthQuadrant(angle, north, east, vert);
+    assertEquals(angle, correctedAngle, 1E-5);
+  }
+
+  @Test
+  public final void getAllInPhaseCorrectQuadrant() {
+    int north = 1;
+    int east = 1;
+    int vert = 1;
+    double angle = 46;
+    double correctedAngle = correctBackAzimuthQuadrant(angle, north, east, vert);
+    assertEquals(180 + angle, correctedAngle, 1E-5);
   }
 
   @Test
