@@ -6,7 +6,6 @@ import static org.junit.Assert.assertTrue;
 import java.time.LocalDate;
 import java.util.HashMap;
 
-import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;

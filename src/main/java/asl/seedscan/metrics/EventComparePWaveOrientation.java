@@ -183,14 +183,15 @@ public class EventComparePWaveOrientation extends Metric {
                 System.out.println(azimuth);
                 double angleBetween = SphericalCoords.distance(eventLatitude, eventLongitude, stationLatitude, stationLongitude);
                 if (angleBetween < MIN_DEGREES || angleBetween > MAX_DEGREES) {
-                    logger.info("== {}: Arc length ({}) to key=[{}] out of range for this station\n",
-                            getName(), angleBetween, key);
+                    logger.info("== {}: Arc length ({}) to key=[{}] out of range for this station-[{}]\n",
+                            getName(), angleBetween, key, getStation());
                     continue;
                 }
 
                 Hashtable<String, SacTimeSeries> synthetics = getEventSynthetics(key);
                 if (synthetics == null) {
-                    logger.warn("== {}: No synthetics found for key=[{}] for this station\n", getName(), key);
+                    logger.warn("== {}: No synthetics found for key=[{}] for this station-[{}]\n",
+                            getName(), key, getStation());
                     continue;
                 }
 
@@ -304,7 +305,6 @@ public class EventComparePWaveOrientation extends Metric {
         char lastChar = chNameArray[lastCharIdx];
         if (lastChar == 'D') {
             --lastCharIdx;
-            lastChar = chNameArray[lastCharIdx];
         }
         char pairChar = 'Z';
         chNameArray[lastCharIdx] = pairChar;
