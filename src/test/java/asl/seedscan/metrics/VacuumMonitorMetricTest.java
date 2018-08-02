@@ -18,7 +18,7 @@ public class VacuumMonitorMetricTest {
   public static void setUpBeforeClass() throws Exception {
     try {
       data1 = (MetricData) ResourceManager
-          .loadCompressedObject("/data/IU.ADK.2015.40.MetricData.ser.gz", false);
+          .loadCompressedObject("/java_serials/data/IU.ADK.2015.40.MetricData.ser.gz", false);
     } catch (Exception e) {
       e.printStackTrace();
     }

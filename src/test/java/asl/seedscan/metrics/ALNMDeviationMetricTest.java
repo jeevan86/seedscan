@@ -19,7 +19,7 @@ public class ALNMDeviationMetricTest {
   public static void setUpBeforeClass() throws Exception {
     try {
       data1 = (MetricData) ResourceManager
-          .loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
+          .loadCompressedObject("/java_serials/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
     } catch (Exception e) {
       e.printStackTrace();
     }

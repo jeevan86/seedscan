@@ -19,7 +19,7 @@ public class EventLoaderTest {
 
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
-    eventLoader = new EventLoader(ResourceManager.getDirectoryPath("/events"));
+    eventLoader = new EventLoader(ResourceManager.getDirectoryPath("/event_synthetics"));
   }
 
   @AfterClass

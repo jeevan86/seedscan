@@ -122,7 +122,7 @@ public abstract class ResourceManager { // NO_UCD (test only)
     Dependent.assumeRDSeed();
     if (sharedMetaGenerator == null) {
       sharedMetaGenerator = new MetaGenerator(
-          ResourceManager.getDirectoryPath("/dataless"), null);
+          ResourceManager.getDirectoryPath("/metadata"), null);
     }
 
     return sharedMetaGenerator;

@@ -17,9 +17,9 @@ public class CoherencePBMTest {
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
     data = (MetricData) ResourceManager
-        .loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
+        .loadCompressedObject("/java_serials/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
     maleableData = (MetricData) ResourceManager
-        .loadCompressedObject("/data/IU.NWAO.2015.299.MetricData.ser.gz", true);
+        .loadCompressedObject("/java_serials/data/IU.NWAO.2015.299.MetricData.ser.gz", true);
   }
 
   @AfterClass

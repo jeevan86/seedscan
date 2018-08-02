@@ -26,12 +26,12 @@ public class AvailabilityMetricTest {
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
     data = (MetricData) ResourceManager
-        .loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
+        .loadCompressedObject("/java_serials/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
     maleableData = (MetricData) ResourceManager
-        .loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", true);
+        .loadCompressedObject("/java_serials/data/IU.ANMO.2015.206.MetricData.ser.gz", true);
 
     metadata = (StationMeta) ResourceManager
-        .loadCompressedObject("/metadata/CU.BCIP.2015.228.StationMeta.ser.gz", false);
+        .loadCompressedObject("/java_serials/metadata/CU.BCIP.2015.228.StationMeta.ser.gz", false);
 
     MetricDatabaseMock mockdatabase = new MetricDatabaseMock();
 
@@ -294,7 +294,7 @@ public class AvailabilityMetricTest {
 
     Metric metric = new AvailabilityMetric();
     MetricData metricData = (MetricData) ResourceManager
-        .loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", true);
+        .loadCompressedObject("/java_serials/data/IU.ANMO.2015.206.MetricData.ser.gz", true);
     metricData.setMetricReader(database);
     metric.setData(metricData);
 
@@ -390,7 +390,7 @@ public class AvailabilityMetricTest {
   public final void testProcess_NoDerivedChannels_NoTriggered() throws Exception {
     Metric metric = new AvailabilityMetric();
     MetricData metricData = (MetricData) ResourceManager
-        .loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", true);
+        .loadCompressedObject("/java_serials/data/IU.ANMO.2015.206.MetricData.ser.gz", true);
 
     //Rotate and add Derived channels to metricData
     metricData.checkForRotatedChannels(new ChannelArray("00", "LHND", "LHED", "LHZ"));

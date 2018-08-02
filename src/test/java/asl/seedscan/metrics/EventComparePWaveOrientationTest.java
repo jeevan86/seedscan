@@ -43,7 +43,7 @@ public class EventComparePWaveOrientationTest {
       dataDate = LocalDate.of(2018, 1, 10);
       data = ResourceManager.getMetricData(seedDataLocation, metadataLocation, dataDate, station);
       data2 = (MetricData) ResourceManager
-          .loadCompressedObject("/java_serials/data/IU.TUC.2018.023.ser.gz", false);
+          .loadCompressedObject("/java_serials/data/IU.TUC.2018.023.ser.gz", true);
       data3 = ResourceManager.getMetricData(seedDataLocation3, metadataLocation3, dataDate, station3);
       eventLoader = new EventLoader(ResourceManager.getDirectoryPath("/event_synthetics"));
     } catch (Exception e) {
@@ -195,12 +195,14 @@ public class EventComparePWaveOrientationTest {
     assertEquals(300, samples);
   }
 
+  @Test
   public final void testFilterChannel_SingleBandPass() {
     List<String> allowedBands = new LinkedList<>();
     allowedBands.add("LH");
     Channel channel = new Channel("00", "LHND");
     assertFalse(EventComparePWaveOrientation.filterChannel(channel, allowedBands));
   }
+
   @Test
   public final void testFilterChannel_MultiBandPass() {
     List<String> allowedBands = new LinkedList<>();

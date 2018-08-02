@@ -39,15 +39,15 @@ public class StationMetaTest {
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
     data1 = (MetricData) ResourceManager
-        .loadCompressedObject("/data/IU.NWAO.2015.299.MetricData.ser.gz", false);
+        .loadCompressedObject("/java_serials/data/IU.NWAO.2015.299.MetricData.ser.gz", false);
     maleabledata1 = (MetricData) ResourceManager
-        .loadCompressedObject("/data/IU.NWAO.2015.299.MetricData.ser.gz", true);
+        .loadCompressedObject("/java_serials/data/IU.NWAO.2015.299.MetricData.ser.gz", true);
     data2 = (MetricData) ResourceManager
-        .loadCompressedObject("/data/GS.OK029.2015.360.MetricData.ser.gz", false);
+        .loadCompressedObject("/java_serials/data/GS.OK029.2015.360.MetricData.ser.gz", false);
     maleabledata3 = (MetricData) ResourceManager
-        .loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", true);
+        .loadCompressedObject("/java_serials/data/IU.ANMO.2015.206.MetricData.ser.gz", true);
     maleabledata4 = ((MetricData) ResourceManager
-        .loadCompressedObject("/data/GS.OK029.2015.360.MetricData.ser.gz", true)).getMetaData();
+        .loadCompressedObject("/java_serials/data/GS.OK029.2015.360.MetricData.ser.gz", true)).getMetaData();
 
     ChannelMeta channelMeta = new ChannelMeta(new ChannelKey("51", "HHE"),
         maleabledata4.getTimestamp(), new Station("GS", "OK029"));

@@ -18,9 +18,9 @@ public class StationDeviationMetricTest {
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
     data1 = (MetricData) ResourceManager
-        .loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
+        .loadCompressedObject("/java_serials/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
     data2 = (MetricData) ResourceManager
-        .loadCompressedObject("/data/GS.OK029.2015.360.MetricData.ser.gz", false);
+        .loadCompressedObject("/java_serials/data/GS.OK029.2015.360.MetricData.ser.gz", false);
   }
 
   @AfterClass
@@ -34,7 +34,7 @@ public class StationDeviationMetricTest {
     metric = new StationDeviationMetric();
     metric.add("lower-limit", "90");
     metric.add("upper-limit", "110");
-    metric.add("modelpath", ResourceManager.getDirectoryPath("/models"));
+    metric.add("modelpath", ResourceManager.getDirectoryPath("/station_noise_models"));
   }
 
   @Test

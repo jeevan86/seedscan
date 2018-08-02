@@ -16,7 +16,7 @@ public class DifferencePBMTest {
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
     data = (MetricData) ResourceManager
-        .loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
+        .loadCompressedObject("/java_serials/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
   }
 
   @AfterClass

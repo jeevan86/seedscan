@@ -32,9 +32,9 @@ public class MetricDataTest {
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
     data = (MetricData) ResourceManager
-        .loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
+        .loadCompressedObject("/java_serials/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
     metadata = (StationMeta) ResourceManager
-        .loadCompressedObject("/metadata/CU.BCIP.2015.228.StationMeta.ser.gz", false);
+        .loadCompressedObject("/java_serials/metadata/CU.BCIP.2015.228.StationMeta.ser.gz", false);
     database = new MetricDatabaseMock();
 
     // BCIP - Digest and data
@@ -445,7 +445,7 @@ public class MetricDataTest {
   @Test
   public final void testValueDigestChanged_Data_NoDigestDatabase_NoForceUpdate() throws Exception {
     MetricData metricData = (MetricData) ResourceManager
-        .loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", true);
+        .loadCompressedObject("/java_serials/data/IU.ANMO.2015.206.MetricData.ser.gz", true);
     metricData.setMetricReader(database);
     LocalDate date = LocalDate.parse("2015-08-16");
 
@@ -462,7 +462,7 @@ public class MetricDataTest {
   public final void testValueDigestChanged_Data_MatchDigestDatabase_NoForceUpdate()
       throws Exception {
     MetricData metricData = (MetricData) ResourceManager
-        .loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", true);
+        .loadCompressedObject("/java_serials/data/IU.ANMO.2015.206.MetricData.ser.gz", true);
     metricData.setMetricReader(database);
     LocalDate date = LocalDate.parse("2015-07-25");
 
@@ -479,7 +479,7 @@ public class MetricDataTest {
   @Test
   public final void testValueDigestChanged_Data_MatchDigestDatabase_ForceUpdate() throws Exception {
     MetricData metricData = (MetricData) ResourceManager
-        .loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", true);
+        .loadCompressedObject("/java_serials/data/IU.ANMO.2015.206.MetricData.ser.gz", true);
     metricData.setMetricReader(database);
     LocalDate date = LocalDate.parse("2015-07-25");
 
@@ -498,7 +498,7 @@ public class MetricDataTest {
   public final void testValueDigestChanged_Data_MismatchDigestDatabase_NoForceUpdate()
       throws Exception {
     MetricData metricData = (MetricData) ResourceManager
-        .loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", true);
+        .loadCompressedObject("/java_serials/data/IU.ANMO.2015.206.MetricData.ser.gz", true);
     metricData.setMetricReader(database);
     LocalDate date = LocalDate.parse("2015-08-16");
 
