@@ -194,7 +194,6 @@ public class EventComparePWaveOrientation extends Metric {
             // derived data has azimuth of 0 -- can use this w/ station coords to get azimuth relative to event
             double azimuth = SphericalCoords.azimuth(stationLatitude, stationLongitude, eventLatitude, eventLongitude);
             azimuth = (360 + azimuth) % 360;
-            System.out.println("AZIMUTH: " + azimuth);
             double angleBetween = SphericalCoords.distance(eventLatitude, eventLongitude, stationLatitude, stationLongitude);
             if (angleBetween < MIN_DEGREES || angleBetween > MAX_DEGREES) {
                 logger.info("== {}: Arc length ({}) to key=[{}] out of range for this station=[{}]\n",
@@ -290,7 +289,6 @@ public class EventComparePWaveOrientation extends Metric {
             int signumE = (int) Math.signum(eastData[signalOffset + 5]);
             int signumZ = (int) Math.signum(vertData[signalOffset + 5]);
             backAzimuth = correctBackAzimuthQuadrant(backAzimuth, signumN, signumE, signumZ);
-            System.out.println("BACK AZIMUTH: " + backAzimuth + " | " + curChannel.getLocation());
 
             double angleDifference = (azimuth - backAzimuth) % 360;
             // add warning before publishing result if it's inconsistent with expected
