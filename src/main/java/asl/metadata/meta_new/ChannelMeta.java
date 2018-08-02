@@ -45,6 +45,7 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 									// metaTimestamp
 
 	private double sampleRate;
+	private double elevation;
 	private double dip;
 	private double azimuth;
 	private double depth;
@@ -174,6 +175,8 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 		this.depth = depth;
 	}
 
+	public void setElevation(double elevation) { this.elevation = elevation; }
+
 	public void setInstrumentType(String instrumentType) {
 		this.instrumentType = instrumentType;
 	}
@@ -202,6 +205,8 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 	public double getDip() {
 		return dip;
 	}
+
+	public double getElevation() { return elevation; }
 
 	public double getAzimuth() {
 		return azimuth;
@@ -646,6 +651,7 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 			}
 		}
 
+		this.setElevation(epochData.getElevation());
 		this.setAzimuth(epochData.getAzimuth());
 		this.setDepth(epochData.getDepth());
 		this.setDip(epochData.getDip());

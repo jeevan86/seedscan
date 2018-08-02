@@ -117,10 +117,6 @@ public abstract class Global {
     lockfile = CONFIG.getLockfile();
 
     qualityflags = CONFIG.getQualityflags();
-    if (qualityflags == null) {
-      logger.error("No data quality flags in configuration: Using default \"All\"");
-      qualityflags = "All";
-    }
 
     plotsDir = CONFIG.getPlotsDir();
 
@@ -158,6 +154,11 @@ public abstract class Global {
   }
 
   public static String getQualityflags() {
+    if (qualityflags == null) {
+      // this can happen if no config file was loaded, such as in test cases
+      logger.error("No data quality flags were found in configuration: Using default \"All\"");
+      qualityflags = "All";
+    }
     return qualityflags;
   }
 
