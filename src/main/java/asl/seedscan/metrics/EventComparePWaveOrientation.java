@@ -238,22 +238,9 @@ public class EventComparePWaveOrientation extends Metric {
       // detrend operations are done in-place
       TimeseriesUtils.demean(northData);
       TimeseriesUtils.demean(eastData);
-      // now normalize
-      double maxNorth = northData[0];
-      double maxEast = eastData[0];
-      // get min and max values for scaling to (-1, 1)
-      for (int i = 0; i < northData.length; ++i) {
-        double testNorth = Math.abs(northData[i]);
-        double testEast = Math.abs(eastData[i]);
-        maxNorth = Math.max(maxNorth, testNorth);
-        maxEast = Math.max(maxEast, testEast);
-      }
-      // now scale data by maximum value of all components
-      double scaleFactor = Math.max(maxNorth, maxEast);
-      for (int i = 0; i < northData.length; ++i) {
-        northData[i] /= scaleFactor;
-        eastData[i] /= scaleFactor;
-      }
+
+      scaleByMax(northData, eastData);
+
 
       // evaluate signal-to-noise ratio of data (RMS)
       // noise is first 15 seconds of data (i.e., before p-wave arrival)
@@ -338,10 +325,6 @@ public class EventComparePWaveOrientation extends Metric {
 
       azimuth = ((azimuth % 360) + 360) % 360;
 
-      // correct backAzimuth value (i.e., make an actual azimuth)
-      if (backAzimuth < 0) {
-        backAzimuth = Math.abs(backAzimuth) + 90;
-      }
       if (Math.abs(azimuth - (backAzimuth + 180)) < Math.abs(azimuth - backAzimuth)) {
         // recall that Java modulo permits negative numbers up to -(modulus)
         backAzimuth = ((backAzimuth + 180) % 360 + 360) % 360;
@@ -360,6 +343,30 @@ public class EventComparePWaveOrientation extends Metric {
   }
 
   /**
+   * Scales 2 arrays in place by the max abs value.
+   * @param data1 array of doubles
+   * @param data2 array of doubles
+   */
+  static void scaleByMax(double[] data1, double[] data2) {
+    if (data1.length != data2.length) {
+      String error = "Cannot scale when array sizes differ.";
+      logger.error(error);
+      throw new IllegalArgumentException(error);
+    }
+    double max = data1[0];
+    // Assumes that data1 and data2 have same length.
+    for (int i = 0; i < data1.length; ++i) {
+      max = Math.max(max, Math.max(Math.abs(data1[i]), Math.abs(data2[i])));
+    }
+    // now scale data by maximum value of all components
+    if (max == 0) return; //Avoid divide by 0 error. Only occurs if all values are 0.
+    for (int i = 0; i < data1.length; ++i) {
+      data1[i] /= max;
+      data2[i] /= max;
+    }
+  }
+
+  /**
    *
    * @param secs seconds
    * @param sampleRate sample rate in hertz
@@ -372,7 +379,6 @@ public class EventComparePWaveOrientation extends Metric {
   }
 
   private long getPArrivalTime(EventCMT eventCMT) throws ArrivalTimeException {
-
     double eventLatitude = eventCMT.getLatitude();
     double eventLongitude = eventCMT.getLongitude();
     double eventDepth = eventCMT.getDepth();
