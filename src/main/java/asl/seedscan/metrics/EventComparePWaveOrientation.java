@@ -31,8 +31,8 @@ public class EventComparePWaveOrientation extends Metric {
   private static final Logger logger =
       LoggerFactory.getLogger(asl.seedscan.metrics.EventComparePWaveOrientation.class);
 
-  // length of window to take for p-wave data in seconds
-  private static final int P_WAVE_WINDOW = 30;
+  // length of window to take for p-wave data in seconds, including a lead-in time
+  private static final int P_WAVE_WINDOW = 40;
 
   // range of degrees (arc length) over which data will be valid
   private static final int MIN_DEGREES = 20;
@@ -213,7 +213,8 @@ public class EventComparePWaveOrientation extends Metric {
       // get start time of p-wave, then take data 100 secs before that
       long stationDataStartTime = eventMeta.getTimeInMillis();
       try {
-        long pTravelTime = getPArrivalTime(eventMeta);
+        // give us a 10 second cushion for start of the p-arrival in case metadata is wrong
+        long pTravelTime = getPArrivalTime(eventMeta) - (10 * 1000);
         stationDataStartTime += pTravelTime;
       } catch (ArrivalTimeException ignore) {
         // error was already logged in getPArrivalTime
@@ -265,9 +266,9 @@ public class EventComparePWaveOrientation extends Metric {
       normalize(vertData);
 
       // evaluate signal-to-noise ratio of data (RMS)
-      // noise is first 15 seconds of data (i.e., before p-wave arrival)
+      // get the window of data
       int noiseLength = getSamplesInTimePeriod(P_WAVE_WINDOW, sampleRateN);
-      // signal is last 15 seconds of data (i.e., after p-wave arrival);
+      // signal is last length of data (i.e., after p-wave arrival);
       int signalOffset = northData.length - noiseLength;
 
       double snr = getSignalToNoiseRatioOfRMS(northData, eastData, signalOffset, noiseLength);
@@ -286,13 +287,14 @@ public class EventComparePWaveOrientation extends Metric {
       }
 
       double backAzimuth = calculateBackAzimuth(northData, eastData, azimuth, signalOffset);
-      // starting offset for getting coherence match -- gets set to 5 when loop starts
-      int offsetForSignCalculations = getSamplesInTimePeriod(9, sampleRateN);
+      // starting offset for getting coherence match, increments by 1 on loop start
+      int offsetForSignCalculations = getSamplesInTimePeriod(19, sampleRateN);
+      int increment = getSamplesInTimePeriod(1, sampleRateN);
       int signumN = 0;
       int signumE = 0;
       int signumZ = 0;
       while (signumN == 0 || signumE == 0 || signumZ == 0) {
-        offsetForSignCalculations++;
+        offsetForSignCalculations += increment;
         signumN = (int) Math.signum(northData[signalOffset + offsetForSignCalculations]);
         signumE = (int) Math.signum(eastData[signalOffset + offsetForSignCalculations]);
         signumZ = (int) Math.signum(vertData[signalOffset + offsetForSignCalculations]);
