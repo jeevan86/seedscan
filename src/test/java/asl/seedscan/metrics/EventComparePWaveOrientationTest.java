@@ -23,9 +23,9 @@ public class EventComparePWaveOrientationTest {
 
 
   private EventComparePWaveOrientation metric;
-  private static MetricData data, data2, data3;
+  private static MetricData data, data2, data3, data4;
   private static EventLoader eventLoader;
-  private static Station station, station3;
+  private static Station station, station3, station4;
   private static LocalDate dataDate;
 
 
@@ -38,13 +38,18 @@ public class EventComparePWaveOrientationTest {
       String metadataLocation3 = "/metadata/rdseed/IU-SSPA-ascii.txt";
       String seedDataLocation3 = "/seed_data/IU_SSPA/2018/010";
 
+      String metadataLocation4 = "/metadata/rdseed/IU-RAR-ascii-LH.txt";
+      String seedDataLocation4 = "/seed_data/IU_RAR/2018/010";
+
       station = new Station("IU", "ANMO");
       station3 = new Station("IU", "SSPA");
+      station4 = new Station("IU", "RAR");
       dataDate = LocalDate.of(2018, 1, 10);
       data = ResourceManager.getMetricData(seedDataLocation, metadataLocation, dataDate, station);
       data2 = (MetricData) ResourceManager
           .loadCompressedObject("/java_serials/data/IU.TUC.2018.023.ser.gz", true);
       data3 = ResourceManager.getMetricData(seedDataLocation3, metadataLocation3, dataDate, station3);
+      data4 = ResourceManager.getMetricData(seedDataLocation4, metadataLocation4, dataDate, station4);
       eventLoader = new EventLoader(ResourceManager.getDirectoryPath("/event_synthetics"));
     } catch (Exception e) {
       e.printStackTrace();
@@ -65,8 +70,8 @@ public class EventComparePWaveOrientationTest {
     metric.setEventTable(eventLoader.getDayEvents(dataDate));
     metric.setEventSynthetics(eventLoader.getDaySynthetics(dataDate, station));
     HashMap<String, Double> expect = new HashMap<>();
-    expect.put("00,LHND", -4.465967824749157);
-    expect.put("10,LHND", -1.3995544644630513);
+    expect.put("00,LHND", -2.385723761160932);
+    expect.put("10,LHND", 0.4286223024103606);
     TestUtils.testMetric(metric, expect);
   }
 
@@ -77,8 +82,8 @@ public class EventComparePWaveOrientationTest {
     metric.setEventTable(eventLoader.getDayEvents(dataDate));
     metric.setEventSynthetics(eventLoader.getDaySynthetics(dataDate, station3));
     HashMap<String, Double> expect = new HashMap<>();
-    expect.put("00,LHND", -0.6599078668370169);
-    expect.put("10,LHND", 0.2860208813869747);
+    expect.put("00,LHND", -1.2079306845956523);
+    expect.put("10,LHND", -0.1774889377856823);
     TestUtils.testMetric(metric, expect);
   }
 
@@ -90,9 +95,20 @@ public class EventComparePWaveOrientationTest {
     metric.setEventTable(eventLoader.getDayEvents(date));
     metric.setEventSynthetics(eventLoader.getDaySynthetics(date, new Station("IU", "TUC")));
     HashMap<String, Double> expect = new HashMap<>();
-    expect.put("00,LHND", -3.5624969250353047);
-    expect.put("10,LHND", 2.3648123637966023);
-    expect.put("60,LHND", 1.9861746766248984);
+    expect.put("00,LHND", -6.308216881146848);
+    expect.put("10,LHND", -0.23676618176108377);
+    expect.put("60,LHND", -0.665512593560436);
+    TestUtils.testMetric(metric, expect);
+  }
+
+  @Test
+  public void testProcessDefaultData4() {
+    metric = new EventComparePWaveOrientation();
+    metric.setData(data4);
+    metric.setEventTable(eventLoader.getDayEvents(dataDate));
+    metric.setEventSynthetics(eventLoader.getDaySynthetics(dataDate, station4));
+    HashMap<String, Double> expect = new HashMap<>();
+    expect.put("10,LHND", -2.2732425441996043);
     TestUtils.testMetric(metric, expect);
   }
 
@@ -109,8 +125,8 @@ public class EventComparePWaveOrientationTest {
     metric.setEventTable(eventLoader.getDayEvents(dataDate));
     metric.setEventSynthetics(eventLoader.getDaySynthetics(dataDate, station));
     HashMap<String, Double> expect = new HashMap<>();
-    expect.put("00,LHND", -4.465967824749157);
-    expect.put("10,LHND", -1.3995544644630513);
+    expect.put("00,LHND", -2.385723761160932);
+    expect.put("10,LHND", 0.4286223024103606);
     TestUtils.testMetric(metric, expect);
   }
 
@@ -129,8 +145,8 @@ public class EventComparePWaveOrientationTest {
     // we can actually get results since we only need to know where event happened
     // and don't actually use the raw synthetic data for anything in this test
     HashMap<String, Double> expect = new HashMap<>();
-    expect.put("00,BHND", -4.407467405844557);
-    expect.put("10,BHND", -1.3399356921126468);
+    expect.put("00,BHND", -2.31818273379389);
+    expect.put("10,BHND", 0.4944288822112526);
     TestUtils.testMetric(metric, expect);
   }
 
