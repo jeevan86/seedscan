@@ -107,13 +107,13 @@ public class PressureMetric extends Metric {
 
         double elevation = chanMeta.getElevation();
 
-        // Get Stage 1, make sure it is a Polynomial Stage (MacLaurin) and get
+        // Get Stage 0, make sure it is a Polynomial Stage (MacLaurin) and get
         // Coefficients
         // will add RuntimeException() to logger.error('msg', e)
-        ResponseStage stage = chanMeta.getStage(1);
+        ResponseStage stage = chanMeta.getStage(0);
         if (!(stage instanceof PolynomialStage)) {
             throw new UnsupportedEncodingException(String
-                    .format("station=[%s] channel=[%s] day=[%s]: Stage 0s is NOT a PolynomialStage--> Skip metric",
+                    .format("station=[%s] channel=[%s] day=[%s]: Stage 0 is NOT a PolynomialStage--> Skip metric",
                             station, channel.toString(), day));
         }
         PolynomialStage polyStage = (PolynomialStage) stage;
