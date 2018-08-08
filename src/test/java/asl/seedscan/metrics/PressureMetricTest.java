@@ -1,5 +1,7 @@
 package asl.seedscan.metrics;
 
+import static org.junit.Assert.assertEquals;
+
 import asl.metadata.Station;
 import asl.testutils.ResourceManager;
 import java.time.LocalDate;
@@ -43,5 +45,17 @@ public class PressureMetricTest {
     HashMap<String, Double> expect = new HashMap<>();
     expect.put("30,LDO", 0.9934842767063014);
     TestUtils.testMetric(metric, expect);
+  }
+
+  @Test
+  public final void testGetVersion() {
+    metric = new PressureMetric();
+    assertEquals(1, metric.getVersion());
+  }
+
+  @Test
+  public final void testGetName() {
+    metric = new PressureMetric();
+    assertEquals("PressureMetric", metric.getName());
   }
 }
