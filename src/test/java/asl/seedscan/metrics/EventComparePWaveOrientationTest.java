@@ -61,7 +61,13 @@ public class EventComparePWaveOrientationTest {
   public static void tearDownAfterClass() {
     data = null;
     data2 = null;
+    data3 = null;
+    data4 = null;
+    station = null;
+    station3 = null;
+    station4 = null;
     eventLoader = null;
+    dataDate = null;
   }
 
   @Test
