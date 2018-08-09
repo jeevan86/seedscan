@@ -15,7 +15,7 @@ apply plugin: 'eclipse'
 apply plugin: 'idea'
 apply plugin: 'application'
 
-if (file('database.gradle').exists() {
+if (file('database.gradle').exists()) {
    apply from:'database.gradle'
 }
 
