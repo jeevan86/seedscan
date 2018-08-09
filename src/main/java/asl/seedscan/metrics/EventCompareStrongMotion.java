@@ -291,7 +291,7 @@ public class EventCompareStrongMotion extends Metric {
 		try {
 			timeTool = new TauP_Time("prem");
 			timeTool.parsePhaseList("P,S");
-			timeTool.depthCorrect(evdep);
+			timeTool.setSourceDepth(evdep);
 			timeTool.calculate(gcarc);
 		} catch (TauModelException e) {
 			logger.error(e.getMessage());
