@@ -31,7 +31,7 @@ public class EventLoaderTest {
   public final void testEventLoader() throws Exception {
     String correctEventDir = EventLoader.getEventsDirectory();
     // Try to change the directory, shouldn't happen.
-    new EventLoader(ResourceManager.getDirectoryPath("/models"));
+    new EventLoader(ResourceManager.getDirectoryPath("/"));
     assertEquals(EventLoader.getEventsDirectory(), correctEventDir);
   }
 
