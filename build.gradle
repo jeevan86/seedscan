@@ -109,15 +109,17 @@ compileJava {
 
 tasks.compileJava.dependsOn('xjc')
 
-liquibase {
-    activities {
-        main {
-            changeLogFile "src/main/resources/asl/seedscan/database/changelog/db.changelog-master.xml"
-            url project.ext.mainUrl
-            username project.ext.mainUsername
-            password project.ext.mainPassword
+if (file('database.gradle').exists()) {
+    liquibase {
+        activities {
+            main {
+                changeLogFile "src/main/resources/asl/seedscan/database/changelog/db.changelog-master.xml"
+                url project.ext.mainUrl
+                username project.ext.mainUsername
+                password project.ext.mainPassword
+            }
         }
+        runList = "main"
     }
-    runList = "main"
 }
 
