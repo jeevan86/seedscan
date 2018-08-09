@@ -15,8 +15,9 @@ apply plugin: 'eclipse'
 apply plugin: 'idea'
 apply plugin: 'application'
 
-apply from:'database.gradle'
-
+if (file('database.gradle').exists() {
+   apply from:'database.gradle'
+}
 
 
 version = '1.4.0'
