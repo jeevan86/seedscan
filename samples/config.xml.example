@@ -7,7 +7,7 @@
 
     <cfg:database>
         <cfg:uri>jdbc:postgresql://192.168.0.1:5432/dqa_db</cfg:uri>
-        <cfg:username>dqauser</cfg:username>
+        <cfg:username>dqa_write</cfg:username>
         <cfg:password>
             <cfg:plain>password</cfg:plain>
         </cfg:password>
