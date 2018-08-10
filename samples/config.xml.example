@@ -45,6 +45,15 @@
             <cfg:class_name>asl.seedscan.metrics.EventCompareSynthetic</cfg:class_name>
             <cfg:argument cfg:name="makeplots">true</cfg:argument>
         </cfg:metric>
+        <cfg:metric>
+            <cfg:class_name>asl.seedscan.metrics.PressureMetric</cfg:class_name>
+        </cfg:metric>
+        <cfg:metric>
+            <cfg:class_name>asl.seedscan.metrics.InfrasoundMetric</cfg:class_name>
+        </cfg:metric>
+        <cfg:metric>
+            <cfg:class_name>asl.seedscan.metrics.EventComparePWaveOrientation</cfg:class_name>
+        </cfg:metric>
 
 <!-- PowerBand Metrics:  -->
         <cfg:metric>
