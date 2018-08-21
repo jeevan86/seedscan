@@ -229,6 +229,7 @@ public class EventCompareStrongMotion extends Metric {
 		return result;
 	}
 
+	// NOTE: because n1, n2 are times in seconds, data needs to be at 1Hz sample rate for this to wk
 	private double getCorr(double[] data1, double[] data2, int n1, int n2) {
 		// This function computs the Pearson's correlation value for the two
 		// time series
@@ -290,7 +291,7 @@ public class EventCompareStrongMotion extends Metric {
 		try {
 			timeTool = new TauP_Time("prem");
 			timeTool.parsePhaseList("P,S");
-			timeTool.depthCorrect(evdep);
+			timeTool.setSourceDepth(evdep);
 			timeTool.calculate(gcarc);
 		} catch (TauModelException e) {
 			logger.error(e.getMessage());
@@ -305,7 +306,7 @@ public class EventCompareStrongMotion extends Metric {
 		// 97 deg or so)
 		if (arrivals.size() != 2) { // Either we don't have both P & S or we
 									// don't have just P & S
-			logger.info(String.format("Expected P and/or S arrival times not found [gcarc=%8.4f]", gcarc));
+			logger.info("Expected P and/or S arrival times not found [gcarc={}]", gcarc);
 			return null;
 		}
 

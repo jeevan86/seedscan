@@ -1,7 +1,7 @@
 
 buildscript {
     dependencies {
-        classpath  'org.postgresql:postgresql:9.4.1212'
+        classpath  'org.postgresql:postgresql:42.2.1'
     }
 }
 
@@ -15,11 +15,12 @@ apply plugin: 'eclipse'
 apply plugin: 'idea'
 apply plugin: 'application'
 
-apply from:'database.gradle'
+if (file('database.gradle').exists()) {
+   apply from:'database.gradle'
+}
 
 
-
-version = '1.4.0'
+version = '1.6.0'
 
 mainClassName = 'asl.seedscan.SeedScan'
 applicationDefaultJvmArgs = ["-Xms64m", "-Xmx30g"]
@@ -29,11 +30,13 @@ repositories {
 }
 
 dependencies {
+        // https://mvnrepository.com/artifact/uk.me.berndporr/iirj
+        compile group: 'uk.me.berndporr', name: 'iirj', version: '1.0'
         compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.+'
         compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.+'
         compile group: 'org.jfree', name: 'jfreechart', version: '1.0.+'
         compile group: 'org.apache.commons', name: 'commons-math3', version: '3.+'
-        compile group: 'org.postgresql', name: 'postgresql', version: '9.4.1212'
+        compile group: 'org.postgresql', name: 'postgresql', version: '42.2.1'
         compile group: 'com.mchange', name: 'c3p0', version: '0.9.5.2'
         compile 'edu.sc.seis:seedCodec:1.0.11'
         compile ('edu.sc.seis:TauP:2.4.1') {
@@ -106,15 +109,17 @@ compileJava {
 
 tasks.compileJava.dependsOn('xjc')
 
-liquibase {
-    activities {
-        main {
-            changeLogFile "src/main/resources/asl/seedscan/database/changelog/db.changelog-master.xml"
-            url project.ext.mainUrl
-            username project.ext.mainUsername
-            password project.ext.mainPassword
+if (file('database.gradle').exists()) {
+    liquibase {
+        activities {
+            main {
+                changeLogFile "src/main/resources/asl/seedscan/database/changelog/db.changelog-master.xml"
+                url project.ext.mainUrl
+                username project.ext.mainUsername
+                password project.ext.mainPassword
+            }
         }
+        runList = "main"
     }
-    runList = "main"
 }
 

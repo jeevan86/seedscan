@@ -32,7 +32,7 @@ public class Dependent {
    */
   public static void assumeGlobalState() {
     String dataPath =
-        ResourceManager.getDirectoryPath("/miniseed") + "${NETWORK}_${STATION}/${YEAR}/${JDAY}";
+        ResourceManager.getDirectoryPath("/seed_data") + "${NETWORK}_${STATION}/${YEAR}/${JDAY}";
     GlobalMock.setDataDir(dataPath);
     GlobalMock.setQualityFlags("All");
   }

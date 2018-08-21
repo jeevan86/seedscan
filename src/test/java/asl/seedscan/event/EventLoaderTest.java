@@ -19,7 +19,7 @@ public class EventLoaderTest {
 
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
-    eventLoader = new EventLoader(ResourceManager.getDirectoryPath("/events"));
+    eventLoader = new EventLoader(ResourceManager.getDirectoryPath("/event_synthetics"));
   }
 
   @AfterClass
@@ -31,7 +31,7 @@ public class EventLoaderTest {
   public final void testEventLoader() throws Exception {
     String correctEventDir = EventLoader.getEventsDirectory();
     // Try to change the directory, shouldn't happen.
-    new EventLoader(ResourceManager.getDirectoryPath("/models"));
+    new EventLoader(ResourceManager.getDirectoryPath("/"));
     assertEquals(EventLoader.getEventsDirectory(), correctEventDir);
   }
 

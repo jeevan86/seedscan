@@ -56,10 +56,10 @@ public class StationMeta implements Serializable {
 	/** The name code. */
 	private String name = null;
 	
-	/** The latitude. */
+	/** The latitude. (degrees) */
 	private double latitude;
 	
-	/** The longitude. */
+	/** The longitude. (degrees) */
 	private double longitude;
 	
 	/** The elevation. */
@@ -132,7 +132,7 @@ public class StationMeta implements Serializable {
 	/**
 	 * Gets the latitude.
 	 *
-	 * @return the latitude
+	 * @return the latitude (degrees)
 	 */
 	public double getLatitude() {
 		return latitude;
@@ -141,7 +141,7 @@ public class StationMeta implements Serializable {
 	/**
 	 * Gets the longitude.
 	 *
-	 * @return the longitude
+	 * @return the longitude (degrees)
 	 */
 	public double getLongitude() {
 		return longitude;
@@ -150,7 +150,7 @@ public class StationMeta implements Serializable {
 	/**
 	 * Gets the elevation.
 	 *
-	 * @return the elevation
+	 * @return the elevation (meters)
 	 */
 	public double getElevation() {
 		return elevation;
@@ -333,6 +333,7 @@ public class StationMeta implements Serializable {
 	/**
 	 * Return a ArrayList of channels that are able to be derived.
 	 * Actual rotation occurs in MetricData, when a hash digest fails to be computed.
+	 * These channels have names like LHED, BHND, HHZ, the 'D' standing for derived.
 	 * @return the derived channels
 	 */
 	public List<Channel> getRotatableChannels() {

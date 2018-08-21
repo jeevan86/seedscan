@@ -102,10 +102,18 @@ public class EventCMT {
 		return eventCal.getTimeInMillis();
 	}
 
+	/**
+	 * Get the latitude (degrees)
+	 * @return
+	 */
 	public double getLatitude() {
 		return eventLat;
 	}
 
+	/**
+	 * Get the longitude (degrees)
+	 * @return
+	 */
 	public double getLongitude() {
 		return eventLon;
 	}

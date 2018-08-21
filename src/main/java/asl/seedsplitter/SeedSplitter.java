@@ -33,7 +33,6 @@ import javax.swing.SwingWorker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import asl.concurrent.FallOffQueue;
 import seed.Blockette320;
 
 /**
@@ -57,7 +56,6 @@ public class SeedSplitter extends
 	private File[] m_files;
 	private Hashtable<String, ArrayList<DataSet>> m_table;
 	private LinkedBlockingQueue<ByteBlock> m_recordQueue;
-	private FallOffQueue<SeedSplitProgress> m_progressQueue;
 	private SeedSplitProgress m_lastProgress = null;
 
 	private Pattern m_patternNetwork = null;
@@ -82,13 +80,6 @@ public class SeedSplitter extends
 		m_recordQueue = new LinkedBlockingQueue<>(1024);
 		// m_dataQueue = new LinkedBlockingQueue<DataSet>(64);
 
-		// We want things to drop off this queue quickly so the GUI stays
-		// up-to-date and spends very little time updating the status bar.
-		// An eight element buffer should keep it snappy. The FallOffQueue
-		// ensures that the GUI don't wait on progress updates for too long.
-		// Keep an eye on this so we can decrease the size if the GUI lags,
-		// or increase the size if the GUI is jerky.
-		m_progressQueue = new FallOffQueue<>(1);
 	}
 
 	/**
@@ -139,7 +130,6 @@ public class SeedSplitter extends
 	 */
 	@Override
 	public Hashtable<String, ArrayList<DataSet>> doInBackground() {
-		SeedSplitProgress progress = null;
 		int progressPercent = 0; // 0 - 100
 		int lastPercent = 0;
 		long totalBytes = 0;
@@ -158,8 +148,7 @@ public class SeedSplitter extends
 		 * appender.activateOptions();
 		 */
 
-		SeedSplitProcessor processor = new SeedSplitProcessor(m_recordQueue,
-				m_progressQueue);
+		SeedSplitProcessor processor = new SeedSplitProcessor(m_recordQueue);
 		processor.setNetworkPattern(m_patternNetwork);
 		processor.setStationPattern(m_patternStation);
 		processor.setLocationPattern(m_patternLocation);
@@ -179,7 +168,6 @@ public class SeedSplitter extends
 			// }
 			DataInputStream inputStream;
 			Thread inputThread = null;
-			progressBytes = 0;
 			try {
 				inputStream = new DataInputStream(new BufferedInputStream(
 						new FileInputStream(file)));
@@ -188,38 +176,6 @@ public class SeedSplitter extends
 				inputThread = new Thread(stream);
 				logger.debug("Processing file " + file.getName() + "...");
 				inputThread.start();
-
-				while ((progressBytes >= 0) && !this.isCancelled()) {
-					try {
-						progress = m_progressQueue.take();
-						if (progress.errorOccurred()) {
-							logger.debug(progress.getErrorMessage());
-							break;
-						} else if (progress.isFileDone()) {
-							break;
-						} else if (progress.isComplete()) {
-							progressBytes = -1L;
-						} else {
-							progressBytes = progress.getByteCount();
-							lastPercent = progressPercent;
-							progressPercent = (int) ((stageBytes + progressBytes) * 100L / totalBytes);
-							if (progressPercent > 99) {
-								progressPercent = 99;
-							}
-							// Only update our percentage if it has changed
-							if (progressPercent > lastPercent) {
-								this.setProgress(progressPercent);
-								logger.debug("Total Bytes:      " + totalBytes);
-								logger.debug("Progress Bytes:   "
-										+ progressBytes);
-								logger.debug("Progress Percent: "
-										+ progressPercent + "%");
-							}
-						}
-					} catch (InterruptedException e) {
-						datalogger.error("InterruptedException:", e);
-					}
-				}
 			} catch (FileNotFoundException e) {
 				// logger.debug("File '" +file.getName()+ "' not found\n");
 				String message = "FileNotFoundException: File '"
@@ -231,11 +187,6 @@ public class SeedSplitter extends
 			// MTH:
 			m_qualityTable = processor.getQualityTable();
 			m_calTable = processor.getCalTable();
-			m_lastProgress = progress;
-			if (progress.errorOccurred()) {
-				m_table = null;
-				return null;
-			}
 			if (this.isCancelled()) {
 				m_table = null;
 				return null;
@@ -247,7 +198,7 @@ public class SeedSplitter extends
 					datalogger.error("InterruptedException:", e);
 				}
 			}
-			if ((processorThread != null) && (progress.isComplete())) {
+			if (finalFile) {
 				try {
 					processorThread.join();
 				} catch (InterruptedException e) {

@@ -20,8 +20,8 @@ public class EventCompareStrongMotionTest {
   public static void setUpBeforeClass() throws Exception {
     try {
       data = (MetricData) ResourceManager
-          .loadCompressedObject("/data/IU.NWAO.2015.299.MetricData.ser.gz", false);
-      eventLoader = new EventLoader(ResourceManager.getDirectoryPath("/events"));
+          .loadCompressedObject("/java_serials/data/IU.NWAO.2015.299.MetricData.ser.gz", false);
+      eventLoader = new EventLoader(ResourceManager.getDirectoryPath("/event_synthetics"));
     } catch (Exception e) {
       e.printStackTrace();
     }

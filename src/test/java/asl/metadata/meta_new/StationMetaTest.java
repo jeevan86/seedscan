@@ -24,10 +24,12 @@ import org.junit.Test;
 public class StationMetaTest {
 
   private static MetricData data1;
+  private static MetricData maleabledata1;
   private static MetricData data2;
   private static MetricData maleabledata3;
 
   private static StationMeta metadata1;
+  private static StationMeta maleablemetadata1;
   private static StationMeta metadata2;
   private static StationMeta maleablemetadata3;
 
@@ -37,19 +39,22 @@ public class StationMetaTest {
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
     data1 = (MetricData) ResourceManager
-        .loadCompressedObject("/data/IU.NWAO.2015.299.MetricData.ser.gz", false);
+        .loadCompressedObject("/java_serials/data/IU.NWAO.2015.299.MetricData.ser.gz", false);
+    maleabledata1 = (MetricData) ResourceManager
+        .loadCompressedObject("/java_serials/data/IU.NWAO.2015.299.MetricData.ser.gz", true);
     data2 = (MetricData) ResourceManager
-        .loadCompressedObject("/data/GS.OK029.2015.360.MetricData.ser.gz", false);
+        .loadCompressedObject("/java_serials/data/GS.OK029.2015.360.MetricData.ser.gz", false);
     maleabledata3 = (MetricData) ResourceManager
-        .loadCompressedObject("/data/IU.ANMO.2015.206.MetricData.ser.gz", true);
+        .loadCompressedObject("/java_serials/data/IU.ANMO.2015.206.MetricData.ser.gz", true);
     maleabledata4 = ((MetricData) ResourceManager
-        .loadCompressedObject("/data/GS.OK029.2015.360.MetricData.ser.gz", true)).getMetaData();
+        .loadCompressedObject("/java_serials/data/GS.OK029.2015.360.MetricData.ser.gz", true)).getMetaData();
 
     ChannelMeta channelMeta = new ChannelMeta(new ChannelKey("51", "HHE"),
         maleabledata4.getTimestamp(), new Station("GS", "OK029"));
     maleabledata4.addChannel(new ChannelKey("51", "HHE"), channelMeta);
 
     metadata1 = data1.getMetaData();
+    maleablemetadata1 = maleabledata1.getMetaData();
     metadata2 = data2.getMetaData();
     maleablemetadata3 = maleabledata3.getMetaData();
   }
@@ -57,11 +62,13 @@ public class StationMetaTest {
   @AfterClass
   public static void tearDownAfterClass() throws Exception {
     data1 = null;
+    maleabledata1 = null;
     data2 = null;
     maleabledata3 = null;
     maleabledata4 = null;
 
     metadata1 = null;
+    maleablemetadata1 = null;
     metadata2 = null;
     maleablemetadata3 = null;
   }
@@ -98,7 +105,7 @@ public class StationMetaTest {
 
   @Test
   public final void testGetNumberOfChannels() throws Exception {
-    assertEquals(new Integer(35), new Integer(metadata1.getNumberOfChannels()));
+    assertEquals(new Integer(35), new Integer(maleablemetadata1.getNumberOfChannels()));
     assertEquals(new Integer(12), new Integer(metadata2.getNumberOfChannels()));
   }
 
@@ -146,7 +153,7 @@ public class StationMetaTest {
   @Test
   public final void testFindChannelHashTable() throws Exception {
     //10-BH1, 00-VHZ, 00-BH2, 00-BH1, 20-LNZ, 00-VM2, 00-VM1, 20-HNZ, 10-LHZ, 10-VH2, 00-VH2, 00-LHZ, 10-VH1, 00-VH1, 20-LN2, 10-HHZ, 20-LN1
-    Hashtable<ChannelKey, ChannelMeta> table = metadata1.getChannelHashTable();
+    Hashtable<ChannelKey, ChannelMeta> table = maleablemetadata1.getChannelHashTable();
     assertEquals(new Integer(35), new Integer(table.size()));
 
     ChannelKey key = null;
@@ -205,11 +212,11 @@ public class StationMetaTest {
 
   @Test
   public final void testFindChannelArrayForIgnoringTriggeredChannels() throws Exception {
-    List<Channel> channels = metadata1.getChannelArray("LH,BH,HH", true, false);
+    List<Channel> channels = maleablemetadata1.getChannelArray("LH,BH,HH", true, false);
     assertEquals(new Integer(12), new Integer(channels.size()));
 
     //Should now get 3 more triggered HH channels
-    channels = metadata1.getChannelArray("LH,BH,HH", false, false);
+    channels = maleablemetadata1.getChannelArray("LH,BH,HH", false, false);
     assertEquals(new Integer(15), new Integer(channels.size()));
   }
 
@@ -247,20 +254,20 @@ public class StationMetaTest {
 
   @Test
   public final void testFindChannelUsingComponent12() throws Exception {
-    assertEquals(new Channel("00", "LH1"), metadata1.findChannel("00", "LH", "1"));
+    assertEquals(new Channel("00", "LH1"), maleablemetadata1.findChannel("00", "LH", "1"));
     assertEquals(new Channel("10", "HH2"), maleablemetadata3.findChannel("10", "HH", "2"));
 
     //Test that still returns N/E if those exist and not 1/2
     //This channel was added during setup.
     assertEquals(new Channel("51", "HHE"), maleabledata4.findChannel("51", "HH", "2"));
 
-    assertNull(metadata1.findChannel("30", "LH", "1"));
-    assertNull(metadata1.findChannel("00", "HH", "2"));
+    assertNull(maleablemetadata1.findChannel("30", "LH", "1"));
+    assertNull(maleablemetadata1.findChannel("00", "HH", "2"));
   }
 
   @Test
   public final void testGetContinuousChannels() throws Exception {
-    List<Channel> channels = metadata1.getContinuousChannels();
+    List<Channel> channels = maleablemetadata1.getContinuousChannels();
     // The returned list should be sorted, so having the list be exactly
     // this is valid.
     String expected = "[00-BH1, 00-BH2, 00-BHZ, 00-LH1, 00-LH2, 00-LHZ, 00-VH1, 00-VH2, 00-VHZ, 00-VM1, 00-VM2, 00-VMZ, 10-BH1, 10-BH2, 10-BHZ, 10-LH1, 10-LH2, 10-LHZ, 10-VH1, 10-VH2, 10-VHZ, 10-VMU, 10-VMV, 10-VMW, 20-LN1, 20-LN2, 20-LNZ, 30-LDO, 31-LDO]";
@@ -270,7 +277,7 @@ public class StationMetaTest {
 
   @Test
   public final void testGetRotatableChannels() throws Exception {
-    List<Channel> channels = metadata1.getRotatableChannels();
+    List<Channel> channels = maleablemetadata1.getRotatableChannels();
 
     assertTrue(channels.contains(new Channel("00", "LHZ")));
     assertTrue(channels.contains(new Channel("00", "LHED")));
@@ -289,36 +296,36 @@ public class StationMetaTest {
 
   @Test
   public final void testHasChannelChannel() throws Exception {
-    assertTrue(metadata1.hasChannel(new Channel("00", "LHZ")));
-    assertTrue(metadata1.hasChannel(new Channel("00", "LH1")));
-    assertTrue(metadata1.hasChannel(new Channel("00", "LH2")));
-    assertTrue(metadata1.hasChannel(new Channel("10", "LH1")));
-    assertTrue(metadata1.hasChannel(new Channel("10", "LH2")));
-    assertTrue(metadata1.hasChannel(new Channel("10", "LHZ")));
-    assertTrue(metadata1.hasChannel(new Channel("00", "VM1")));
-    assertTrue(metadata1.hasChannel(new Channel("00", "VM2")));
-    assertTrue(metadata1.hasChannel(new Channel("00", "VMZ")));
-    assertTrue(metadata1.hasChannel(new Channel("10", "VMU")));
+    assertTrue(maleablemetadata1.hasChannel(new Channel("00", "LHZ")));
+    assertTrue(maleablemetadata1.hasChannel(new Channel("00", "LH1")));
+    assertTrue(maleablemetadata1.hasChannel(new Channel("00", "LH2")));
+    assertTrue(maleablemetadata1.hasChannel(new Channel("10", "LH1")));
+    assertTrue(maleablemetadata1.hasChannel(new Channel("10", "LH2")));
+    assertTrue(maleablemetadata1.hasChannel(new Channel("10", "LHZ")));
+    assertTrue(maleablemetadata1.hasChannel(new Channel("00", "VM1")));
+    assertTrue(maleablemetadata1.hasChannel(new Channel("00", "VM2")));
+    assertTrue(maleablemetadata1.hasChannel(new Channel("00", "VMZ")));
+    assertTrue(maleablemetadata1.hasChannel(new Channel("10", "VMU")));
 
-    assertFalse(metadata1.hasChannel(new Channel("51", "HHE")));
+    assertFalse(maleablemetadata1.hasChannel(new Channel("51", "HHE")));
   }
 
   @Test
   public final void testHasChannelsChannelArray() throws Exception {
-    assertTrue(metadata1.hasChannels(new ChannelArray("10", "VMU", "VMV", "VMW")));
-    assertTrue(metadata1.hasChannels(new ChannelArray("10", "LHZ", "LH1", "LH2")));
+    assertTrue(maleablemetadata1.hasChannels(new ChannelArray("10", "VMU", "VMV", "VMW")));
+    assertTrue(maleablemetadata1.hasChannels(new ChannelArray("10", "LHZ", "LH1", "LH2")));
 
-    assertFalse(metadata1.hasChannels(new ChannelArray("10", "LHZ", "LHE", "LHN")));
+    assertFalse(maleablemetadata1.hasChannels(new ChannelArray("10", "LHZ", "LHE", "LHN")));
   }
 
   @Test
   public final void testHasChannelsStringString() throws Exception {
-    assertTrue(metadata1.hasChannels("00", "BH"));
-    assertTrue(metadata1.hasChannels("00", "LH"));
-    assertTrue(metadata1.hasChannels("20", "HN"));
-    assertTrue(metadata1.hasChannels("00", "VH"));
+    assertTrue(maleablemetadata1.hasChannels("00", "BH"));
+    assertTrue(maleablemetadata1.hasChannels("00", "LH"));
+    assertTrue(maleablemetadata1.hasChannels("20", "HN"));
+    assertTrue(maleablemetadata1.hasChannels("00", "VH"));
 
-    assertFalse(metadata1.hasChannels("30", "LD"));
+    assertFalse(maleablemetadata1.hasChannels("30", "LD"));
   }
 
   @Test
@@ -335,7 +342,7 @@ public class StationMetaTest {
 
   @Test
   public final void testToString() throws Exception {
-    assertEquals("IU_NWAO", metadata1.toString());
+    assertEquals("IU_NWAO", maleablemetadata1.toString());
     assertEquals("GS_OK029", metadata2.toString());
     assertEquals("IU_ANMO", maleablemetadata3.toString());
   }

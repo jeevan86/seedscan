@@ -1,13 +1,27 @@
 package asl.testutils;
 
 import asl.metadata.MetaGenerator;
+import asl.metadata.MetaGeneratorMock;
+import asl.seedscan.database.MetricDatabaseMock;
+import asl.metadata.Station;
+import asl.metadata.meta_new.StationMeta;
+import asl.seedscan.metrics.MetricData;
+import asl.seedsplitter.DataSet;
+
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+import java.util.*;
+import java.util.concurrent.*;
+
+import asl.seedsplitter.SeedSplitter;
+import seed.Blockette320;
 
 /**
  * ResourceManager is used for loading and saving serialized objects. It may be
@@ -108,9 +122,101 @@ public abstract class ResourceManager { // NO_UCD (test only)
     Dependent.assumeRDSeed();
     if (sharedMetaGenerator == null) {
       sharedMetaGenerator = new MetaGenerator(
-          ResourceManager.getDirectoryPath("/dataless"), null);
+          ResourceManager.getDirectoryPath("/metadata"), null);
     }
 
     return sharedMetaGenerator;
+  }
+
+  /**
+   * Return a MetricData object for the station + timestamp based on some sort of test data or other input
+   *
+   * @param timeSeriesDataLocation folder to find seed data relevant to metric under test
+   * @param metadataLocation file of ascii data from rdseed for relevant metadata loading
+   * @param date The date to load
+   * @param station Station to load
+   * @return complete MetricData object for station day.
+   */
+  public static MetricData getMetricData(String timeSeriesDataLocation, String metadataLocation,
+                                         LocalDate date, Station station) {
+    // TODO: may need additional data for how to load in metadata objects (i.,e., locations)
+    // or to construct new metadata objects for specifically test data
+    MetricDatabaseMock mockDB = new MetricDatabaseMock();
+    MetaGeneratorMock mockMetadata = new MetaGeneratorMock(metadataLocation);
+    StationMeta stationMeta = mockMetadata.getStationMeta(station, date.atStartOfDay());
+
+    File dir = new File(getDirectoryPath(timeSeriesDataLocation));
+    File [] files = dir.listFiles((dir1, name) -> name.endsWith(".seed"));
+
+    Hashtable<String, ArrayList<DataSet>> dataTable;
+    Hashtable<String, ArrayList<Integer>> qualityTable;
+    Hashtable<String, ArrayList<Blockette320>> calibrationTable;
+
+    int timeout = 900;
+    SplitterObject splitObj = null;
+    try {
+      splitObj = executeSplitter(files, timeout, date);
+      SeedSplitter splitter = splitObj.splitter;
+      dataTable = splitObj.table;
+      qualityTable = splitter.getQualityTable();
+      calibrationTable = splitter.getCalTable();
+
+
+      return new MetricData(mockDB, dataTable, qualityTable, stationMeta, calibrationTable);
+    } catch (TimeoutException | ExecutionException | InterruptedException e) {
+      e.printStackTrace();
+      return null;
+    }
+
+  }
+
+  /**
+   * SeedSplitter function: processing times greater than 3 min. will move to
+   * the next day
+   */
+  private static SplitterObject executeSplitter(File[] files, int timeout, LocalDate timestamp)
+          throws TimeoutException, ExecutionException, InterruptedException {
+    Hashtable<String, ArrayList<DataSet>> table = null;
+    SeedSplitter splitter = new SeedSplitter(files);
+    ExecutorService executor = Executors.newSingleThreadExecutor();
+    Future<Hashtable<String, ArrayList<DataSet>>> future = executor.submit(new Task(splitter));
+
+    try {
+      table = future.get(timeout, TimeUnit.SECONDS);
+    } catch (TimeoutException | ExecutionException | InterruptedException e) {
+      future.cancel(true);
+      throw e;
+    }
+    executor.shutdown();
+    executor.awaitTermination(300, TimeUnit.SECONDS);
+
+    return new SplitterObject(splitter, table);
+  }
+
+  // Class to assign seedplitter object and seedsplitter table
+  private static class SplitterObject {
+
+    private SeedSplitter splitter;
+    private Hashtable<String, ArrayList<DataSet>> table;
+
+    private SplitterObject(SeedSplitter splitter, Hashtable<String, ArrayList<DataSet>> table) {
+      this.splitter = splitter;
+      this.table = table;
+    }
+  }
+
+  // Class to run Future task (seedplitter.doInBackground())
+  private static class Task implements Callable<Hashtable<String, ArrayList<DataSet>>> {
+
+    private SeedSplitter splitter;
+
+    private Task(SeedSplitter splitter) {
+      this.splitter = splitter;
+    }
+
+    public Hashtable<String, ArrayList<DataSet>> call() throws Exception {
+      Hashtable<String, ArrayList<DataSet>> table = splitter.doInBackground();
+      return table;
+    }
   }
 }

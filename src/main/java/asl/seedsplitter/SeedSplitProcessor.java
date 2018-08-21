@@ -1,6 +1,5 @@
 package asl.seedsplitter;
 
-import asl.concurrent.FallOffQueue;
 import asl.util.Time;
 import edu.iris.dmc.seedcodec.SteimException;
 import java.time.LocalDateTime;
@@ -33,7 +32,6 @@ public class SeedSplitProcessor implements Runnable {
 			.getLogger(asl.seedsplitter.SeedSplitProcessor.class);
 
 	private LinkedBlockingQueue<ByteBlock> m_queue;
-	private FallOffQueue<SeedSplitProgress> m_progressQueue;
 	private boolean m_running;
 	private Hashtable<String, TreeSet<DataSet>> m_trees = null;
 	private Hashtable<String, ArrayList<DataSet>> m_table = null;
@@ -52,13 +50,9 @@ public class SeedSplitProcessor implements Runnable {
 	 * 
 	 * @param queue
 	 *            The queue from which MiniSEED records are received.
-	 * @param progressQueue
-	 *            The queue into which progress information is pushed.
 	 */
-	public SeedSplitProcessor(LinkedBlockingQueue<ByteBlock> queue,
-			FallOffQueue<SeedSplitProgress> progressQueue) {
-		_construct(queue, progressQueue,
-				new Hashtable<>());
+	public SeedSplitProcessor(LinkedBlockingQueue<ByteBlock> queue) {
+		_construct(queue, new Hashtable<>());
 	}
 
 	/**
@@ -66,16 +60,12 @@ public class SeedSplitProcessor implements Runnable {
 	 * 
 	 * @param queue
 	 *            The queue from which MiniSEED records are received.
-	 * @param progressQueue
-	 *            The queue into which progress information is pushed.
 	 * @param table
 	 *            An initial hash table to which new data should be added.
 	 */
 	private void _construct(LinkedBlockingQueue<ByteBlock> queue,
-			FallOffQueue<SeedSplitProgress> progressQueue,
 			Hashtable<String, ArrayList<DataSet>> table) {
 		m_queue = queue;
-		m_progressQueue = progressQueue;
 		m_running = false;
 		m_table = table;
 		m_trees = new Hashtable<>();
@@ -443,7 +433,6 @@ public class SeedSplitProcessor implements Runnable {
 					logger.error("IllegalSeednameException:", e.getMessage());
 				}
 			}
-			m_progressQueue.put(progress);
 		}
 		for (String tempKey : temps.keySet()) {
 			tempData = null;
@@ -535,10 +524,6 @@ public class SeedSplitProcessor implements Runnable {
 		for (String countKey : recordCounts.keySet()) {
 			logger.debug("  " + countKey + ": " + recordCounts.get(key)
 					+ " records");
-		}
-		if ((progress != null) && !progress.errorOccurred()) {
-			progress = new SeedSplitProgress(byteTotal, true);
-			m_progressQueue.put(progress);
 		}
 	}
 
