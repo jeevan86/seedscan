@@ -7,7 +7,7 @@
 
     <cfg:database>
         <cfg:uri>jdbc:postgresql://192.168.0.1:5432/dqa_db</cfg:uri>
-        <cfg:username>dqauser</cfg:username>
+        <cfg:username>dqa_write</cfg:username>
         <cfg:password>
             <cfg:plain>password</cfg:plain>
         </cfg:password>
@@ -44,6 +44,15 @@
         <cfg:metric>
             <cfg:class_name>asl.seedscan.metrics.EventCompareSynthetic</cfg:class_name>
             <cfg:argument cfg:name="makeplots">true</cfg:argument>
+        </cfg:metric>
+        <cfg:metric>
+            <cfg:class_name>asl.seedscan.metrics.PressureMetric</cfg:class_name>
+        </cfg:metric>
+        <cfg:metric>
+            <cfg:class_name>asl.seedscan.metrics.InfrasoundMetric</cfg:class_name>
+        </cfg:metric>
+        <cfg:metric>
+            <cfg:class_name>asl.seedscan.metrics.EventComparePWaveOrientation</cfg:class_name>
         </cfg:metric>
 
 <!-- PowerBand Metrics:  -->
