@@ -1,5 +1,6 @@
 package asl.seedscan.metrics;
 
+import asl.util.Logging;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -175,7 +176,7 @@ public class MassPositionMetric extends Metric {
 
 				this.metricResult.addResult(channel, result, digest);
 			} catch (MetricException e) {
-				logger.error(e.getMessage());
+				logger.error(Logging.prettyExceptionWithCause(e));
 			} catch (UnsupportedEncodingException e) {
 				logger.warn(e.getMessage());
 			}
