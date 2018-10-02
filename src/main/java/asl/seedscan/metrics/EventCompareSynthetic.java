@@ -1,5 +1,6 @@
 package asl.seedscan.metrics;
 
+import asl.util.Logging;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -211,10 +212,8 @@ public class EventCompareSynthetic extends Metric {
 						logger.info("station=[{}] day=[{}]: Low correlation", getStation(), getDay());
 					}
 
-				} catch (ChannelMetaException e) {
-					logger.error("ChannelMetaException:", e);
-				} catch (MetricException e) {
-					logger.error("MetricException:", e);
+				} catch (ChannelMetaException | MetricException e) {
+					logger.error(Logging.prettyExceptionWithCause(e));
 				}
 			}
 		}

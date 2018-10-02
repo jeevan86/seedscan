@@ -1,5 +1,6 @@
 package asl.seedscan.metrics;
 
+import asl.util.Logging;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.io.BufferedReader;
@@ -169,7 +170,7 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 					metricResult.addResult(channel, result, digest);
 				}
 			} catch (MetricException e) {
-				logger.error("Exception:", e);
+				logger.error(Logging.prettyExceptionWithCause(e));
 			}
 
 		} // end foreach channel
