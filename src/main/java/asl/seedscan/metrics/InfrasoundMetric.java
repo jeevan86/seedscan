@@ -1,5 +1,6 @@
 package asl.seedscan.metrics;
 
+import asl.util.Logging;
 import java.nio.ByteBuffer;
 import java.util.List;
 
@@ -70,11 +71,7 @@ public class InfrasoundMetric extends Metric {
 
                 this.metricResult.addResult(channel, result, digest);
             } catch (MetricException e) {
-                logger.error(e.getMessage(), e);
-                Throwable cause = e.getCause();
-                if (cause != null) {
-                    logger.error(cause.getMessage(), cause);
-                }
+                logger.error(Logging.prettyExceptionWithCause(e));
             }
         }
     }
