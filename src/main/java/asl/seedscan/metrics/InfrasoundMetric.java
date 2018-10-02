@@ -70,7 +70,11 @@ public class InfrasoundMetric extends Metric {
 
                 this.metricResult.addResult(channel, result, digest);
             } catch (MetricException e) {
-                logger.error(e.getMessage());
+                logger.error(e.getMessage(), e);
+                Throwable cause = e.getCause();
+                if (cause != null) {
+                    logger.error(cause.getMessage(), cause);
+                }
             }
         }
     }
