@@ -14,7 +14,7 @@ public class LoggingTest {
     String message = Logging.exceptionToString(exception);
     // Verify that the stacktrace was included by checking for "at asl.util..."
     assertTrue(message.startsWith("java.lang.NullPointerException: Exception 1\n"
-        + "\tat asl.util.LoggingTest.testexceptionToString(LoggingTest.java:"));
+        + "\tat asl.util.LoggingTest.testExceptionToString(LoggingTest.java:"));
   }
 
   @Test
