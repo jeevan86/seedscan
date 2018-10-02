@@ -44,7 +44,7 @@ public class RetrieveScan extends ScanWorker {
 			 */
 
     } catch (Exception e) {
-      String message = Logging.exceptionToString(e);
+      String message = Logging.prettyExceptionWithCause(e);
       logger.error(message);
       manager.database.insertError(message);
     }
