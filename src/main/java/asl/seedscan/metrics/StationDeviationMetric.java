@@ -219,12 +219,8 @@ public class StationDeviationMetric extends PowerBandMetric {
 		if (getMakePlots()) {
 			try {
 				makePlots(channel, modelPeriods, psdInterp);
-			} catch (MetricException e) {
-				logger.info(e.getMessage());
-			} catch (PlotMakerException e) {
-				logger.error("PlotMakerException:", e);
-			} catch (TraceException e) {
-				logger.error("TraceException:", e);
+			} catch (MetricException | TraceException | PlotMakerException e) {
+				logger.error(Logging.prettyExceptionWithCause(e));
 			}
 		}
 

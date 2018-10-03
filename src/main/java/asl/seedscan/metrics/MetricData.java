@@ -1,5 +1,6 @@
 package asl.seedscan.metrics;
 
+import asl.util.Logging;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.time.LocalDate;
@@ -1248,7 +1249,7 @@ public class MetricData implements Serializable {
           createRotatedChannelData(channel.getLocation(), channelPrefix);
         }
       } catch (MetricException e) {
-        logger.error("MetricException:", e.getLocalizedMessage());
+        logger.error(Logging.prettyExceptionWithCause(e));
       }
     }
   }

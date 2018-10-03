@@ -5,6 +5,7 @@ import static asl.util.Logging.prettyException;
 
 import asl.seedscan.metrics.MetricException;
 import asl.util.LockFile;
+import asl.util.Logging;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -70,15 +71,15 @@ public class SeedScan {
 
     } catch (FileNotFoundException e) {
       logger.error("FileNotFoundException: Could not locate config file:");
-      logger.error(prettyException(e));
+      logger.error(Logging.prettyExceptionWithCause(e));
     } catch (JAXBException e) {
       logger.error("JAXBException: Could not unmarshal config file:");
-      logger.error(prettyException(e));
+      logger.error(Logging.prettyExceptionWithCause(e));
     } catch (IOException | MetricException e) {
-      logger.error(prettyException(e));
+      logger.error(Logging.prettyExceptionWithCause(e));
     } catch (SQLException e) {
       logger.error("Unable to communicate with Database");
-      logger.error(exceptionToString(e));
+      logger.error(Logging.prettyExceptionWithCause(e));
     } finally {
       logger.info("Release seedscan lock and quit metaServer");
       try {
