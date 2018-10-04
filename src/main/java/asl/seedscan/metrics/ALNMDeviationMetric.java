@@ -1,5 +1,6 @@
 package asl.seedscan.metrics;
 
+import asl.util.Logging;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.io.BufferedReader;
@@ -162,7 +163,7 @@ public class ALNMDeviationMetric extends PowerBandMetric {
 					metricResult.addResult(channel, result, digest);
 				}
 			} catch (MetricException e) {
-				logger.error("Exception:", e);
+				logger.error(Logging.prettyExceptionWithCause(e));
 			}
 
 		} // end foreach channel
@@ -181,10 +182,8 @@ public class ALNMDeviationMetric extends PowerBandMetric {
 								new Trace(getAHNM().getPeriods(), getAHNM().getPowers(), "AHNM", Color.black, stroke),
 								iPanel);
 					}
-				} catch (PlotMakerException e) {
-					logger.error("PlotMakerException:", e);
-				} catch (TraceException e) {
-					logger.error("TraceException:", e);
+				} catch (PlotMakerException | TraceException e) {
+					logger.error(Logging.prettyExceptionWithCause(e));
 				}
 			}
 			// outputs/2012160.IU_ANMO.alnm-dev.png
@@ -284,12 +283,8 @@ public class ALNMDeviationMetric extends PowerBandMetric {
 		if (getMakePlots()) {
 			try {
 				makePlots(channel, day, getALNM().getPeriods(), psdInterp);
-			} catch (MetricException e) {
-				logger.error("Exception:", e);
-			} catch (PlotMakerException e) {
-				logger.error("PlotMakerException:", e);
-			} catch (TraceException e) {
-				logger.error("TraceException:", e);
+			} catch (MetricException | TraceException | PlotMakerException e) {
+				logger.error(Logging.prettyExceptionWithCause(e));
 			}
 		}
 
@@ -378,7 +373,7 @@ public class ALNMDeviationMetric extends PowerBandMetric {
 			try {
 				readNoiseModel(AHNMFile, AHNM);
 			} catch (MetricException e) {
-				logger.error("Exception:", e);
+				logger.error(Logging.prettyExceptionWithCause(e));
 			}
 		}
 	}
@@ -404,7 +399,7 @@ public class ALNMDeviationMetric extends PowerBandMetric {
 			try {
 				readNoiseModel(ALNMFile, ALNM);
 			} catch (MetricException e) {
-				logger.error("Exception:", e);
+				logger.error(Logging.prettyExceptionWithCause(e));
 			}
 		}
 	}

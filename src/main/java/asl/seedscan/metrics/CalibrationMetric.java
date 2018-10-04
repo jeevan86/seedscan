@@ -5,6 +5,7 @@ import asl.metadata.meta_new.ChannelMeta;
 import asl.metadata.meta_new.ResponseStage;
 import asl.seedsplitter.DataSet;
 import asl.timeseries.PSD;
+import asl.util.Logging;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -114,7 +115,7 @@ public class CalibrationMetric extends Metric {
 					 */
 				}
 			} catch (MetricException e) {
-				logger.error("Exception:", e);
+				logger.error(Logging.prettyExceptionWithCause(e));
 			}
 
 		}// end foreach channel

@@ -1,5 +1,6 @@
 package asl.seedscan.metrics;
 
+import asl.util.Logging;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.nio.ByteBuffer;
@@ -96,14 +97,10 @@ public class CoherencePBM extends PowerBandMetric {
 						if (result != NO_RESULT) {
 							metricResult.addResult(channelX, channelY, result, digest);
 						}
-					} catch (MetricException e) {
-						logger.error("MetricException:", e);
-					} catch (PlotMakerException e) {
-						logger.error("PlotMakerException:", e);
-					} catch (TraceException e) {
-						logger.error("TraceException:", e);
+					} catch (MetricException | TraceException | PlotMakerException e) {
+						logger.error(Logging.prettyExceptionWithCause(e));
 					}
-	
+
 				}
 				else
 				{

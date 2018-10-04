@@ -26,7 +26,6 @@ BEGIN
           taken = FALSE
       ORDER BY
           priority desc,
-          fkparentscan asc,
           enddate desc,
           startdate desc
       LIMIT 1

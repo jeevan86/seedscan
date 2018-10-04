@@ -1,5 +1,6 @@
 package asl.seedscan.metrics;
 
+import asl.util.Logging;
 import java.nio.ByteBuffer;
 import java.util.List;
 
@@ -130,7 +131,7 @@ public class VacuumMonitorMetric extends Metric {
 				double result = this.computeMetric(channel);
 				this.metricResult.addResult(channel, result, digest);
 			} catch (MetricException e) {
-				logger.error(e.getMessage());
+				logger.error(Logging.prettyExceptionWithCause(e));
 			}
 
 		}

@@ -1,5 +1,6 @@
 package asl.seedscan.metrics;
 
+import asl.util.Logging;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.io.BufferedReader;
@@ -169,7 +170,7 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 					metricResult.addResult(channel, result, digest);
 				}
 			} catch (MetricException e) {
-				logger.error("Exception:", e);
+				logger.error(Logging.prettyExceptionWithCause(e));
 			}
 
 		} // end foreach channel
@@ -291,12 +292,8 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 		if (getMakePlots()) {
 			try {
 				makePlots(channel, day, getNLNM().getPeriods(), psdInterp);
-			} catch (MetricException e) {
-				logger.error("Exception:", e);
-			} catch (PlotMakerException e) {
-				logger.error("PlotMakerException:", e);
-			} catch (TraceException e) {
-				logger.error("TraceException:", e);
+			} catch (MetricException | TraceException | PlotMakerException e) {
+				logger.error(Logging.prettyExceptionWithCause(e));
 			}
 		}
 
@@ -382,7 +379,7 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 			try {
 				readNoiseModel(NHNMFile, NHNM);
 			} catch (MetricException e) {
-				logger.error("Exception:", e);
+				logger.error(Logging.prettyExceptionWithCause(e));
 			}
 		}
 	}
@@ -408,7 +405,7 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 			try {
 				readNoiseModel(NLNMFile, NLNM);
 			} catch (MetricException e) {
-				logger.error("Exception:", e);
+				logger.error(Logging.prettyExceptionWithCause(e));
 			}
 		}
 	}

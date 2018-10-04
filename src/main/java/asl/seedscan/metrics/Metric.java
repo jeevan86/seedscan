@@ -156,8 +156,9 @@ public abstract class Metric {
 	 * @param channelA first channel
 	 * @param channelB second channel
 	 * @return the cross power
+	 * @throws MetricException when CrossPower cannot be created.
 	 */
-	protected CrossPower getCrossPower(Channel channelA, Channel channelB) {
+	protected CrossPower getCrossPower(Channel channelA, Channel channelB) throws MetricException {
 		CrossPowerKey key = new CrossPowerKey(channelA, channelB);
 		CrossPower crossPower = null;
 
@@ -167,10 +168,8 @@ public abstract class Metric {
 			try {
 				crossPower = new CrossPower(channelA, channelB, metricData);
 				crossPowerMap.put(key, crossPower);
-			} catch (MetricPSDException e) {
-				logger.error("MetricPSDException:", e);
-			} catch (ChannelMetaException e) {
-				logger.error("ChannelMetaException:", e);
+			} catch (MetricPSDException | ChannelMetaException e) {
+				throw new MetricException("Unable to create CrossPower", e);
 			}
 		}
 		return crossPower;

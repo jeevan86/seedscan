@@ -1,5 +1,6 @@
 package asl.seedscan.metrics;
 
+import asl.util.Logging;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.io.BufferedReader;
@@ -102,7 +103,7 @@ public class StationDeviationMetric extends PowerBandMetric {
 					metricResult.addResult(channel, result, digest);
 				}
 			} catch (MetricException e) {
-				logger.error("MetricException:", e);
+				logger.error(Logging.prettyExceptionWithCause(e));
 			}
 		}// end foreach channel
 
@@ -142,7 +143,7 @@ public class StationDeviationMetric extends PowerBandMetric {
 				return NO_RESULT;
 			}
 		} catch (MetricException e) {
-			logger.error("MetricException:", e);
+			logger.error(Logging.prettyExceptionWithCause(e));
 		}
 
 		// Compute/Get the 1-sided psd[f] using Peterson's algorithm (24 hrs, 13
@@ -218,12 +219,8 @@ public class StationDeviationMetric extends PowerBandMetric {
 		if (getMakePlots()) {
 			try {
 				makePlots(channel, modelPeriods, psdInterp);
-			} catch (MetricException e) {
-				logger.info(e.getMessage());
-			} catch (PlotMakerException e) {
-				logger.error("PlotMakerException:", e);
-			} catch (TraceException e) {
-				logger.error("TraceException:", e);
+			} catch (MetricException | TraceException | PlotMakerException e) {
+				logger.error(Logging.prettyExceptionWithCause(e));
 			}
 		}
 
