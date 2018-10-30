@@ -1,0 +1,39 @@
+[
+  {
+    "name": "seedScan",
+    "organization": "U.S. Geological Survey",
+    "description": "SeedScan is used to analyze miniSEED data and quantify data quality.",
+    "version": "1.6.1",
+    "status": "Development",
+    "permissions": {
+      "usageType": "openSource",
+      "licenses": [
+        {
+          "name": "GPL v3.0 or Later",
+          "URL": "https://github.com/usgs/seedscan/blob/master/LICENSE.md"
+        }
+      ]
+    },
+    "homepageURL": "https://usgs.github.io/seedscan/",
+    "downloadURL": "https://github.com/usgs/seedscan/archive/master.zip",
+    "disclaimerURL": "https://github.com/usgs/seedscan/blob/master/LICENSE.md",
+    "repositoryURL": "https://github.com/usgs/seedscan",
+    "vcs": "git",
+    "tags": [
+      "miniSeed Data",
+      "ASL",
+      "seismic data quality"
+    ],
+    "languages": [
+      "Java"
+    ],
+    "laborHours": 1000,
+    "contact": {
+      "name": "James Holland",
+      "email": "jholland@usgs.gov"
+    },
+    "date": {
+      "metadataLastUpdated": "2018-10-30"
+    }
+  }
+]
