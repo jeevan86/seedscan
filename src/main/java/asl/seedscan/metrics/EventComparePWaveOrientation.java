@@ -151,6 +151,10 @@ public class EventComparePWaveOrientation extends Metric {
       ByteBuffer digest = metricData.valueDigestChanged(curChannel, createIdentifier(curChannel),
           getForceUpdate());
 
+      if (digest == null) {
+        continue;
+      }
+
       Channel pairChannel = curChannel.getHorizontalOrthogonalChannel();
       Channel vertChannel = chNameMap.get(vertName);
 
