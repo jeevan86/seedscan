@@ -1,6 +1,7 @@
 package asl.seedscan.metrics;
 
 import static org.junit.Assert.assertEquals;
+
 import asl.metadata.Station;
 import asl.testutils.ResourceManager;
 import java.time.LocalDate;
@@ -9,9 +10,9 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class PressureMetricTest {
+public class InfrasoundMetricTest {
 
-  private PressureMetric metric;
+  private InfrasoundMetric metric;
   private static MetricData data;
   private static Station station;
   private static LocalDate dataDate;
@@ -20,9 +21,9 @@ public class PressureMetricTest {
   @BeforeClass
   public static void setUpBeforeClass() {
     try {
-      String networkName = "IU";
       String metadataLocation = "/metadata/rdseed/IU-ANMO-ascii.txt";
       String seedDataLocation = "/seed_data/IU_ANMO/2018/121";
+      String networkName = "IU";
       station = new Station(networkName, "ANMO");
       dataDate = LocalDate.of(2018, 5, 1);
       data = ResourceManager.getMetricData(seedDataLocation, metadataLocation, dataDate, station, networkName);
@@ -39,24 +40,23 @@ public class PressureMetricTest {
   }
 
   @Test
-  public void testMetricResultNear1() {
-    metric = new PressureMetric();
+  public void testMetricResultMatchesExpected() {
+    metric = new InfrasoundMetric();
     metric.setData(data);
     HashMap<String, Double> expect = new HashMap<>();
-    expect.put("30,LDO", 0.9934842767063014);
+    expect.put("32,BDF", 0.8217882293173047);
     TestUtils.testMetric(metric, expect);
   }
 
   @Test
   public final void testGetVersion() {
-    metric = new PressureMetric();
+    metric = new InfrasoundMetric();
     assertEquals(1, metric.getVersion());
   }
 
   @Test
   public final void testGetName() {
-    metric = new PressureMetric();
-    assertEquals("PressureMetric", metric.getName());
+    metric = new InfrasoundMetric();
+    assertEquals("InfrasoundMetric", metric.getName());
   }
-
 }

@@ -37,8 +37,8 @@ public class SeedSplitProcessor implements Runnable {
 	private Hashtable<String, ArrayList<DataSet>> m_table = null;
 
 	// MTH:
-	private Hashtable<String, ArrayList<Integer>> m_qualityTable = null;
-	private Hashtable<String, ArrayList<Blockette320>> m_calTable = null;
+	private Hashtable<String, ArrayList<Integer>> m_qualityTable = new Hashtable<>();
+	private Hashtable<String, ArrayList<Blockette320>> m_calTable = new Hashtable<>();
 
 	private Pattern m_patternNetwork = null;
 	private Pattern m_patternStation = null;
@@ -376,10 +376,6 @@ public class SeedSplitProcessor implements Runnable {
 						// block and store it for this key
 						int quality = record.getTimingQuality();
 
-						if (m_qualityTable == null) {
-							m_qualityTable = new Hashtable<>();
-						}
-
 						ArrayList<Integer> qualityArray = null;
 						if (m_qualityTable.get(key) == null) {
 							qualityArray = new ArrayList<>();
@@ -408,9 +404,6 @@ public class SeedSplitProcessor implements Runnable {
 							// System.out.format("== blockette320: epoch secs=[%d]\n",
 							// blockette320.getCalibrationEpoch() );
 
-							if (m_calTable == null) {
-								m_calTable = new Hashtable<>();
-							}
 
 							ArrayList<Blockette320> calBlock = null;
 							if (m_calTable.get(key) == null) {

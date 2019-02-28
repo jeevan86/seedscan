@@ -138,11 +138,11 @@ public abstract class ResourceManager { // NO_UCD (test only)
    * @return complete MetricData object for station day.
    */
   public static MetricData getMetricData(String timeSeriesDataLocation, String metadataLocation,
-                                         LocalDate date, Station station) {
+                                         LocalDate date, Station station, String networkName) {
     // TODO: may need additional data for how to load in metadata objects (i.,e., locations)
     // or to construct new metadata objects for specifically test data
     MetricDatabaseMock mockDB = new MetricDatabaseMock();
-    MetaGeneratorMock mockMetadata = new MetaGeneratorMock(metadataLocation);
+    MetaGeneratorMock mockMetadata = new MetaGeneratorMock(metadataLocation, networkName);
     StationMeta stationMeta = mockMetadata.getStationMeta(station, date.atStartOfDay());
 
     File dir = new File(getDirectoryPath(timeSeriesDataLocation));

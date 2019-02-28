@@ -78,13 +78,15 @@ class Dataless {
 	private SeedVolume volume;
 	private Collection<String> rawDataless;
 	private ArrayList<Blockette> blockettes;
+	private String networkName;
 	private double percent;
 	private double lastPercent;
 	private double count;
 	private double total;
 	
-	Dataless(Collection<String> rawDataless) {
+	Dataless(Collection<String> rawDataless, String networkName) {
 		this.rawDataless = rawDataless;
+		this.networkName = networkName;
 	}
 
 	void processVolume() throws DatalessParseException {
@@ -208,7 +210,7 @@ class Dataless {
 				if (volume != null) {
 					throw new DuplicateBlocketteException();
 				}
-				volume = new SeedVolume(blockette);
+				volume = new SeedVolume(blockette, networkName);
 				break;
 			case 11:
 				if (volume == null) {
@@ -263,13 +265,6 @@ class Dataless {
 					throw new BlocketteOutOfOrderException();
 				}
 				epoch.setFormat(blockette);
-				break;
-			case 59:
-				if (channel == null) {
-					throw new BlocketteOutOfOrderException();
-				}
-
-				channel.addComment(blockette);
 				break;
 			case 53:
 			case 54:

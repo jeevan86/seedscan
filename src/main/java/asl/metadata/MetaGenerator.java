@@ -102,6 +102,7 @@ public class MetaGenerator {
 			System.exit(0);
 		}
 		for (String fileName : files) {
+			String networkName = fileName.replace(".dataless","");
 			String datalessFile = dir + "/" + fileName;
 			System.out.format(
 					"== MetaGenerator: rdseed -f [datalessFile=%s]\n",
@@ -137,7 +138,7 @@ public class MetaGenerator {
 
 
 			try {
-				volume = buildVolumesFromStringData(strings);
+				volume = buildVolumesFromStringData(strings, networkName);
 			} catch (Exception e) {
 				logger.error("== processing dataless volume for file=[{}]",	fileName);
 			}
@@ -152,8 +153,8 @@ public class MetaGenerator {
 		} // end for loop over XX.dataless files
 	}
 
-	SeedVolume buildVolumesFromStringData(List<String> strings) throws DatalessParseException {
-		Dataless dataless = new Dataless(strings);
+	SeedVolume buildVolumesFromStringData(List<String> strings, String networkName) throws DatalessParseException {
+		Dataless dataless = new Dataless(strings, networkName);
 		dataless.processVolume();
 		return dataless.getVolume();
 	}

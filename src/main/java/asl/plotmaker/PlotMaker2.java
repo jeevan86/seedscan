@@ -33,6 +33,7 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYDotRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.data.Range;
@@ -148,7 +149,7 @@ public class PlotMaker2 {
 			horizontalAxis.setTickLabelFont(fontPlain);
 
 			XYSeriesCollection seriesCollection = new XYSeriesCollection();
-			XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
+			XYDotRenderer renderer = new XYDotRenderer();
 			XYPlot xyplot = new XYPlot(seriesCollection,
 					horizontalAxis, verticalAxis, renderer);
 			xyplot.setDomainGridlinesVisible(true);
@@ -170,8 +171,6 @@ public class PlotMaker2 {
 
 				renderer.setSeriesPaint(iTrace, trace.getColor());
 				renderer.setSeriesStroke(iTrace, trace.getStroke());
-				renderer.setSeriesLinesVisible(iTrace, true);
-				renderer.setSeriesShapesVisible(iTrace, false);
 
 				seriesCollection.addSeries(series);
 

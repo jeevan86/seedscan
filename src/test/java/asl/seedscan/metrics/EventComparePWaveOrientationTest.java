@@ -42,15 +42,17 @@ public class EventComparePWaveOrientationTest {
       String metadataLocation4 = "/metadata/rdseed/IU-RAR-ascii-LH.txt";
       String seedDataLocation4 = "/seed_data/IU_RAR/2018/010";
 
-      station = new Station("IU", "ANMO");
-      station3 = new Station("IU", "SSPA");
-      station4 = new Station("IU", "RAR");
+      String networkName = "IU";
+
+      station = new Station(networkName, "ANMO");
+      station3 = new Station(networkName, "SSPA");
+      station4 = new Station(networkName, "RAR");
       dataDate = LocalDate.of(2018, 1, 10);
-      data = ResourceManager.getMetricData(seedDataLocation, metadataLocation, dataDate, station);
+      data = ResourceManager.getMetricData(seedDataLocation, metadataLocation, dataDate, station, networkName);
       data2 = (MetricData) ResourceManager
           .loadCompressedObject("/java_serials/data/IU.TUC.2018.023.ser.gz", true);
-      data3 = ResourceManager.getMetricData(seedDataLocation3, metadataLocation3, dataDate, station3);
-      data4 = ResourceManager.getMetricData(seedDataLocation4, metadataLocation4, dataDate, station4);
+      data3 = ResourceManager.getMetricData(seedDataLocation3, metadataLocation3, dataDate, station3, networkName);
+      data4 = ResourceManager.getMetricData(seedDataLocation4, metadataLocation4, dataDate, station4, networkName);
       eventLoader = new EventLoader(ResourceManager.getDirectoryPath("/event_synthetics"));
     } catch (Exception e) {
       e.printStackTrace();

@@ -38,32 +38,6 @@ public class ChannelData {
 		return name;
 	}
 
-	// comments
-	LocalDateTime addComment(Blockette blockette)
-			throws MissingBlocketteDataException, TimestampFormatException,
-			WrongBlocketteException {
-		if (blockette.getNumber() != CHANNEL_COMMENT_BLOCKETTE_NUMBER) {
-			throw new WrongBlocketteException();
-		}
-		// Epoch epochNew = new Epoch(blockette);
-		String timestampString = blockette.getFieldValue(3, 0);
-		if (timestampString == null) {
-			throw new MissingBlocketteDataException();
-		}
-		LocalDateTime timestamp = BlocketteTimestamp
-                .parseTimestamp(timestampString);
-		comments.put(timestamp, blockette);
-		return timestamp;
-	}
-
-	public boolean hasComment(LocalDateTime timestamp) {
-		return comments.containsKey(timestamp);
-	}
-
-	public Blockette getComment(LocalDateTime timestamp) {
-		return comments.get(timestamp);
-	}
-
 	// epochs
 	LocalDateTime addEpoch(Blockette blockette)
 			throws MissingBlocketteDataException, TimestampFormatException,
