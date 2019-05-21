@@ -121,8 +121,10 @@ public abstract class ResourceManager { // NO_UCD (test only)
   public static synchronized MetaGenerator loadMetaGenerator() throws Exception {
     Dependent.assumeRDSeed();
     if (sharedMetaGenerator == null) {
+      String[] netArray = {"CU", "GT", "IC", "IW", "NE", "US"};
       sharedMetaGenerator = new MetaGenerator(
-          ResourceManager.getDirectoryPath("/metadata"), null);
+          ResourceManager.getDirectoryPath("/metadata/station_dataless"),
+          "${NETWORK}_${STATION}.dataless", Arrays.asList(netArray));
     }
 
     return sharedMetaGenerator;
