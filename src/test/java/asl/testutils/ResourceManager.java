@@ -2,38 +2,44 @@ package asl.testutils;
 
 import asl.metadata.MetaGenerator;
 import asl.metadata.MetaGeneratorMock;
-import asl.seedscan.database.MetricDatabaseMock;
 import asl.metadata.Station;
 import asl.metadata.meta_new.StationMeta;
+import asl.seedscan.database.MetricDatabaseMock;
 import asl.seedscan.metrics.MetricData;
 import asl.seedsplitter.DataSet;
-
+import asl.seedsplitter.SeedSplitter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
-import java.util.*;
-import java.util.concurrent.*;
-
-import asl.seedsplitter.SeedSplitter;
 import seed.Blockette320;
 
 /**
- * ResourceManager is used for loading and saving serialized objects. It may be
- * used for loading basic resources as well.
+ * ResourceManager is used for loading and saving serialized objects. It may be used for loading
+ * basic resources as well.
  *
  * @author James Holland - USGS
  */
 public abstract class ResourceManager { // NO_UCD (test only)
 
   /**
-   * Stores a copy of the resources that is shared between tests. Tests that
-   * use shared objects, must not modify the object in a destructive manner.
+   * Stores a copy of the resources that is shared between tests. Tests that use shared objects,
+   * must not modify the object in a destructive manner.
    */
   private static HashMap<String, Object> resources = new HashMap<>();
 
@@ -108,8 +114,7 @@ public abstract class ResourceManager { // NO_UCD (test only)
   }
 
   /**
-   * Returns the path of a resource directory. This assume the passed
-   * parameter is a directory.
+   * Returns the path of a resource directory. This assume the passed parameter is a directory.
    *
    * @param directory the resource directory we want to get the path for
    * @return the path as a string with ending /
@@ -131,7 +136,8 @@ public abstract class ResourceManager { // NO_UCD (test only)
   }
 
   /**
-   * Return a MetricData object for the station + timestamp based on some sort of test data or other input
+   * Return a MetricData object for the station + timestamp based on some sort of test data or other
+   * input
    *
    * @param timeSeriesDataLocation folder to find seed data relevant to metric under test
    * @param metadataLocation file of ascii data from rdseed for relevant metadata loading
@@ -140,7 +146,7 @@ public abstract class ResourceManager { // NO_UCD (test only)
    * @return complete MetricData object for station day.
    */
   public static MetricData getMetricData(String timeSeriesDataLocation, String metadataLocation,
-                                         LocalDate date, Station station, String networkName) {
+      LocalDate date, Station station, String networkName) {
     // TODO: may need additional data for how to load in metadata objects (i.,e., locations)
     // or to construct new metadata objects for specifically test data
     MetricDatabaseMock mockDB = new MetricDatabaseMock();
@@ -149,7 +155,7 @@ public abstract class ResourceManager { // NO_UCD (test only)
     StationMeta stationMeta = mockMetadata.getStationMeta(station, date.atStartOfDay());
 
     File dir = new File(getDirectoryPath(timeSeriesDataLocation));
-    File [] files = dir.listFiles((dir1, name) -> name.endsWith(".seed"));
+    File[] files = dir.listFiles((dir1, name) -> name.endsWith(".seed"));
 
     Hashtable<String, ArrayList<DataSet>> dataTable;
     Hashtable<String, ArrayList<Integer>> qualityTable;
@@ -164,7 +170,6 @@ public abstract class ResourceManager { // NO_UCD (test only)
       qualityTable = splitter.getQualityTable();
       calibrationTable = splitter.getCalTable();
 
-
       return new MetricData(mockDB, dataTable, qualityTable, stationMeta, calibrationTable);
     } catch (TimeoutException | ExecutionException | InterruptedException e) {
       e.printStackTrace();
@@ -174,11 +179,10 @@ public abstract class ResourceManager { // NO_UCD (test only)
   }
 
   /**
-   * SeedSplitter function: processing times greater than 3 min. will move to
-   * the next day
+   * SeedSplitter function: processing times greater than 3 min. will move to the next day
    */
   private static SplitterObject executeSplitter(File[] files, int timeout, LocalDate timestamp)
-          throws TimeoutException, ExecutionException, InterruptedException {
+      throws TimeoutException, ExecutionException, InterruptedException {
     Hashtable<String, ArrayList<DataSet>> table = null;
     SeedSplitter splitter = new SeedSplitter(files);
     ExecutorService executor = Executors.newSingleThreadExecutor();

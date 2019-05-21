@@ -1,19 +1,17 @@
 package asl.seedscan;
 
+import asl.metadata.MetaGenerator;
+import asl.seedscan.database.MetricDatabase;
 import asl.seedscan.metrics.MetricException;
+import asl.seedscan.scanner.ScanManager;
 import asl.util.LockFile;
 import asl.util.Logging;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.SQLException;
-
 import javax.xml.bind.JAXBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import asl.metadata.MetaGenerator;
-import asl.seedscan.database.MetricDatabase;
-import asl.seedscan.scanner.ScanManager;
 
 /**
  * The Class SeedScan.
@@ -54,7 +52,8 @@ public class SeedScan {
         throw new IOException("Unable to acquire lock.");
       }
 
-      metaGenerator = new MetaGenerator(Global.getDatalessDir(), Global.getDatalessFile(), Global.getNetworkRestrictions());
+      metaGenerator = new MetaGenerator(Global.getDatalessDir(), Global.getDatalessFile(),
+          Global.getNetworkRestrictions());
       database = new MetricDatabase(Global.getDatabase());
       scanManager = new ScanManager(database, metaGenerator);
 
