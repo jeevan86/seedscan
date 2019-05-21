@@ -88,7 +88,7 @@ public class MetaGenerator {
 		for (String networkName : networkSubset) {
 			List<Path> allMetadataFiles = new ArrayList<>();
 			try (DirectoryStream<Path> stream = Files
-					.newDirectoryStream(dir.toPath(), networkName + "_*.dataless")) {
+					.newDirectoryStream(dir.toPath(), networkName + ".*.dataless")) {
 				for (Path entry : stream) {
 					allMetadataFiles.add(entry);
 				}
