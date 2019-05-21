@@ -117,17 +117,17 @@ public class MetaGenerator {
 			// so we'll read in the strings from
 			for (String datalessFile : files) {
 
-				String filename = datalessFile.substring(
-						datalessFile.lastIndexOf("/")+1, datalessFile.indexOf("."));
-
-				String stationName = filename.split(".")[1];
-				System.out.println("READING IN: " + networkName + "," + stationName);
-
 				System.out.format(
 						"== MetaGenerator: rdseed -f [datalessFile=%s]\n",
 						datalessFile);
 				ProcessBuilder pb = new ProcessBuilder("rdseed", "-s", "-f",
 						datalessFile);
+
+				String filename = datalessFile.substring(
+						datalessFile.lastIndexOf("/")+1);
+
+				String stationName = filename.split(".")[1];
+				System.out.println("READING IN: " + networkName + "," + stationName);
 
 				try {
 					Process process = pb.start();
