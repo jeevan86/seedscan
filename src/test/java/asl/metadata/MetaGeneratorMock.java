@@ -25,7 +25,7 @@ public class MetaGeneratorMock extends MetaGenerator {
 
 
 
-    public MetaGeneratorMock(String rdseedTextDumpLocation, String networkName) {
+    public MetaGeneratorMock(String rdseedTextDumpLocation, String networkName, String stationName) {
 
         List<String> strings = new ArrayList<>();
         BufferedReader reader = null;
@@ -50,7 +50,7 @@ public class MetaGeneratorMock extends MetaGenerator {
         SeedVolume volume = null;
 
         try {
-            volume = buildVolumesFromStringData(strings, networkName);
+            volume = buildVolumesFromStringData(strings, networkName, stationName);
         } catch (Exception e) {
             logger.error("== processing dataless volume for file=[{}]", rdseedTextDumpLocation);
         }

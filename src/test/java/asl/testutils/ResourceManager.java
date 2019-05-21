@@ -142,7 +142,8 @@ public abstract class ResourceManager { // NO_UCD (test only)
     // TODO: may need additional data for how to load in metadata objects (i.,e., locations)
     // or to construct new metadata objects for specifically test data
     MetricDatabaseMock mockDB = new MetricDatabaseMock();
-    MetaGeneratorMock mockMetadata = new MetaGeneratorMock(metadataLocation, networkName);
+    MetaGeneratorMock mockMetadata =
+        new MetaGeneratorMock(metadataLocation, networkName, station.getStation());
     StationMeta stationMeta = mockMetadata.getStationMeta(station, date.atStartOfDay());
 
     File dir = new File(getDirectoryPath(timeSeriesDataLocation));
