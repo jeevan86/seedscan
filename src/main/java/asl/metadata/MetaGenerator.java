@@ -63,7 +63,7 @@ public class MetaGenerator {
 	 * Private class meant to enable mock test class to inherit from this without running other function
 	 */
 	protected MetaGenerator() {
-        volumes = new Hashtable<>();
+		volumes = new Hashtable<>();
 	}
 
 	/**
@@ -111,11 +111,13 @@ public class MetaGenerator {
 				logger.error("== No dataless files exist!");
 				System.exit(0);
 			}
-			ArrayList<String> strings = new ArrayList<>();
+
 
 			// we expect dataless structures to be associated over entire network
 			// so we'll read in the strings from
 			for (String datalessFile : files) {
+
+				ArrayList<String> strings = new ArrayList<>(); // list of lines from processed metadata file
 
 				System.out.format(
 						"== MetaGenerator: rdseed -f [datalessFile=%s]\n",
@@ -152,19 +154,19 @@ public class MetaGenerator {
 				}
 
 
-			SeedVolume volume = null;
-			try {
-				volume = buildVolumesFromStringData(strings, networkName, stationName);
-			} catch (Exception e) {
-				logger.error("== processing dataless volume for network=[{}]", networkName);
-			}
+				SeedVolume volume = null;
+				try {
+					volume = buildVolumesFromStringData(strings, networkName, stationName);
+				} catch (Exception e) {
+					logger.error("== processing dataless volume for network=[{}]", networkName);
+				}
 
-			if (volume == null) {
-				logger.error("== processing dataless volume==null! for network=[{}]", networkName);
-				System.exit(0);
-			} else {
-				addVolume(volume);
-			}
+				if (volume == null) {
+					logger.error("== processing dataless volume==null! for network=[{}]", networkName);
+					System.exit(0);
+				} else {
+					addVolume(volume);
+				}
 
 			} // end loop over the per-station dataless files for a given network
 
@@ -180,7 +182,7 @@ public class MetaGenerator {
 	protected void addVolume(SeedVolume volume) {
 		StationKey stationKey = volume.getStationKey();
 		if (volumes.containsKey(stationKey)) {
-			logger.error("== Attempting to load volume networkKey=[{}] --> Already loaded!",
+			logger.error("== Attempting to load volume stationKey=[{}] --> Already loaded!",
 					stationKey);
 		} else {
 			volumes.put(stationKey, volume);
@@ -303,7 +305,7 @@ public class MetaGenerator {
 			logger.error("== getStationMeta request:\t\t[{}]\t[{}]\tNOT FOUND!",
 					station, timestamp.format(DateTimeFormatter.ISO_ORDINAL_DATE));
 			return null; // the name INSIDE the dataless (= US_LKWY) ... so the
-							// keys don't match
+			// keys don't match
 		}
 		// Scan stationData for the correct station blockette (050) for this
 		// timestamp - return null if it isn't found
@@ -314,8 +316,8 @@ public class MetaGenerator {
 					station, timestamp.format(DateTimeFormatter.ISO_ORDINAL_DATE));
 			return null;
 		} else { // Uncomment to print out a Blockette050 each time
-					// getStationMeta is called
-					// blockette.print();
+			// getStationMeta is called
+			// blockette.print();
 			logger.info("== MetaGenerator getStationMeta request:\t\t[{}]\t[{}]",
 					station, EpochData.epochToDateString(timestamp));
 		}
@@ -332,32 +334,32 @@ public class MetaGenerator {
 		Hashtable<ChannelKey, ChannelData> channels = stationData.getChannels();
 		TreeSet<ChannelKey> keys = new TreeSet<>(channels.keySet());
 		for (ChannelKey key : keys) {
-            // System.out.println("==Channel:"+key );
-            ChannelData channel = channels.get(key);
-            // ChannelMeta channelMeta = new ChannelMeta(key,timestamp);
-            ChannelMeta channelMeta = new ChannelMeta(key, timestamp,
-                    station);
+			// System.out.println("==Channel:"+key );
+			ChannelData channel = channels.get(key);
+			// ChannelMeta channelMeta = new ChannelMeta(key,timestamp);
+			ChannelMeta channelMeta = new ChannelMeta(key, timestamp,
+					station);
 
-            // See if this channel contains the requested epoch time and if
-            // so return the key
-            // (=Epoch Start timestamp)
-            // channel.printEpochs();
-            LocalDateTime epochTimestamp = channel.containsEpoch(timestamp);
-            if (epochTimestamp != null) {
-                EpochData epochData = channel.getEpoch(epochTimestamp);
+			// See if this channel contains the requested epoch time and if
+			// so return the key
+			// (=Epoch Start timestamp)
+			// channel.printEpochs();
+			LocalDateTime epochTimestamp = channel.containsEpoch(timestamp);
+			if (epochTimestamp != null) {
+				EpochData epochData = channel.getEpoch(epochTimestamp);
 
-                // If the epoch is closed, check that the end time is at
-                // least 24 hours later than the requested time
-                if (epochData.getEndTime() != null) {
-                    if (epochData.getEndTime().compareTo(timestamp.plusDays(1)) < 0){
-                        // set channelMeta.dayBreak = true
-                        channelMeta.setDayBreak();
-                    }
-                }
-                channelMeta.processEpochData(epochData);
-                stationMeta.addChannel(key, channelMeta);
-            }
-        }
+				// If the epoch is closed, check that the end time is at
+				// least 24 hours later than the requested time
+				if (epochData.getEndTime() != null) {
+					if (epochData.getEndTime().compareTo(timestamp.plusDays(1)) < 0){
+						// set channelMeta.dayBreak = true
+						channelMeta.setDayBreak();
+					}
+				}
+				channelMeta.processEpochData(epochData);
+				stationMeta.addChannel(key, channelMeta);
+			}
+		}
 
 		return stationMeta;
 	}
