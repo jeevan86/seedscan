@@ -93,8 +93,7 @@ public class MetaGenerator {
 			List<String> files = getDatalessFilesForNetwork(dir, datalessFilePattern, networkName);
 
 			if (files.size() == 0) {
-				logger.error("== No dataless files exist!");
-				System.exit(0);
+				continue;
 			}
 
 
@@ -148,6 +147,11 @@ public class MetaGenerator {
 			} // end loop over the per-station dataless files for a given network
 
 		} // end loop over network name codes
+
+		if (volumes.size() == 0){
+			logger.error("No dataless files found");
+			System.exit(0);
+		}
 	}
 
 	static String getStationNameFromPath(String filePath, String networkName, String datalessFilePattern){
