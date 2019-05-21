@@ -17,6 +17,7 @@
     <cfg:plots_dir>plots</cfg:plots_dir>
     <cfg:network_subset>IC</cfg:network_subset>
     <cfg:dataless_dir>/metadata/</cfg:dataless_dir>
+    <cfg:dataless_file>${NETWORK}.${STATION}.dataless</cfg:dataless_file>
     <cfg:events_dir>/SYNTHETICS/</cfg:events_dir>
 
     <cfg:metrics>

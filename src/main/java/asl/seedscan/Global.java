@@ -18,9 +18,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class parses the configuration file (config.xml) when the application is
- * started, and makes the parsed data "globally" accessible throughout the
- * application.
+ * This class parses the configuration file (config.xml) when the application is started, and makes
+ * the parsed data "globally" accessible throughout the application.
  *
  * @author James Holland - USGS
  * @author Nicholas Falco - Honeywell
@@ -29,8 +28,8 @@ import org.slf4j.LoggerFactory;
 public abstract class Global {
 
   /**
-   * Contains the getters and setters for xml structures defined as children
-   * to the ConfigT complex type in SeedScanConfig.xsd
+   * Contains the getters and setters for xml structures defined as children to the ConfigT complex
+   * type in SeedScanConfig.xsd
    **/
   private static ConfigT CONFIG;
 
@@ -47,6 +46,7 @@ public abstract class Global {
 
   protected static final Logger logger = LoggerFactory.getLogger(asl.seedscan.Global.class);
   protected static String datalessDir;
+  protected static String datalessFile;
   protected static DatabaseT database;
   protected static String plotsDir;
   protected static String dataDir;
@@ -112,6 +112,7 @@ public abstract class Global {
     networkRestrictions = Collections.unmodifiableList(networks);
 
     datalessDir = CONFIG.getDatalessDir();
+    datalessFile = CONFIG.getDatalessFile();
     database = CONFIG.getDatabase();
 
     lockfile = CONFIG.getLockfile();
@@ -131,6 +132,10 @@ public abstract class Global {
 
   public static String getDatalessDir() {
     return datalessDir;
+  }
+
+  public static String getDatalessFile() {
+    return datalessFile;
   }
 
   public static DatabaseT getDatabase() {
