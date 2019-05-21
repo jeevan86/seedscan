@@ -15,6 +15,7 @@
     <xsd:element name="qualityflags" type="xsd:string" />
     <xsd:element name="path"        type="xsd:string" />
     <xsd:element name="dataless_dir" type="xsd:string" />
+    <xsd:element name="dataless_file" type="xsd:string" />
     <xsd:element name="events_dir"   type="xsd:string" />
     <xsd:element name="plots_dir"    type="xsd:string" />
     <xsd:element name="metrics"     type="cfg:metrics_T" />
@@ -39,6 +40,7 @@
             
             <xsd:element ref="cfg:path"             minOccurs="1" maxOccurs="1"/>
             <xsd:element ref="cfg:dataless_dir"     minOccurs="1" maxOccurs="1"/>
+            <xsd:element ref="cfg:dataless_file"    minOccurs="1" maxOccurs="1"/>
             <xsd:element ref="cfg:events_dir"       minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="cfg:plots_dir"        minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="cfg:network_subset"   minOccurs="0" maxOccurs="1"/>

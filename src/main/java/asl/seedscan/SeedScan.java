@@ -1,8 +1,5 @@
 package asl.seedscan;
 
-import static asl.util.Logging.exceptionToString;
-import static asl.util.Logging.prettyException;
-
 import asl.seedscan.metrics.MetricException;
 import asl.util.LockFile;
 import asl.util.Logging;
@@ -57,7 +54,7 @@ public class SeedScan {
         throw new IOException("Unable to acquire lock.");
       }
 
-      metaGenerator = new MetaGenerator(Global.getDatalessDir(), Global.getNetworkRestrictions());
+      metaGenerator = new MetaGenerator(Global.getDatalessDir(), Global.getDatalessFile(), Global.getNetworkRestrictions());
       database = new MetricDatabase(Global.getDatabase());
       scanManager = new ScanManager(database, metaGenerator);
 

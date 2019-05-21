@@ -36,6 +36,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,7 +75,7 @@ public class MetaGenerator {
 	 * @param datalessDir	path to dataless seed files, read from config.xml
 	 * @param networkSubset the network subset to parse
 	 */
-	public MetaGenerator(String datalessDir, List<String> networkSubset) {
+	public MetaGenerator(String datalessDir, String datalessFilePattern, List<String> networkSubset) {
 		volumes = new Hashtable<>();
 
 		File dir = new File(datalessDir);
@@ -88,24 +90,7 @@ public class MetaGenerator {
 		// this will try to create a list of all paths that define dataless based on network data
 
 		for (String networkName : networkSubset) {
-			List<Path> allMetadataFiles = new ArrayList<>();
-			try (DirectoryStream<Path> stream = Files
-					.newDirectoryStream(dir.toPath(), networkName + ".*.dataless")) {
-				for (Path entry : stream) {
-					allMetadataFiles.add(entry);
-				}
-			} catch (DirectoryIteratorException e) {
-				logger.error("Error in iterating through directory for network " + networkName, e);
-				System.exit(0);
-			} catch (IOException e) {
-				logger.error("Triggered IOException while enumerating files for network " + networkName, e);
-				System.exit(0);
-			}
-
-			List<String> files = new ArrayList<>(allMetadataFiles.size());
-			for (Path metadataPath : allMetadataFiles) {
-				files.add(metadataPath.toString());
-			}
+			List<String> files = getDatalessFilesForNetwork(dir, datalessFilePattern, networkName);
 
 			if (files.size() == 0) {
 				logger.error("== No dataless files exist!");
@@ -119,17 +104,10 @@ public class MetaGenerator {
 
 				ArrayList<String> strings = new ArrayList<>(); // list of lines from processed metadata file
 
-				System.out.format(
-						"== MetaGenerator: rdseed -f [datalessFile=%s]\n",
-						datalessFile);
-				ProcessBuilder pb = new ProcessBuilder("rdseed", "-s", "-f",
-						datalessFile);
+				logger.info("== MetaGenerator: rdseed -f [datalessFile={}]", datalessFile);
+				ProcessBuilder pb = new ProcessBuilder("rdseed", "-s", "-f", datalessFile);
 
-				String filename = datalessFile.substring(
-						datalessFile.lastIndexOf("/")+1);
-
-				String stationName = filename.split("\\.")[1]; // match on literal period
-				// because we expect filenames to be NETWORK.STATION.dataless (i.e., IU.ANMO.dataless)
+				String stationName = getStationNameFromPath(datalessFile, networkName, datalessFilePattern);
 
 				try {
 					Process process = pb.start();
@@ -170,6 +148,43 @@ public class MetaGenerator {
 			} // end loop over the per-station dataless files for a given network
 
 		} // end loop over network name codes
+	}
+
+	static String getStationNameFromPath(String filePath, String networkName, String datalessFilePattern){
+		String filename = filePath.substring(
+				filePath.lastIndexOf("/")+1);
+
+		String datalessFileRegex = datalessFilePattern.replace("${NETWORK}", networkName);
+		datalessFileRegex = datalessFileRegex.replace("${STATION}", "(?<station>[A-Z0-9]{1,5})");
+		Pattern pattern = Pattern.compile(datalessFileRegex);
+		Matcher matcher = pattern.matcher(filename);
+		matcher.matches();
+
+		return matcher.group("station");
+	}
+
+	static List<String> getDatalessFilesForNetwork(File datalessDir, String datalessFilePattern, String networkName){
+		List<Path> allMetadataFiles = new ArrayList<>();
+		String datalessWildCard = datalessFilePattern.replace("${NETWORK}", networkName);
+		datalessWildCard = datalessWildCard.replace("${STATION}", "*");
+		try (DirectoryStream<Path> stream = Files
+				.newDirectoryStream(datalessDir.toPath(), datalessWildCard)) {
+			for (Path entry : stream) {
+				allMetadataFiles.add(entry);
+			}
+		} catch (DirectoryIteratorException e) {
+			logger.error("Error in iterating through directory for network " + networkName, e);
+			System.exit(0);
+		} catch (IOException e) {
+			logger.error("Triggered IOException while enumerating files for network " + networkName, e);
+			System.exit(0);
+		}
+
+		List<String> files = new ArrayList<>(allMetadataFiles.size());
+		for (Path metadataPath : allMetadataFiles) {
+			files.add(metadataPath.toString());
+		}
+		return files;
 	}
 
 	SeedVolume buildVolumesFromStringData(List<String> strings, String networkName, String stationName) throws DatalessParseException {
