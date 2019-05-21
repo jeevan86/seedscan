@@ -126,7 +126,8 @@ public class MetaGenerator {
 				String filename = datalessFile.substring(
 						datalessFile.lastIndexOf("/")+1);
 
-				String stationName = filename.split(".")[1];
+				String stationName = filename.split("\\.")[1]; // match on literal period
+				// because we expect filenames to be NETWORK.STATION.dataless (i.e., IU.ANMO.dataless)
 				System.out.println("READING IN: " + networkName + "," + stationName);
 
 				try {
