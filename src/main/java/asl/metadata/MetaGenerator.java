@@ -23,6 +23,10 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.DirectoryIteratorException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -79,78 +83,81 @@ public class MetaGenerator {
 			System.exit(0);
 		}
 
-		/* Create List of network subset IDs '<ID>.dataless' */
-		final List<String> networkExt = new ArrayList<>();
-		if (networkSubset != null) {
-			String ext = "";
-			for (String key : networkSubset) {
-				ext = key + ".dataless";
-				networkExt.add(ext);
+		// this will try to create a list of all paths that define dataless based on network data
+
+		for (String networkName : networkSubset) {
+			List<Path> allMetadataFiles = new ArrayList<>();
+			try (DirectoryStream<Path> stream = Files
+					.newDirectoryStream(dir.toPath(), networkName + "_*.dataless")) {
+				for (Path entry : stream) {
+					allMetadataFiles.add(entry);
+				}
+			} catch (DirectoryIteratorException e) {
+				logger.error("Error in iterating through directory for network " + networkName, e);
+				System.exit(0);
+			} catch (IOException e) {
+				logger.error("Triggered IOException while enumerating files for network " + networkName, e);
+				System.exit(0);
 			}
-		}
-		FilenameFilter textFilter = (dir1, name) -> {
-      if (!networkExt.isEmpty()) {
-        return networkExt.contains(name);
-      } else {
-        return name.endsWith(".dataless") && (name.length() == 11) || name.endsWith(".dataless") && (name.length() == 10);
-      }
-    };
 
-		String[] files = dir.list(textFilter);
-		if (files == null) {
-			logger.error("== No dataless files exist!");
-			System.exit(0);
-		}
-		for (String fileName : files) {
-			String networkName = fileName.replace(".dataless","");
-			String datalessFile = dir + "/" + fileName;
-			System.out.format(
-					"== MetaGenerator: rdseed -f [datalessFile=%s]\n",
-					datalessFile);
-			ProcessBuilder pb = new ProcessBuilder("rdseed", "-s", "-f",
-					datalessFile);
+			List<String> files = new ArrayList<>(allMetadataFiles.size());
+			for (Path metadataPath : allMetadataFiles) {
+				files.add(metadataPath.toString());
+			}
 
+			if (files.size() == 0) {
+				logger.error("== No dataless files exist!");
+				System.exit(0);
+			}
 			ArrayList<String> strings = new ArrayList<>();
+
+			// we expect dataless structures to be associated over entire network
+			// so we'll read in the strings from
+			for (String datalessFile : files) {
+				System.out.format(
+						"== MetaGenerator: rdseed -f [datalessFile=%s]\n",
+						datalessFile);
+				ProcessBuilder pb = new ProcessBuilder("rdseed", "-s", "-f",
+						datalessFile);
+
+				try {
+					Process process = pb.start();
+					BufferedReader reader = new BufferedReader(
+							new InputStreamReader(process.getInputStream()));
+					String line = null;
+					while ((line = reader.readLine()) != null) {
+						strings.add(line);
+					}
+					process.waitFor();
+				}
+				// Need to catch both IOException and InterruptedException
+				catch (IOException e) {
+					// System.out.println("Error: IOException Description: " +
+					// e.getMessage());
+					logger.error("IOException:", e);
+				} catch (InterruptedException e) {
+					// System.out.println("Error: InterruptedException Description: "
+					// + e.getMessage());
+					logger.error("InterruptedException:", e);
+				}
+			} // end loop over the per-station dataless files for a given network
 
 			SeedVolume volume = null;
 
 			try {
-				Process process = pb.start();
-				BufferedReader reader = new BufferedReader(
-						new InputStreamReader(process.getInputStream()));
-				String line = null;
-				while ((line = reader.readLine()) != null) {
-					strings.add(line);
-				}
-				process.waitFor();
-			}
-			// Need to catch both IOException and InterruptedException
-			catch (IOException e) {
-				// System.out.println("Error: IOException Description: " +
-				// e.getMessage());
-				logger.error("IOException:", e);
-			} catch (InterruptedException e) {
-				// System.out.println("Error: InterruptedException Description: "
-				// + e.getMessage());
-				logger.error("InterruptedException:", e);
-			}
-
-
-
-			try {
 				volume = buildVolumesFromStringData(strings, networkName);
 			} catch (Exception e) {
-				logger.error("== processing dataless volume for file=[{}]",	fileName);
+				logger.error("== processing dataless volume for network=[{}]", networkName);
 			}
 
 			if (volume == null) {
-				logger.error("== processing dataless volume==null! for file=[{}]", fileName);
+				logger.error("== processing dataless volume==null! for network=[{}]", networkName);
 				System.exit(0);
 			} else {
 				addVolume(volume);
 			}
 
-		} // end for loop over XX.dataless files
+		} // end loop over network name codes
 	}
 
 	SeedVolume buildVolumesFromStringData(List<String> strings, String networkName) throws DatalessParseException {
