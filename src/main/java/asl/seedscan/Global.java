@@ -47,7 +47,7 @@ public abstract class Global {
 
   protected static final Logger logger = LoggerFactory.getLogger(asl.seedscan.Global.class);
   protected static String datalessDir;
-  protected static String datalesFile;
+  protected static String datalessFile;
   protected static DatabaseT database;
   protected static String plotsDir;
   protected static String dataDir;
@@ -113,7 +113,7 @@ public abstract class Global {
     networkRestrictions = Collections.unmodifiableList(networks);
 
     datalessDir = CONFIG.getDatalessDir();
-    datalesFile = CONFIG.getDatalessFile();
+    datalessFile = CONFIG.getDatalessFile();
     database = CONFIG.getDatabase();
 
     lockfile = CONFIG.getLockfile();
@@ -136,7 +136,7 @@ public abstract class Global {
   }
 
   public static String getDatalessFile() {
-    return datalesFile;
+    return datalessFile;
   }
 
   public static DatabaseT getDatabase() {
