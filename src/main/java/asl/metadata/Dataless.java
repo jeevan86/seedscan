@@ -79,14 +79,16 @@ class Dataless {
 	private Collection<String> rawDataless;
 	private ArrayList<Blockette> blockettes;
 	private String networkName;
+	private String stationName;
 	private double percent;
 	private double lastPercent;
 	private double count;
 	private double total;
 	
-	Dataless(Collection<String> rawDataless, String networkName) {
+	Dataless(Collection<String> rawDataless, String networkName, String stationName) {
 		this.rawDataless = rawDataless;
 		this.networkName = networkName;
+		this.stationName = stationName;
 	}
 
 	void processVolume() throws DatalessParseException {
@@ -210,7 +212,7 @@ class Dataless {
 				if (volume != null) {
 					throw new DuplicateBlocketteException();
 				}
-				volume = new SeedVolume(blockette, networkName);
+				volume = new SeedVolume(blockette, networkName, stationName);
 				break;
 			case 11:
 				if (volume == null) {

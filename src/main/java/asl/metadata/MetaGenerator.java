@@ -20,7 +20,6 @@ package asl.metadata;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.DirectoryIteratorException;
@@ -30,8 +29,11 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeSet;
 
 import org.slf4j.Logger;
@@ -55,7 +57,7 @@ public class MetaGenerator {
 	 * Each datalessDir/XX.dataless file is read into a separate SeedVolume
 	 * keyed by network (e.g., XX)
 	 */
-	protected Hashtable<NetworkKey, SeedVolume> volumes = null;
+	protected Hashtable<StationKey, SeedVolume> volumes = null;
 
 	/**
 	 * Private class meant to enable mock test class to inherit from this without running other function
@@ -114,6 +116,13 @@ public class MetaGenerator {
 			// we expect dataless structures to be associated over entire network
 			// so we'll read in the strings from
 			for (String datalessFile : files) {
+
+				String filename = datalessFile.substring(
+						datalessFile.lastIndexOf("/")+1, datalessFile.indexOf("."));
+
+				String stationName = filename.split(".")[1];
+				System.out.println("READING IN: " + networkName + "," + stationName);
+
 				System.out.format(
 						"== MetaGenerator: rdseed -f [datalessFile=%s]\n",
 						datalessFile);
@@ -140,12 +149,11 @@ public class MetaGenerator {
 					// + e.getMessage());
 					logger.error("InterruptedException:", e);
 				}
-			} // end loop over the per-station dataless files for a given network
+
 
 			SeedVolume volume = null;
-
 			try {
-				volume = buildVolumesFromStringData(strings, networkName);
+				volume = buildVolumesFromStringData(strings, networkName, stationName);
 			} catch (Exception e) {
 				logger.error("== processing dataless volume for network=[{}]", networkName);
 			}
@@ -157,22 +165,24 @@ public class MetaGenerator {
 				addVolume(volume);
 			}
 
+			} // end loop over the per-station dataless files for a given network
+
 		} // end loop over network name codes
 	}
 
-	SeedVolume buildVolumesFromStringData(List<String> strings, String networkName) throws DatalessParseException {
-		Dataless dataless = new Dataless(strings, networkName);
+	SeedVolume buildVolumesFromStringData(List<String> strings, String networkName, String stationName) throws DatalessParseException {
+		Dataless dataless = new Dataless(strings, networkName, stationName);
 		dataless.processVolume();
 		return dataless.getVolume();
 	}
 
 	protected void addVolume(SeedVolume volume) {
-		NetworkKey networkKey = volume.getNetworkKey();
-		if (volumes.containsKey(networkKey)) {
+		StationKey stationKey = volume.getStationKey();
+		if (volumes.containsKey(stationKey)) {
 			logger.error("== Attempting to load volume networkKey=[{}] --> Already loaded!",
-					networkKey);
+					stationKey);
 		} else {
-			volumes.put(networkKey, volume);
+			volumes.put(stationKey, volume);
 		}
 	}
 
@@ -184,7 +194,7 @@ public class MetaGenerator {
 			return null;
 		}
 		ArrayList<Station> allStations = new ArrayList<>();
-		for (NetworkKey key : volumes.keySet()) {
+		for (StationKey key : volumes.keySet()) {
 			SeedVolume volume = volumes.get(key);
 			List<Station> stations = volume.getStationList();
 			allStations.addAll(stations);
@@ -208,37 +218,35 @@ public class MetaGenerator {
 
 		List<Station> allStations = new ArrayList<>();
 
-		if(networks != null && stations != null){
+		if (networks != null && stations != null) {
 			for (String network : networks) {
-				SeedVolume volume = volumes.get(new NetworkKey(network));
-				for(String station : stations){
-					if(volume.hasStation(new StationKey(network, station))) {
+				for (String station : stations) {
+					if (volumes.containsKey(new StationKey(network, station))) {
 						allStations.add(new Station(network, station));
 					}
 				}
 			}
-		}
-		else if(networks != null && stations == null){
-			//Only Network restrictions
-			for (String network : networks) {
-				SeedVolume volume = volumes.get(new NetworkKey(network));
-				allStations.addAll(volume.getStationList());
-			}
-		}
-		else if(networks == null && stations != null){
-			//Possible condition, not sure the situation this makes sense.
-			for (NetworkKey networkKey : volumes.keySet()) {
-				SeedVolume volume = volumes.get(networkKey);
-				for(String station : stations){
-					if(volume.hasStation(new StationKey(networkKey.network, station))) {
-						allStations.add(new Station(networkKey.network, station));
-					}
+		} else if (networks != null) {
+			// networks is not null so stations must be null based on previous conditional
+			// we'll check this by iterating through keys and finding if they match the networks in list
+			Set<String> networkSet = new HashSet<>(Arrays.asList(networks)); // speeds up lookup
+			for (StationKey stationKey : volumes.keySet()) {
+				if (networkSet.contains(stationKey.getNetwork())) {
+					allStations.add(new Station(stationKey.getNetwork(), stationKey.getName()));
 				}
 			}
-		}
-		else if(networks == null && stations == null){
+		} else if (stations != null) {
+			// networks must be null based on previous conditional
+			Set<String> stationSet = new HashSet<>(Arrays.asList(stations));
+			for (StationKey stationKey : volumes.keySet()) {
+				if (stationSet.contains(stationKey.getName())) {
+					allStations.add(new Station(stationKey.getNetwork(), stationKey.getName()));
+				}
+			}
+		} else {
 			allStations = getStationList();
 		}
+
 		return allStations;
 	}
 
@@ -255,7 +263,7 @@ public class MetaGenerator {
 	 *         malformatted
 	 */
 	private StationData getStationData(Station station) {
-		SeedVolume volume = volumes.get(new NetworkKey(station.getNetwork()));
+		SeedVolume volume = volumes.get(new StationKey(station));
 		if (volume == null) {
 			logger.error(
 					"== getStationData() - Volume==null for Station=[{}]  Check the volume label in Blockette 10 Field 9. Must be formatted like IU* to work.\n",
@@ -321,8 +329,7 @@ public class MetaGenerator {
 
 		// Get this StationData's ChannelKeys and sort:
 		Hashtable<ChannelKey, ChannelData> channels = stationData.getChannels();
-		TreeSet<ChannelKey> keys = new TreeSet<>();
-		keys.addAll(channels.keySet());
+		TreeSet<ChannelKey> keys = new TreeSet<>(channels.keySet());
 		for (ChannelKey key : keys) {
             // System.out.println("==Channel:"+key );
             ChannelData channel = channels.get(key);
