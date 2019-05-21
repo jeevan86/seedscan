@@ -108,9 +108,9 @@ public class SeedVolume {
 	}
 
 	/**
-	 * Gets the network key.
+	 * Gets the station key -- dataless files are specified with one file per station
 	 * 
-	 * @return the network key
+	 * @return the station key
 	 */
 	public StationKey getStationKey() {
 		return this.stationKey;

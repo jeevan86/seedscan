@@ -130,7 +130,6 @@ public class MetaGenerator {
 
 				String stationName = filename.split("\\.")[1]; // match on literal period
 				// because we expect filenames to be NETWORK.STATION.dataless (i.e., IU.ANMO.dataless)
-				System.out.println("READING IN: " + networkName + "," + stationName);
 
 				try {
 					Process process = pb.start();
