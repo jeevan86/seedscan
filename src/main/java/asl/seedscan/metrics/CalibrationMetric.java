@@ -4,8 +4,9 @@ import asl.metadata.Channel;
 import asl.metadata.meta_new.ChannelMeta;
 import asl.metadata.meta_new.ResponseStage;
 import asl.seedsplitter.DataSet;
-import asl.timeseries.PSD;
 import asl.util.Logging;
+import asl.utils.FFTResult;
+import asl.utils.TimeSeriesUtils;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -259,11 +260,11 @@ public class CalibrationMetric extends Metric {
 		// Compute/Get the 1-sided psd[f] using Peterson's algorithm (24 hrs, 13
 		// segments, etc.)
 
-		double dt = 1.0 / srate;
-		PSD psdX = new PSD(inData, inData, dt);
-		Complex[] Gx = psdX.getSpectrum();
-		double df = psdX.getDeltaF();
-		double[] freq = psdX.getFreq();
+		long dt = (long) (1. / srate * TimeSeriesUtils.ONE_HZ_INTERVAL);
+		FFTResult psdX = FFTResult.spectralCalc(inData, inData, dt);
+		Complex[] Gx = psdX.getFFT();
+		double df = psdX.getFreq(1);
+		double[] freq = psdX.getFreqs();
 		int nf = freq.length;
 
 		ChannelMeta chanMeta = stationMeta.getChannelMetadata(channel);
@@ -279,8 +280,8 @@ public class CalibrationMetric extends Metric {
 							station, channel.toString(), day));
 		}
 
-		PSD psdXY = new PSD(inData, outData, dt);
-		Complex[] Gxy = psdXY.getSpectrum();
+		FFTResult psdXY = FFTResult.spectralCalc(inData, outData, dt);
+		Complex[] Gxy = psdXY.getFFT();
 		Complex[] Hf = new Complex[Gxy.length];
 		double[] calAmp = new double[Gxy.length];
 		double[] calPhs = new double[Gxy.length];

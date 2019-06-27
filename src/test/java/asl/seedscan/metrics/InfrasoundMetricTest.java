@@ -2,10 +2,12 @@ package asl.seedscan.metrics;
 
 import static org.junit.Assert.assertEquals;
 
+import asl.metadata.Channel;
 import asl.metadata.Station;
+import asl.metadata.meta_new.ChannelMetaException;
+import asl.testutils.MetricTestMap;
 import asl.testutils.ResourceManager;
 import java.time.LocalDate;
-import java.util.HashMap;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -40,11 +42,14 @@ public class InfrasoundMetricTest {
   }
 
   @Test
-  public void testMetricResultMatchesExpected() {
+  public void testMetricResultMatchesExpected()
+      throws MetricException, MetricPSDException, ChannelMetaException {
     metric = new InfrasoundMetric();
     metric.setData(data);
-    HashMap<String, Double> expect = new HashMap<>();
-    expect.put("32,BDF", 0.8217882293173047);
+    Channel channel = data.getMetaData().getChannelArray("BD,HD", false, true).get(0);
+
+    MetricTestMap expect = new MetricTestMap();
+    expect.put("32,BDF", 1.1671, 1E-4);
     TestUtils.testMetric(metric, expect);
   }
 

@@ -1,5 +1,7 @@
 package asl.timeseries;
 
+import asl.utils.FFTResult;
+import asl.utils.TimeSeriesUtils;
 import org.apache.commons.math3.complex.Complex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +46,7 @@ public class MyFilter {
 		int ndata = timeseries.length;
 
 		// Find smallest power of 2 >= ndata:
-		int nfft = FFTUtils.getPaddedSize(ndata);
+		int nfft = FFTResult.findFFTPaddingLength(ndata);
 
 		double df = 1. / (nfft * delta);
 
@@ -54,9 +56,9 @@ public class MyFilter {
 
 		double[] data = new double[ndata];
 		System.arraycopy(timeseries, 0, data, 0, ndata);
-		TimeseriesUtils.detrend(data);
-		TimeseriesUtils.demean(data);
-		TimeseriesUtils.costaper(data, .01);
+		data = TimeSeriesUtils.detrend(data);
+		TimeSeriesUtils.demean(data);
+		FFTResult.cosineTaper(data, .01);
 
 		// fft2 returns just the (nf = nfft/2 + 1) positive frequencies
 		Complex[] xfft = FFTUtils.singleSidedFFT(data);

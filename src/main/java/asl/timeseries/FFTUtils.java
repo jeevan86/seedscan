@@ -1,5 +1,6 @@
 package asl.timeseries;
 
+import asl.utils.FFTResult;
 import org.apache.commons.math3.complex.Complex;
 import org.apache.commons.math3.transform.DftNormalization;
 import org.apache.commons.math3.transform.FastFourierTransformer;
@@ -37,7 +38,7 @@ public class FFTUtils {
 	 * @return the new 0 padded Complex[]
 	 */
 	private static Complex[] getPaddedData(Complex[] data) {
-		Complex[] paddedData = new Complex[getPaddedSize(data.length)];
+		Complex[] paddedData = new Complex[FFTResult.findFFTPaddingLength(data.length)];
 		System.arraycopy(data, 0, paddedData, 0, data.length);
 
 		for (int i = data.length; i < paddedData.length; i++) {
@@ -55,28 +56,12 @@ public class FFTUtils {
 	 * @return the new 0 padded double[]
 	 */
 	private static double[] getPaddedData(double[] data) {
-		double[] paddedData = new double[getPaddedSize(data.length)];
+		double[] paddedData = new double[FFTResult.findFFTPaddingLength(data.length)];
 		// Default value of double is 0 in java.
 		System.arraycopy(data, 0, paddedData, 0, data.length);
 
 		return paddedData;
 	}
-
-	/**
-	 * Calculates the next largest or equal power of 2 based on a length.
-	 * 
-	 * @param length
-	 *            length to match or beat
-	 * @return the closest power of 2 greater than length
-	 */
-	public static int getPaddedSize(int length) {
-		int paddedSize = 1;
-		while (paddedSize < length) {
-			paddedSize = (paddedSize << 1);
-		}
-		return paddedSize;
-	}
-
 	/**
 	 * Find only the real component of the Complex[]. Truncates according to
 	 * length

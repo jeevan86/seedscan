@@ -3,8 +3,8 @@ package asl.seedscan.metrics;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import asl.testutils.MetricTestMap;
 import asl.testutils.ResourceManager;
-import java.util.HashMap;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -49,13 +49,14 @@ public class NLNMDeviationMetricTest {
     metric.add("channel-restriction", "LH");
 
 		/* The String key matches the MetricResult ids */
-    HashMap<String, Double> expect = new HashMap<>();
-    expect.put("00,LH1", 6.144156714847165);
-    expect.put("00,LH2", 6.94984340838684);
-    expect.put("00,LHZ", 9.502837498158087);
-    expect.put("10,LH1", 7.126248440694965);
-    expect.put("10,LH2", 6.701346629427542);
-    expect.put("10,LHZ", 9.473855204418532);
+    MetricTestMap expect = new MetricTestMap();
+    double error = 1E-5;
+    expect.put("00,LH1", 6.144156714847165, error);
+    expect.put("00,LH2", 6.94984340838684, error);
+    expect.put("00,LHZ", 9.502837498158087, error);
+    expect.put("10,LH1", 7.126248440694965, error);
+    expect.put("10,LH2", 6.701346629427542, error);
+    expect.put("10,LHZ", 9.473855204418532, error);
 
     TestUtils.testMetric(metric, expect);
 
@@ -110,14 +111,14 @@ public class NLNMDeviationMetricTest {
     metric.setData(data1);
 
 		/* The String key matches the MetricResult ids */
-    expect = new HashMap<>();
+    expect = new MetricTestMap();
 
-    expect.put("00,BH1", 9.232908381769587);
-    expect.put("00,BH2", 10.195579936296998);
-    expect.put("00,BHZ", 14.13441804592783);
-    expect.put("10,BH1", 11.99869763918782);
-    expect.put("10,BH2", 11.413398919704086);
-    expect.put("10,BHZ", 12.496385325897268);
+    expect.put("00,BH1", 9.23291, error);
+    expect.put("00,BH2", 10.19558, error);
+    expect.put("00,BHZ", 14.13442, error);
+    expect.put("10,BH1", 11.99870, error);
+    expect.put("10,BH2", 11.41340, error);
+    expect.put("10,BHZ", 12.49639, error);
 
     TestUtils.testMetric(metric, expect);
   }
@@ -143,13 +144,11 @@ public class NLNMDeviationMetricTest {
 
   @Test
   public final void testGetNLNM() throws Exception {
-    metric.add("nlnm-modelfile", "build/resources/main/noiseModels/NLNM.ascii");
     assertTrue(NLNMDeviationMetric.getNLNM().isValid());
   }
 
   @Test
   public final void testGetNHNM() throws Exception {
-    metric.add("nhnm-modelfile", "build/resources/main/noiseModels/NHNM.ascii");
     assertTrue(NLNMDeviationMetric.getNHNM().isValid());
   }
 
