@@ -2,8 +2,8 @@ package asl.seedscan.metrics;
 
 import static org.junit.Assert.assertEquals;
 
+import asl.testutils.MetricTestMap;
 import asl.testutils.ResourceManager;
-import java.util.HashMap;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -33,9 +33,9 @@ public class DifferencePBMTest {
     metric.add("lower-limit", "4");
     metric.add("upper-limit", "8");
     metric.setData(data);
-    HashMap<String, Double> expect = new HashMap<>();
-    expect.put("00-10,LHZ-LHZ", 0.02779018298002567);
-    expect.put("00-10,LHND-LHND", -0.7957964379446976);
+    MetricTestMap expect = new MetricTestMap();
+    expect.put("00-10,LHZ-LHZ", 0.0277, 1E-4);
+    expect.put("00-10,LHND-LHND", -0.7967, 1E-4);
     expect.put("00-10,LHED-LHED", -0.05227434264917066);
     TestUtils.testMetric(metric, expect);
   }
@@ -47,7 +47,7 @@ public class DifferencePBMTest {
     metric.add("lower-limit", "18");
     metric.add("upper-limit", "22");
     metric.setData(data);
-    HashMap<String, Double> expect = new HashMap<>();
+    MetricTestMap expect = new MetricTestMap();
     expect.put("00-10,LHZ-LHZ", -0.012528556291717641);
     expect.put("00-10,LHND-LHND", -0.7353751399284663);
     expect.put("00-10,LHED-LHED", -0.04477810128884697);
@@ -61,7 +61,7 @@ public class DifferencePBMTest {
     metric.add("lower-limit", "90");
     metric.add("upper-limit", "110");
     metric.setData(data);
-    HashMap<String, Double> expect = new HashMap<>();
+    MetricTestMap expect = new MetricTestMap();
     expect.put("00-10,LHZ-LHZ", -0.8565980848491274);
     expect.put("00-10,LHND-LHND", -2.5233649990080536);
     expect.put("00-10,LHED-LHED", 1.9647142330285077);
@@ -75,7 +75,7 @@ public class DifferencePBMTest {
     metric.add("lower-limit", "200");
     metric.add("upper-limit", "500");
     metric.setData(data);
-    HashMap<String, Double> expect = new HashMap<>();
+    MetricTestMap expect = new MetricTestMap();
     expect.put("00-10,LHZ-LHZ", 2.482041064846602);
     expect.put("00-10,LHND-LHND", -4.305257164778122);
     expect.put("00-10,LHED-LHED", 6.142284343045829);
@@ -91,7 +91,7 @@ public class DifferencePBMTest {
     metric.add("upper-limit", "500");
     metric.add("base-channel", "10-LH");
     metric.setData(data);
-    HashMap<String, Double> expect = new HashMap<>();
+    MetricTestMap expect = new MetricTestMap();
     expect.put("10-00,LHZ-LHZ", -2.482041064846602);
     expect.put("10-00,LHND-LHND", 4.305257164778122);
     expect.put("10-00,LHED-LHED", -6.142284343045829);

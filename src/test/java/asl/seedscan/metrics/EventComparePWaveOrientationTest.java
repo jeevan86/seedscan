@@ -3,22 +3,20 @@ package asl.seedscan.metrics;
 import static asl.seedscan.metrics.EventComparePWaveOrientation.correctBackAzimuthQuadrant;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import asl.metadata.Channel;
-import java.awt.Event;
+import asl.metadata.Station;
+import asl.seedscan.event.EventLoader;
+import asl.testutils.MetricTestMap;
+import asl.testutils.ResourceManager;
 import java.time.LocalDate;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import asl.metadata.Station;
-import asl.seedscan.event.EventLoader;
-import asl.testutils.ResourceManager;
 
 public class EventComparePWaveOrientationTest {
 
@@ -78,9 +76,9 @@ public class EventComparePWaveOrientationTest {
     metric.setData(data);
     metric.setEventTable(eventLoader.getDayEvents(dataDate));
     metric.setEventSynthetics(eventLoader.getDaySynthetics(dataDate, station));
-    HashMap<String, Double> expect = new HashMap<>();
-    expect.put("00,LHND", -2.3866712747229144);
-    expect.put("10,LHND", 0.4289696470040667);
+    MetricTestMap expect = new MetricTestMap();
+    expect.put("00,LHND", -2.387, 1E-3);
+    expect.put("10,LHND", 0.429, 1E-3);
     TestUtils.testMetric(metric, expect);
   }
 
@@ -90,9 +88,9 @@ public class EventComparePWaveOrientationTest {
     metric.setData(data3);
     metric.setEventTable(eventLoader.getDayEvents(dataDate));
     metric.setEventSynthetics(eventLoader.getDaySynthetics(dataDate, station3));
-    HashMap<String, Double> expect = new HashMap<>();
-    expect.put("00,LHND", -1.1973112502045353);
-    expect.put("10,LHND", -0.18899016262102464);
+    MetricTestMap expect = new MetricTestMap();
+    expect.put("00,LHND", -1.197, 1E-3);
+    expect.put("10,LHND", -0.189, 1E-3);
     TestUtils.testMetric(metric, expect);
   }
 
@@ -103,10 +101,10 @@ public class EventComparePWaveOrientationTest {
     LocalDate date = LocalDate.of(2018, 1, 23);
     metric.setEventTable(eventLoader.getDayEvents(date));
     metric.setEventSynthetics(eventLoader.getDaySynthetics(date, new Station("IU", "TUC")));
-    HashMap<String, Double> expect = new HashMap<>();
-    expect.put("00,LHND", -6.298633362416524);
-    expect.put("10,LHND", -0.23838631080417372);
-    expect.put("60,LHND", -0.6619642751721244);
+    MetricTestMap expect = new MetricTestMap();
+    expect.put("00,LHND", -6.299, 1E-3);
+    expect.put("10,LHND", -0.238, 1E-3);
+    expect.put("60,LHND", -0.662, 1E-3);
     TestUtils.testMetric(metric, expect);
   }
 
@@ -116,8 +114,8 @@ public class EventComparePWaveOrientationTest {
     metric.setData(data4);
     metric.setEventTable(eventLoader.getDayEvents(dataDate));
     metric.setEventSynthetics(eventLoader.getDaySynthetics(dataDate, station4));
-    HashMap<String, Double> expect = new HashMap<>();
-    expect.put("10,LHND", -2.2596148957075);
+    MetricTestMap expect = new MetricTestMap();
+    expect.put("10,LHND", -2.260, 1E-3);
     TestUtils.testMetric(metric, expect);
   }
 
@@ -133,9 +131,9 @@ public class EventComparePWaveOrientationTest {
     metric.setData(data);
     metric.setEventTable(eventLoader.getDayEvents(dataDate));
     metric.setEventSynthetics(eventLoader.getDaySynthetics(dataDate, station));
-    HashMap<String, Double> expect = new HashMap<>();
-    expect.put("00,LHND", -2.3866712747229144);
-    expect.put("10,LHND", 0.4289696470040667);
+    MetricTestMap expect = new MetricTestMap();
+    expect.put("00,LHND", -2.387, 1E-3);
+    expect.put("10,LHND", 0.429, 1E-3);
     TestUtils.testMetric(metric, expect);
   }
 
@@ -153,9 +151,9 @@ public class EventComparePWaveOrientationTest {
     metric.setEventSynthetics(eventLoader.getDaySynthetics(dataDate, station));
     // we can actually get results since we only need to know where event happened
     // and don't actually use the raw synthetic data for anything in this test
-    HashMap<String, Double> expect = new HashMap<>();
-    expect.put("00,BHND", -2.3185985685825585);
-    expect.put("10,BHND", 0.49518735047792006);
+    MetricTestMap expect = new MetricTestMap();
+    expect.put("00,BHND", -2.318, 1E-3);
+    expect.put("10,BHND", 0.495, 1E-3);
     TestUtils.testMetric(metric, expect);
   }
 

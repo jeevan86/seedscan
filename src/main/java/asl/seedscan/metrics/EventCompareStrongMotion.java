@@ -286,7 +286,7 @@ public class EventCompareStrongMotion extends Metric {
 		double stlo = stationMeta.getLongitude();
 		double gcarc = SphericalCoords.distance(evla, evlo, stla, stlo);
 		double azim = SphericalCoords.azimuth(evla, evlo, stla, stlo);
-		TauP_Time timeTool = null;
+		TauP_Time timeTool;
 		try {
 			timeTool = new TauP_Time("prem");
 			timeTool.parsePhaseList("P,S");

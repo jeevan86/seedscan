@@ -1,6 +1,7 @@
 package asl.seedscan.metrics;
 
 import static org.junit.Assert.assertEquals;
+
 import asl.metadata.Station;
 import asl.testutils.ResourceManager;
 import java.time.LocalDate;

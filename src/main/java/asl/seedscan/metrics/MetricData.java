@@ -1,6 +1,10 @@
 package asl.seedscan.metrics;
 
+import asl.timeseries.FFTUtils;
+import asl.timeseries.PreprocessingUtils;
 import asl.util.Logging;
+import asl.utils.FFTResult;
+import asl.utils.TimeSeriesUtils;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.time.LocalDate;
@@ -30,9 +34,7 @@ import asl.seedsplitter.ContiguousBlock;
 import asl.seedsplitter.DataSet;
 import asl.seedsplitter.IllegalSampleRateException;
 import asl.seedsplitter.SequenceRangeException;
-import asl.timeseries.FFTUtils;
 import asl.timeseries.TimeseriesException;
-import asl.timeseries.TimeseriesUtils;
 import asl.util.Time;
 import seed.Blockette320;
 
@@ -495,9 +497,9 @@ public class MetricData implements Serializable {
 
     double[] data = new double[timeseries.length];
     System.arraycopy(timeseries, 0, data, 0, timeseries.length);
-    TimeseriesUtils.detrend(data);
-    TimeseriesUtils.demean(data);
-    TimeseriesUtils.costaper(data, .01);
+    data = TimeSeriesUtils.detrend(data);
+    TimeSeriesUtils.demeanInPlace(data);
+    FFTResult.cosineTaper(data, .01);
 
     double[] freq = new double[nf];
     for (int k = 0; k < nf; k++) {
@@ -507,7 +509,8 @@ public class MetricData implements Serializable {
     // Get the instrument response for requested ResponseUnits
     Complex[] instrumentResponse = chanMeta.getResponse(freq, responseUnits);
 
-    // fft2 returns just the (nf = nfft/2 + 1) positive frequencies
+    // return the (nf = nfft/2 + 1) positive frequencies
+    // variable false is here because we don't have any reason to flip the data in this method
     Complex[] xfft = FFTUtils.singleSidedFFT(data);
 
     double fNyq = (double) (nf - 1) * df;
@@ -531,17 +534,18 @@ public class MetricData implements Serializable {
       xfft[k] = xfft[k].multiply(taper); // Bandpass
     }
 
+    // we can almost certainly replace all of this with calls to FFTResult.getSingleSidedInverse
     Complex[] cfft = new Complex[nfft];
     cfft[0] = Complex.ZERO; // DC
     cfft[nf - 1] = xfft[nf - 1]; // Nyq
     for (int k = 1; k < nf - 1; k++) { // Reflect spec about the Nyquist
       // to get -ve freqs
       cfft[k] = xfft[k];
-      cfft[2 * nf - 2 - k] = xfft[k].conjugate();
+      cfft[2 * nf - 2 - k] = xfft[k].conjugate(); // this populates the negative frequencies
     }
 
-    Complex[] invertedFFT = FFTUtils.inverseFFT(cfft);
-    return FFTUtils.getRealArray(invertedFFT, ndata);
+    Complex[] inverse = FFTUtils.inverseFFT(cfft);
+    return FFTUtils.getRealArray(inverse, timeseries.length);
   }
 
   /**
@@ -858,7 +862,7 @@ public class MetricData implements Serializable {
       double az1 = (metadata.getChannelMetadata(channel1)).getAzimuth();
       double az2 = (metadata.getChannelMetadata(channel2)).getAzimuth();
 
-      TimeseriesUtils.rotate_xy_to_ne(az1, az2, chan1Data, chan2Data, chanNData, chanEData);
+      PreprocessingUtils.rotate_xy_to_ne(az1, az2, chan1Data, chan2Data, chanNData, chanEData);
 			/*
 			  az1 = azimuth of the H1 channel/vector. az2 = azimuth of the
 			  H2 channel/vector // Find the smallest (<= 180) angle between

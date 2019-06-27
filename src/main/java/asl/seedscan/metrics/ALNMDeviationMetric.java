@@ -1,18 +1,14 @@
 package asl.seedscan.metrics;
 
 import asl.util.Logging;
+import asl.utils.FFTResult;
+import asl.utils.NumericUtils;
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.List;
 
+import org.jfree.data.xy.XYSeries;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,7 +18,6 @@ import asl.plotmaker.PlotMakerException;
 import asl.plotmaker.Trace;
 import asl.plotmaker.TraceException;
 import asl.timeseries.CrossPower;
-import asl.timeseries.TimeseriesUtils;
 
 /**
  * ALNMDeviationMetric - Compute Difference (over specified range of periods =
@@ -59,22 +54,9 @@ public class ALNMDeviationMetric extends PowerBandMetric {
 	 */
 	public ALNMDeviationMetric() {
 		super();
-		addArgument("alnm-modelfile");
-		addArgument("ahnm-modelfile");
 		addArgument("channel-restriction");
 	}
 
-	/** The Constant DEFAULT_ALNM_PATH. */
-	private static final String DEFAULT_ALNM_PATH = "/noiseModels/ALNM.ascii";
-
-	/** The Constant DEFAULT_AHNM_PATH. */
-	private static final String DEFAULT_AHNM_PATH = "/noiseModels/AHNM.ascii";
-
-	/** The new low noise model file. */
-	private static URL ALNMFile;
-
-	/** The new high noise model file. */
-	private static URL AHNMFile;
 
 	/** The new low noise model. */
 	private static NoiseModel ALNM;
@@ -97,32 +79,15 @@ public class ALNMDeviationMetric extends PowerBandMetric {
 		String day = getDay();
 		String metric = getName();
 		String bands = null;
-
 		try {
-
-			String alnmPath = get("alnm-modelfile");
-			String ahnmPath = get("ahnm-modelfile");
 			bands = get("channel-restriction");
-			
-			if (alnmPath == null) {
-				ALNMFile = this.getClass().getResource(DEFAULT_ALNM_PATH);
-			} else {
-				ALNMFile = new File(get("alnm-modelfile")).toURI().toURL();
-			}
-
-			if (ahnmPath == null) {
-				AHNMFile = this.getClass().getResource(DEFAULT_AHNM_PATH);
-			} else {
-				AHNMFile = new File(get("ahnm-modelfile")).toURI().toURL();
-			}
-			
 			if(bands == null){
 				bands = "LN,HN";
 			}
-
-		} catch (NoSuchFieldException | MalformedURLException e) {
+		} catch (NoSuchFieldException e) {
 			logger.error("station=[{}] day=[{}]: Failed to load a noise model file", station, day);
 		}
+
 
 		// Low noise model (ALNM) MUST exist or we can't compute the metric
 		// (AHNM is optional)
@@ -245,7 +210,7 @@ public class ALNMDeviationMetric extends PowerBandMetric {
 		// Timeseries.timeoutXY(per, psdPer, outFile);
 
 		// Interpolate the smoothed psd to the periods of the ALNM Model:
-		double psdInterp[] = TimeseriesUtils.interpolate(per, psdPer, getALNM().getPeriods());
+		double psdInterp[] = NumericUtils.interpolate(per, psdPer, getALNM().getPeriods());
 
 		// outFile = channel.toString() + ".psd.Fsmooth.T.Interp";
 		// Timeseries.timeoutXY(ALNMPeriods, psdInterp, outFile);
@@ -370,11 +335,8 @@ public class ALNMDeviationMetric extends PowerBandMetric {
 	private synchronized static void initAHNM() {
 		if (AHNM == null) {
 			AHNM = new NoiseModel();
-			try {
-				readNoiseModel(AHNMFile, AHNM);
-			} catch (MetricException e) {
-				logger.error(Logging.prettyExceptionWithCause(e));
-			}
+			XYSeries modelAsSeries = FFTResult.getAHNM(false); // false -- return as periods
+			readNoiseModel(modelAsSeries, AHNM);
 		}
 	}
 
@@ -396,63 +358,19 @@ public class ALNMDeviationMetric extends PowerBandMetric {
 	private synchronized static void initALNM() {
 		if (ALNM == null) {
 			ALNM = new NoiseModel();
-			try {
-				readNoiseModel(ALNMFile, ALNM);
-			} catch (MetricException e) {
-				logger.error(Logging.prettyExceptionWithCause(e));
-			}
+			XYSeries modelAsSeries = FFTResult.getALNM(false); // false -- return as periods
+			readNoiseModel(modelAsSeries, ALNM);
 		}
 	}
 
-	/**
-	 * Read in Peterson's NewLow(or High)NoiseModel from file specified in
-	 * config.xml or a default file found in the jar.
-	 *
-	 * @param fileURL
-	 *            the file url
-	 * @param noiseModel
-	 *            the NoiseModel
-	 * @throws MetricException
-	 *             if the noise model file is malformed, not exactly 2 values
-	 *             per line.
-	 */
-	private synchronized static void readNoiseModel(URL fileURL, NoiseModel noiseModel) throws MetricException {
-		logger.info("Read in Noise Model from file=[{}]", fileURL.toString());
+	private synchronized static void readNoiseModel(XYSeries xys, NoiseModel noiseModel) {
 
-		// Temporary ArrayList(s) to read in unknown number of (x,y) pairs:
-		ArrayList<Double> tmpPers = new ArrayList<>();
-		ArrayList<Double> tmpPows = new ArrayList<>();
-		BufferedReader br = null;
-		try {
-			String line;
-			br = new BufferedReader(new InputStreamReader(fileURL.openStream()));
-			while ((line = br.readLine()) != null) {
-				String[] args = line.trim().split("\\s+");
-				if (args.length != 2) {
-					throw new MetricException("==Error reading ALNM: got " + args.length + " args on one line!");
-				}
-				tmpPers.add(Double.valueOf(args[0].trim()));
-				tmpPows.add(Double.valueOf(args[1].trim()));
-			}
-		} catch (IOException e) {
-			logger.error("IOException:", e);
-		} finally {
-			try {
-				if (br != null)
-					br.close();
-			} catch (IOException ex) {
-				logger.error("IOException:", ex);
-			}
-		}
-		Double[] modelPeriods = tmpPers.toArray(new Double[] {});
-		Double[] modelPowers = tmpPows.toArray(new Double[] {});
+		noiseModel.periods = new double[xys.getItemCount()];
+		noiseModel.powers = new double[xys.getItemCount()];
 
-		noiseModel.periods = new double[modelPeriods.length];
-		noiseModel.powers = new double[modelPowers.length];
-
-		for (int i = 0; i < modelPeriods.length; i++) {
-			noiseModel.periods[i] = modelPeriods[i];
-			noiseModel.powers[i] = modelPowers[i];
+		for (int i = 0; i < xys.getItemCount(); i++) {
+			noiseModel.periods[i] = (double) xys.getX(i);
+			noiseModel.powers[i] = (double) xys.getY(i);
 		}
 
 		noiseModel.valid = true;
@@ -471,7 +389,7 @@ public class ALNMDeviationMetric extends PowerBandMetric {
 
 		/**
 		 * True if valid, False if not. Set in
-		 * {@link asl.seedscan.metrics.ALNMDeviationMetric#readNoiseModel(URL, NoiseModel)}
+		 * {@link asl.seedscan.metrics.ALNMDeviationMetric#readNoiseModel(XYSeries, NoiseModel)}
 		 */
 		private boolean valid = false;
 
