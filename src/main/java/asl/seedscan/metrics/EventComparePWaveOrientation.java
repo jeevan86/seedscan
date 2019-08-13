@@ -298,7 +298,7 @@ public class EventComparePWaveOrientation extends Metric {
       while (signumN == 0 || signumE == 0 || signumZ == 0) {
         offsetForSignCalculations += increment;
         int lookupIndex = signalOffset + offsetForSignCalculations;
-        if (lookupIndex > northData.length) {
+        if (lookupIndex >= northData.length) {
           logger.warn("== {}: Check that traces under consideration do not have data issues; "
                   + "could not find nonzero data for quadrant orientation -- [STA:{}-{},{},{}]",
               getName(), getStation(), curChannel, pairChannel, vertChannel
