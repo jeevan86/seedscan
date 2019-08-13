@@ -188,7 +188,7 @@ public class EventComparePWaveOrientation extends Metric {
 
     // now to get the synthetics data
     SortedSet<String> eventKeys = new TreeSet<>(eventCMTs.keySet());
-    for (String key : eventKeys) {
+    outerLoop: for (String key : eventKeys) {
 
       EventCMT eventMeta = eventCMTs.get(key);
       double eventLatitude = eventMeta.getLatitude();
@@ -297,6 +297,14 @@ public class EventComparePWaveOrientation extends Metric {
       int signumZ = 0;
       while (signumN == 0 || signumE == 0 || signumZ == 0) {
         offsetForSignCalculations += increment;
+        int lookupIndex = signalOffset + offsetForSignCalculations;
+        if (lookupIndex > northData.length) {
+          logger.warn("== {}: Check that traces under consideration do not have data issues; "
+                  + "could not find nonzero data for quadrant orientation -- [STA:{}-{},{},{}]",
+              getName(), getStation(), curChannel, pairChannel, vertChannel
+          );
+          continue outerLoop;
+        }
         signumN = (int) Math.signum(northData[signalOffset + offsetForSignCalculations]);
         signumE = (int) Math.signum(eastData[signalOffset + offsetForSignCalculations]);
         signumZ = (int) Math.signum(vertData[signalOffset + offsetForSignCalculations]);
