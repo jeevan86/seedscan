@@ -78,6 +78,7 @@ jar {
 }
 
 test {
+    maxHeapSize = "4096m"
     maxParallelForks = 4;
     testLogging {
         events "skipped", "failed"
