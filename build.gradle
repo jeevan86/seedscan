@@ -129,4 +129,5 @@ task gitSubmodule(type: Exec) {
     commandLine 'git', 'submodule', 'update', '--init', '--recursive'
 }
 
+compileJava.dependsOn(gitSubmodule)
 build.dependsOn gitSubmodule
