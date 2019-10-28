@@ -1,0 +1,14 @@
+image: gradle:alpine
+
+variables:
+GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+
+before_script:
+    - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
+    - git submodule update --init --recursive
+    
+test:
+  stage: test
+  script: gradle check
+  cache:
+    key: "$CI_COMMIT_REF_NAME"
