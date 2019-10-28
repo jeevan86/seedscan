@@ -4,6 +4,7 @@ image: gradle:alpine
 
 variables:
   PRE_CLONE_SCRIPT: "unset GIT_SSL_CAINFO"
+  GIT_SSL_NO_VERIFY: true
   GIT_SSL_CAPATH: /etc/ssl/certs/
   GRADLE_OPTS: "-Dorg.gradle.daemon=false"
   GIT_SUBMODULE_STRATEGY: recursive
