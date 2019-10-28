@@ -1,7 +1,7 @@
 image: gradle:alpine
 
 variables:
-GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false"
 
 before_script:
     - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
