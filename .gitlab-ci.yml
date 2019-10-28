@@ -3,8 +3,9 @@ image: gradle:alpine
 
 
 variables:
+  GIT_SSL_CAPATH: /etc/ssl/certs/
   GRADLE_OPTS: "-Dorg.gradle.daemon=false"
-  #GIT_SUBMODULE_STRATEGY: recursive
+  GIT_SUBMODULE_STRATEGY: recursive
   
 before_script:
     - sh ssl_acquire.bash
