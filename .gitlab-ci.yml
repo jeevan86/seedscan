@@ -1,6 +1,6 @@
 image: gradle:alpine
 
-
+pre_clone_script = "unset GIT_SSL_CAINFO"
 
 variables:
   GIT_SSL_CAPATH: /etc/ssl/certs/
