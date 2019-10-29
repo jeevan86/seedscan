@@ -6,5 +6,5 @@ keytool -import -file DOIRootCA2.cer -alias DOIRootCA2 -keystore cacerts -keypas
 printf 'org.gradle.jvmargs=-Djavax.net.ssl.trustStore=' > gradle.properties
 echo -n `pwd` >> gradle.properties
 printf "/cacerts -Djavax.net.ssl.trustStorePassword=changeit" >> gradle.properties
-printf " -Xmx4g\n" >> gradle.properties
+printf " -Xmx8g\n" >> gradle.properties
 cat gradle.properties
