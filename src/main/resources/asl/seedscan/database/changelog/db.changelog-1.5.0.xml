@@ -1,0 +1,42 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+  <changeSet author="dwitte" id="add_grouptypeview_view">
+    <sql stripComments="true">      
+        CREATE OR REPLACE VIEW public.grouptypeview
+         AS
+         SELECT grpt."pkGroupTypeID",
+            grpt.name,
+            grp.pkgroupid
+           FROM "tblGroupType" grpt
+             JOIN "tblGroup" grp ON grp."fkGroupTypeID" = grpt."pkGroupTypeID"
+          ORDER BY grpt."pkGroupTypeID", grp.pkgroupid;
+    </sql>
+  </changeSet>
+  <changeSet author="dwitte" id="add_groupview_view">
+    <sql stripComments="true">      
+        CREATE OR REPLACE VIEW public.groupview
+         AS
+         SELECT "tblGroup".pkgroupid,
+            "tblGroup".name,
+            "tblGroup"."fkGroupTypeID"
+           FROM "tblGroup"
+          ORDER BY "tblGroup".pkgroupid;
+    </sql>
+  </changeSet>
+  <changeSet author="dwitte" id="add_stationview_view">
+    <sql stripComments="true">      
+        CREATE OR REPLACE VIEW public.stationview
+         AS
+         SELECT sta.pkstationid,
+            sta.fknetworkid,
+            sta.name,
+            sgt."fkGroupID"
+           FROM tblstation sta
+             JOIN "tblStationGroupTie" sgt ON sta.pkstationid = sgt."fkStationID"
+          ORDER BY sta.pkstationid, sgt."fkGroupID";
+    </sql>
+  </changeSet>
+</databaseChangeLog>
+
