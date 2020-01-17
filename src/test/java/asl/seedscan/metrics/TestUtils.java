@@ -58,7 +58,7 @@ public class TestUtils {
 
     assertEquals("Result Size: ", expect.size(), result.getIdSet().size());
 
-    for (String id : result.getIdSet()) {
+    for (String id : expect.keySet()) {
       //System.out.println(id+"   "+result.getResult(id));
 
       //System.out.println("expect.put(\""+id+"\", "+ result.getResult(id) +");");

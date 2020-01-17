@@ -51,9 +51,9 @@ public class ALNMDeviationMetricTest {
 		/* The String key matches the MetricResult ids */
     MetricTestMap expect = new MetricTestMap();
     double error = 1E-5;
-    expect.put("20,LN1", 13.87991, error); // was 11.75517 before util repo changes
-    expect.put("20,LN2", 14.50298, error); // was 12.90859 before util repo changes
-    expect.put("20,LNZ", 15.23679, error); // was 12.92061 before changes
+    expect.put("20,LN1", 13.84316, error); // was 11.75517 before util repo changes
+    expect.put("20,LN2", 14.53057, error); // was 12.90859 before util repo changes
+    expect.put("20,LNZ", 15.29932, error); // was 12.92061 before changes
 
     TestUtils.testMetric(metric, expect);
   }

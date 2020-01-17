@@ -3,8 +3,20 @@ package asl.seedscan.metrics;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import asl.metadata.Channel;
+import asl.metadata.Station;
+import asl.metadata.meta_new.ChannelMeta.ResponseUnits;
 import asl.testutils.MetricTestMap;
 import asl.testutils.ResourceManager;
+import asl.timeseries.CrossPower;
+import asl.utils.FFTResult;
+import asl.utils.TimeSeriesUtils;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.time.LocalDate;
+import java.util.Arrays;
+import org.apache.commons.math3.complex.Complex;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -48,15 +60,48 @@ public class NLNMDeviationMetricTest {
     metric.setData(data1);
     metric.add("channel-restriction", "LH");
 
+    String chlName = "LH1";
+    Channel channelToCheck = new Channel("00", chlName);
+
+    StringBuilder sb;
+    double sampleRate = data1.getChannelData(channelToCheck).get(0).getSampleRate();
+    long samplingInterval = (long) (TimeSeriesUtils.ONE_HZ_INTERVAL / sampleRate);
+    double[] detrendedData = data1.getDetrendedPaddedDayData(channelToCheck);
+
+    FFTResult rawSpectrum = FFTResult.spectralCalc(detrendedData, detrendedData, samplingInterval);
+    double[] rawSpectrumFreqs = rawSpectrum.getFreqs();
+    Complex[] basicPSD = rawSpectrum.getFFT();
+
+    CrossPower crossPower = metric.getCrossPower(channelToCheck, channelToCheck);
+
+    /*
+    // TODO: double-check that this value is what we expect it to be
+    Complex[] respCurve = data1.getMetaData().getChannelMetadata(channelToCheck)
+        .getResponse(freqs, ResponseUnits.ACCELERATION);
+    */
+
+    sb = new StringBuilder();
+    //double[] spectrum = crossPower.getSpectrum();
+    //double[] frequencies = crossPower.getSpectrumFrequencies();
+    for (int i = 0; i < rawSpectrumFreqs.length; ++i) {
+      sb.append(rawSpectrumFreqs[i]).append(", ").append(basicPSD[i].getReal())
+          .append(", ").append(basicPSD[i].getImaginary()).append("\n");
+    }
+
+    PrintWriter out = new PrintWriter(new File("ANMO-00-" + chlName + ".2015.206.basic-PSD.csv"));
+    out.write(sb.toString());
+    out.close();
+
+
 		/* The String key matches the MetricResult ids */
     MetricTestMap expect = new MetricTestMap();
     double error = 1E-5;
-    expect.put("00,LH1", 6.144156714847165, error);
-    expect.put("00,LH2", 6.94984340838684, error);
-    expect.put("00,LHZ", 9.502837498158087, error);
-    expect.put("10,LH1", 7.126248440694965, error);
-    expect.put("10,LH2", 6.701346629427542, error);
-    expect.put("10,LHZ", 9.473855204418532, error);
+    expect.put("00,LH1",  7.917047, error); // TODO: figure out why this seems too low
+    expect.put("00,LH2",  8.459049, error);
+    expect.put("00,LHZ", 10.898116, error);
+    expect.put("10,LH1",  8.528913, error);
+    expect.put("10,LH2",  8.537544, error);
+    expect.put("10,LHZ", 10.869350, error);
 
     TestUtils.testMetric(metric, expect);
 
@@ -121,6 +166,15 @@ public class NLNMDeviationMetricTest {
     expect.put("10,BHZ", 12.49639, error);
 
     TestUtils.testMetric(metric, expect);
+  }
+
+  @Test
+  public final void testProcess_PMSA() {
+    String seedDataLocation = "/seed_data/IU_PMSA/2019/062";
+    String metadataLocation = "";
+    Station pmsa = new Station("IU", "PMSA");
+    LocalDate dataDate = LocalDate.of(2019, 1, 10);
+
   }
 
   @Test

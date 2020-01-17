@@ -1,6 +1,7 @@
 package asl.seedscan.metrics;
 
 import asl.util.Logging;
+import asl.utils.FilterUtils;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -162,7 +163,13 @@ public class EventCompareSynthetic extends Metric {
 						// e.g. "ANMO.XX.LXZ.modes.sac.proc"
 						if (synthetics.containsKey(fileKey)) {
 							sacSynthetics = synthetics.get(fileKey);
-							MyFilter.bandpass(sacSynthetics, FREQUENCY1, FREQUENCY2, FREQUENCY3, FREQUENCY4);
+							SacHeader hdr = sacSynthetics.getHeader();
+							double delta = (double) hdr.getDelta();
+							double sampRate = 1./delta;
+							float[] fdata = sacSynthetics.getY();
+							double[] data = MyFilter.convertFloatsToDoubles(fdata);
+							data = FilterUtils.bandFilter(data, sampRate, FREQUENCY2, FREQUENCY3, 2);
+							sacSynthetics.setY(MyFilter.convertDoublesToFloats(data));
 						} else {
 							logger.info("Did not find sac synthetic=[{}] in Hashtable", fileKey);
 							continue; // Try next event

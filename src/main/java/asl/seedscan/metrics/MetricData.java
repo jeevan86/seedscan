@@ -1,10 +1,15 @@
 package asl.seedscan.metrics;
 
-import asl.timeseries.FFTUtils;
+import static asl.utils.FFTResult.cosineTaper;
+import static asl.utils.FFTResult.singleSidedFFT;
+import static asl.utils.NumericUtils.demeanInPlace;
+import static asl.utils.NumericUtils.detrend;
+import static asl.utils.TimeSeriesUtils.concatAll;
+
 import asl.timeseries.PreprocessingUtils;
 import asl.util.Logging;
 import asl.utils.FFTResult;
-import asl.utils.TimeSeriesUtils;
+import asl.utils.FilterUtils;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.time.LocalDate;
@@ -424,31 +429,6 @@ public class MetricData implements Serializable {
   }
 
   /**
-   * Bpass Needs documentation,
-   *
-   * @param n the n
-   * @param n1 the n1
-   * @param n2 the n2
-   * @param n3 the n3
-   * @param n4 the n4
-   * @return the double
-   */
-  private double bpass(int n, int n1, int n2, int n3, int n4) {
-
-    if (n <= n1 || n >= n4) {
-      return (0.);
-    } else if (n >= n2 && n <= n3) {
-      return (1.);
-    } else if (n > n1 && n < n2) {
-      return (.5 * (1 - Math.cos(Math.PI * (n - n1) / (n2 - n1))));
-    } else if (n > n3 && n < n4) {
-      return (.5 * (1 - Math.cos(Math.PI * (n4 - n) / (n4 - n3))));
-    } else {
-      return (-9999999.);
-    }
-  }
-
-  /**
    * Removes the instrument and filter. Needs documentation.
    *
    * @param responseUnits the response units
@@ -466,10 +446,9 @@ public class MetricData implements Serializable {
       double[] timeseries,
       double f1, double f2, double f3, double f4) throws ChannelMetaException, MetricException {
 
-    if (!(f1 < f2 && f2 < f3 && f3 < f4)) {
+    if (!(f2 < f3)) {
       logger.error(String
-          .format("removeInstrumentAndFilter: invalid freq: range: [%f-%f ----- %f-%f]", f1, f2,
-              f3, f4));
+          .format("removeInstrumentAndFilter: invalid freq: range: [%f-%f]", f2, f3));
       return null;
     }
 
@@ -497,55 +476,51 @@ public class MetricData implements Serializable {
 
     double[] data = new double[timeseries.length];
     System.arraycopy(timeseries, 0, data, 0, timeseries.length);
-    data = TimeSeriesUtils.detrend(data);
-    TimeSeriesUtils.demeanInPlace(data);
-    FFTResult.cosineTaper(data, .01);
+    data = detrend(data);
+    demeanInPlace(data);
+    cosineTaper(data, .01);
 
+    /*
     double[] freq = new double[nf];
     for (int k = 0; k < nf; k++) {
       freq[k] = (double) k * df;
     }
+    */
+
+    // return the (nf = nfft/2 + 1) positive frequencies
+    // variable false is here because we don't have any reason to flip the data in this method
+    FFTResult result = singleSidedFFT(data, srate, false);
+    Complex[] xfft = result.getFFT();
+    double[] freq = result.getFreqs();
 
     // Get the instrument response for requested ResponseUnits
     Complex[] instrumentResponse = chanMeta.getResponse(freq, responseUnits);
 
-    // return the (nf = nfft/2 + 1) positive frequencies
-    // variable false is here because we don't have any reason to flip the data in this method
-    Complex[] xfft = FFTUtils.singleSidedFFT(data);
-
-    double fNyq = (double) (nf - 1) * df;
-
-    if (f4 > fNyq) {
-      f4 = fNyq;
-    }
-
-    int k1 = (int) (f1 / df);
-    int k2 = (int) (f2 / df);
-    int k3 = (int) (f3 / df);
-    int k4 = (int) (f4 / df);
-
-    for (int k = 0; k < nf; k++) {
-      double taper = bpass(k, k1, k2, k3, k4);
+    for (int k = 0; k < freq.length; k++) {
       // Because Apache's FFT matches our imaginary sign, we don't
       // need a conjugate. If we were using Numerical Recipes we would
       // need to.
-      xfft[k] = xfft[k].divide(instrumentResponse[k]); // Remove
-      // instrument
-      xfft[k] = xfft[k].multiply(taper); // Bandpass
+      if (instrumentResponse[k].equals(Complex.ZERO)) {
+        xfft[k] = Complex.ZERO;
+      } else {
+        xfft[k] = xfft[k].divide(instrumentResponse[k]); // Remove instrument
+      }
     }
 
+
+    /*
     // we can almost certainly replace all of this with calls to FFTResult.getSingleSidedInverse
     Complex[] cfft = new Complex[nfft];
     cfft[0] = Complex.ZERO; // DC
     cfft[nf - 1] = xfft[nf - 1]; // Nyq
-    for (int k = 1; k < nf - 1; k++) { // Reflect spec about the Nyquist
-      // to get -ve freqs
+    for (int k = 1; k < nf - 1; k++) { // Reflect spec about the Nyquist to get negative freqs
       cfft[k] = xfft[k];
       cfft[2 * nf - 2 - k] = xfft[k].conjugate(); // this populates the negative frequencies
     }
+     */
 
-    Complex[] inverse = FFTUtils.inverseFFT(cfft);
-    return FFTUtils.getRealArray(inverse, timeseries.length);
+    double[] inverse = FFTResult.singleSidedInverseFFT(xfft, timeseries.length);
+    return FilterUtils.bandFilter(inverse, srate, f2, f3, 2);
   }
 
   /**
@@ -690,12 +665,68 @@ public class MetricData implements Serializable {
   }
 
   /**
-   * Return a demeaned full day (86400 sec) array of data assembled from a channel's
+   * Return segments representing contiguous regions of a full day (86400 sec) of data
+   * assembled from a channel's DataSets, with any gaps zero-padded.
+   *
+   * @param channel the channel
+   * @return the padded day data
+   */
+  double[][] getPaddedDayData(Channel channel) {
+    if (!hasChannelData(channel)) {
+      logger.warn(String
+          .format("== getPaddedDayData(): We have NO data for channel=[%s] date=[%s]\n", channel,
+              metadata.getDate()));
+      return null;
+    }
+    List<DataSet> datasets = getChannelData(channel);
+
+    /*epoch microsecs since 1970*/
+    long dayStartTime = Time.calculateEpochMicroSeconds(metadata.getTimestamp());
+    long interval = datasets.get(0).getInterval(); // sample dt in microsecs
+
+    int nPointsPerDay = (int) (86400000000L / interval);
+    List<double[]> segments = new ArrayList<>();
+
+    long lastEndTime = dayStartTime;
+    int totalPointCount = 0; // easy way to keep track of the number of points added to the list
+    // append each dataset to the new data as necessary,
+    for (DataSet dataset : datasets) {
+      long startTime = dataset.getStartTime(); // microsecs since 1970 Jan. 1
+      long endTime = dataset.getEndTime();
+      // first, add zero padding over any gap between previous dataset and this current one
+      int npad = (int) ((startTime - lastEndTime) / interval) - 1;
+      if (npad > 0) {
+        totalPointCount += npad;
+        segments.add(new double[npad]);
+      }
+      // now convert the series to doubles and add it to the list of data
+      int[] series = dataset.getSeries();
+      double[] seriesAsDoubles = new double[series.length];
+      for (int j = 0; j < series.length; ++j) {
+        seriesAsDoubles[j] = (double) series[j];
+      }
+      segments.add(seriesAsDoubles);
+      totalPointCount += series.length;
+      // now the current time will be used to account for gap between this and next dataset start
+      lastEndTime = endTime;
+    }
+
+    // in event the last segment doesn't reach the end of the day length, pad out until data does
+    if (totalPointCount < nPointsPerDay) {
+      double[] lastGapFiller = new double[nPointsPerDay - totalPointCount];
+      segments.add(lastGapFiller);
+    }
+
+    return segments.toArray(new double[][]{});
+  }
+
+  /**
+   * Return a linear-detrended full day (86400 sec) array of data assembled from a channel's
    * DataSets<br>
    * Zero pad any gaps between DataSets.
    *
    * @param channel the channel
-   * @return the padded day data
+   * @return the padded day data with linear trend removed
    */
   public double[] getDetrendedPaddedDayData(Channel channel) {
     if (!hasChannelData(channel)) {
@@ -704,84 +735,11 @@ public class MetricData implements Serializable {
               metadata.getDate()));
       return null;
     }
-    ArrayList<DataSet> datasets = getChannelData(channel);
+    double[][] segments = getPaddedDayData(channel);
 
-		/*epoch microsecs since 1970*/
-    long dayStartTime = Time.calculateEpochMicroSeconds(metadata.getTimestamp());
-    long interval = datasets.get(0).getInterval(); // sample dt in microsecs
-
-    int nPointsPerDay = (int) (86400000000L / interval);
-
-    double[] data = new double[nPointsPerDay];
-
-    long lastEndTime = dayStartTime;
-    int k = 0;
-
-    long xSum = 0;
-    long ySum = 0;
-    long xySum = 0;
-    long xxSum = 0;
-    long count = 0;
-    for (DataSet dataset : datasets) {
-			/*microsecs since Jan. 1, 1970*/
-      long startTime = dataset.getStartTime();
-      long endTime = dataset.getEndTime();
-      int length = dataset.getLength();
-
-      int[] series = dataset.getSeries();
-
-      k += (int) ((startTime - lastEndTime) / interval);
-
-      for (int j = 0; j < length; j++) {
-        xSum += k;
-        ySum += series[j];
-        xySum = xySum + (k * (long) series[j]);
-        xxSum = xxSum + (k * (long) k);
-        k++;
-        count++;
-      }
-
-      lastEndTime = endTime;
-    }
-
-    double slope = (count * xySum - xSum * ySum) / (double) (count * xxSum - xSum * xSum);
-    double yOffset = (ySum - slope * xSum) / (double) count;
-
-    lastEndTime = dayStartTime;
-    k = 0;
-
-    for (int i = 0; i < datasets.size(); i++) {
-      DataSet dataset = datasets.get(i);
-      long startTime = dataset.getStartTime(); // microsecs since Jan. 1,
-      // 1970
-      long endTime = dataset.getEndTime();
-      int length = dataset.getLength();
-      int[] series = dataset.getSeries();
-
-      if (i == 0) {
-        lastEndTime = dayStartTime;
-      }
-      int npad = (int) ((startTime - lastEndTime) / interval) - 1;
-
-			/*Begin does nothing except increase k by npad*/
-      for (int j = 0; j < npad; j++) {
-        if (k < data.length) {
-          data[k] = 0.;
-        }
-        k++;
-      }
-			/*End does nothing*/
-
-      for (int j = 0; j < length; j++) {
-        if (k < data.length) {
-          data[k] = series[j] - k * slope - yOffset;
-        }
-        k++;
-      }
-
-      lastEndTime = endTime;
-    }
-    return data;
+    // now concatenate the segments and detrend the whole thing
+    double[] toDetrend = concatAll(segments);
+    return detrend(toDetrend);
   }
 
   /**
