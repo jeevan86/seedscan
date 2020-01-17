@@ -2,6 +2,7 @@ package asl.testutils;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class MetricTestMap {
 
@@ -27,6 +28,10 @@ public class MetricTestMap {
 
   public void put(String key, double result) {
     resultMap.put(key, new ResultWithError(result, 1E-7));
+  }
+
+  public Set<String> keySet() {
+    return resultMap.keySet();
   }
 
   public double getResult(String key) {

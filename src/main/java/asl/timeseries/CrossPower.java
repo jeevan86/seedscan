@@ -13,8 +13,9 @@ import asl.seedscan.metrics.MetricData;
 import asl.seedscan.metrics.MetricPSDException;
 
 public class CrossPower {
-	private double[] powerSpectrum = null;
-	private double spectrumDeltaF = 0.;
+	private double[] powerSpectrum;
+	private double[] frequencyArray;
+	private double spectrumDeltaF;
 
 	// constructor
 	public CrossPower(double[] powerSpectrum, double df) {
@@ -54,26 +55,26 @@ public class CrossPower {
 						metricData.getDetrendedPaddedDayData(channelY),
 						(long) (TimeSeriesUtils.ONE_HZ_INTERVAL / sampleRate));
 		Complex[] spectrumRaw = psdRaw.getFFT();
-		double[] frequencyRaw = psdRaw.getFreqs();
+		frequencyArray = psdRaw.getFreqs();
 
 		this.spectrumDeltaF = psdRaw.getFreq(1);
 
 		// Get the instrument response for Acceleration and remove it from the
 		// PSD
 		Complex[] instrumentResponseX = metricData.getMetaData().getChannelMetadata(channelX)
-				.getResponse(frequencyRaw, ResponseUnits.ACCELERATION);
+				.getResponse(frequencyArray, ResponseUnits.ACCELERATION);
 		Complex[] instrumentResponseY = metricData.getMetaData().getChannelMetadata(channelY)
-				.getResponse(frequencyRaw, ResponseUnits.ACCELERATION);
+				.getResponse(frequencyArray, ResponseUnits.ACCELERATION);
 
 		// Will hold the 1-sided PSD magnitude
-		this.powerSpectrum = new double[frequencyRaw.length];
+		this.powerSpectrum = new double[frequencyArray.length];
 		this.powerSpectrum[0] = 0;
 
 		/*
 		 * We're computing the squared magnitude as we did with the FFT
 		 * above Start from k=1 to skip DC (k=0) where the response=0
 		 */
-		for (int k = 1; k < frequencyRaw.length; k++) {
+		for (int k = 1; k < frequencyArray.length; k++) {
 			Complex responseMagnitude = instrumentResponseX[k].multiply(instrumentResponseY[k].conjugate());
 			if (responseMagnitude.abs() == 0) {
 				throw new MetricPSDException("responseMagC[k]=0 --> divide by zero!\n");
@@ -89,6 +90,10 @@ public class CrossPower {
 
 	public double getSpectrumDeltaF() {
 		return spectrumDeltaF;
+	}
+
+	public double[] getSpectrumFrequencies() {
+		return frequencyArray;
 	}
 
 }

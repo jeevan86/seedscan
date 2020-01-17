@@ -3,7 +3,7 @@ package asl.seedscan.metrics;
 import asl.metadata.Channel;
 import asl.seedscan.event.EventCMT;
 import asl.utils.FilterUtils;
-import asl.utils.TimeSeriesUtils;
+import asl.utils.NumericUtils;
 import edu.sc.seis.TauP.Arrival;
 import edu.sc.seis.TauP.SphericalCoords;
 import edu.sc.seis.TauP.TauModelException;
@@ -25,7 +25,6 @@ import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sac.SacTimeSeries;
-import uk.me.berndporr.iirj.Butterworth;
 
 public class EventComparePWaveOrientation extends Metric {
 
@@ -358,7 +357,7 @@ public class EventComparePWaveOrientation extends Metric {
     data = Arrays.copyOfRange(data, afterRinging, data.length - afterRinging);
 
     // detrend operations are done in-place
-    TimeSeriesUtils.demeanInPlace(data);
+    NumericUtils.demeanInPlace(data);
 
     return data;
 

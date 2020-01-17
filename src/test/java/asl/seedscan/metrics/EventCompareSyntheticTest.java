@@ -43,13 +43,13 @@ public class EventCompareSyntheticTest {
     metric.setEventTable(eventLoader.getDayEvents(date));
     metric.setEventSynthetics(eventLoader.getDaySynthetics(date, new Station("IU", "NWAO")));
     MetricTestMap expect = new MetricTestMap();
-    double error = 1E-5;
-    expect.put("00,LHZ", 0.73660, error);  //Before hard coding removal.  0.7365784417165183
-    expect.put("00,LHND", 0.80730, error); //0.8034777781560093
-    expect.put("00,LHED", 0.73832, error); //0.7419806164967785
-    expect.put("10,LHZ", 0.00027, error); //0.0002246588435010572
-    expect.put("10,LHND", 0.00024, error); //0.00008719589964150271
-    expect.put("10,LHED", -0.00033, error); //Nonexistent
+    double error = 1E-4;
+    expect.put("00,LHZ", 0.78276, error);  //Before hard coding removal.  0.7365784417165183
+    expect.put("00,LHND", 0.87960, error); //0.8034777781560093
+    expect.put("00,LHED", 0.81572, error); //0.7419806164967785
+    expect.put("10,LHZ", 0.00356, error); //0.0002246588435010572
+    expect.put("10,LHND", -0.00430, error); //0.00008719589964150271
+    expect.put("10,LHED", -0.00023, error); //Nonexistent
 
     TestUtils.testMetric(metric, expect);
 
@@ -68,13 +68,13 @@ public class EventCompareSyntheticTest {
     metric.setEventTable(eventLoader.getDayEvents(date));
     metric.setEventSynthetics(eventLoader.getDaySynthetics(date, new Station("IU", "NWAO")));
     MetricTestMap expect = new MetricTestMap();
-    double error = 1E-5;
-    expect.put("00,LHZ", 0.73660, error);  //Before hard coding removal.  0.7365784417165183
-    expect.put("00,LHND", 0.807304, error); //0.8034777781560093
-    expect.put("00,LHED", 0.73832, error); //0.7419806164967785
-    expect.put("10,LHZ", 0.00027, error); //0.0002246588435010572
-    expect.put("10,LHND", 0.00024, error); //0.00008719589964150271
-    expect.put("10,LHED", -0.00033, error); //Nonexistent
+    double error = 1E-4;
+    expect.put("00,LHZ", 0.78276, error);  //Before hard coding removal.  0.7365784417165183
+    expect.put("00,LHND", 0.87960, error); //0.8034777781560093
+    expect.put("00,LHED", 0.81572, error); //0.7419806164967785
+    expect.put("10,LHZ", 0.00356, error); //0.0002246588435010572
+    expect.put("10,LHND", -0.00430, error); //0.00008719589964150271
+    expect.put("10,LHED", -0.00023, error); //Nonexistent
 
     TestUtils.testMetric(metric, expect);
 

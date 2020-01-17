@@ -1,7 +1,8 @@
 package asl.timeseries;
 
 import asl.utils.FFTResult;
-import asl.utils.TimeSeriesUtils;
+import asl.utils.FilterUtils;
+import asl.utils.NumericUtils;
 import org.apache.commons.math3.complex.Complex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,14 +57,19 @@ public class MyFilter {
 
 		double[] data = new double[ndata];
 		System.arraycopy(timeseries, 0, data, 0, ndata);
-		data = TimeSeriesUtils.detrend(data);
-		TimeSeriesUtils.demean(data);
+		data = NumericUtils.detrend(data);
+		NumericUtils.demean(data);
 		FFTResult.cosineTaper(data, .01);
+
+    double fNyq = (double) (nf - 1) * df; // half of sample rate
+
+    // second parameter is sample rate -- inverse of the period, which presumably delta represents
+		data = FilterUtils.bandFilter(data, 1. / delta, f2, f3, 2);
 
 		// fft2 returns just the (nf = nfft/2 + 1) positive frequencies
 		Complex[] xfft = FFTUtils.singleSidedFFT(data);
 
-		double fNyq = (double) (nf - 1) * df;
+
 
 		if (f4 > fNyq) {
 			f4 = fNyq;
@@ -73,10 +79,7 @@ public class MyFilter {
 		int k3 = (int) (f3 / df);
 		int k4 = (int) (f4 / df);
 
-		for (int k = 0; k < nf; k++) {
-			double taper = bpass(k, k1, k2, k3, k4);
-			xfft[k] = xfft[k].multiply(taper); // Bandpass
-		}
+
 
 		Complex[] cfft = new Complex[nfft];
 		cfft[0] = Complex.ZERO; // DC
@@ -99,20 +102,18 @@ public class MyFilter {
 	 * and applies cos between n1-n2 and n3-n4
 	 * {@literal (i.e., it is zero for n<=n1 and n>= n4)}
 	 */
-	private static double bpass(int n, int n1, int n2, int n3, int n4) {
-		if (n <= n1 || n >= n4)
+	 public static double bpass(int n, int n1, int n2, int n3, int n4) {
+		if (n <= n1 || n >= n4) // outside of band-pass region
 			return (0.);
-		else if (n >= n2 && n <= n3)
+		else if (n >= n2 && n <= n3) // inside of band-pass region
 			return (1.);
-		else if (n > n1 && n < n2)
+		else if (n < n2) // inside low-frequency rolloff edge
 			return (.5 * (1 - Math.cos(Math.PI * (n - n1) / (n2 - n1))));
-		else if (n > n3 && n < n4)
-			return (.5 * (1 - Math.cos(Math.PI * (n4 - n) / (n4 - n3))));
-		else
-			return (-9999999.);
+		else // inside high-frequency rolloff edge
+      return (.5 * (1 - Math.cos(Math.PI * (n4 - n) / (n4 - n3))));
 	}
 
-	private static double[] convertFloatsToDoubles(float[] input) {
+	public static double[] convertFloatsToDoubles(float[] input) {
 		if (input == null) {
 			return null; // Or throw an exception - your choice
 		}
@@ -123,7 +124,7 @@ public class MyFilter {
 		return output;
 	}
 
-	private static float[] convertDoublesToFloats(double[] input) {
+	public static float[] convertDoublesToFloats(double[] input) {
 		if (input == null) {
 			return null; // Or throw an exception - your choice
 		}

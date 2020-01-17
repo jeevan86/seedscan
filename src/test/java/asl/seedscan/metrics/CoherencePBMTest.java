@@ -13,7 +13,7 @@ public class CoherencePBMTest {
 
   private static MetricData data;
   private static MetricData maleableData;
-  private static double ERROR = 1E-5;
+  private static double ERROR = 1E-4;
 
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
@@ -72,7 +72,7 @@ public class CoherencePBMTest {
     MetricTestMap expect = new MetricTestMap();
     expect.put("00-10,LHZ-LHZ", 0.99972, ERROR);
     expect.put("00-10,LHND-LHND", 0.99765, ERROR);
-    expect.put("00-10,LHED-LHED", 0.99859, ERROR);
+    expect.put("00-10,LHED-LHED", 0.99844, ERROR);
     TestUtils.testMetric(metric, expect);
   }
 
@@ -84,9 +84,9 @@ public class CoherencePBMTest {
     metric.add("upper-limit", "110");
     metric.setData(data);
     MetricTestMap expect = new MetricTestMap();
-    expect.put("00-10,LHZ-LHZ", 0.84999, ERROR);
-    expect.put("00-10,LHND-LHND", 0.59943, ERROR);
-    expect.put("00-10,LHED-LHED", 0.65845, ERROR);
+    expect.put("00-10,LHZ-LHZ", 0.85146, ERROR);
+    expect.put("00-10,LHND-LHND", 0.59780, ERROR);
+    expect.put("00-10,LHED-LHED", 0.66096, ERROR);
     TestUtils.testMetric(metric, expect);
   }
 

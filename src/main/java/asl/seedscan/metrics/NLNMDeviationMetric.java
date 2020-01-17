@@ -189,38 +189,39 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 
 		CrossPower crossPower = getCrossPower(channel, channel);
 		double[] psd = crossPower.getSpectrum();
-		double df = crossPower.getSpectrumDeltaF();
+		double[] freq = crossPower.getSpectrumFrequencies();
 
 		// nf = number of positive frequencies + DC (nf = nfft/2 + 1, [f: 0, df,
 		// 2df, ...,nfft/2*df] )
-		int nf = psd.length;
-		double freq[] = new double[nf];
+		//int nf = psd.length;
+
 
 		// Fill freq array & Convert spectrum to dB
-		for (int k = 0; k < nf; k++) {
-			freq[k] = (double) k * df;
+		for (int k = 0; k < psd.length; k++) {
 			psd[k] = 10. * Math.log10(psd[k]);
 		}
 
 		// Convert psd[f] to psd[T]
 		// Reverse freq[] --> per[] where per[0]=shortest T and
 		// per[nf-2]=longest T:
-
-		double[] per = new double[nf];
-		double[] psdPer = new double[nf];
+		// TODO: this probably isn't necessary to do -- could just replace low/high period bound with
+		// conversion to frequency which is faster
+		double[] per = new double[psd.length];
+		double[] psdPer = new double[psd.length];
 		// per[nf-1] = 1/freq[0] = 1/0 = inf --> set manually:
-		per[nf - 1] = 0;
-		for (int k = 0; k < nf - 1; k++) {
-			per[k] = 1. / freq[nf - k - 1];
-			psdPer[k] = psd[nf - k - 1];
+		per[psd.length - 1] = 0;
+		for (int k = 0; k < psd.length - 1; k++) {
+			per[k] = 1. / freq[psd.length - k - 1];
+			psdPer[k] = psd[psd.length - k - 1];
 		}
 		double Tmin = per[0]; // Should be = 1/fNyq = 2/fs = 0.1 for fs=20Hz
-		double Tmax = per[nf - 2]; // Should be = 1/df = Ndt
+		// note that the value at the end of the period array is 1/0 so we ignore it as max period value
+		double Tmax = per[psd.length - 2]; // Should be = 1/df = Ndt
 
 		// Timeseries.timeoutXY(per, psdPer, outFile);
 
 		// Interpolate the smoothed psd to the periods of the NLNM Model:
-		double psdInterp[] = NumericUtils.interpolate(per, psdPer, getNLNM().getPeriods());
+		double[] psdInterp = NumericUtils.interpolate(per, psdPer, getNLNM().getPeriods());
 
 		// outFile = channel.toString() + ".psd.Fsmooth.T.Interp";
 		// Timeseries.timeoutXY(NLNMPeriods, psdInterp, outFile);
