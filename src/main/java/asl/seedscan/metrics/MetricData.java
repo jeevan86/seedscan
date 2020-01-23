@@ -155,6 +155,14 @@ public class MetricData implements Serializable {
   }
 
   /**
+   * Metadata setter for use in some test cases
+   * @param metadata new metadata to load in for verification purposes
+   */
+  public void setMetadata(StationMeta metadata) {
+    this.metadata = metadata;
+  }
+
+  /**
    * Checks for channels.
    * Only Z, 1, 2, N, E channels are checked.
    *
@@ -310,7 +318,7 @@ public class MetricData implements Serializable {
    * @return true, if either the calibration blockette exists or Calibration channels exist
    */
   boolean hasCalibrationData() {
-    if (randomCal != null) {
+    if (randomCal != null && randomCal.size() > 0) {
       return true;
     } else if (metadata.getNetwork()
         .equals("II")) { //This hardcoded station needs to be address (Ticket 9727)

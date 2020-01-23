@@ -28,7 +28,7 @@ public class InfrasoundMetricTest {
       String networkName = "IU";
       station = new Station(networkName, "ANMO");
       dataDate = LocalDate.of(2018, 5, 1);
-      data = ResourceManager.getMetricData(seedDataLocation, metadataLocation, dataDate, station, networkName);
+      data = ResourceManager.getMetricData(seedDataLocation, metadataLocation, dataDate, station);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -49,7 +49,7 @@ public class InfrasoundMetricTest {
     Channel channel = data.getMetaData().getChannelArray("BD,HD", false, true).get(0);
 
     MetricTestMap expect = new MetricTestMap();
-    expect.put("32,BDF", 1.1671, 1E-4);
+    expect.put("32,BDF", 1.14127, 1E-4);
     TestUtils.testMetric(metric, expect);
   }
 

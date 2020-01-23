@@ -3,20 +3,10 @@ package asl.seedscan.metrics;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import asl.metadata.Channel;
 import asl.metadata.Station;
-import asl.metadata.meta_new.ChannelMeta.ResponseUnits;
 import asl.testutils.MetricTestMap;
 import asl.testutils.ResourceManager;
-import asl.timeseries.CrossPower;
-import asl.utils.FFTResult;
-import asl.utils.TimeSeriesUtils;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
 import java.time.LocalDate;
-import java.util.Arrays;
-import org.apache.commons.math3.complex.Complex;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -30,8 +20,7 @@ public class NLNMDeviationMetricTest {
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
     try {
-      data1 = (MetricData) ResourceManager
-          .loadCompressedObject("/java_serials/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
+      data1 = ResourceManager.loadANMOMainTestCase();
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -60,43 +49,10 @@ public class NLNMDeviationMetricTest {
     metric.setData(data1);
     metric.add("channel-restriction", "LH");
 
-    String chlName = "LH1";
-    Channel channelToCheck = new Channel("00", chlName);
-
-    StringBuilder sb;
-    double sampleRate = data1.getChannelData(channelToCheck).get(0).getSampleRate();
-    long samplingInterval = (long) (TimeSeriesUtils.ONE_HZ_INTERVAL / sampleRate);
-    double[] detrendedData = data1.getDetrendedPaddedDayData(channelToCheck);
-
-    FFTResult rawSpectrum = FFTResult.spectralCalc(detrendedData, detrendedData, samplingInterval);
-    double[] rawSpectrumFreqs = rawSpectrum.getFreqs();
-    Complex[] basicPSD = rawSpectrum.getFFT();
-
-    CrossPower crossPower = metric.getCrossPower(channelToCheck, channelToCheck);
-
-    /*
-    // TODO: double-check that this value is what we expect it to be
-    Complex[] respCurve = data1.getMetaData().getChannelMetadata(channelToCheck)
-        .getResponse(freqs, ResponseUnits.ACCELERATION);
-    */
-
-    sb = new StringBuilder();
-    //double[] spectrum = crossPower.getSpectrum();
-    //double[] frequencies = crossPower.getSpectrumFrequencies();
-    for (int i = 0; i < rawSpectrumFreqs.length; ++i) {
-      sb.append(rawSpectrumFreqs[i]).append(", ").append(basicPSD[i].getReal())
-          .append(", ").append(basicPSD[i].getImaginary()).append("\n");
-    }
-
-    PrintWriter out = new PrintWriter(new File("ANMO-00-" + chlName + ".2015.206.basic-PSD.csv"));
-    out.write(sb.toString());
-    out.close();
-
-
 		/* The String key matches the MetricResult ids */
     MetricTestMap expect = new MetricTestMap();
     double error = 1E-5;
-    expect.put("00,LH1",  7.917047, error); // TODO: figure out why this seems too low
+    expect.put("00,LH1",  8.872056, error);
     expect.put("00,LH2",  8.459049, error);
     expect.put("00,LHZ", 10.898116, error);
     expect.put("10,LH1",  8.528913, error);
@@ -158,12 +114,12 @@ public class NLNMDeviationMetricTest {
 		/* The String key matches the MetricResult ids */
     expect = new MetricTestMap();
 
-    expect.put("00,BH1", 9.23291, error);
-    expect.put("00,BH2", 10.19558, error);
-    expect.put("00,BHZ", 14.13442, error);
-    expect.put("10,BH1", 11.99870, error);
-    expect.put("10,BH2", 11.41340, error);
-    expect.put("10,BHZ", 12.49639, error);
+    expect.put("00,BH1", 10.435224, error);
+    expect.put("00,BH2", 11.514057, error);
+    expect.put("00,BHZ", 14.297192, error);
+    expect.put("10,BH1", 13.105149, error);
+    expect.put("10,BH2", 12.010476, error);
+    expect.put("10,BHZ", 12.022624, error);
 
     TestUtils.testMetric(metric, expect);
   }
