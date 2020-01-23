@@ -10,8 +10,6 @@ plugins {
 }
 
 apply plugin: 'java'
-apply plugin: 'eclipse'
-apply plugin: 'idea'
 apply plugin: 'application'
 
 if (file('database.gradle').exists()) {
