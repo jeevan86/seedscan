@@ -26,7 +26,7 @@ public class PressureMetricTest {
       String seedDataLocation = "/seed_data/IU_ANMO/2018/121";
       station = new Station(networkName, "ANMO");
       dataDate = LocalDate.of(2018, 5, 1);
-      data = ResourceManager.getMetricData(seedDataLocation, metadataLocation, dataDate, station, networkName);
+      data = ResourceManager.getMetricData(seedDataLocation, metadataLocation, dataDate, station);
     } catch (Exception e) {
       e.printStackTrace();
     }

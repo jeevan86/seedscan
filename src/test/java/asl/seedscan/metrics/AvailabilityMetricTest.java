@@ -25,13 +25,14 @@ public class AvailabilityMetricTest {
 
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
-    data = (MetricData) ResourceManager
-        .loadCompressedObject("/java_serials/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
-    maleableData = (MetricData) ResourceManager
-        .loadCompressedObject("/java_serials/data/IU.ANMO.2015.206.MetricData.ser.gz", true);
 
-    metadata = (StationMeta) ResourceManager
-        .loadCompressedObject("/java_serials/metadata/CU.BCIP.2015.228.StationMeta.ser.gz", false);
+    data = ResourceManager.loadANMOMainTestCase();
+    maleableData = ResourceManager.loadANMOMainTestCase();
+
+    Station metaStation = new Station("CU", "BCIP");
+    LocalDate metaDate = LocalDate.ofYearDay(2015, 228);
+    String metaLocation = "/metadata/rdseed/CU-BCIP-ascii.txt";
+    metadata = ResourceManager.getMetadata(metaLocation, metaDate, metaStation);
 
     MetricDatabaseMock mockdatabase = new MetricDatabaseMock();
 
@@ -293,8 +294,7 @@ public class AvailabilityMetricTest {
         ByteBuffer.wrap(DatatypeConverter.parseHexBinary("EECF1753EBA6A435D851081EE39B372E")));
 
     Metric metric = new AvailabilityMetric();
-    MetricData metricData = (MetricData) ResourceManager
-        .loadCompressedObject("/java_serials/data/IU.ANMO.2015.206.MetricData.ser.gz", true);
+    MetricData metricData = ResourceManager.loadANMOMainTestCase();
     metricData.setMetricReader(database);
     metric.setData(metricData);
 
@@ -389,8 +389,7 @@ public class AvailabilityMetricTest {
   @Test
   public final void testProcess_NoDerivedChannels_NoTriggered() throws Exception {
     Metric metric = new AvailabilityMetric();
-    MetricData metricData = (MetricData) ResourceManager
-        .loadCompressedObject("/java_serials/data/IU.ANMO.2015.206.MetricData.ser.gz", true);
+    MetricData metricData = ResourceManager.loadANMOMainTestCase();
 
     //Rotate and add Derived channels to metricData
     metricData.checkForRotatedChannels(new ChannelArray("00", "LHND", "LHED", "LHZ"));

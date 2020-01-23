@@ -38,16 +38,16 @@ public class StationMetaTest {
 
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
-    data1 = (MetricData) ResourceManager
-        .loadCompressedObject("/java_serials/data/IU.NWAO.2015.299.MetricData.ser.gz", false);
-    maleabledata1 = (MetricData) ResourceManager
-        .loadCompressedObject("/java_serials/data/IU.NWAO.2015.299.MetricData.ser.gz", true);
-    data2 = (MetricData) ResourceManager
-        .loadCompressedObject("/java_serials/data/GS.OK029.2015.360.MetricData.ser.gz", false);
-    maleabledata3 = (MetricData) ResourceManager
-        .loadCompressedObject("/java_serials/data/IU.ANMO.2015.206.MetricData.ser.gz", true);
-    maleabledata4 = ((MetricData) ResourceManager
-        .loadCompressedObject("/java_serials/data/GS.OK029.2015.360.MetricData.ser.gz", true)).getMetaData();
+    data1 = ResourceManager.loadNWAOMainTestCase();
+    maleabledata1 = ResourceManager.loadNWAOMainTestCase();
+
+    String dataPath = "/seed_data/GS_OK029/2015/360";
+    String metaPath = "/metadata/rdseed/GS-OK029-00-ascii.txt";
+    LocalDate date = LocalDate.ofYearDay(2015, 360);
+    Station station = new Station("GS", "OK029");
+    data2 = ResourceManager.getMetricData(dataPath, metaPath, date, station);
+    maleabledata3 = ResourceManager.loadANMOMainTestCase();
+    maleabledata4 = ResourceManager.getMetadata(metaPath, date, station);
 
     ChannelMeta channelMeta = new ChannelMeta(new ChannelKey("51", "HHE"),
         maleabledata4.getTimestamp(), new Station("GS", "OK029"));

@@ -17,10 +17,8 @@ public class CoherencePBMTest {
 
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
-    data = (MetricData) ResourceManager
-        .loadCompressedObject("/java_serials/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
-    maleableData = (MetricData) ResourceManager
-        .loadCompressedObject("/java_serials/data/IU.NWAO.2015.299.MetricData.ser.gz", true);
+    data = ResourceManager.loadANMOMainTestCase();
+    maleableData = ResourceManager.loadNWAOMainTestCase();
   }
 
   @AfterClass
@@ -42,9 +40,9 @@ public class CoherencePBMTest {
     metric.add("upper-limit", "8");
     metric.setData(data);
     MetricTestMap expect = new MetricTestMap();
-    expect.put("00-10,LHZ-LHZ", 0.99997, ERROR);
-    expect.put("00-10,LHND-LHND", 0.99973, ERROR);
-    expect.put("00-10,LHED-LHED", 0.99763, ERROR);
+    expect.put("00-10,LHZ-LHZ",   0.99997, ERROR);
+    expect.put("00-10,LHND-LHND", 0.99991, ERROR);
+    expect.put("00-10,LHED-LHED", 0.99867, ERROR);
     TestUtils.testMetric(metric, expect);
   }
 
@@ -56,9 +54,9 @@ public class CoherencePBMTest {
     metric.add("upper-limit", "8");
     metric.setData(maleableData);
     MetricTestMap expect = new MetricTestMap();
-    expect.put("00-10,LHZ-LHZ", 0.10371478170685652);
-    expect.put("00-10,LHND-LHND", 0.12759091538485867);
-    expect.put("00-10,LHED-LHED", 0.1321379382028378);
+    expect.put("00-10,LHZ-LHZ",   0.4664829917692734);
+    expect.put("00-10,LHND-LHND", 0.5168012156749662);
+    expect.put("00-10,LHED-LHED", 0.6143960248066318);
     TestUtils.testMetric(metric, expect);
   }
 
@@ -70,9 +68,9 @@ public class CoherencePBMTest {
     metric.add("upper-limit", "22");
     metric.setData(data);
     MetricTestMap expect = new MetricTestMap();
-    expect.put("00-10,LHZ-LHZ", 0.99972, ERROR);
-    expect.put("00-10,LHND-LHND", 0.99765, ERROR);
-    expect.put("00-10,LHED-LHED", 0.99844, ERROR);
+    expect.put("00-10,LHZ-LHZ",   0.99972, ERROR);
+    expect.put("00-10,LHND-LHND", 0.99818, ERROR);
+    expect.put("00-10,LHED-LHED", 0.99880, ERROR);
     TestUtils.testMetric(metric, expect);
   }
 
@@ -84,9 +82,9 @@ public class CoherencePBMTest {
     metric.add("upper-limit", "110");
     metric.setData(data);
     MetricTestMap expect = new MetricTestMap();
-    expect.put("00-10,LHZ-LHZ", 0.85146, ERROR);
-    expect.put("00-10,LHND-LHND", 0.59780, ERROR);
-    expect.put("00-10,LHED-LHED", 0.66096, ERROR);
+    expect.put("00-10,LHZ-LHZ",   0.85146, ERROR);
+    expect.put("00-10,LHND-LHND", 0.59659, ERROR);
+    expect.put("00-10,LHED-LHED", 0.66137, ERROR);
     TestUtils.testMetric(metric, expect);
   }
 
@@ -98,11 +96,9 @@ public class CoherencePBMTest {
     metric.add("upper-limit", "500");
     metric.setData(data);
     MetricTestMap expect = new MetricTestMap();
-    expect.put("00-10,LHZ-LHZ", 0.2937884614962973);
-    expect.put("00-10,LHND-LHND", 0.2116717537635636);
-    expect.put("00-10,LHED-LHED", 0.21227322319511213);
-    System.out.println(metric);
-    System.out.println(expect);
+    expect.put("00-10,LHZ-LHZ",   0.4220825); // was 0.2937884614962973
+    expect.put("00-10,LHND-LHND", 0.3879628); // was 0.2116717537635636
+    expect.put("00-10,LHED-LHED", 0.3641875); // was 0.21227322319511213
     TestUtils.testMetric(metric, expect);
   }
 
@@ -116,9 +112,9 @@ public class CoherencePBMTest {
     metric.add("base-channel", "10-LH");
     metric.setData(data);
     MetricTestMap expect = new MetricTestMap();
-    expect.put("10-00,LHZ-LHZ", 0.2937884614962973);
-    expect.put("10-00,LHND-LHND", 0.2116717537635636);
-    expect.put("10-00,LHED-LHED", 0.21227322319511213);
+    expect.put("10-00,LHZ-LHZ",   0.4220825);
+    expect.put("10-00,LHND-LHND", 0.3879628);
+    expect.put("10-00,LHED-LHED", 0.3641875);
     TestUtils.testMetric(metric, expect);
 
   }
