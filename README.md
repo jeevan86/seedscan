@@ -4,7 +4,9 @@ SeedScan
 ### Purpose
     SeedScan is used to analyze miniSEED data and quantify data quality. This is done by processing
     various metrics that analyze the data.
-    
+
+DOI for published paper: https://doi.org/10.1016/j.cageo.2014.12.006  
+
 ### Requirements
 ###### Software
 Java 1.8  
@@ -60,7 +62,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 ###### Data Directory Setup
     There are three data directories that need setup. Path is where the actual miniSEED data is stored.
     It needs to be stored in a directory structure like in the example.  
-    The metadata/dataless is stored in dataless_dir. This is usually network dataless files.
+    The metadata/dataless is stored in dataless_dir. This is now required to be station based dataless files.
     Metrics that use synthetics require a events_dir directory to be setup. The files here are sac files.
 ```xml
     <cfg:path>/home/asluser/dataloc/${NETWORK}_${STATION}/${YEAR}/${YEAR}_${JDAY}_${NETWORK}_${STATION}</cfg:path>

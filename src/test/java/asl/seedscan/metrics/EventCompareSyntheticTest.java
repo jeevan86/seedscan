@@ -4,9 +4,9 @@ import static org.junit.Assert.assertEquals;
 
 import asl.metadata.Station;
 import asl.seedscan.event.EventLoader;
+import asl.testutils.MetricTestMap;
 import asl.testutils.ResourceManager;
 import java.time.LocalDate;
-import java.util.HashMap;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -20,8 +20,7 @@ public class EventCompareSyntheticTest {
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
     try {
-      data = (MetricData) ResourceManager
-          .loadCompressedObject("/java_serials/data/IU.NWAO.2015.299.MetricData.ser.gz", false);
+      data = ResourceManager.loadNWAOMainTestCase();
       eventLoader = new EventLoader(ResourceManager.getDirectoryPath("/event_synthetics"));
     } catch (Exception e) {
       e.printStackTrace();
@@ -41,13 +40,14 @@ public class EventCompareSyntheticTest {
     LocalDate date = LocalDate.of(2015, 10, 26);
     metric.setEventTable(eventLoader.getDayEvents(date));
     metric.setEventSynthetics(eventLoader.getDaySynthetics(date, new Station("IU", "NWAO")));
-    HashMap<String, Double> expect = new HashMap<>();
-    expect.put("00,LHZ", 0.7365784417165183);  //Before hard coding removal.  0.7365784417165183
-    expect.put("00,LHND", 0.8073041537988243); //0.8034777781560093
-    expect.put("00,LHED", 0.7382054171769823); //0.7419806164967785
-    expect.put("10,LHZ", 0.0002670125120753591); //0.0002246588435010572
-    expect.put("10,LHND", 0.0002155175428788991); //0.00008719589964150271
-    expect.put("10,LHED", -0.00031154322642514324); //Nonexistent
+    MetricTestMap expect = new MetricTestMap();
+    double error = 1E-4;
+    expect.put("00,LHZ",   0.78276, error);  //Before hard coding removal.  0.7365784417165183
+    expect.put("00,LHND",  0.87600, error); //0.8034777781560093
+    expect.put("00,LHED",  0.81786, error); //0.7419806164967785
+    expect.put("10,LHZ",   0.00356, error); //0.0002246588435010572
+    expect.put("10,LHND", -0.00430, error); //0.00008719589964150271
+    expect.put("10,LHED", -0.00023, error); //Nonexistent
 
     TestUtils.testMetric(metric, expect);
 
@@ -65,13 +65,14 @@ public class EventCompareSyntheticTest {
     LocalDate date = LocalDate.of(2015, 10, 26);
     metric.setEventTable(eventLoader.getDayEvents(date));
     metric.setEventSynthetics(eventLoader.getDaySynthetics(date, new Station("IU", "NWAO")));
-    HashMap<String, Double> expect = new HashMap<>();
-    expect.put("00,LHZ", 0.7365784417165183);  //Before hard coding removal.  0.7365784417165183
-    expect.put("00,LHND", 0.8073041537988243); //0.8034777781560093
-    expect.put("00,LHED", 0.7382054171769823); //0.7419806164967785
-    expect.put("10,LHZ", 0.0002670125120753591); //0.0002246588435010572
-    expect.put("10,LHND", 0.0002155175428788991); //0.00008719589964150271
-    expect.put("10,LHED", -0.00031154322642514324); //Nonexistent
+    MetricTestMap expect = new MetricTestMap();
+    double error = 1E-4;
+    expect.put("00,LHZ",   0.78276, error);  //Before hard coding removal.  0.7365784417165183
+    expect.put("00,LHND",  0.87600, error); //0.8034777781560093
+    expect.put("00,LHED",  0.81786, error); //0.7419806164967785
+    expect.put("10,LHZ",   0.00356, error); //0.0002246588435010572
+    expect.put("10,LHND", -0.00430, error); //0.00008719589964150271
+    expect.put("10,LHED", -0.00023, error); //Nonexistent
 
     TestUtils.testMetric(metric, expect);
 

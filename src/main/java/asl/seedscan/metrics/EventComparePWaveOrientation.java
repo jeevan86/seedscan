@@ -2,7 +2,8 @@ package asl.seedscan.metrics;
 
 import asl.metadata.Channel;
 import asl.seedscan.event.EventCMT;
-import asl.timeseries.TimeseriesUtils;
+import asl.utils.FilterUtils;
+import asl.utils.NumericUtils;
 import edu.sc.seis.TauP.Arrival;
 import edu.sc.seis.TauP.SphericalCoords;
 import edu.sc.seis.TauP.TauModelException;
@@ -24,7 +25,6 @@ import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sac.SacTimeSeries;
-import uk.me.berndporr.iirj.Butterworth;
 
 public class EventComparePWaveOrientation extends Metric {
 
@@ -188,7 +188,7 @@ public class EventComparePWaveOrientation extends Metric {
 
     // now to get the synthetics data
     SortedSet<String> eventKeys = new TreeSet<>(eventCMTs.keySet());
-    for (String key : eventKeys) {
+    outerLoop: for (String key : eventKeys) {
 
       EventCMT eventMeta = eventCMTs.get(key);
       double eventLatitude = eventMeta.getLatitude();
@@ -297,6 +297,14 @@ public class EventComparePWaveOrientation extends Metric {
       int signumZ = 0;
       while (signumN == 0 || signumE == 0 || signumZ == 0) {
         offsetForSignCalculations += increment;
+        int lookupIndex = signalOffset + offsetForSignCalculations;
+        if (lookupIndex >= northData.length) {
+          logger.warn("== {}: Check that traces under consideration do not have data issues; "
+                  + "could not find nonzero data for quadrant orientation -- [STA:{}-{},{},{}]",
+              getName(), getStation(), curChannel, pairChannel, vertChannel
+          );
+          continue outerLoop;
+        }
         signumN = (int) Math.signum(northData[signalOffset + offsetForSignCalculations]);
         signumE = (int) Math.signum(eastData[signalOffset + offsetForSignCalculations]);
         signumZ = (int) Math.signum(vertData[signalOffset + offsetForSignCalculations]);
@@ -342,14 +350,14 @@ public class EventComparePWaveOrientation extends Metric {
     // first, we low-pass filter the data
     // filter corner at 0.05Hz (20 s interval)
     // and use a 4 poles in the filter
-    data = lowPassFilter(data, sampleRate, LOW_PASS_FILTER_CORNER);
+    data = FilterUtils.lowPassFilter(data, sampleRate, LOW_PASS_FILTER_CORNER, 4);
 
     // assume there are filter artifacts in first 50 seconds' worth of data
     int afterRinging = getSamplesInTimePeriod(P_WAVE_RINGING_OFFSET, sampleRate);
     data = Arrays.copyOfRange(data, afterRinging, data.length - afterRinging);
 
     // detrend operations are done in-place
-    TimeseriesUtils.demean(data);
+    NumericUtils.demeanInPlace(data);
 
     return data;
 
@@ -527,18 +535,6 @@ public class EventComparePWaveOrientation extends Metric {
         stationLongitude, greatCircleArc, arrivalTimeP);
 
     return ((long) arrivalTimeP) * 1000; // get the arrival time in ms
-  }
-
-  private static double[] lowPassFilter(double[] toFilt, double sps, double corner) {
-    Butterworth cascadeFilter = new Butterworth();
-    cascadeFilter.lowPass(4, sps, corner);
-
-    double[] filtered = new double[toFilt.length];
-    for (int i = 0; i < toFilt.length; ++i) {
-      filtered[i] = cascadeFilter.filter(toFilt[i]);
-    }
-
-    return filtered;
   }
 
   private class ArrivalTimeException extends Exception {

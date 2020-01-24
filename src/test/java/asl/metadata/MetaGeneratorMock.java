@@ -23,9 +23,9 @@ public class MetaGeneratorMock extends MetaGenerator {
     private static final Logger logger = LoggerFactory
             .getLogger(asl.metadata.MetaGenerator.class);
 
-
-
-    public MetaGeneratorMock(String rdseedTextDumpLocation, String networkName, String stationName) {
+    public MetaGeneratorMock(String rdseedTextDumpLocation, Station station) {
+        String networkName = station.getNetwork();
+        String stationName = station.getStation();
 
         List<String> strings = new ArrayList<>();
         BufferedReader reader = null;
