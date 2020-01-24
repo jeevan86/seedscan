@@ -93,8 +93,8 @@ public class StationMetaTest {
 
   @Test
   public final void testGetLongitude() throws Exception {
-    assertEquals(new Double(117.239), new Double(metadata1.getLongitude()));
-    assertEquals(new Double(-97.45486), new Double(metadata2.getLongitude()));
+    assertEquals(117.239, metadata1.getLongitude(), 1E-3);
+    assertEquals(-97.45486, metadata2.getLongitude(), 1E-3);
   }
 
   @Test
@@ -106,7 +106,7 @@ public class StationMetaTest {
   @Test
   public final void testGetNumberOfChannels() throws Exception {
     assertEquals(new Integer(35), new Integer(maleablemetadata1.getNumberOfChannels()));
-    assertEquals(new Integer(12), new Integer(metadata2.getNumberOfChannels()));
+    assertEquals(new Integer(6), new Integer(metadata2.getNumberOfChannels()));
   }
 
   @Test
@@ -144,10 +144,10 @@ public class StationMetaTest {
     assertEquals(new Integer(4), new Integer(cbuf.remaining()));
 
     //Our digest values in testing.
-    assertEquals(new Integer(1305518060), new Integer(cbuf.get()));
-    assertEquals(new Integer(-354324251), new Integer(cbuf.get()));
-    assertEquals(new Integer(-1383591863), new Integer(cbuf.get()));
-    assertEquals(new Integer(-1320735307), new Integer(cbuf.get()));
+    assertEquals(new Integer(680281833), new Integer(cbuf.get()));
+    assertEquals(new Integer(2056767904), new Integer(cbuf.get()));
+    assertEquals(new Integer(-1193767743), new Integer(cbuf.get()));
+    assertEquals(new Integer(1883118207), new Integer(cbuf.get()));
   }
 
   @Test
@@ -167,7 +167,7 @@ public class StationMetaTest {
 
     key = new ChannelKey("10", "LH2");
     meta = table.get(key);
-    assertEquals(new Double(90), new Double(meta.getAzimuth()));
+    assertEquals(new Double(89), new Double(meta.getAzimuth()));
     assertEquals(new Double(1), new Double(meta.getSampleRate()));
     assertEquals(new Integer(3), new Integer(meta.getNumberOfStages()));
 
@@ -181,18 +181,18 @@ public class StationMetaTest {
     meta = table.get(key);
     assertEquals(new Double(0), new Double(meta.getAzimuth()));
     assertEquals(new Double(1), new Double(meta.getSampleRate()));
-    assertEquals(new Integer(1), new Integer(meta.getNumberOfStages()));
+    assertEquals(new Integer(2), new Integer(meta.getNumberOfStages()));
 
     key = new ChannelKey("00", "LH1");
     meta = table.get(key);
-    assertEquals(new Double(79), new Double(meta.getAzimuth()));
+    assertEquals(new Double(80), new Double(meta.getAzimuth()));
     assertEquals(new Double(1), new Double(meta.getSampleRate()));
     assertEquals(new Double(105), new Double(meta.getDepth()));
     assertEquals(new Integer(3), new Integer(meta.getNumberOfStages()));
 
     key = new ChannelKey("10", "HH1");
     meta = table.get(key);
-    assertEquals(new Double(0), new Double(meta.getAzimuth()));
+    assertEquals(new Double(359), new Double(meta.getAzimuth()));
     assertEquals(new Double(100), new Double(meta.getSampleRate()));
     assertEquals(new Integer(3), new Integer(meta.getNumberOfStages()));
 
@@ -200,7 +200,7 @@ public class StationMetaTest {
     meta = table.get(key);
     assertEquals(new Double(0), new Double(meta.getAzimuth()));
     assertEquals(new Double(0.1), new Double(meta.getSampleRate()));
-    assertEquals(new Integer(1), new Integer(meta.getNumberOfStages()));
+    assertEquals(new Integer(2), new Integer(meta.getNumberOfStages()));
 
     key = new ChannelKey("10", "VHZ");
     meta = table.get(key);
