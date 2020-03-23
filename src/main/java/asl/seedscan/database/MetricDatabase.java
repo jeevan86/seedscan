@@ -42,6 +42,10 @@ public class MetricDatabase {
 	/** The username. */
 	private String username;
 
+	// lock object used to synchronize scans so taken-but-unpopulated scans aren't marked as finished
+	// both the finishScan and takeNextScan methods are synchronized on this object
+	private final Object lockObject = new Object();
+
 	/**
 	 * Used for testing purposes only. Where java requires call to super() in
 	 * mock Class.
@@ -119,23 +123,25 @@ public class MetricDatabase {
 	 *            The UUID of the finished station scan.
 	 */
 	public void finishScan(UUID pkScanID) {
-		Connection connection = null;
-		CallableStatement callStatement = null;
-		try {
+		synchronized (lockObject) {
+			Connection connection = null;
+			CallableStatement callStatement = null;
 			try {
-				connection = dataSource.getConnection();
-				callStatement = connection.prepareCall("SELECT * from fnfinishscan(?)");
-				callStatement.setObject(1, pkScanID);
-				callStatement.executeQuery();
+				try {
+					connection = dataSource.getConnection();
+					callStatement = connection.prepareCall("SELECT * from fnfinishscan(?)");
+					callStatement.setObject(1, pkScanID);
+					callStatement.executeQuery();
 
-			} finally {
-				if (callStatement != null)
-					callStatement.close();
-				if (connection != null)
-					connection.close();
+				} finally {
+					if (callStatement != null)
+						callStatement.close();
+					if (connection != null)
+						connection.close();
+				}
+			} catch (SQLException e) {
+				logger.error("SQLException:", e);
 			}
-		} catch (SQLException e) {
-			logger.error("SQLException:", e);
 		}
 	}
 
@@ -469,46 +475,47 @@ public class MetricDatabase {
 	 * 
 	 * @return A Scan object to be added to the Priority Queue or null if empty
 	 */
-	public DatabaseScan takeNextScan() {
+	 public DatabaseScan takeNextScan() {
 		Connection connection = null;
 		CallableStatement callStatement = null;
 		ResultSet rs = null;
-		try {
+		synchronized (lockObject) {
 			try {
-				connection = dataSource.getConnection();
-				callStatement = connection.prepareCall("SELECT * from fntakenextscan()");
+				try {
+					connection = dataSource.getConnection();
+					callStatement = connection.prepareCall("SELECT * from fntakenextscan()");
 
-				rs = callStatement.executeQuery();
-				//If we have a scan return it
-				if(rs.next()){
-				//@formatter:off
-					return new DatabaseScan(
-						(java.util.UUID) rs.getObject("pkscanid"),
-						(java.util.UUID) rs.getObject("fkparentscan"),
-						rs.getString("metricfilter"),
-						rs.getString("networkfilter"),
-						rs.getString("stationfilter"),
-						rs.getString("locationfilter"),
-						rs.getString("channelfilter"),
-						rs.getObject("startdate", LocalDate.class),
-						rs.getObject("enddate", LocalDate.class),
-						rs.getInt("priority"),
-						rs.getBoolean("deleteexisting"));
-				//@formatter:on
+					rs = callStatement.executeQuery();
+					//If we have a scan return it
+					if (rs.next()) {
+						//@formatter:off
+						return new DatabaseScan(
+								(java.util.UUID) rs.getObject("pkscanid"),
+								(java.util.UUID) rs.getObject("fkparentscan"),
+								rs.getString("metricfilter"),
+								rs.getString("networkfilter"),
+								rs.getString("stationfilter"),
+								rs.getString("locationfilter"),
+								rs.getString("channelfilter"),
+								rs.getObject("startdate", LocalDate.class),
+								rs.getObject("enddate", LocalDate.class),
+								rs.getInt("priority"),
+								rs.getBoolean("deleteexisting"));
+						//@formatter:on
+					} else {
+						return null;
+					}
+				} finally {
+					if (rs != null)
+						rs.close();
+					if (callStatement != null)
+						callStatement.close();
+					if (connection != null)
+						connection.close();
 				}
-				else{
-					return null;
-				}
-			} finally {
-				if (rs != null)
-					rs.close();
-				if (callStatement != null)
-					callStatement.close();
-				if (connection != null)
-					connection.close();
+			} catch (SQLException e) {
+				logger.error("SQLException:", e);
 			}
-		} catch (SQLException e) {
-			logger.error("SQLException:", e);
 		}
 		return null;
 	}
