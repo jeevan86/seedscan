@@ -28,20 +28,23 @@ public class RetrieveScan extends ScanWorker {
   @Override
   public void run() {
     //Runtime Exceptions thrown here are not caught anywhere else.
+    Object lock = manager.database.getLockObject();
     try {
-      DatabaseScan newScan = manager.database.takeNextScan();
+      synchronized (lock) {
+        DatabaseScan newScan = manager.database.takeNextScan();
 
-      if (newScan != null) {
-        parseScan(newScan);
-        // Add new Retriever to queue since we know more probably exist.
-        manager.addTask(new RetrieveScan(manager));
-      } else {
-        logger.info("Database has no Scans left!");
+        if (newScan != null) {
+          parseScan(newScan);
+          // Add new Retriever to queue since we know more probably exist.
+          manager.addTask(new RetrieveScan(manager));
+        } else {
+          logger.info("Database has no Scans left!");
+        }
+        /*
+         * Don't bother adding a new Retrieving Task since DB is empty. A
+         * different process will handle this.
+         */
       }
-      /*
-       * Don't bother adding a new Retrieving Task since DB is empty. A
-			 * different process will handle this.
-			 */
 
     } catch (Exception e) {
       String message = Logging.prettyExceptionWithCause(e);
