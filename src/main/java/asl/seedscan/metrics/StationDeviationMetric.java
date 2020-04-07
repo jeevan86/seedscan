@@ -133,9 +133,9 @@ public class StationDeviationMetric extends PowerBandMetric {
 	private double computeMetric(Channel channel) throws MetricException {
 
 		// Read in specific noise model for this station+channel //
-		// ../ANMO.00.LH1.90
-		String modelFileName = stationMeta.getStation() + "."
-				+ channel.getLocation() + "." + channel.getChannel() + ".90";
+		// ../IU.ANMO.00.LH1.csv
+		String modelFileName = stationMeta.getNetwork() + "." + stationMeta.getStation() + "."
+				+ channel.getLocation() + "." + channel.getChannel() + ".csv";
 		try {
 			if (!readModel(modelFileName)) {
 				logger.warn(String
@@ -281,7 +281,7 @@ public class StationDeviationMetric extends PowerBandMetric {
 
 	private boolean readModel(String fName) throws MetricException {
 
-		// ../stationmodel/IU_ANMO/ANMO.00.LHZ.90
+		// ../stationmodel/IU_ANMO/IU.ANMO.00.LHZ.csv
 		String fileName = modelDirectory + fName;
 
 		// First see if the file exists

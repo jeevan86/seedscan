@@ -160,7 +160,7 @@ public class EventComparePWaveOrientation extends Metric {
 
       double angleDifference = computeMetric(eventCMTs, curChannel, pairChannel, vertChannel);
 
-      //Catch any bail out of internal metric.
+      // Catch any bail out of internal metric.
       if (Double.isNaN(angleDifference)) {
         continue;
       }
