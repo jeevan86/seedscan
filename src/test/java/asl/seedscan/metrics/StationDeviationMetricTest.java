@@ -52,13 +52,13 @@ public class StationDeviationMetricTest {
 
     double err = 1E-5;
     MetricTestMap expect = new MetricTestMap();
-    expect.put("00,LH1", -3.3940738, err); // was -6.259435685534593
-    expect.put("00,LH2", -2.3420939, err); // was -3.6049945557454826
-    expect.put("00,LHZ", -3.4845588, err); // was -4.813953146458895
+    expect.put("00,LH1", -1.3673368, err);
+    expect.put("00,LH2", -0.9144481, err);
+    expect.put("00,LHZ", -3.1754843, err);
 
-    expect.put("10,LH1", -12.6668404, err);
-    expect.put("10,LH2",  -9.1613657, err);
-    expect.put("10,LHZ", -11.0915996, err);
+    expect.put("10,LH1", -6.9036831, err);
+    expect.put("10,LH2", -1.3517243, err);
+    expect.put("10,LHZ", -4.3853272, err);
 
     TestUtils.testMetric(metric, expect);
   }
@@ -69,12 +69,12 @@ public class StationDeviationMetricTest {
 
     double err = 1E-5;
     MetricTestMap expect = new MetricTestMap();
-    expect.put("00,LH1", 16.185851, err); // was 10.55316202766241
-    expect.put("00,LH2", 27.280398, err); // was 13.004893924325444
-    //expect.put("00,LHZ", 0, err);
-    expect.put("00,HH1", 15.869745, err); // was 79.1343722643019
-    expect.put("00,HH2", 28.995552, err); // was 84.66032464538895
-    expect.put("00,HHZ", 28.992649, err); // was 69.51285486264509
+    expect.put("00,LH1",  0.233198, err);
+    expect.put("00,LH2", 14.616353, err);
+    expect.put("00,LHZ", 22.065026, err);
+    expect.put("00,HH1",  2.803574, err);
+    expect.put("00,HH2", 13.600219, err);
+    expect.put("00,HHZ", 21.547133, err);
 
     TestUtils.testMetric(metric, expect);
   }
