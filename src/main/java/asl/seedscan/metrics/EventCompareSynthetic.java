@@ -233,7 +233,7 @@ public class EventCompareSynthetic extends Metric {
 	 *            the sac header
 	 * @return the sac start time in millis
 	 */
-	private long getSacStartTimeInMillis(SacHeader hdr) {
+	public static long getSacStartTimeInMillis(SacHeader hdr) {
 		GregorianCalendar gcal = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
 		gcal.set(Calendar.YEAR, hdr.getNzyear());
 		gcal.set(Calendar.DAY_OF_YEAR, hdr.getNzjday());
