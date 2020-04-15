@@ -93,9 +93,7 @@ public class EventComparePWaveOrientation extends Metric {
 
     List<Channel> channels = stationMeta.getRotatableChannels();
 
-    // get pairs of ED, ND data and then do the rotation with those
     String basePreSplit = null;
-
     try {
       basePreSplit = get("base-channel");
     } catch (NoSuchFieldException ignored) {
@@ -103,7 +101,7 @@ public class EventComparePWaveOrientation extends Metric {
 
     if (basePreSplit == null) {
       basePreSplit = "XX-LX";
-      logger.info("No base channel for Event Compare P Orientation using: " + basePreSplit);
+      logger.info("No base channel for Event Compare P Orientation, using: " + basePreSplit);
     }
 
     String preSplitBands = null;

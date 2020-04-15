@@ -20,7 +20,6 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import org.apache.commons.math3.analysis.integration.TrapezoidIntegrator;
 import org.apache.commons.math3.complex.Complex;
 import org.apache.commons.math3.util.Pair;
 import org.slf4j.Logger;
@@ -103,8 +102,12 @@ public class WPhaseQualityMetric extends Metric {
 
     // data expected to be continuous for these methods to work
     List<Channel> channels = stationMeta.getContinuousChannels();
-
     for (Channel channel : channels) {
+      String channelVal = channel.toString().split("-")[1];
+      if (!allowedBands.contains(channelVal.substring(0, 2))) {
+        // current channel not part of valid band options, skip it
+        continue;
+      }
       ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel),
           getForceUpdate());
 
