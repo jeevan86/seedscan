@@ -105,13 +105,13 @@ public class WPhaseQualityMetricTest {
       linearFunction[i] = i;
       squaredFunction[i] = linearFunction[i] * i / 2.;
     }
-    double[] evaluatedSquared = 
- WPhaseQualityMetric.performIntegrationByTrapezoid(linearFunction, 1);
+    double[] evaluatedSquared =
+        WPhaseQualityMetric.performIntegrationByTrapezoid(linearFunction, 1);
     assertEquals(4.9005e3, evaluatedSquared[len-1], 0.);
-    double[] squaredInput = 
- Arrays.copyOfRange(evaluatedSquared, 1, cubicFunction.length + 1);
-    double[] evaluatedCubic = 
- WPhaseQualityMetric.performIntegrationByTrapezoid(squaredInput, 1);
+    double[] squaredInput =
+        Arrays.copyOfRange(evaluatedSquared, 1, cubicFunction.length + 1);
+    double[] evaluatedCubic =
+        WPhaseQualityMetric.performIntegrationByTrapezoid(squaredInput, 1);
     assertArrayEquals(squaredFunction, evaluatedSquared, 1E-10);
     assertArrayEquals(cubicFunction, evaluatedCubic, 1E-10);
   }
