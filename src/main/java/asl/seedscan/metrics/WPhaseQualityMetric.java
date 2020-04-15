@@ -143,7 +143,6 @@ public class WPhaseQualityMetric extends Metric {
       double h = pair.getSecond();
       // prescreening step: get instrument response and compare to a specific dummy response
       if (passesResponseCheck(w, h)) {
-        // TODO: add more explicit information here about channel, etc.
         logger.warn("== {}: channel=[{}] metadata differs from nominal parameters by > 3%,"
                 + " skipping", getName(), getStation() + "-" + channel.toString());
         return NO_RESULT;
@@ -170,7 +169,6 @@ public class WPhaseQualityMetric extends Metric {
       double angleBetween = SphericalCoords
           .distance(eventLatitude, eventLongitude, stationLatitude, stationLongitude);
       if (angleBetween > 90) {
-        // TODO: make this info statement more detailed
         logger.info("== {}: Arc from event (key=[{}]) to station=[{}] too large for evaluation.",
             getName(), key, getStation());
         // presumably we don't have this as a matter of the
@@ -195,26 +193,10 @@ public class WPhaseQualityMetric extends Metric {
         long prescreenWindowStart = eventStart - THREE_HRS_MILLIS;
         double[] prescreenCheck =
             metricData.getWindowedData(channel, prescreenWindowStart, eventStart);
+        // run the getCrossPower stuff specifically on the above range of data and no more
+        CrossPower crossPower = getCrossPower(channel, channel, prescreenCheck, prescreenCheck);
+        double difference = passesPSDNoiseScreening(crossPower);
 
-        CrossPower crossPower = getCrossPower(channel, channel);
-        double[] psd = crossPower.getSpectrum();
-        double df = crossPower.getSpectrumDeltaF();
-        // for array, index * df = frequency at that index
-        // so if we want to get the 1-10Hz region of the data, divide freq by df and make integer
-        int lowerBound = (int) Math.floor(0.001/df);
-        int upperBound = (int) Math.ceil(0.010/df);
-        psd = Arrays.copyOfRange(psd, lowerBound, upperBound);
-        double[] freqs = new double[upperBound - lowerBound];
-        assert(psd.length == freqs.length);
-        for (int i = lowerBound; i < upperBound; ++i) {
-          int arrayIndex = i - lowerBound;
-          freqs[arrayIndex] = df * i;
-        }
-        double[] NHNM = getNHNMOverFrequencies(freqs, df);
-        double difference = 0.;
-        for (int i = 0; i < freqs.length; ++i) {
-          difference += (NHNM[i] - psd[i]);
-        }
         if (difference > 0) {
           logger.warn("== {}: Difference between NHNM and PSD was positive; "
                   + "channel=[{}] is too noisy.",
@@ -281,13 +263,7 @@ public class WPhaseQualityMetric extends Metric {
       int startingIndex = (int) Math.ceil((pTravelTime * synthSampleRate) / 1000);
       float[] synthData =
           Arrays.copyOfRange(sacSynthetics.getY(), startingIndex, startingIndex + data.length);
-      double numerator = 0;
-      double denominator = 0;
-      for (int i = 0; i < data.length; ++i) {
-        denominator += Math.pow(synthData[i], 2);
-        numerator += Math.pow(synthData[i] - data[i], 2);
-      }
-      if (numerator / denominator > 3) {
+      if (!passesMisfitScreening(synthData, data)) {
         logger.warn("== {}: Trace misfit against synthetic data outside bound of 3.0; "
                 + "channel=[{}] is too noisy.",
             getName(), getStation() + "-" + channel.toString());
@@ -305,17 +281,81 @@ public class WPhaseQualityMetric extends Metric {
     return ((double) eventsPassed) / numEvents;
   }
 
-  double[] performIntegrationByTrapezoid(double[] toIntegrate, double deltaT) {
+  /**
+   * Ensure that the crosspower for the data meets the noise screening requirements (i.e.,
+   * data is overall lower than the NHNM from the range 1mHz, 10mHz range)
+   * @param crossPower Crosspower of data, presumed to be 3 hours before event start
+   * @return Total difference between PSD and NHNM over frequency range
+   */
+  static double passesPSDNoiseScreening(CrossPower crossPower) {
+    double[] psd = crossPower.getSpectrum();
+    double df = crossPower.getSpectrumDeltaF();
+    // for array, index * df = frequency at that index
+    // so if we want to get the 1-10mHz region of the data, divide freq by df and make integer
+    int lowerBound = (int) Math.floor(0.001 / df);
+    int upperBound = (int) Math.ceil(0.010 / df);
+    psd = Arrays.copyOfRange(psd, lowerBound, upperBound);
+    double[] freqs = new double[upperBound - lowerBound];
+    assert(psd.length == freqs.length);
+    for (int i = lowerBound; i < upperBound; ++i) {
+      int arrayIndex = i - lowerBound;
+      freqs[arrayIndex] = df * i;
+    }
+    double[] NHNM = getNHNMOverFrequencies(freqs);
+    double difference = 0.;
+    for (int i = 0; i < freqs.length; ++i) {
+      difference += (NHNM[i] - psd[i]);
+    }
+    return difference;
+  }
+
+  /**
+   * Perform the misfit screening step as described in Duputel, Rivera, et. al (2012).
+   * Sum of squared difference between the synth and corrected sensor traces divided by the
+   * sum of squared synth data points. Returns false if this value is < 3.
+   * Will return true if the synthetic data is 0., though this is not an expected input.
+   * @param synthData Synthetic data derived from event specification
+   * @param channelData Processed (filtered) channel data over the given range.
+   * @return True if the synthetic data is within our expected error range.
+   */
+  static boolean passesMisfitScreening(float[] synthData, double[] channelData) {
+    double numerator = 0;
+    double denominator = 0;
+    for (int i = 0; i < channelData.length; ++i) {
+      denominator += Math.pow(synthData[i], 2);
+      numerator += Math.pow(synthData[i] - channelData[i], 2);
+    }
+    // if denominator is zero short-circuit to prevent errors
+    return denominator == 0. || numerator / denominator < 3;
+  }
+
+  /**
+   * Perform trapezoid integration on set of data with equal space.
+   * Meant to match CUMTRAPZ functions in matlab or numpy
+   * @param toIntegrate Y values of some function
+   * @param deltaT spacing between each value
+   * @return integrated function by trapezoid rule
+   */
+  static double[] performIntegrationByTrapezoid(double[] toIntegrate, double deltaT) {
     double[] integration = new double[toIntegrate.length];
-    integration[0] = 0.;
+    integration[0] = 0;
     for (int i = 1; i < integration.length; ++i) {
       // cumulative sum plus the function of linear slope between
-      integration[i] = deltaT * (integration[i-1] + ((toIntegrate[i] - toIntegrate[i-1]) / 2.));
+      integration[i] = integration[i-1] + deltaT * ((toIntegrate[i] + toIntegrate[i-1]) / (2));
     }
     return integration;
   }
 
-  double[] getRecursiveFilter(double[] y, double deltaT, double cornerFreq, double gain) {
+  /**
+   * Produces a response filter in the time domain given a channel's timeseries data.
+   * Derived from formula given in Kanamori and Rivera (2008).
+   * @param y Timeseries data
+   * @param deltaT Sample interval of data (seconds)
+   * @param cornerFreq Corner frequency of response (for matching to closest nominal of 120 or 360)
+   * @param gain Gain value taken from sensitivity of resp (stage 0 gain)
+   * @return Timeseries data with response deconvolution done
+   */
+  static double[] getRecursiveFilter(double[] y, double deltaT, double cornerFreq, double gain) {
     int length = y.length;
     double[] filter = new double[length];
     double h = 0.707;
@@ -333,19 +373,31 @@ public class WPhaseQualityMetric extends Metric {
     return filter;
   }
 
+  /**
+   * Returns true if response-derived damping and corner frequency are within the acceptable error
+   * bound {@link #PERCENT_CUTOFF} of nominal responses.
+   * The values are respectively compared to {@link #DAMPING_CONSTANT} and
+   * either {@link #CORNER_FREQ_120} or {@link #CORNER_FREQ_360} as appropriate.
+   * @param w Corner frequency derived from response
+   * @param h Damping value derived from response
+   * @return True if the values are within the acceptable error compared to the nominal values.
+   */
   static boolean passesResponseCheck(double w, double h) {
-
-      double fError = 100 * Math.abs(h - DAMPING_CONSTANT) / Math.abs(DAMPING_CONSTANT);
-      double hError120 =  100 * Math.abs(w - CORNER_FREQ_120) / Math.abs(CORNER_FREQ_120);
-      double hError360 =  100 * Math.abs(w - CORNER_FREQ_360) / Math.abs(CORNER_FREQ_360);
+      double hError = 100 * Math.abs(h - DAMPING_CONSTANT) / Math.abs(DAMPING_CONSTANT);
+      double wError120 =  100 * Math.abs(w - CORNER_FREQ_120) / Math.abs(CORNER_FREQ_120);
+      double wError360 =  100 * Math.abs(w - CORNER_FREQ_360) / Math.abs(CORNER_FREQ_360);
       // make sure both freq and damping are within error threshold
-      if (fError < PERCENT_CUTOFF && (hError120 < PERCENT_CUTOFF || hError360 < PERCENT_CUTOFF)) {
+      if (hError < PERCENT_CUTOFF && (wError120 < PERCENT_CUTOFF || wError360 < PERCENT_CUTOFF)) {
         return true;
       }
-
     return false;
   }
 
+  /**
+   * Derive the corner frequency and damping from the channel's response's first pole and zero.
+   * @param channelMeta metadata for the channel under analysis
+   * @return Pair with the corner frequency and damping parameters as first and second value
+   */
   static Pair<Double, Double> getFreqAndDamping(ChannelMeta channelMeta) {
     for (Integer stageKey : channelMeta.getStages().keySet()) {
       ResponseStage stage = channelMeta.getStage(stageKey);
@@ -357,38 +409,27 @@ public class WPhaseQualityMetric extends Metric {
       List<Complex> poles = pzStage.getPoles();
       NumericUtils.complexMagnitudeSorter(poles);
       Complex pole = poles.get(0);
-      double w = pole.abs(); // corner frequency
+      double w = pole.abs(); // corner frequency (2pi correction accounted for in resp check)
       double h = Math.abs(pole.getReal() / pole.abs()); // damping
       return new Pair<>(w, h);
     }
     return null;
   }
 
-  static double[] getNHNMOverFrequencies(double[] frequencies, double df) {
+  /**
+   * Get the interpolated NHNM over a set of frequencies for PSD comparison
+   * @param frequencies Range of PSD frequencies to compare with NHNM
+   * @return NHNM values evaluated at each frequency
+   */
+  static double[] getNHNMOverFrequencies(double[] frequencies) {
     double[] returnValue = new double[frequencies.length];
-    double minX = frequencies[0];
     for (int i = 0; i < frequencies.length; ++i) {
-      double f = minX + df * i;
+      double f = frequencies[i];
+      // NHNM interpolation function expects period values
       double period = 1. / f;
       double modelValue = InterpolatedNHNM.fnhnm(period);
       returnValue[i] = modelValue;
     }
     return returnValue;
-  }
-
-  /**
-   * Determine if a channel meets the needed criteria.
-   *
-   * @param channel Channel to be tested.
-   * @param allowedBands List of allowed bands in String format
-   * @return True if filtered out, False if not
-   */
-  static boolean filterChannel(Channel channel, List<String> allowedBands) {
-    //Only process derived channels.
-    if (!channel.getChannel().endsWith("D")) {
-      return true;
-    }
-    //Test if in requested bands
-    return !allowedBands.contains(channel.getChannel().substring(0, 2));
   }
 }

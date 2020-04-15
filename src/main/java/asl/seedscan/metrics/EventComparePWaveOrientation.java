@@ -101,7 +101,7 @@ public class EventComparePWaveOrientation extends Metric {
 
     if (basePreSplit == null) {
       basePreSplit = "XX-LX";
-      logger.info("No base channel for Event Compare P Orientation, using: " + basePreSplit);
+      logger.info("No base channel for Event Compare P Orientation,ty using: " + basePreSplit);
     }
 
     String preSplitBands = null;

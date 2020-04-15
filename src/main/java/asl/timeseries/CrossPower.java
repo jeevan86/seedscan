@@ -39,6 +39,22 @@ public class CrossPower {
 	 */
 	public CrossPower(Channel channelX, Channel channelY, MetricData metricData)
 			throws MetricPSDException, ChannelMetaException {
+
+		this(channelX, channelY, metricData, metricData.getDetrendedPaddedDayData(channelX),
+				metricData.getDetrendedPaddedDayData(channelY));
+	}
+
+	/**
+	 * Perform the crosspower for a specific segment of data rather than the full day data by default
+	 * @param channelX
+	 * @param channelY
+	 * @param metricData
+	 * @param xData
+	 * @param yData
+	 */
+	public CrossPower(Channel channelX, Channel channelY, MetricData metricData, double[] xData, double[] yData)
+			throws MetricPSDException, ChannelMetaException {
+
 		double sampleRate = metricData.getChannelData(channelX).get(0).getSampleRate();
 
 		if (sampleRate != metricData.getChannelData(channelY).get(0).getSampleRate()) {
