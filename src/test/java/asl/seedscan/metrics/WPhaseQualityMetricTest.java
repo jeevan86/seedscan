@@ -15,6 +15,8 @@ import org.junit.Test;
 
 public class WPhaseQualityMetricTest {
 
+  private WPhaseQualityMetric metric;
+
   @Test
   public void checkNHNMInterpolation() {
     double[] frequencies = new double[100];
@@ -144,5 +146,17 @@ public class WPhaseQualityMetricTest {
     w = pole.abs();
     h = 1;
     assertFalse(WPhaseQualityMetric.passesResponseCheck(w, h));
+  }
+
+  @Test
+  public final void testGetVersion() {
+    metric = new WPhaseQualityMetric();
+    assertEquals(1, metric.getVersion());
+  }
+
+  @Test
+  public final void testGetName() {
+    metric = new WPhaseQualityMetric();
+    assertEquals("WPhaseQualityMetric", metric.getName());
   }
 }
