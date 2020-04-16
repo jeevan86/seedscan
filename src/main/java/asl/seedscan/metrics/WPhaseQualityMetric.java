@@ -195,7 +195,8 @@ public class WPhaseQualityMetric extends Metric {
             metricData.getWindowedData(channel, prescreenWindowStart, eventStart);
         // run the getCrossPower stuff specifically on the above range of data and no more
         CrossPower crossPower = getCrossPower(channel, channel, prescreenCheck, prescreenCheck);
-        double difference = passesPSDNoiseScreening(crossPower);
+        double difference =
+            passesPSDNoiseScreening(crossPower.getSpectrum(), crossPower.getSpectrumDeltaF());
 
         if (difference > 0) {
           logger.warn("== {}: Difference between NHNM and PSD was positive; "
@@ -283,17 +284,20 @@ public class WPhaseQualityMetric extends Metric {
 
   /**
    * Ensure that the crosspower for the data meets the noise screening requirements (i.e.,
-   * data is overall lower than the NHNM from the range 1mHz, 10mHz range)
-   * @param crossPower Crosspower of data, presumed to be 3 hours before event start
+   * data is overall lower than the NHNM from the range 1mHz, 10mHz range).
+   * If the value is positive then the noise screening is considered failed.
+   * @param psd PSD data over (positive) frequency range (index 0 = 0Hz)
+   * @param df Change in frequency between PSD values
    * @return Total difference between PSD and NHNM over frequency range
    */
-  static double passesPSDNoiseScreening(CrossPower crossPower) {
-    double[] psd = crossPower.getSpectrum();
-    double df = crossPower.getSpectrumDeltaF();
+  static double passesPSDNoiseScreening(double[] psd, double df) {
     // for array, index * df = frequency at that index
     // so if we want to get the 1-10mHz region of the data, divide freq by df and make integer
+    // we'll make the bounds inclusive so that 0.001 or last point less than it is included
     int lowerBound = (int) Math.floor(0.001 / df);
-    int upperBound = (int) Math.ceil(0.010 / df);
+    // make sure that 10 mHz is included in the set or first point above that value
+    int upperBound = (int) Math.ceil(0.010 / df) + 1;
+    upperBound = Math.min(upperBound, psd.length);
     psd = Arrays.copyOfRange(psd, lowerBound, upperBound);
     double[] freqs = new double[upperBound - lowerBound];
     assert(psd.length == freqs.length);
@@ -304,7 +308,7 @@ public class WPhaseQualityMetric extends Metric {
     double[] NHNM = getNHNMOverFrequencies(freqs);
     double difference = 0.;
     for (int i = 0; i < freqs.length; ++i) {
-      difference += (NHNM[i] - psd[i]);
+      difference += (psd[i] - NHNM[i]);
     }
     return difference;
   }

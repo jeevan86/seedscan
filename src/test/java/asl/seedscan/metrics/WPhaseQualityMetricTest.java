@@ -55,9 +55,23 @@ public class WPhaseQualityMetricTest {
   }
 
   @Test
-  public void verifyNHNMNoiseComparison() {
-    // need to get some data that will be considered too close to the NHNM to pass
-    // can probably just mock up some data and set a channel whose metadata is in here
+  public void verifyNHNMNoiseComparison_noisyDataFails() {
+    double[] psd = new double[10000];
+    // we'll just use an obviously, egregiously bad data case here
+    Arrays.fill(psd, -75);
+    double df = 0.0005;
+    double resultNHNMScreen = WPhaseQualityMetric.passesPSDNoiseScreening(psd, df);
+    assertTrue(resultNHNMScreen > 0);
+  }
+
+  @Test
+  public void verifyNHNMNoiseComparisonPassesGoodData() {
+    double[] psd = new double[10000];
+    // presumably a reasonable PSD estimation would be somewhere around here for most of its values
+    Arrays.fill(psd, -150);
+    double df = 0.0005;
+    double resultNHNMScreen = WPhaseQualityMetric.passesPSDNoiseScreening(psd, df);
+    assertTrue(resultNHNMScreen < 0);
   }
 
   @Test
