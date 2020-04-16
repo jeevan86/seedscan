@@ -7,15 +7,48 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import asl.metadata.Station;
+import asl.seedscan.event.EventLoader;
+import asl.testutils.MetricTestMap;
+import asl.testutils.ResourceManager;
 import asl.utils.input.InstrumentResponse;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.Arrays;
 import org.apache.commons.math3.complex.Complex;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class WPhaseQualityMetricTest {
 
   private WPhaseQualityMetric metric;
+  private static MetricData data;
+  private static EventLoader eventLoader;
+  private static LocalDate dataDate = LocalDate.ofYearDay(2016, 62);
+  private static Station station1;
+
+  @BeforeClass
+  public static void setUpBeforeClass() {
+    String metadataLocation = "/metadata/rdseed/IU-ANMO-ascii.txt";
+    String seedDataLocation = "/seed_data/IU_ANMO/2016/062";
+    String networkName = "IU";
+    station1 = new Station(networkName, "ANMO");
+    data = ResourceManager.getMetricData(seedDataLocation, metadataLocation, dataDate, station1);
+    eventLoader = new EventLoader(ResourceManager.getDirectoryPath("/event_synthetics"));
+  }
+
+  @Test
+  public void testProcessDefault() throws NoSuchFieldException {
+    metric = new WPhaseQualityMetric();
+    metric.add("channel-restriction", "LH");
+    metric.setData(data);
+    metric.setEventTable(eventLoader.getDayEvents(dataDate));
+    metric.setEventSynthetics(eventLoader.getDaySynthetics(dataDate, station1));
+    MetricTestMap expect = new MetricTestMap();
+    expect.put("00,LHND", -2.387, 1E-3);
+    expect.put("10,LHND", 0.429, 1E-3);
+    TestUtils.testMetric(metric, expect);
+  }
 
   @Test
   public void checkNHNMInterpolation() {

@@ -130,7 +130,6 @@ public class EventComparePWaveOrientationTest {
 
     //Not a strong motion comparison, but that is not what we are testing.
     //Only care if the custom channel is set.
-    metric.add("base-channel", "XX-LX");
     metric.add("channel-restriction", "LH");
 
     metric.setData(data);
