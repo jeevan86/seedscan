@@ -48,7 +48,6 @@ public class EventComparePWaveOrientation extends Metric {
 
   EventComparePWaveOrientation() {
     super();
-    addArgument("base-channel");
     addArgument("channel-restriction");
   }
 
@@ -92,18 +91,6 @@ public class EventComparePWaveOrientation extends Metric {
     }
 
     List<Channel> channels = stationMeta.getRotatableChannels();
-
-    String basePreSplit = null;
-    try {
-      basePreSplit = get("base-channel");
-    } catch (NoSuchFieldException ignored) {
-    }
-
-    if (basePreSplit == null) {
-      basePreSplit = "XX-LX";
-      logger.info("No base channel for Event Compare P Orientation,ty using: " + basePreSplit);
-    }
-
     String preSplitBands = null;
     try {
       preSplitBands = get("channel-restriction");
@@ -111,8 +98,7 @@ public class EventComparePWaveOrientation extends Metric {
     }
     if (preSplitBands == null) {
       preSplitBands = "LH";
-      logger.info("No band restriction set for Event Compare P Orientation using: "
-          + preSplitBands);
+      logger.info("== {}: No band restriction set, using: {}", getName(), preSplitBands);
     }
     List<String> allowedBands = Arrays.asList(preSplitBands.split(","));
 

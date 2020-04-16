@@ -37,7 +37,7 @@ public class WPhaseQualityMetric extends Metric {
       .getLogger(WPhaseQualityMetric.class);
 
   private static final double PERCENT_CUTOFF = 3.;
-  private static final double DAMPING_CONSTANT = 0.707; // TODO: give more precision to this?
+  private static final double DAMPING_CONSTANT = 0.707; // may need to give more precision to this
   // anticipated corner frequency of, say, STS-2 instrument
   private static final double CORNER_FREQ_120 = 2. * Math.PI / 120.;
   // anticipated corner frequency of, say, STS-1
@@ -49,8 +49,8 @@ public class WPhaseQualityMetric extends Metric {
   private static final long THREE_HRS_MILLIS = 3 * 60 * 60 * 1000;
 
   public WPhaseQualityMetric() {
-    // TODO: add additional parameters?
     super();
+    addArgument("channel-restriction");
   }
 
   @Override
@@ -71,21 +71,9 @@ public class WPhaseQualityMetric extends Metric {
     Hashtable<String, EventCMT> eventCMTs = getEventTable();
     if (eventCMTs == null) {
       logger.info(
-          String.format("No Event CMTs found for Day=[%s] --> Skip EventComparePOrientation Metric",
+          String.format("No Event CMTs found for Day=[%s] --> Skip W-Phase Quality Metric",
               getDay()));
       return;
-    }
-
-    // TODO: find out a good way to implement restrictions for this metric
-    String basePreSplit = null;
-    try {
-      basePreSplit = get("base-channel");
-    } catch (NoSuchFieldException ignored) {
-    }
-
-    if (basePreSplit == null) {
-      basePreSplit = "XX-LX";
-      logger.info("No base channel for Event Compare P Orientation using: " + basePreSplit);
     }
 
     String preSplitBands = null;
@@ -95,10 +83,10 @@ public class WPhaseQualityMetric extends Metric {
     }
     if (preSplitBands == null) {
       preSplitBands = "LH";
-      logger.info("No band restriction set for Event Compare P Orientation using: "
-          + preSplitBands);
+      logger.info("== {}: No band restriction set, using: {}", getName(), preSplitBands);
     }
     List<String> allowedBands = Arrays.asList(preSplitBands.split(","));
+    System.out.println(allowedBands);
 
     // data expected to be continuous for these methods to work
     List<Channel> channels = stationMeta.getContinuousChannels();
@@ -110,7 +98,6 @@ public class WPhaseQualityMetric extends Metric {
       }
       ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel),
           getForceUpdate());
-
       if (digest == null) {
         continue;
       }
