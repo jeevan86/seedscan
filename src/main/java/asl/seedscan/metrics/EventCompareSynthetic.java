@@ -153,7 +153,7 @@ public class EventCompareSynthetic extends Metric {
 					for (String key : eventKeys) {
 						Hashtable<String, SacTimeSeries> synthetics = getEventSynthetics(key);
 						if (synthetics == null) {
-							logger.info("== {}: No synthetics found for key=[{}] for this station\n", getName(), key);
+							logger.info("No synthetics found for key=[{}] for this station\n", key);
 							continue;
 						}
 

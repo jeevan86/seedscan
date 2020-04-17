@@ -29,10 +29,13 @@ public class WPhaseQualityMetricTest {
 
   @BeforeClass
   public static void setUpBeforeClass() {
-    String metadataLocation = "/metadata/rdseed/IU-ANMO-ascii.txt";
-    String seedDataLocation = "/seed_data/IU_ANMO/2016/062";
+    String doy = String.format("%03d", dataDate.getDayOfYear());
     String networkName = "IU";
-    station1 = new Station(networkName, "ANMO");
+    String stationName = "PMG";
+    String metadataLocation = "/metadata/rdseed/" + networkName + "-" + stationName + "-ascii.txt";
+    String seedDataLocation = "/seed_data/" + networkName + "_" + stationName + "/" +
+        dataDate.getYear() + "/" + doy + "";
+    station1 = new Station(networkName, stationName);
     data = ResourceManager.getMetricData(seedDataLocation, metadataLocation, dataDate, station1);
     eventLoader = new EventLoader(ResourceManager.getDirectoryPath("/event_synthetics"));
   }
@@ -45,8 +48,12 @@ public class WPhaseQualityMetricTest {
     metric.setEventTable(eventLoader.getDayEvents(dataDate));
     metric.setEventSynthetics(eventLoader.getDaySynthetics(dataDate, station1));
     MetricTestMap expect = new MetricTestMap();
-    expect.put("00,LHND", -2.387, 1E-3);
-    expect.put("10,LHND", 0.429, 1E-3);
+    expect.put("00,LHND", 0, 1E-3);
+    expect.put("10,LHND", 0, 1E-3);
+    expect.put("10,LHED", 0, 1E-3);
+    expect.put("10,LHZ", 0, 1E-3);
+    expect.put("60,LHND", 0, 1E-3);
+    expect.put("60,LHED", 0, 1E-3);
     TestUtils.testMetric(metric, expect);
   }
 

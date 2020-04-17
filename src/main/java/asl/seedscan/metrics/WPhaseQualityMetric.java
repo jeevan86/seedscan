@@ -3,6 +3,7 @@ package asl.seedscan.metrics;
 import static asl.seedscan.event.ArrivalTimeUtils.getPArrivalTime;
 
 import asl.metadata.Channel;
+import asl.metadata.ChannelArray;
 import asl.metadata.meta_new.ChannelMeta;
 import asl.metadata.meta_new.PoleZeroStage;
 import asl.metadata.meta_new.ResponseStage;
@@ -14,6 +15,9 @@ import asl.util.Logging;
 import asl.utils.FilterUtils;
 import asl.utils.NumericUtils;
 import edu.sc.seis.TauP.SphericalCoords;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Hashtable;
@@ -51,6 +55,7 @@ public class WPhaseQualityMetric extends Metric {
   public WPhaseQualityMetric() {
     super();
     addArgument("channel-restriction");
+    addArgument("base-channel");
   }
 
   @Override
@@ -76,6 +81,7 @@ public class WPhaseQualityMetric extends Metric {
       return;
     }
 
+    String basePreSplit = null;
     String preSplitBands = null;
     try {
       preSplitBands = get("channel-restriction");
@@ -83,55 +89,71 @@ public class WPhaseQualityMetric extends Metric {
     }
     if (preSplitBands == null) {
       preSplitBands = "LH";
-      logger.info("== {}: No band restriction set, using: {}", getName(), preSplitBands);
+      logger.info("No band restriction set, using: {}", preSplitBands);
     }
     List<String> allowedBands = Arrays.asList(preSplitBands.split(","));
-    System.out.println(allowedBands);
 
-    // data expected to be continuous for these methods to work
-    List<Channel> channels = stationMeta.getContinuousChannels();
+    try {
+      basePreSplit = get("base-channel");
+
+    } catch (NoSuchFieldException ignored) {
+    }
+    if (basePreSplit == null) {
+      basePreSplit = "XX-LX";
+      logger.info("No base channel for W Phase Quality, using: " + basePreSplit);
+    }
+    String [] basechannel = basePreSplit.split("-");
+
+    List<Channel> channels = stationMeta.getRotatableChannels();
     for (Channel channel : channels) {
       String channelVal = channel.toString().split("-")[1];
-      if (!allowedBands.contains(channelVal.substring(0, 2))) {
-        // current channel not part of valid band options, skip it
-        continue;
-      }
-      ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel),
-          getForceUpdate());
-      if (digest == null) {
-        continue;
-      }
-
-      try { // computeMetric() handle
-        double result = computeMetric(channel, eventCMTs);
-        if (result != NO_RESULT) {
-          metricResult.addResult(channel, result, digest);
+      if (allowedBands.contains(channelVal.substring(0, 2))) {
+        //Rotate channels as needed.
+        ChannelArray channelArray = new ChannelArray(channel.getLocation(), channel.getChannel());
+        metricData.checkForRotatedChannels(channelArray);
+        if (metricData.getNextMetricData() != null) {
+          metricData.getNextMetricData().checkForRotatedChannels(channelArray);
         }
-      } catch (MetricException e) {
-        logger.error(Logging.prettyExceptionWithCause(e));
+
+        ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel),
+            getForceUpdate());
+        if (digest == null) {
+          logger.info("Digest unchanged station:[{}] channel:[{}] day:[{}] --> Skip metric",
+              getStation(), channel, getDay());
+          continue;
+        }
+
+        try { // computeMetric() handle
+          double result = computeMetric(channel, eventCMTs, basechannel);
+          if (result != NO_RESULT) {
+            metricResult.addResult(channel, result, digest);
+          }
+        } catch (MetricException e) {
+          logger.error(Logging.prettyExceptionWithCause(e));
+        }
       }
     }
   }
 
-  private double computeMetric(Channel channel, Hashtable<String, EventCMT> eventCMTs)
-      throws MetricException {
+  private double computeMetric(Channel channel, Hashtable<String, EventCMT> eventCMTs,
+      String[] basechannel) throws MetricException {
 
     // w is used later to choose which nominal corner freq is appropriate for this inst.
     double w;
     {
       Pair<Double, Double> pair = getFreqAndDamping(stationMeta.getChannelMetadata(channel));
       if (pair == null) {
-        logger.warn("== {}: Metadata for channel=[{}] does not include pole/zero stage, skipping",
-            getName(), getStation() + "-" + channel.toString());
+        logger.warn("Metadata for channel=[{}] does not include pole/zero stage, skipping",
+            getStation() + "-" + channel.toString());
         return NO_RESULT;
       }
       w = pair.getFirst();
       // corner frequency (w) and damping (h)
       double h = pair.getSecond();
       // prescreening step: get instrument response and compare to a specific dummy response
-      if (passesResponseCheck(w, h)) {
-        logger.warn("== {}: channel=[{}] metadata differs from nominal parameters by > 3%,"
-                + " skipping", getName(), getStation() + "-" + channel.toString());
+      if (!passesResponseCheck(w, h)) {
+        logger.warn("channel=[{}] metadata differs from nominal parameters by > 3%,"
+            + " skipping", getStation() + "-" + channel.toString());
         return NO_RESULT;
       }
     }
@@ -156,9 +178,8 @@ public class WPhaseQualityMetric extends Metric {
       double angleBetween = SphericalCoords
           .distance(eventLatitude, eventLongitude, stationLatitude, stationLongitude);
       if (angleBetween > 90) {
-        logger.info("== {}: Arc from event (key=[{}]) to station=[{}] too large for evaluation.",
-            getName(), key, getStation());
-        // presumably we don't have this as a matter of the
+        logger.info("Arc ({}) from event (key=[{}]) to station=[{}] too large for evaluation.",
+            angleBetween, key, getStation());
         continue;
       }
 
@@ -186,9 +207,9 @@ public class WPhaseQualityMetric extends Metric {
             passesPSDNoiseScreening(crossPower.getSpectrum(), crossPower.getSpectrumDeltaF());
 
         if (difference > 0) {
-          logger.warn("== {}: Difference between NHNM and PSD was positive; "
-                  + "channel=[{}] is too noisy.",
-              getName(), getStation() + "-" + channel.toString());
+          logger.warn("Difference ({}) between NHNM and PSD was positive; "
+                  + "channel=[{}] is too noisy.", difference,
+              getStation() + "-" + channel.toString());
           ++numEvents;
           continue;
         }
@@ -217,9 +238,9 @@ public class WPhaseQualityMetric extends Metric {
       double median = sortedData[sortedData.length / 2];
       double max = data[data.length - 1];
       if (min < median * 0.1 || max > median * 3.) {
-        logger.info("== {}: Min or max value of event trace outside median screen bounds; "
+        logger.info("Min or max value of event trace outside median screen bounds; "
                 + "channel=[{}] amplitude is unstable for analysis.",
-            getName(), getStation() + "-" + channel.toString());
+            getStation() + "-" + channel.toString());
         ++numEvents;
         continue;
       }
@@ -227,12 +248,12 @@ public class WPhaseQualityMetric extends Metric {
       // last screen is misfit against the synthetic data over the same time range
       Hashtable<String, SacTimeSeries> synthetics = getEventSynthetics(key);
       if (synthetics == null) {
-        logger.warn("== {}: No synthetics found for key=[{}] for this station=[{}]\n",
-            getName(), key, getStation());
+        logger.warn("No synthetics found for key=[{}] for this station=[{}]\n", key, getStation());
         continue;
       }
-      String syntheticsName = stationMeta.getStation() +
-          channel.toString().replace('-', '.') + ".modes.sac.proc";
+
+      String syntheticsName = getStn() + "." + basechannel[0] + "." + basechannel[1].substring(0, 2)
+          + channel.toString().split("-")[1].substring(2, 3) + ".modes.sac.proc";
       if (!synthetics.containsKey(syntheticsName)) {
         logger.error("Did not find sac synthetic=[{}] in Hashtable", syntheticsName);
         // if there's no synthetic to compare to, don't increase the event count (TODO: verify)
@@ -241,20 +262,21 @@ public class WPhaseQualityMetric extends Metric {
 
       SacTimeSeries sacSynthetics = synthetics.get(syntheticsName);
       SacHeader header = sacSynthetics.getHeader();
-      double delta = (double) header.getDelta();
+      double delta = header.getDelta();
       double synthSampleRate = 1. / delta;
       assert(synthSampleRate == sampleRate);
 
-      // TODO: see if we can presume the synthetic start matches the one given by the CMT
-      assert(eventStart == EventCompareSynthetic.getSacStartTimeInMillis(header));
 
+      // synthetic data starts at event time, not including arrivals
       int startingIndex = (int) Math.ceil((pTravelTime * synthSampleRate) / 1000);
       float[] synthData =
           Arrays.copyOfRange(sacSynthetics.getY(), startingIndex, startingIndex + data.length);
+      // TODO: see if the synthetic data needs to be processed in some way here (filter?)
       if (!passesMisfitScreening(synthData, data)) {
-        logger.warn("== {}: Trace misfit against synthetic data outside bound of 3.0; "
-                + "channel=[{}] is too noisy.",
-            getName(), getStation() + "-" + channel.toString());
+        logger.warn("Trace misfit against synthetic data outside bound of 3.0; "
+                + "channel=[{}] is too noisy.", getStation() + "-" + channel.toString());
+        ++numEvents;
+        continue;
       }
 
       // now that we've passed all screenings, we've got an event that is good, and can count it
@@ -262,7 +284,7 @@ public class WPhaseQualityMetric extends Metric {
       ++numEvents;
     }
     if (numEvents == 0) {
-      logger.info("== {}: No valid events found for channel=[{}]", getName(),
+      logger.info("No valid events found for channel=[{}]",
           getStation() + "-" + channel.toString());
       return NO_RESULT;
     }
@@ -295,7 +317,10 @@ public class WPhaseQualityMetric extends Metric {
     double[] NHNM = getNHNMOverFrequencies(freqs);
     double difference = 0.;
     for (int i = 0; i < freqs.length; ++i) {
-      difference += (psd[i] - NHNM[i]);
+      // need to convert psd value into log value
+      double psdValue = 10 * Math.log10(psd[i]);
+      // System.out.println("PSD: " + psdValue + " | NHNM: " + NHNM[i]);
+      difference += (psdValue - NHNM[i]);
     }
     return difference;
   }
@@ -374,14 +399,11 @@ public class WPhaseQualityMetric extends Metric {
    * @return True if the values are within the acceptable error compared to the nominal values.
    */
   static boolean passesResponseCheck(double w, double h) {
-      double hError = 100 * Math.abs(h - DAMPING_CONSTANT) / Math.abs(DAMPING_CONSTANT);
-      double wError120 =  100 * Math.abs(w - CORNER_FREQ_120) / Math.abs(CORNER_FREQ_120);
-      double wError360 =  100 * Math.abs(w - CORNER_FREQ_360) / Math.abs(CORNER_FREQ_360);
-      // make sure both freq and damping are within error threshold
-      if (hError < PERCENT_CUTOFF && (wError120 < PERCENT_CUTOFF || wError360 < PERCENT_CUTOFF)) {
-        return true;
-      }
-    return false;
+    double hError = 100 * Math.abs(h - DAMPING_CONSTANT) / Math.abs(DAMPING_CONSTANT);
+    double wError120 =  100 * Math.abs(w - CORNER_FREQ_120) / Math.abs(CORNER_FREQ_120);
+    double wError360 =  100 * Math.abs(w - CORNER_FREQ_360) / Math.abs(CORNER_FREQ_360);
+    // make sure both freq and damping are within error threshold
+    return hError < PERCENT_CUTOFF && (wError120 < PERCENT_CUTOFF || wError360 < PERCENT_CUTOFF);
   }
 
   /**

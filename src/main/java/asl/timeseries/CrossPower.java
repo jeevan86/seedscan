@@ -65,11 +65,8 @@ public class CrossPower {
 		if (sampleRate == 0)
 			throw new MetricPSDException("Got srate=0");
 
-		FFTResult psdRaw =
-				FFTResult.spectralCalc(
-						metricData.getDetrendedPaddedDayData(channelX),
-						metricData.getDetrendedPaddedDayData(channelY),
-						(long) (TimeSeriesUtils.ONE_HZ_INTERVAL / sampleRate));
+		FFTResult psdRaw = FFTResult.spectralCalc(xData, yData,
+				(long) (TimeSeriesUtils.ONE_HZ_INTERVAL / sampleRate));
 		Complex[] spectrumRaw = psdRaw.getFFT();
 		frequencyArray = psdRaw.getFreqs();
 

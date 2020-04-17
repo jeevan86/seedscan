@@ -47,7 +47,7 @@ public class ArrivalTimeUtils {
         eventCMT.getEventID(), eventLatitude, eventLongitude, stationMeta.getStation(),
         stationLatitude, stationLongitude, greatCircleArc, arrivalTimeP);
 
-    return ((long) arrivalTimeP) * 1000; // get the arrival time in ms
+    return (long) (arrivalTimeP * 1000); // get the arrival time in ms
   }
 
   public static class ArrivalTimeException extends Exception {

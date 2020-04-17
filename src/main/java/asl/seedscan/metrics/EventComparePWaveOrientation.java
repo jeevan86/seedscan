@@ -136,6 +136,8 @@ public class EventComparePWaveOrientation extends Metric {
           getForceUpdate());
 
       if (digest == null) {
+        logger.info("Digest unchanged station:[{}] channel:[{}] day:[{}] --> Skip metric",
+            getStation(), curChannel, getDay());
         continue;
       }
 
