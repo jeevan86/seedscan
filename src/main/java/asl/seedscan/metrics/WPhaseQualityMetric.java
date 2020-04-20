@@ -1,6 +1,9 @@
 package asl.seedscan.metrics;
 
 import static asl.seedscan.event.ArrivalTimeUtils.getPArrivalTime;
+import static asl.utils.FilterUtils.bandFilter;
+import static asl.utils.NumericUtils.demean;
+import static asl.utils.NumericUtils.detrend;
 
 import asl.metadata.Channel;
 import asl.metadata.ChannelArray;
@@ -12,12 +15,11 @@ import asl.seedscan.event.EventCMT;
 import asl.timeseries.CrossPower;
 import asl.timeseries.InterpolatedNHNM;
 import asl.util.Logging;
-import asl.utils.FilterUtils;
 import asl.utils.NumericUtils;
 import edu.sc.seis.TauP.SphericalCoords;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Hashtable;
@@ -228,7 +230,7 @@ public class WPhaseQualityMetric extends Metric {
       // and now into displacement by integrating twice
       data = performIntegrationByTrapezoid(data, 1./sampleRate);
       // and lastly perform a band-pass filter on the data from 1-5 milliHertz
-      FilterUtils.bandFilter(data, sampleRate, 0.001, 0.005, 4);
+      data = bandFilter(data, sampleRate, 0.001, 0.005, 4);
 
       // after processing: how does the peak-to-peak value compare to the median value?
       // if the min or max value is too far from the median, we reject this
@@ -238,9 +240,9 @@ public class WPhaseQualityMetric extends Metric {
       double median = sortedData[sortedData.length / 2];
       double max = data[data.length - 1];
       if (min < median * 0.1 || max > median * 3.) {
-        logger.info("Min or max value of event trace outside median screen bounds; "
+        logger.info("Min ({}) or max ({}) value of event trace outside median ({}) screen bounds; "
                 + "channel=[{}] amplitude is unstable for analysis.",
-            getStation() + "-" + channel.toString());
+            min, max, median, getStation() + "-" + channel.toString());
         ++numEvents;
         continue;
       }
@@ -271,8 +273,35 @@ public class WPhaseQualityMetric extends Metric {
       int startingIndex = (int) Math.ceil((pTravelTime * synthSampleRate) / 1000);
       float[] synthData =
           Arrays.copyOfRange(sacSynthetics.getY(), startingIndex, startingIndex + data.length);
+
+      // synthetic data is in m but sensor data is in nm, so convert sensor data from nm to m
+      // then perform demean and detrend
+      for (int i = 0; i < data.length; ++i) {
+        data[i] *= 1E-9;
+      }
+      data = demean(data);
+      data = detrend(data);
+
+      double[] synthDataDbl = floatToDouble(synthData);
+
+      // then filter both by a bandpass filter over 100 to 300 s period
+      data = bandFilter(data, sampleRate, 1./300, 1./100, 4);
+      synthDataDbl = bandFilter(synthDataDbl, sampleRate, 1./300, 1./100, 4);
+
+      PrintWriter out = null;
+      try {
+        out = new PrintWriter(new File(channel.toString() + "-synthcompare.csv"));
+        out.write("synthetic, corrected channel data\n");
+        for (int i = 0; i < synthData.length; ++i) {
+          out.write(synthData[i] + "," + data[i] + "\n");
+        }
+        out.close();
+      } catch (FileNotFoundException e) {
+        e.printStackTrace();
+      }
+
       // TODO: see if the synthetic data needs to be processed in some way here (filter?)
-      if (!passesMisfitScreening(synthData, data)) {
+      if (!passesMisfitScreening(synthDataDbl, data)) {
         logger.warn("Trace misfit against synthetic data outside bound of 3.0; "
                 + "channel=[{}] is too noisy.", getStation() + "-" + channel.toString());
         ++numEvents;
@@ -325,6 +354,14 @@ public class WPhaseQualityMetric extends Metric {
     return difference;
   }
 
+  static double[] floatToDouble(float[] floats) {
+    double[] data = new double[floats.length];
+    for (int i = 0; i < floats.length; ++i) {
+      data[i] = floats[i];
+    }
+    return data;
+  }
+
   /**
    * Perform the misfit screening step as described in Duputel, Rivera, et. al (2012).
    * Sum of squared difference between the synth and corrected sensor traces divided by the
@@ -335,8 +372,22 @@ public class WPhaseQualityMetric extends Metric {
    * @return True if the synthetic data is within our expected error range.
    */
   static boolean passesMisfitScreening(float[] synthData, double[] channelData) {
+    return passesMisfitScreening(floatToDouble(synthData), channelData);
+  }
+
+  /**
+   * Perform the misfit screening step as described in Duputel, Rivera, et. al (2012).
+   * Sum of squared difference between the synth and corrected sensor traces divided by the
+   * sum of squared synth data points. Returns false if this value is < 3.
+   * Will return true if the synthetic data is 0., though this is not an expected input.
+   * @param synthData Synthetic data derived from event specification
+   * @param channelData Processed (filtered) channel data over the given range.
+   * @return True if the synthetic data is within our expected error range.
+   */
+  static boolean passesMisfitScreening(double[] synthData, double[] channelData) {
     double numerator = 0;
     double denominator = 0;
+
     for (int i = 0; i < channelData.length; ++i) {
       denominator += Math.pow(synthData[i], 2);
       numerator += Math.pow(synthData[i] - channelData[i], 2);
@@ -376,7 +427,7 @@ public class WPhaseQualityMetric extends Metric {
     double[] filter = new double[length];
     double h = 0.707;
     // corner frequencies are expected to be either 120 or 360
-    double w = Math.abs(120 - cornerFreq) > Math.abs(360 - cornerFreq) ? 360 : 120;
+    double w = Math.abs(120 - cornerFreq) < Math.abs(360 - cornerFreq) ? 120 : 360;
     double c0 = 1/(gain * deltaT);
     double c1 = -2 * (1 + (h * w * deltaT)) / (gain * deltaT);
     double c2 = (1 + 2 * h * w * deltaT + Math.pow(w * deltaT, 2)) / (gain * deltaT);
