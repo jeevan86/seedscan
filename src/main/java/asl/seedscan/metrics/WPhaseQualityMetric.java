@@ -21,9 +21,17 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import org.apache.commons.math3.complex.Complex;
@@ -107,6 +115,7 @@ public class WPhaseQualityMetric extends Metric {
     String [] basechannel = basePreSplit.split("-");
 
     List<Channel> channels = stationMeta.getRotatableChannels();
+    List<Channel> validChannels = new LinkedList<>();
     for (Channel channel : channels) {
       String channelVal = channel.toString().split("-")[1];
       if (allowedBands.contains(channelVal.substring(0, 2))) {
@@ -116,7 +125,13 @@ public class WPhaseQualityMetric extends Metric {
         if (metricData.getNextMetricData() != null) {
           metricData.getNextMetricData().checkForRotatedChannels(channelArray);
         }
+        validChannels.add(channel);
+      }
+    }
 
+    try { // computeMetric() handle
+      Map<Channel, ResultIncrementer> results = computeMetric(validChannels, eventCMTs, basechannel);
+      for (Channel channel : results.keySet()) {
         ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel),
             getForceUpdate());
         if (digest == null) {
@@ -124,30 +139,37 @@ public class WPhaseQualityMetric extends Metric {
               getStation(), channel, getDay());
           continue;
         }
-
-        try { // computeMetric() handle
-          double result = computeMetric(channel, eventCMTs, basechannel);
-          if (result != NO_RESULT) {
-            metricResult.addResult(channel, result, digest);
-          }
-        } catch (MetricException e) {
-          logger.error(Logging.prettyExceptionWithCause(e));
-        }
+        metricResult.addResult(channel, results.get(channel).getResult(), digest);
       }
+    } catch (MetricException e) {
+      logger.error(Logging.prettyExceptionWithCause(e));
     }
   }
 
-  private double computeMetric(Channel channel, Hashtable<String, EventCMT> eventCMTs,
-      String[] basechannel) throws MetricException {
+  private Map<Channel, ResultIncrementer> computeMetric(Collection<Channel> channels,
+      Hashtable<String, EventCMT> eventCMTs, String[] basechannel) throws MetricException {
 
-    // w is used later to choose which nominal corner freq is appropriate for this inst.
-    double w;
-    {
+    // the logic in this method is a bit weird because we have a series of filtering operations
+    // that remove some data a couple steps into the operation -- and then have to do a test
+    // over all the traces that aren't yet excluded after those steps. Lots of maps to store
+    // intermediate results of functions that we want to keep cached for later.
+
+    // used to store the damping parameter for channels that pass the first screening
+    Map<Channel, Double> channelsWithCornerFreq = new HashMap<>();
+    // used to identify outliers of peak-to-peak difference compared to median value
+    Map<Channel, double[]> tracesPerUnfilteredChannel = new HashMap<>();
+    // stores metric results for data, and is what is actually returned
+    Map<Channel, ResultIncrementer> channelsWithMetricResults = new HashMap<>();
+
+    // this allows us to immediately filter-out results with inappropriate metadata
+    for (Channel channel : channels) {
+      // w is used later to choose which nominal corner freq is appropriate for this inst.
+      double w;
       Pair<Double, Double> pair = getFreqAndDamping(stationMeta.getChannelMetadata(channel));
       if (pair == null) {
         logger.warn("Metadata for channel=[{}] does not include pole/zero stage, skipping",
             getStation() + "-" + channel.toString());
-        return NO_RESULT;
+        continue;
       }
       w = pair.getFirst();
       // corner frequency (w) and damping (h)
@@ -156,25 +178,18 @@ public class WPhaseQualityMetric extends Metric {
       if (!passesResponseCheck(w, h)) {
         logger.warn("channel=[{}] metadata differs from nominal parameters by > 3%,"
             + " skipping", getStation() + "-" + channel.toString());
-        return NO_RESULT;
+        continue;
       }
+      channelsWithCornerFreq.put(channel, w);
     }
 
-    // get lat and long to make sure data is within a reasonable range
     double stationLatitude = stationMeta.getLatitude();
     double stationLongitude = stationMeta.getLongitude();
-
-    // numbers used to get the count of passable events per total events analyzed
-    int eventsPassed = 0;
-    int numEvents = 0;
-
-
     SortedSet<String> eventKeys = new TreeSet<>(eventCMTs.keySet());
     for (String key : eventKeys) {
-
       EventCMT eventCMT = eventCMTs.get(key);
 
-      // first prescreen step: make sure that the station is < 90 deg. from the event
+      // first prescreen step is to ensure that we're close enough to the event for it to matter
       double eventLatitude = eventCMT.getLatitude();
       double eventLongitude = eventCMT.getLongitude();
       double angleBetween = SphericalCoords
@@ -185,66 +200,97 @@ public class WPhaseQualityMetric extends Metric {
         continue;
       }
 
-      // second prescreen step: take the sum of the PSD of 3 hours of data pre-event
-      // and then get the average difference over the 1-10 mHz range with the NHNM curve
-      // if the average difference is positive then don't compute the metric here
       long eventStart = eventCMT.getTimeInMillis();
       long pTravelTime = 0;
-      // this block will do the prescreening operation and scope out the 3-hour timeseries data
-      {
         try {
-          // TODO: see if any correction needs to be done to this time
+          // TODO: see if any further correction needs to be done to this time
           pTravelTime = getPArrivalTime(eventCMT, stationMeta, logger);
           eventStart += pTravelTime;
         } catch (ArrivalTimeException ignore) {
           // error was already logged in getPArrivalTime
           continue;
         }
-        long prescreenWindowStart = eventStart - THREE_HRS_MILLIS;
-        double[] prescreenCheck =
-            metricData.getWindowedData(channel, prescreenWindowStart, eventStart);
-        // run the getCrossPower stuff specifically on the above range of data and no more
-        CrossPower crossPower = getCrossPower(channel, channel, prescreenCheck, prescreenCheck);
-        double difference =
-            passesPSDNoiseScreening(crossPower.getSpectrum(), crossPower.getSpectrumDeltaF());
 
-        if (difference > 0) {
-          logger.warn("Difference ({}) between NHNM and PSD was positive; "
-                  + "channel=[{}] is too noisy.", difference,
-              getStation() + "-" + channel.toString());
-          ++numEvents;
-          continue;
+      // second prescreen step: take the sum of the PSD of 3 hours of data pre-event
+      // and then get the average difference over the 1-10 mHz range with the NHNM curve
+      // if the average difference is positive then don't compute the metric here
+      // we also extract the traces from data that passes this check to do more comparisons on
+      for (Channel channel : channelsWithCornerFreq.keySet()) {
+        channelsWithMetricResults.put(channel, new ResultIncrementer());
+        // this block will do the prescreening operation and scope out the 3-hour timeseries data
+        {
+          long prescreenWindowStart = eventStart - THREE_HRS_MILLIS;
+          double[] prescreenCheck =
+              metricData.getWindowedData(channel, prescreenWindowStart, eventStart);
+          // run the getCrossPower stuff specifically on the above range of data and no more
+          CrossPower crossPower = getCrossPower(channel, channel, prescreenCheck, prescreenCheck);
+          double difference =
+              passesPSDNoiseScreening(crossPower.getSpectrum(), crossPower.getSpectrumDeltaF());
+
+          if (difference > 0) {
+            logger.warn("Difference ({}) between NHNM and PSD was positive; "
+                    + "channel=[{}] is too noisy.", difference,
+                getStation() + "-" + channel.toString());
+            channelsWithMetricResults.get(channel).addInvalidCase();
+            continue;
+          }
         }
+
+        double w = channelsWithCornerFreq.get(channel);
+        // getting the data. time range is from event start to 15sec * degrees distance
+        long endTime = eventStart + (long) (15000 * angleBetween);
+        double[] data = metricData.getWindowedData(channel, eventStart, endTime);
+        double sampleRate = stationMeta.getChannelMetadata(channel).getSampleRate();
+        // time-domain deconvolution and bandpass filtering (1-5 mHz band) goes here
+        // we require the gain, so we can use the stage 0 as overall gain
+        double gain = stationMeta.getChannelMetadata(channel).getStage(0).getStageGain();
+        data = getRecursiveFilter(data, 1. / sampleRate, w, gain);
+        // recursive filter gives us acceleration so go into velocity
+        data = performIntegrationByTrapezoid(data, 1. / sampleRate);
+        // and now into displacement by integrating twice
+        data = performIntegrationByTrapezoid(data, 1. / sampleRate);
+        // and lastly perform a band-pass filter on the data from 1-5 milliHertz
+        data = bandFilter(data, sampleRate, 0.001, 0.005, 4);
+        tracesPerUnfilteredChannel.put(channel, data);
       }
 
-      // getting the data. time range is from event start to 15sec * degrees distance
-      long endTime = eventStart + (long) (15000 * angleBetween);
-      double[] data = metricData.getWindowedData(channel, eventStart, endTime);
-      double sampleRate = stationMeta.getChannelMetadata(channel).getSampleRate();
-      // time-domain deconvolution and bandpass filtering (1-5 mHz band) goes here
-      // we require the gain, so we can use the stage 0 as overall gain
-      double gain = stationMeta.getChannelMetadata(channel).getStage(0).getStageGain();
-      data = getRecursiveFilter(data, 1./sampleRate, w, gain);
-      // recursive filter gives us acceleration so go into velocity
-      data = performIntegrationByTrapezoid(data, 1./sampleRate);
-      // and now into displacement by integrating twice
-      data = performIntegrationByTrapezoid(data, 1./sampleRate);
-      // and lastly perform a band-pass filter on the data from 1-5 milliHertz
-      data = bandFilter(data, sampleRate, 0.001, 0.005, 4);
-
-      // after processing: how does the peak-to-peak value compare to the median value?
-      // if the min or max value is too far from the median, we reject this
-      double[] sortedData = Arrays.copyOf(data, data.length);
-      Arrays.sort(sortedData);
-      double min = data[0];
-      double median = sortedData[sortedData.length / 2];
-      double max = data[data.length - 1];
-      if (min < median * 0.1 || max > median * 3.) {
-        logger.info("Min ({}) or max ({}) value of event trace outside median ({}) screen bounds; "
-                + "channel=[{}] amplitude is unstable for analysis.",
-            min, max, median, getStation() + "-" + channel.toString());
-        ++numEvents;
-        continue;
+      // next step to check: does each channel have a peak-to-peak difference that's near the
+      // median value of that set? This is over ALL channels associated with the station that
+      // haven't yet been filtered out
+      {
+        Map<Channel, Double> channelToPeakToPeak = new HashMap<>();
+        for (Channel channel : tracesPerUnfilteredChannel.keySet()) {
+          double[] data = tracesPerUnfilteredChannel.get(channel);
+          double min = data[0];
+          double max = data[0];
+          for (int i = 1; i < data.length; ++i) {
+            min = Math.min(min, data[i]);
+            max = Math.max(max, data[i]);
+          }
+          double peakToPeak = max - min;
+          channelToPeakToPeak.put(channel, peakToPeak);
+        }
+        double median = 0;
+        {
+          List<Double> peakToPeaksForMedian = new ArrayList<>(channelToPeakToPeak.values());
+          Collections.sort(peakToPeaksForMedian);
+          median = peakToPeaksForMedian.get(peakToPeaksForMedian.size() / 2);
+        }
+        // now to actually check each channel and find the ones that are in the set
+        // and we will filter out the ones that are not so we don't keep processing them here
+        for (Channel channel : channelToPeakToPeak.keySet()) {
+          double peakToPeak = channelToPeakToPeak.get(channel);
+          if (peakToPeak < median * 0.1 || peakToPeak > median * 3.) {
+            logger.info(
+                "Amplitude difference ({}) of event trace outside median ({}) screen bounds; "
+                    + "channel=[{}] amplitude is unstable for analysis.",
+                peakToPeak, median, getStation() + "-" + channel.toString());
+            // almost 100% sure that trying to remove from the map while in the loop would
+            // mess up the iteration here and make everything wrong
+            tracesPerUnfilteredChannel.remove(channel);
+            channelsWithMetricResults.get(channel).addInvalidCase();
+          }
+        }
       }
 
       // last screen is misfit against the synthetic data over the same time range
@@ -254,70 +300,72 @@ public class WPhaseQualityMetric extends Metric {
         continue;
       }
 
-      String syntheticsName = getStn() + "." + basechannel[0] + "." + basechannel[1].substring(0, 2)
-          + channel.toString().split("-")[1].substring(2, 3) + ".modes.sac.proc";
-      if (!synthetics.containsKey(syntheticsName)) {
-        logger.error("Did not find sac synthetic=[{}] in Hashtable", syntheticsName);
-        // if there's no synthetic to compare to, don't increase the event count (TODO: verify)
-        continue; // Try next event
-      }
-
-      SacTimeSeries sacSynthetics = synthetics.get(syntheticsName);
-      SacHeader header = sacSynthetics.getHeader();
-      double delta = header.getDelta();
-      double synthSampleRate = 1. / delta;
-      assert(synthSampleRate == sampleRate);
-
-
-      // synthetic data starts at event time, not including arrivals
-      int startingIndex = (int) Math.ceil((pTravelTime * synthSampleRate) / 1000);
-      float[] synthData =
-          Arrays.copyOfRange(sacSynthetics.getY(), startingIndex, startingIndex + data.length);
-
-      // synthetic data is in m but sensor data is in nm, so convert sensor data from nm to m
-      // then perform demean and detrend
-      for (int i = 0; i < data.length; ++i) {
-        data[i] *= 1E-9;
-      }
-      data = demean(data);
-      data = detrend(data);
-
-      double[] synthDataDbl = floatToDouble(synthData);
-
-      // then filter both by a bandpass filter over 100 to 300 s period
-      data = bandFilter(data, sampleRate, 1./300, 1./100, 4);
-      synthDataDbl = bandFilter(synthDataDbl, sampleRate, 1./300, 1./100, 4);
-
-      PrintWriter out = null;
-      try {
-        out = new PrintWriter(new File(channel.toString() + "-synthcompare.csv"));
-        out.write("synthetic, corrected channel data\n");
-        for (int i = 0; i < synthData.length; ++i) {
-          out.write(synthData[i] + "," + data[i] + "\n");
+      for (Channel channel : tracesPerUnfilteredChannel.keySet()) {
+        double[] data = tracesPerUnfilteredChannel.get(channel);
+        double sampleRate = stationMeta.getChannelMetadata(channel).getSampleRate();
+        String syntheticsName =
+            getStn() + "." + basechannel[0] + "." + basechannel[1].substring(0, 2)
+                + channel.toString().split("-")[1].substring(2, 3) + ".modes.sac.proc";
+        if (!synthetics.containsKey(syntheticsName)) {
+          logger.error("Did not find sac synthetic=[{}] in Hashtable", syntheticsName);
+          // if there's no synthetic to compare to, don't increase the event count (TODO: verify)
+          continue; // Try next event
         }
-        out.close();
-      } catch (FileNotFoundException e) {
-        e.printStackTrace();
-      }
 
-      // TODO: see if the synthetic data needs to be processed in some way here (filter?)
-      if (!passesMisfitScreening(synthDataDbl, data)) {
-        logger.warn("Trace misfit against synthetic data outside bound of 3.0; "
-                + "channel=[{}] is too noisy.", getStation() + "-" + channel.toString());
-        ++numEvents;
-        continue;
-      }
+        SacTimeSeries sacSynthetics = synthetics.get(syntheticsName);
+        SacHeader header = sacSynthetics.getHeader();
+        double delta = header.getDelta();
+        double synthSampleRate = 1. / delta;
+        assert (synthSampleRate == sampleRate);
 
-      // now that we've passed all screenings, we've got an event that is good, and can count it
-      ++eventsPassed;
-      ++numEvents;
+        // synthetic data starts at event time, not including arrivals
+        int startingIndex = (int) Math.ceil((pTravelTime * synthSampleRate) / 1000);
+        float[] synthData =
+            Arrays.copyOfRange(sacSynthetics.getY(), startingIndex, startingIndex + data.length);
+
+        // synthetic data is in m but sensor data is in nm, so convert sensor data from nm to m
+        // then perform demean and detrend
+        for (int i = 0; i < data.length; ++i) {
+          data[i] *= 1E-9;
+        }
+        data = demean(data);
+        data = detrend(data);
+
+        double[] synthDataDbl = floatToDouble(synthData);
+
+        /*
+        // then filter both by a bandpass filter over 100 to 300 s period
+        data = bandFilter(data, sampleRate, 1. / 300, 1. / 100, 4);
+        synthDataDbl = bandFilter(synthDataDbl, sampleRate, 1. / 300, 1. / 100, 4);
+        */
+
+        /*
+        PrintWriter out;
+        try {
+          out = new PrintWriter(new File(channel.toString() + "-synthcompare.csv"));
+          out.write("synthetic, corrected channel data\n");
+          for (int i = 0; i < synthData.length; ++i) {
+            out.write(synthData[i] + ", " + data[i] + "\n");
+          }
+          out.close();
+        } catch (FileNotFoundException e) {
+          e.printStackTrace();
+        }
+        */
+
+        if (!passesMisfitScreening(synthDataDbl, data)) {
+          logger.warn("Trace misfit against synthetic data outside bound of 3.0; "
+              + "channel=[{}] is too noisy.", getStation() + "-" + channel.toString());
+          channelsWithMetricResults.get(channel).addInvalidCase();
+          continue;
+        }
+
+        // now that we've passed all screenings, we've got an event that is good, and can count it
+        channelsWithMetricResults.get(channel).addValidCase();
+      }
     }
-    if (numEvents == 0) {
-      logger.info("No valid events found for channel=[{}]",
-          getStation() + "-" + channel.toString());
-      return NO_RESULT;
-    }
-    return ((double) eventsPassed) / numEvents;
+
+    return channelsWithMetricResults;
   }
 
   /**
@@ -495,5 +543,28 @@ public class WPhaseQualityMetric extends Metric {
       returnValue[i] = modelValue;
     }
     return returnValue;
+  }
+
+  private class ResultIncrementer {
+    private int numerator;
+    private int denominator;
+    public ResultIncrementer() {
+      numerator = 0;
+      denominator = 0;
+    }
+
+    public void addValidCase() {
+      ++numerator;
+      ++denominator;
+    }
+    public void addInvalidCase() {
+      ++denominator;
+    }
+    public double getResult() {
+      if (denominator == 0) {
+        return NO_RESULT;
+      }
+      return (double) numerator / denominator;
+    }
   }
 }

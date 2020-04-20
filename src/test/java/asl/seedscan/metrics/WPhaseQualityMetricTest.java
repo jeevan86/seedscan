@@ -48,12 +48,15 @@ public class WPhaseQualityMetricTest {
     metric.setEventTable(eventLoader.getDayEvents(dataDate));
     metric.setEventSynthetics(eventLoader.getDaySynthetics(dataDate, station1));
     MetricTestMap expect = new MetricTestMap();
-    expect.put("00,LHND", 0, 1E-3);
-    expect.put("10,LHND", 0, 1E-3);
-    expect.put("10,LHED", 0, 1E-3);
-    expect.put("10,LHZ", 0, 1E-3);
-    expect.put("60,LHND", 0, 1E-3);
-    expect.put("60,LHED", 0, 1E-3);
+    expect.put("00,LHND", 1, 1E-3);
+    //expect.put("00,LHED", 1, 1E-3);
+    //expect.put("00,LHZ", 1, 1E-3);
+    expect.put("10,LHND", 1, 1E-3);
+    expect.put("10,LHED", 1, 1E-3);
+    expect.put("10,LHZ", 1, 1E-3);
+    expect.put("60,LHND", 1, 1E-3);
+    expect.put("60,LHED", 1, 1E-3);
+    //expect.put("60,LHZ", 1, 1E-3);
     TestUtils.testMetric(metric, expect);
   }
 
