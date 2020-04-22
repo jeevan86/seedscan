@@ -21,6 +21,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -245,12 +248,14 @@ public class WPhaseQualityMetric extends Metric {
         // we require the gain, so we can use the stage 0 as overall gain
         double gain = stationMeta.getChannelMetadata(channel).getStage(0).getStageGain();
         data = getRecursiveFilter(data, 1. / sampleRate, w, gain);
-        // recursive filter gives us acceleration so go into velocity
+
+        // perform a band-pass filter on the data from 1-5 milliHertz
+        data = bandFilter(data, sampleRate, 0.001, 0.005, 4);
+        /*// recursive filter gives us acceleration so go into velocity
         data = performIntegrationByTrapezoid(data, 1. / sampleRate);
         // and now into displacement by integrating twice
-        data = performIntegrationByTrapezoid(data, 1. / sampleRate);
-        // and lastly perform a band-pass filter on the data from 1-5 milliHertz
-        data = bandFilter(data, sampleRate, 0.001, 0.005, 4);
+        data = performIntegrationByTrapezoid(data, 1. / sampleRate);*/
+
         tracesPerUnfilteredChannel.put(channel, data);
       }
 
@@ -323,13 +328,13 @@ public class WPhaseQualityMetric extends Metric {
         float[] synthData =
             Arrays.copyOfRange(sacSynthetics.getY(), startingIndex, startingIndex + data.length);
 
-        // synthetic data is in m but sensor data is in nm, so convert sensor data from nm to m
+        /*// synthetic data is in m but sensor data is in nm, so convert sensor data from nm to m
         // then perform demean and detrend
         for (int i = 0; i < data.length; ++i) {
           data[i] *= 1E-9;
         }
-        data = demean(data);
-        data = detrend(data);
+        //data = demean(data);
+        //data = detrend(data);*/
 
         double[] synthDataDbl = floatToDouble(synthData);
 
@@ -339,7 +344,7 @@ public class WPhaseQualityMetric extends Metric {
         synthDataDbl = bandFilter(synthDataDbl, sampleRate, 1. / 300, 1. / 100, 4);
         */
 
-        /*
+
         PrintWriter out;
         try {
           out = new PrintWriter(new File(channel.toString() + "-synthcompare.csv"));
@@ -351,7 +356,7 @@ public class WPhaseQualityMetric extends Metric {
         } catch (FileNotFoundException e) {
           e.printStackTrace();
         }
-        */
+
 
         if (!passesMisfitScreening(synthDataDbl, data)) {
           logger.warn("Trace misfit against synthetic data outside bound of 3.0; "
@@ -476,6 +481,7 @@ public class WPhaseQualityMetric extends Metric {
     double h = 0.707;
     // corner frequencies are expected to be either 120 or 360
     double w = Math.abs(120 - cornerFreq) < Math.abs(360 - cornerFreq) ? 120 : 360;
+    w = 2 * Math.PI / w;
     double c0 = 1/(gain * deltaT);
     double c1 = -2 * (1 + (h * w * deltaT)) / (gain * deltaT);
     double c2 = (1 + 2 * h * w * deltaT + Math.pow(w * deltaT, 2)) / (gain * deltaT);
