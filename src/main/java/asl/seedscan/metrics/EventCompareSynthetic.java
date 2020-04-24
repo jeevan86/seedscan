@@ -153,7 +153,7 @@ public class EventCompareSynthetic extends Metric {
 					for (String key : eventKeys) {
 						Hashtable<String, SacTimeSeries> synthetics = getEventSynthetics(key);
 						if (synthetics == null) {
-							logger.info("== {}: No synthetics found for key=[{}] for this station\n", getName(), key);
+							logger.info("No synthetics found for key=[{}] for this station\n", key);
 							continue;
 						}
 
@@ -233,7 +233,7 @@ public class EventCompareSynthetic extends Metric {
 	 *            the sac header
 	 * @return the sac start time in millis
 	 */
-	private long getSacStartTimeInMillis(SacHeader hdr) {
+	public static long getSacStartTimeInMillis(SacHeader hdr) {
 		GregorianCalendar gcal = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
 		gcal.set(Calendar.YEAR, hdr.getNzyear());
 		gcal.set(Calendar.DAY_OF_YEAR, hdr.getNzjday());
