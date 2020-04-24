@@ -41,9 +41,8 @@ public class WPhaseQualityMetricTest {
   }
 
   @Test
-  public void testProcessDefault() throws NoSuchFieldException {
+  public void testProcessDefault() {
     metric = new WPhaseQualityMetric();
-    metric.add("channel-restriction", "LH");
     metric.setData(data);
     metric.setEventTable(eventLoader.getDayEvents(dataDate));
     metric.setEventSynthetics(eventLoader.getDaySynthetics(dataDate, station1));
@@ -103,7 +102,9 @@ public class WPhaseQualityMetricTest {
   public void verifyNHNMNoiseComparison_noisyDataFails() {
     double[] psd = new double[10000];
     // we'll just use an obviously, egregiously bad data case here
-    Arrays.fill(psd, -75);
+    Arrays.fill(psd, Math.pow(10, -7.5));
+    // sanity check that it's actually going to be processed correctly, as -75 in log space
+    assertEquals(-75, 10 * Math.log10(psd[0]), 1E-100);
     double df = 0.0005;
     double resultNHNMScreen = WPhaseQualityMetric.passesPSDNoiseScreening(psd, df);
     assertTrue(resultNHNMScreen > 0);
@@ -113,10 +114,14 @@ public class WPhaseQualityMetricTest {
   public void verifyNHNMNoiseComparisonPassesGoodData() {
     double[] psd = new double[10000];
     // presumably a reasonable PSD estimation would be somewhere around here for most of its values
-    Arrays.fill(psd, -150);
+    Arrays.fill(psd, Math.pow(10, -15));
+    // because PSD values get converted to log representation, make sure the above value
+    // converts to -150, which is lower than the NHNM
+    assertEquals(-150, 10 * Math.log10(psd[0]), 1E-100);
     double df = 0.0005;
     double resultNHNMScreen = WPhaseQualityMetric.passesPSDNoiseScreening(psd, df);
-    assertTrue(resultNHNMScreen < 0);
+    assertTrue("Returned value for PSD noise screen: " + resultNHNMScreen,
+        resultNHNMScreen < 0);
   }
 
   @Test

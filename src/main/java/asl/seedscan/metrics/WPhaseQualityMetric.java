@@ -204,15 +204,15 @@ public class WPhaseQualityMetric extends Metric {
       }
 
       long eventStart = eventCMT.getTimeInMillis();
-      long pTravelTime = 0;
-        try {
-          // TODO: see if any further correction needs to be done to this time
-          pTravelTime = getPArrivalTime(eventCMT, stationMeta, logger);
-          eventStart += pTravelTime;
-        } catch (ArrivalTimeException ignore) {
-          // error was already logged in getPArrivalTime
-          continue;
-        }
+      long pTravelTime;
+      try {
+        // TODO: see if any further correction needs to be done to this time
+        pTravelTime = getPArrivalTime(eventCMT, stationMeta, logger);
+        eventStart += pTravelTime;
+      } catch (ArrivalTimeException ignore) {
+        // error was already logged in getPArrivalTime
+        continue;
+      }
 
       // second prescreen step: take the sum of the PSD of 3 hours of data pre-event
       // and then get the average difference over the 1-10 mHz range with the NHNM curve
@@ -247,14 +247,15 @@ public class WPhaseQualityMetric extends Metric {
         // time-domain deconvolution and bandpass filtering (1-5 mHz band) goes here
         // we require the gain, so we can use the stage 0 as overall gain
         double gain = stationMeta.getChannelMetadata(channel).getStage(0).getStageGain();
+        logger.debug("channel {} | w: {}, g: {}", channel.toString(), w, gain);
         data = getRecursiveFilter(data, 1. / sampleRate, w, gain);
 
         // perform a band-pass filter on the data from 1-5 milliHertz
         data = bandFilter(data, sampleRate, 0.001, 0.005, 4);
-        /*// recursive filter gives us acceleration so go into velocity
+        // recursive filter gives us acceleration so go into velocity
         data = performIntegrationByTrapezoid(data, 1. / sampleRate);
         // and now into displacement by integrating twice
-        data = performIntegrationByTrapezoid(data, 1. / sampleRate);*/
+        data = performIntegrationByTrapezoid(data, 1. / sampleRate);
 
         tracesPerUnfilteredChannel.put(channel, data);
       }
@@ -275,7 +276,7 @@ public class WPhaseQualityMetric extends Metric {
           double peakToPeak = max - min;
           channelToPeakToPeak.put(channel, peakToPeak);
         }
-        double median = 0;
+        double median;
         {
           List<Double> peakToPeaksForMedian = new ArrayList<>(channelToPeakToPeak.values());
           Collections.sort(peakToPeaksForMedian);
@@ -288,7 +289,7 @@ public class WPhaseQualityMetric extends Metric {
           if (peakToPeak < median * 0.1 || peakToPeak > median * 3.) {
             logger.info(
                 "Amplitude difference ({}) of event trace outside median ({}) screen bounds; "
-                    + "channel=[{}] amplitude is unstable for analysis.",
+                    + "channel=[{}] amplitude is too wide for analysis.",
                 peakToPeak, median, getStation() + "-" + channel.toString());
             // almost 100% sure that trying to remove from the map while in the loop would
             // mess up the iteration here and make everything wrong
@@ -328,35 +329,11 @@ public class WPhaseQualityMetric extends Metric {
         float[] synthData =
             Arrays.copyOfRange(sacSynthetics.getY(), startingIndex, startingIndex + data.length);
 
-        /*// synthetic data is in m but sensor data is in nm, so convert sensor data from nm to m
-        // then perform demean and detrend
+        // synthetic data is in m but sensor data is in nm, so convert sensor data from nm to m
         for (int i = 0; i < data.length; ++i) {
           data[i] *= 1E-9;
         }
-        //data = demean(data);
-        //data = detrend(data);*/
-
         double[] synthDataDbl = floatToDouble(synthData);
-
-        /*
-        // then filter both by a bandpass filter over 100 to 300 s period
-        data = bandFilter(data, sampleRate, 1. / 300, 1. / 100, 4);
-        synthDataDbl = bandFilter(synthDataDbl, sampleRate, 1. / 300, 1. / 100, 4);
-        */
-
-
-        PrintWriter out;
-        try {
-          out = new PrintWriter(new File(channel.toString() + "-synthcompare.csv"));
-          out.write("synthetic, corrected channel data\n");
-          for (int i = 0; i < synthData.length; ++i) {
-            out.write(synthData[i] + ", " + data[i] + "\n");
-          }
-          out.close();
-        } catch (FileNotFoundException e) {
-          e.printStackTrace();
-        }
-
 
         if (!passesMisfitScreening(synthDataDbl, data)) {
           logger.warn("Trace misfit against synthetic data outside bound of 3.0; "
@@ -401,7 +378,6 @@ public class WPhaseQualityMetric extends Metric {
     for (int i = 0; i < freqs.length; ++i) {
       // need to convert psd value into log value
       double psdValue = 10 * Math.log10(psd[i]);
-      // System.out.println("PSD: " + psdValue + " | NHNM: " + NHNM[i]);
       difference += (psdValue - NHNM[i]);
     }
     return difference;
@@ -480,15 +456,15 @@ public class WPhaseQualityMetric extends Metric {
     double[] filter = new double[length];
     double h = 0.707;
     // corner frequencies are expected to be either 120 or 360
-    double w = Math.abs(120 - cornerFreq) < Math.abs(360 - cornerFreq) ? 120 : 360;
-    w = 2 * Math.PI / w;
+    double w = Math.abs(CORNER_FREQ_120 - cornerFreq) < Math.abs(CORNER_FREQ_360 - cornerFreq) ?
+        CORNER_FREQ_120 : CORNER_FREQ_360;
     double c0 = 1/(gain * deltaT);
     double c1 = -2 * (1 + (h * w * deltaT)) / (gain * deltaT);
     double c2 = (1 + 2 * h * w * deltaT + Math.pow(w * deltaT, 2)) / (gain * deltaT);
     // based on the algorithm described in Kanamori, Rivera 2008 about phase inversion
     // first two values are fixed at 0
     for (int i = 2; i < length; ++i) {
-      filter[i] = filter[i-1] + c0 * y[i] + c1 * y[i-1] + c2 * y[i-2];
+      filter[i] = filter[i-2] + c0 * y[i-2] + c1 * y[i-1] + c2 * y[i];
     }
 
     return filter;
