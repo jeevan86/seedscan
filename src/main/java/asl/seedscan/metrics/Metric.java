@@ -379,14 +379,11 @@ public abstract class Metric {
 		}
 		arguments.put(name, value);
 
-		if (name.equals("forceupdate")) {
-			if (value.toLowerCase().equals("true")
-					|| value.toLowerCase().equals("yes")) {
+		if (value.toLowerCase().equals("true") || value.toLowerCase().equals("yes")) {
+			if (name.equals("forceupdate")) {
 				setForceUpdate();
 			}
-		} else if (name.equals("makeplots")) {
-			if (value.toLowerCase().equals("true")
-					|| value.toLowerCase().equals("yes")) {
+			else if (name.equals("makeplots")) {
 				setMakePlots();
 			}
 		}

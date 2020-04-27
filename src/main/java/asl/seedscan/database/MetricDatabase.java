@@ -144,7 +144,7 @@ public class MetricDatabase {
 	 * Return the lock object. Used to synchronize taking and adding child scans to the database,
 	 * which happens together in the run method of RetrieveScan. These operations need to be locked
 	 * together in order to prevent scans being marked as finished when the scan is taken and the
-	 *
+	 * child scans have not yet been populated.
 	 * @return Lock Object, object solely used to control synchronization of scan data.
 	 */
 	public Object getLockObject() {

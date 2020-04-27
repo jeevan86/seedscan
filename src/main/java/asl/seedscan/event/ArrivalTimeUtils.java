@@ -7,10 +7,13 @@ import edu.sc.seis.TauP.TauModelException;
 import edu.sc.seis.TauP.TauP_Time;
 import java.util.List;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ArrivalTimeUtils {
 
-  public static long getPArrivalTime(EventCMT eventCMT, StationMeta stationMeta, Logger logger)
+  private static final Logger logger = LoggerFactory.getLogger(ArrivalTimeUtils.class);
+
+  public static long getPArrivalTime(EventCMT eventCMT, StationMeta stationMeta, String callingMetric)
       throws ArrivalTimeException {
     // we include the logger so we can figure out which metric is throwing up the error
     double eventLatitude = eventCMT.getLatitude();
@@ -28,7 +31,7 @@ public class ArrivalTimeUtils {
       timeTool.calculate(greatCircleArc);
     } catch (TauModelException e) {
       //Arrival times are not determinable.
-      logger.error(e.getMessage());
+      logger.error("{} -- called by metric {}", e.getMessage(), callingMetric);
       throw new ArrivalTimeException(e.getMessage());
     }
 
@@ -38,7 +41,7 @@ public class ArrivalTimeUtils {
     if (arrivals.get(0).getName().equals("P")) {
       arrivalTimeP = arrivals.get(0).getTime();
     } else {
-      logger.info("Got an arrival, but it was not a P-wave");
+      logger.info("Got an arrival, but it was not a P-wave, called by metric {}", callingMetric);
       throw new ArrivalTimeException("Arrival time found was not a P-wave");
     }
 
@@ -47,7 +50,7 @@ public class ArrivalTimeUtils {
         eventCMT.getEventID(), eventLatitude, eventLongitude, stationMeta.getStation(),
         stationLatitude, stationLongitude, greatCircleArc, arrivalTimeP);
 
-    return (long) (arrivalTimeP * 1000); // get the arrival time in ms
+    return Math.round(arrivalTimeP * 1000); // get the arrival time in ms
   }
 
   public static class ArrivalTimeException extends Exception {

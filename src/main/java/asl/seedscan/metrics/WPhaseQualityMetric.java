@@ -2,8 +2,6 @@ package asl.seedscan.metrics;
 
 import static asl.seedscan.event.ArrivalTimeUtils.getPArrivalTime;
 import static asl.utils.FilterUtils.bandFilter;
-import static asl.utils.NumericUtils.demean;
-import static asl.utils.NumericUtils.detrend;
 
 import asl.metadata.Channel;
 import asl.metadata.ChannelArray;
@@ -17,24 +15,16 @@ import asl.timeseries.InterpolatedNHNM;
 import asl.util.Logging;
 import asl.utils.NumericUtils;
 import edu.sc.seis.TauP.SphericalCoords;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
 import java.nio.ByteBuffer;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import org.apache.commons.math3.complex.Complex;
@@ -207,7 +197,7 @@ public class WPhaseQualityMetric extends Metric {
       long pTravelTime;
       try {
         // TODO: see if any further correction needs to be done to this time
-        pTravelTime = getPArrivalTime(eventCMT, stationMeta, logger);
+        pTravelTime = getPArrivalTime(eventCMT, stationMeta, getName());
         eventStart += pTravelTime;
       } catch (ArrivalTimeException ignore) {
         // error was already logged in getPArrivalTime
