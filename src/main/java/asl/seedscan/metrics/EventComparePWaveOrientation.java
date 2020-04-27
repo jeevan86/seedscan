@@ -195,7 +195,7 @@ public class EventComparePWaveOrientation extends Metric {
       long stationDataStartTime = eventMeta.getTimeInMillis();
       try {
         // give us a 10 second cushion for start of the p-arrival in case metadata is wrong
-        long pTravelTime = getPArrivalTime(eventMeta, stationMeta, logger) - (10 * 1000);
+        long pTravelTime = getPArrivalTime(eventMeta, stationMeta, getName()) - (10 * 1000);
         stationDataStartTime += pTravelTime;
       } catch (ArrivalTimeException ignore) {
         // error was already logged in getPArrivalTime

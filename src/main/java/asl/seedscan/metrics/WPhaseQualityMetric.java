@@ -197,7 +197,7 @@ public class WPhaseQualityMetric extends Metric {
       long pTravelTime;
       try {
         // TODO: see if any further correction needs to be done to this time
-        pTravelTime = getPArrivalTime(eventCMT, stationMeta, logger);
+        pTravelTime = getPArrivalTime(eventCMT, stationMeta, getName());
         eventStart += pTravelTime;
       } catch (ArrivalTimeException ignore) {
         // error was already logged in getPArrivalTime
