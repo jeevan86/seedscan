@@ -16,7 +16,7 @@ if (file('database.gradle').exists()) {
    apply from:'database.gradle'
 }
 
-version = '1.7.0'
+version = '1.8.0'
 
 mainClassName = 'asl.seedscan.SeedScan'
 applicationDefaultJvmArgs = ["-Xms64m", "-Xmx30g"]
