@@ -161,7 +161,6 @@ public abstract class ResourceManager { // NO_UCD (test only)
     MetricDatabaseMock mockDB = new MetricDatabaseMock();
 
     StationMeta stationMeta = getMetadata(metadataLocation, date, station);
-
     File dir = new File(getDirectoryPath(timeSeriesDataLocation));
     File[] files = dir.listFiles((dir1, name) -> name.endsWith(".seed"));
 

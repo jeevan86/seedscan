@@ -133,9 +133,9 @@ public class StationDeviationMetric extends PowerBandMetric {
 	private double computeMetric(Channel channel) throws MetricException {
 
 		// Read in specific noise model for this station+channel //
-		// ../ANMO.00.LH1.90
-		String modelFileName = stationMeta.getStation() + "."
-				+ channel.getLocation() + "." + channel.getChannel() + ".90";
+		// ../IU.ANMO.00.LH1.csv
+		String modelFileName = stationMeta.getNetwork() + "." + stationMeta.getStation() + "."
+				+ channel.getLocation() + "." + channel.getChannel() + ".csv";
 		try {
 			if (!readModel(modelFileName)) {
 				logger.warn(String
@@ -281,7 +281,7 @@ public class StationDeviationMetric extends PowerBandMetric {
 
 	private boolean readModel(String fName) throws MetricException {
 
-		// ../stationmodel/IU_ANMO/ANMO.00.LHZ.90
+		// ../stationmodel/IU_ANMO/IU.ANMO.00.LHZ.csv
 		String fileName = modelDirectory + fName;
 
 		// First see if the file exists
@@ -315,23 +315,9 @@ public class StationDeviationMetric extends PowerBandMetric {
 			}
 
 			do {
-				args = line.trim().split("\\s+");
-				// MTH: This is hard-wired for Adam's station model files which
-				// have 7 columns:
-				if (args.length == 7) {
-					try {
-						tmpPers.add(Double.valueOf(args[0].trim()));
-						tmpPows.add(Double.valueOf(args[2].trim()));
-					} catch (NumberFormatException e) {
-						logger.error(String.format(
-								"== %s: Error reading modelFile=[%s]: \n",
-								getDay(), fName), e);
-						return false;
-					}
-				}
+				args = line.trim().split(",\\s+");
 				// hard-wired for new format has only 5 columns (percent, mean, median, 10th, 90th)
-				/*
-				else if (args.length == 5) {
+				if (args.length == 5) {
 					try {
 						tmpPers.add(Double.valueOf(args[0].trim()));
 						tmpPows.add(Double.valueOf(args[1].trim()));
@@ -342,7 +328,7 @@ public class StationDeviationMetric extends PowerBandMetric {
 						return false;
 					}
 				}
-				 */
+
 				else {
 					throw new MetricException("== reading Station Model File: got "
 							+ args.length + " args on one line!");

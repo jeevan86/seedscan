@@ -1,13 +1,13 @@
 package asl.seedscan.metrics;
 
+import static asl.seedscan.event.ArrivalTimeUtils.getPArrivalTime;
+
 import asl.metadata.Channel;
 import asl.seedscan.event.EventCMT;
+import asl.seedscan.event.ArrivalTimeUtils.ArrivalTimeException;
 import asl.utils.FilterUtils;
 import asl.utils.NumericUtils;
-import edu.sc.seis.TauP.Arrival;
 import edu.sc.seis.TauP.SphericalCoords;
-import edu.sc.seis.TauP.TauModelException;
-import edu.sc.seis.TauP.TauP_Time;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -48,7 +48,6 @@ public class EventComparePWaveOrientation extends Metric {
 
   EventComparePWaveOrientation() {
     super();
-    addArgument("base-channel");
     addArgument("channel-restriction");
   }
 
@@ -92,20 +91,6 @@ public class EventComparePWaveOrientation extends Metric {
     }
 
     List<Channel> channels = stationMeta.getRotatableChannels();
-
-    // get pairs of ED, ND data and then do the rotation with those
-    String basePreSplit = null;
-
-    try {
-      basePreSplit = get("base-channel");
-    } catch (NoSuchFieldException ignored) {
-    }
-
-    if (basePreSplit == null) {
-      basePreSplit = "XX-LX";
-      logger.info("No base channel for Event Compare P Orientation using: " + basePreSplit);
-    }
-
     String preSplitBands = null;
     try {
       preSplitBands = get("channel-restriction");
@@ -113,8 +98,7 @@ public class EventComparePWaveOrientation extends Metric {
     }
     if (preSplitBands == null) {
       preSplitBands = "LH";
-      logger.info("No band restriction set for Event Compare P Orientation using: "
-          + preSplitBands);
+      logger.info("== {}: No band restriction set, using: {}", getName(), preSplitBands);
     }
     List<String> allowedBands = Arrays.asList(preSplitBands.split(","));
 
@@ -152,6 +136,8 @@ public class EventComparePWaveOrientation extends Metric {
           getForceUpdate());
 
       if (digest == null) {
+        logger.info("Digest unchanged station:[{}] channel:[{}] day:[{}] --> Skip metric",
+            getStation(), curChannel, getDay());
         continue;
       }
 
@@ -160,7 +146,7 @@ public class EventComparePWaveOrientation extends Metric {
 
       double angleDifference = computeMetric(eventCMTs, curChannel, pairChannel, vertChannel);
 
-      //Catch any bail out of internal metric.
+      // Catch any bail out of internal metric.
       if (Double.isNaN(angleDifference)) {
         continue;
       }
@@ -205,18 +191,11 @@ public class EventComparePWaveOrientation extends Metric {
         continue;
       }
 
-      Hashtable<String, SacTimeSeries> synthetics = getEventSynthetics(key);
-      if (synthetics == null) {
-        logger.warn("== {}: No synthetics found for key=[{}] for this station=[{}]\n",
-            getName(), key, getStation());
-        continue;
-      }
-
       // get start time of p-wave, then take data 100 secs before that
       long stationDataStartTime = eventMeta.getTimeInMillis();
       try {
         // give us a 10 second cushion for start of the p-arrival in case metadata is wrong
-        long pTravelTime = getPArrivalTime(eventMeta) - (10 * 1000);
+        long pTravelTime = getPArrivalTime(eventMeta, stationMeta, getName()) - (10 * 1000);
         stationDataStartTime += pTravelTime;
       } catch (ArrivalTimeException ignore) {
         // error was already logged in getPArrivalTime
@@ -496,55 +475,6 @@ public class EventComparePWaveOrientation extends Metric {
   static int getSamplesInTimePeriod(int secs, double sampleRate) {
     // samples = time (s) * sampleRate (samp/s)
     return (int) Math.ceil(secs * sampleRate);
-  }
-
-  private long getPArrivalTime(EventCMT eventCMT) throws ArrivalTimeException {
-
-    double eventLatitude = eventCMT.getLatitude();
-    double eventLongitude = eventCMT.getLongitude();
-    double eventDepth = eventCMT.getDepth();
-    double stationLatitude = stationMeta.getLatitude();
-    double stationLongitude = stationMeta.getLongitude();
-    double greatCircleArc = SphericalCoords
-        .distance(eventLatitude, eventLongitude, stationLatitude, stationLongitude);
-    TauP_Time timeTool;
-    try {
-      timeTool = new TauP_Time("prem");
-      timeTool.parsePhaseList("P");
-      timeTool.setSourceDepth(eventDepth);
-      timeTool.calculate(greatCircleArc);
-    } catch (TauModelException e) {
-      //Arrival times are not determinable.
-      logger.error(e.getMessage());
-      throw new ArrivalTimeException(e.getMessage());
-    }
-
-    List<Arrival> arrivals = timeTool.getArrivals();
-
-    double arrivalTimeP;
-    if (arrivals.get(0).getName().equals("P")) {
-      arrivalTimeP = arrivals.get(0).getTime();
-    } else {
-      logger.info("Got an arrival, but it was not a P-wave");
-      throw new ArrivalTimeException("Arrival time found was not a P-wave");
-    }
-
-    logger.info(
-        "Event:{} <eventLatitude,eventLongitude> = <{}, {}> Station:{} <{}, {}> greatCircleArc={} tP={}",
-        eventCMT.getEventID(), eventLatitude, eventLongitude, getStation(), stationLatitude,
-        stationLongitude, greatCircleArc, arrivalTimeP);
-
-    return ((long) arrivalTimeP) * 1000; // get the arrival time in ms
-  }
-
-  private class ArrivalTimeException extends Exception {
-
-    private static final long serialVersionUID = 6851116640460104395L;
-
-    ArrivalTimeException(String message) {
-      super(message);
-    }
-
   }
 
 }
