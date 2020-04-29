@@ -21,8 +21,11 @@ package asl.metadata.meta_new;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeSet;
 
 import org.slf4j.Logger;
@@ -67,6 +70,16 @@ public class StationMeta implements Serializable {
 	
 	/** The channels. */
 	private Hashtable<ChannelKey, ChannelMeta> channels;
+
+	/**
+	 * Whitelist for locations that are needed to have a data re-run based on metadata changes.
+	 * This is used to restrict scans to only locations that have had their metadata updated.
+	 * When any channel in a location gets its metadata updated then all locations should change.
+	 * This is based on a listing from an IRIS service of metadata changes; see
+	 * https://service.iris.edu/irisws/metadatachange/1/
+	 * If this is empty then all channels are considered to be whitelisted.
+	 */
+	private Set<String> locationWhitelist;
 	
 	/** The meta timestamp. */
 	private LocalDateTime metaTimestamp = null;
@@ -96,6 +109,7 @@ public class StationMeta implements Serializable {
 		this.longitude = Double.parseDouble(blockette.getFieldValue(5, 0));
 		this.elevation = Double.parseDouble(blockette.getFieldValue(6, 0));
 		channels = new Hashtable<>();
+		locationWhitelist = new HashSet<>();
 		this.metaTimestamp = timestamp;
 		this.metaDate = (EpochData.epochToDateString(this.metaTimestamp));
 		this.blockette50 = blockette;
@@ -232,8 +246,8 @@ public class StationMeta implements Serializable {
 	 * @return the channel array
 	 */
 	public List<Channel> getChannelArray(String bands, boolean ignoreTriggered, boolean ignoreDerived) {
-		TreeSet<ChannelKey> keys = new TreeSet<>();
-		keys.addAll(channels.keySet());
+		// converting to treeset in order to get sorted iteration
+		TreeSet<ChannelKey> keys = new TreeSet<>(channels.keySet());
 
 		ArrayList<Channel> channelArrayList = new ArrayList<>();
 
@@ -251,7 +265,7 @@ public class StationMeta implements Serializable {
 			if ((!ignoreDerived || !(channel.isDerivedChannel()))
 					&& (!ignoreTriggered || Channel.isContinousChannel(channelFlags))) {
 				for (String band : bandArray) {
-					if (channel.getChannel().startsWith(band)) {
+					if (channel.getChannel().startsWith(band) && isWhitelisted(channel)) {
 						channelArrayList.add(channel);
 						break;
 					}
@@ -259,6 +273,40 @@ public class StationMeta implements Serializable {
 			}
 		}
 		return channelArrayList;
+	}
+
+	/**
+	 * Identify if a channel is to be part of a re-scan whitelist. If the whitelist is empty or null
+	 * then all channels are part of the whitelist. If a channel at this channel's location has
+	 * had a metadata change, then it should be part of any rescans.
+	 * (For example, if ANMO 00-LHZ has had its sensitivity changed, then we should redo any scans on
+	 * 00-LH1
+	 * @param channel Channel to examine scan for
+	 * @return True if channel is in whitelist or whitelist is empty/uninitialized.
+	 */
+	public boolean isWhitelisted(Channel channel) {
+		return isWhitelisted(new ChannelKey(channel));
+	}
+
+	/**
+	 * Identify if a channel is to be part of a re-scan whitelist. If the whitelist is empty or null
+	 * then all channels are part of the whitelist.
+	 * @param channel Channel (as ChannelKey) to examine scan for
+	 * @return True if channel is in whitelist or whitelist is empty/uninitialized.
+	 */
+	public boolean isWhitelisted(ChannelKey channel) {
+		return isWhitelisted(channel.getLocation());
+	}
+
+	/**
+	 * Identify if a locationcode is to be part of a re-scan whitelist. If the whitelist is empty or
+	 * null then all channels are part of the whitelist.
+	 * @param locationCode Location code of channel under investigation
+	 * @return True if channel is in whitelist or whitelist is empty/uninitialized
+	 */
+	public boolean isWhitelisted(String locationCode) {
+		return locationWhitelist == null ||
+				locationWhitelist.size() == 0. || locationWhitelist.contains(locationCode);
 	}
 	
 	/**
@@ -314,8 +362,8 @@ public class StationMeta implements Serializable {
 	 * @return the continuous channels
 	 */
 	public List<Channel> getContinuousChannels() {
-		TreeSet<ChannelKey> keys = new TreeSet<>();
-		keys.addAll(channels.keySet());
+		// once again, convert for iteration in sort order
+		TreeSet<ChannelKey> keys = new TreeSet<>(channels.keySet());
 
 		ArrayList<Channel> channelArrayList = new ArrayList<>();
 
@@ -323,7 +371,8 @@ public class StationMeta implements Serializable {
 			Channel channel = channelKey.toChannel();
 			String channelFlags = getChannelMetadata(channelKey).getChannelFlags();
 
-			if (Channel.isContinousChannel(channelFlags) && !(channel.isDerivedChannel())){
+			if (Channel.isContinousChannel(channelFlags) && !(channel.isDerivedChannel()
+					&& isWhitelisted(channel))){
 				channelArrayList.add(channel);
 			}
 		}
@@ -337,12 +386,16 @@ public class StationMeta implements Serializable {
 	 * @return the derived channels
 	 */
 	public List<Channel> getRotatableChannels() {
-		TreeSet<ChannelKey> keys = new TreeSet<>();
-		keys.addAll(channels.keySet());
+		// once again treeset conversion to get sorted order of channels
+		TreeSet<ChannelKey> keys = new TreeSet<>(channels.keySet());
 
 		ArrayList<Channel> channelArrayList = new ArrayList<>();
 
 		for (ChannelKey channelKey : keys) {
+			if (!isWhitelisted(channelKey)) {
+				// only get derived channels from those in our whitelist
+				continue;
+			}
 			Channel channel = channelKey.toChannel();
 			String channelName = channel.getChannel();
 			String channelLocation = channel.getLocation();
@@ -540,4 +593,11 @@ public class StationMeta implements Serializable {
 		return network + "_" + name;
 	}
 
+	/**
+	 * Add a set of location filters to the location whitelist if any exist
+	 * @param location
+	 */
+	public void addToWhitelist(String... location) {
+		locationWhitelist.addAll(Arrays.asList(location));
+	}
 }

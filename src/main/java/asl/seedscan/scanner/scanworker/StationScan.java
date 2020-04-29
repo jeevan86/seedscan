@@ -90,6 +90,13 @@ public class StationScan extends ScanWorker {
       StationMeta stnMeta = manager.metaGenerator
           .getStationMeta(station, currentDate.atStartOfDay());
 
+      if (databaseScan.location.length() > 0) {
+        // expect that the channel filter is a list of comma-delineated locations
+        // in the event that only one location is specified this should still work
+        String[] locations = databaseScan.location.split(",");
+        stnMeta.addToWhitelist(databaseScan.location);
+      }
+
       Hashtable<String, Hashtable<String, SacTimeSeries>> eventSynthetics = null;
 
       Hashtable<String, EventCMT> eventCMTs = eventLoader.getDayEvents(currentDate);
