@@ -3,12 +3,11 @@ package asl.seedscan.metrics;
 import static asl.seedscan.event.ArrivalTimeUtils.getPArrivalTime;
 
 import asl.metadata.Channel;
-import asl.seedscan.event.EventCMT;
 import asl.seedscan.event.ArrivalTimeUtils.ArrivalTimeException;
+import asl.seedscan.event.EventCMT;
 import asl.utils.FilterUtils;
 import asl.utils.NumericUtils;
 import edu.sc.seis.TauP.SphericalCoords;
-
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -17,14 +16,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
-
 import org.apache.commons.math3.linear.BlockRealMatrix;
 import org.apache.commons.math3.linear.EigenDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sac.SacTimeSeries;
 
 public class EventComparePWaveOrientation extends Metric {
 
