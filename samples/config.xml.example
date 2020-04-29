@@ -28,6 +28,14 @@
             <cfg:class_name>asl.seedscan.metrics.GapCountMetric</cfg:class_name>
         </cfg:metric>
         <cfg:metric>
+            <cfg:class_name>asl.seedscan.metrics.InfrasoundMetric</cfg:class_name>
+            <cfg:argument cfg:name="channel-restriction">BD,HD</cfg:argument>
+        </cfg:metric>
+        <cfg:metric>
+            <cfg:class_name>asl.seedscan.metrics.PressureMetric</cfg:class_name>
+            <cfg:argument cfg:name="channel-restriction">LD</cfg:argument>
+        </cfg:metric>
+        <cfg:metric>
             <cfg:class_name>asl.seedscan.metrics.TimingQualityMetric</cfg:class_name>
         </cfg:metric>
         <cfg:metric>
@@ -47,13 +55,13 @@
             <cfg:argument cfg:name="makeplots">true</cfg:argument>
         </cfg:metric>
         <cfg:metric>
-            <cfg:class_name>asl.seedscan.metrics.PressureMetric</cfg:class_name>
-        </cfg:metric>
-        <cfg:metric>
-            <cfg:class_name>asl.seedscan.metrics.InfrasoundMetric</cfg:class_name>
-        </cfg:metric>
-        <cfg:metric>
             <cfg:class_name>asl.seedscan.metrics.EventComparePWaveOrientation</cfg:class_name>
+            <cfg:argument cfg:name="channel-restriction">LH</cfg:argument>
+        </cfg:metric>
+        <cfg:metric>
+            <cfg:class_name>asl.seedscan.metrics.WPhaseQualityMetric</cfg:class_name>
+            <cfg:argument cfg:name="channel-restriction">LH</cfg:argument>
+            <cfg:argument cfg:name="base-channel">XX-LX</cfg:argument>
         </cfg:metric>
 
 <!-- PowerBand Metrics:  -->
@@ -71,7 +79,6 @@
             <cfg:argument cfg:name="channel-restriction">LN,HN</cfg:argument>
             <cfg:argument cfg:name="makeplots">true</cfg:argument>
         </cfg:metric>
-
         <cfg:metric>
             <cfg:class_name>asl.seedscan.metrics.CoherencePBM</cfg:class_name>
             <cfg:argument cfg:name="lower-limit">4</cfg:argument>
@@ -121,7 +128,6 @@
             <cfg:argument cfg:name="upper-limit">500</cfg:argument>
             <cfg:argument cfg:name="makeplots">false</cfg:argument>
         </cfg:metric>
-
         <cfg:metric>
             <cfg:class_name>asl.seedscan.metrics.NLNMDeviationMetric</cfg:class_name>
             <cfg:argument cfg:name="lower-limit">.5</cfg:argument>
