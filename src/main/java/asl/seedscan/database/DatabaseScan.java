@@ -27,7 +27,7 @@ public class DatabaseScan {
 	/** Restrict to this station */
 	public final String station;
 	
-	/** Used for deleting existing data. */
+	/** Used for whitelisting specific channels (comma-delineated list of locations to be scanned). */
 	public final String location;
 	
 	/** Used for deleting existing data. */
