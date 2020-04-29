@@ -593,4 +593,11 @@ public class StationMeta implements Serializable {
 		return network + "_" + name;
 	}
 
+	/**
+	 * Add a set of location filters to the location whitelist if any exist
+	 * @param location
+	 */
+	public void addToWhitelist(String... location) {
+		locationWhitelist.addAll(Arrays.asList(location));
+	}
 }
