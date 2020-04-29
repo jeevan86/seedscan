@@ -3,12 +3,11 @@ package asl.seedscan.metrics;
 import static asl.seedscan.event.ArrivalTimeUtils.getPArrivalTime;
 
 import asl.metadata.Channel;
-import asl.seedscan.event.EventCMT;
 import asl.seedscan.event.ArrivalTimeUtils.ArrivalTimeException;
+import asl.seedscan.event.EventCMT;
 import asl.utils.FilterUtils;
 import asl.utils.NumericUtils;
 import edu.sc.seis.TauP.SphericalCoords;
-
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -17,14 +16,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
-
 import org.apache.commons.math3.linear.BlockRealMatrix;
 import org.apache.commons.math3.linear.EigenDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sac.SacTimeSeries;
 
 public class EventComparePWaveOrientation extends Metric {
 
@@ -119,8 +116,10 @@ public class EventComparePWaveOrientation extends Metric {
       int lastCharIdx = channelVal.length() - 1;
       char last = channelVal.charAt(lastCharIdx);
       if (last == 'Z' || last == 'E') {
-        // assume vertical sensor component requires no orientation
-        // assume east sensor will be referenced when north is read in
+        // we'll assign metric results to ND channels, with the assumption that ED shares the same
+        // orientation, and Z is only useful for phase determination of quadrant
+        // we rescan all channels when doing a whitelist scan (metadata changes), so we can
+        // reasonably presume that the N channel is part of the channel list iterated through
         continue;
       } else if (last == 'D') {
         if (channelVal.charAt(lastCharIdx - 1) == 'E') {
@@ -147,7 +146,7 @@ public class EventComparePWaveOrientation extends Metric {
       double angleDifference = computeMetric(eventCMTs, curChannel, pairChannel, vertChannel);
 
       // Catch any bail out of internal metric.
-      if (Double.isNaN(angleDifference)) {
+      if (angleDifference == NO_RESULT) {
         continue;
       }
 
@@ -306,9 +305,11 @@ public class EventComparePWaveOrientation extends Metric {
 
     //Average our event angle differences.
     if (numEvents <= 0) {
-      return Double.NaN;
+      return NO_RESULT;
     } else {
-      return sumAngleDifference / numEvents;
+      // this is an average, and the returned result should be between +/- 360
+      // which also prevents collision with value NO_RESULT above (-999.999)
+      return (sumAngleDifference / numEvents) % 360;
     }
   }
 
