@@ -1,5 +1,7 @@
 package asl.testutils;
 
+import static org.junit.Assert.assertTrue;
+
 import asl.seedscan.GlobalMock;
 import java.io.File;
 import java.nio.file.Files;
@@ -16,8 +18,8 @@ public class Dependent {
   /**
    * Make sure rdseed exists otherwise the test can't run
    */
-  public static void assumeRDSeed() throws Exception {
-    Assume.assumeTrue(
+  public static void requireRDSeed() {
+    assertTrue(
         Pattern.compile(File.pathSeparator)
             .splitAsStream(System.getenv("PATH"))
             .map(Paths::get)
@@ -32,7 +34,7 @@ public class Dependent {
    */
   public static void assumeGlobalState() {
     String dataPath =
-        ResourceManager.getDirectoryPath("/seed_data") + "${NETWORK}_${STATION}/${YEAR}/${JDAY}";
+        ResourceManager.getDirectoryPath("/seed_data/") + "${NETWORK}_${STATION}/${YEAR}/${JDAY}";
     GlobalMock.setDataDir(dataPath);
     GlobalMock.setQualityFlags("All");
   }
