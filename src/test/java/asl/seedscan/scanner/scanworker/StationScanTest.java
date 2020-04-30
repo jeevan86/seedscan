@@ -103,7 +103,6 @@ public class StationScanTest {
     assertEquals("Number of station Scans added: ", 1, manager.getNumberTasksAdded());
   }
 
-
   @Test(timeout = 20000)
   public void run_DidTheNextDayGetAdded_LaterDays() throws Exception {
     //Null metadata
