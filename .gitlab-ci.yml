@@ -16,8 +16,8 @@ before_script:
   - sh ssl_acquire.bash
   - git submodule sync
   - git submodule update --init --recursive
-  - echo $PATH
-  - rdseed
+  - ls /bin
+  - which rdseed
 
 cache:
   paths:
