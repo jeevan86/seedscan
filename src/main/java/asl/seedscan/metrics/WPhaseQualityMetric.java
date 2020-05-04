@@ -16,6 +16,9 @@ import asl.util.Logging;
 import asl.utils.NumericUtils;
 import edu.sc.seis.TauP.SphericalCoords;
 import java.nio.ByteBuffer;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -237,7 +240,6 @@ public class WPhaseQualityMetric extends Metric {
         // time-domain deconvolution and bandpass filtering (1-5 mHz band) goes here
         // we require the gain, so we can use the stage 0 as overall gain
         double gain = stationMeta.getChannelMetadata(channel).getStage(0).getStageGain();
-        logger.debug("channel {} | w: {}, g: {}", channel.toString(), w, gain);
         data = getRecursiveFilter(data, 1. / sampleRate, w, gain);
 
         // perform a band-pass filter on the data from 1-5 milliHertz
@@ -248,6 +250,12 @@ public class WPhaseQualityMetric extends Metric {
         data = performIntegrationByTrapezoid(data, 1. / sampleRate);
 
         tracesPerUnfilteredChannel.put(channel, data);
+      }
+
+      if (tracesPerUnfilteredChannel.size() == 0) {
+        logger.error("No data matched to event {} was able to be acquired for peak-to-peak "
+            + "analysis at station {}", key, getStation());
+        continue;
       }
 
       // next step to check: does each channel have a peak-to-peak difference that's near the
