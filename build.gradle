@@ -27,6 +27,7 @@ repositories {
 dependencies {
     compile project(':asl-java-utils')
 
+    compile group: 'org.eclipse.jetty.orbit', name: 'javax.activation', version: '1.1.0+'
     compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.+'
     compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.+'
     compile group: 'org.jfree', name: 'jfreechart', version: '1.0.+'
