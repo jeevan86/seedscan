@@ -7,13 +7,12 @@ buildscript {
 plugins {
     id 'org.liquibase.gradle' version '1.2.4'
     id 'com.github.jacobono.jaxb' version '1.3.5'
+    id 'java'
+    id 'application'
 }
 
-apply plugin: 'java'
-apply plugin: 'application'
-
 if (file('database.gradle').exists()) {
-   apply from:'database.gradle'
+    apply from:'database.gradle'
 }
 
 version = '1.8.1'
@@ -26,35 +25,36 @@ repositories {
 }
 
 dependencies {
-        compile project(':asl-java-utils')
+    compile project(':asl-java-utils')
 
-        compile group: 'javax.xml.bind', name: 'jaxb-api', version: '2.4.+'
-        compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.+'
-        compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.+'
-        compile group: 'org.jfree', name: 'jfreechart', version: '1.0.+'
-        compile group: 'org.apache.commons', name: 'commons-math3', version: '3.+'
-        compile group: 'org.postgresql', name: 'postgresql', version: '42.2.1'
-        compile group: 'com.mchange', name: 'c3p0', version: '0.9.5.2'
-        compile 'edu.sc.seis:seedCodec:1.0.11'
-        compile ('edu.sc.seis:TauP:2.4.1') {
-            exclude group: 'org.slf4j'
-        }
-       // compile files('lib/TauP-2.1.0.jar')
+    compile group: 'org.glassfish.jaxb', name: 'jaxb-runtime', version: '3.0.0-M2'
 
-        testCompile group: 'org.mockito', name: 'mockito-all', version: '1.10.19'
-        testCompile group: 'junit', name: 'junit', version: '4.+'
+    jaxb 'com.sun.xml.bind:jaxb-xjc:2.2.7-b41'
+    jaxb 'com.sun.xml.bind:jaxb-impl:2.2.7-b41'
+    jaxb 'javax.xml.bind:jaxb-api:2.2.7'
 
-        jaxb 'com.sun.xml.bind:jaxb-xjc:2.2.7-b41'
-        jaxb 'com.sun.xml.bind:jaxb-impl:2.2.7-b41'
-        jaxb 'javax.xml.bind:jaxb-api:2.2.7'
+    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.+'
+    compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.+'
+    compile group: 'org.jfree', name: 'jfreechart', version: '1.0.+'
+    compile group: 'org.apache.commons', name: 'commons-math3', version: '3.+'
+    compile group: 'org.postgresql', name: 'postgresql', version: '42.2.1'
+    compile group: 'com.mchange', name: 'c3p0', version: '0.9.5.2'
+    compile 'edu.sc.seis:seedCodec:1.0.11'
+    compile ('edu.sc.seis:TauP:2.4.1') {
+        exclude group: 'org.slf4j'
+    }
+    // compile files('lib/TauP-2.1.0.jar')
+
+    testCompile group: 'org.mockito', name: 'mockito-all', version: '1.10.19'
+    testCompile group: 'junit', name: 'junit', version: '4.+'
 }
 
 jaxb {
     xsdDir = "src/main/resources/schemas"
-        xjc {
-            destinationDir = 'src/main/java'
-                removeOldOutput = 'yes'
-        }
+    xjc {
+        destinationDir = 'src/main/java'
+        removeOldOutput = 'yes'
+    }
 }
 
 jar {
@@ -70,8 +70,8 @@ jar {
 
     manifest {
         attributes 'Implementation-Title': 'ASL SeedScan Data Quality Analyzer',
-                   'Implementation-Version': version,
-                   'Main-Class': mainClassName
+                'Implementation-Version': version,
+                'Main-Class': mainClassName
     }
 }
 
