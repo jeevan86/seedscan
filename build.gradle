@@ -45,6 +45,7 @@ dependencies {
     xjcClasspath 'com.sun.xml.bind:jaxb-core:2.3+'
     xjcClasspath 'com.sun.xml.bind:jaxb-impl:2.3+'
     xjcClasspath 'com.sun.xml.bind:jaxb-xjc:2.3+'
+    xjcClasspath 'javax.xml.bind:jaxb-api:2.3+'
 }
 
 xjcGenerate {
