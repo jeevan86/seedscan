@@ -119,6 +119,8 @@ public class WPhaseQualityMetric extends Metric {
         ChannelArray channelArray = new ChannelArray(channel.getLocation(), channel.getChannel());
         metricData.checkForRotatedChannels(channelArray);
         if (metricData.getNextMetricData() != null) {
+          logger.info("No result gotten for station:[{}] channel:[{}] day:[{}]",
+              getStation(), channel, getDay());
           metricData.getNextMetricData().checkForRotatedChannels(channelArray);
         }
         validChannels.add(channel);
@@ -135,7 +137,10 @@ public class WPhaseQualityMetric extends Metric {
               getStation(), channel, getDay());
           continue;
         }
-        metricResult.addResult(channel, results.get(channel).getResult(), digest);
+        double result = results.get(channel).getResult();
+        if (result != NO_RESULT) {
+          metricResult.addResult(channel, result, digest);
+        }
       }
     } catch (MetricException e) {
       logger.error(Logging.prettyExceptionWithCause(e));
