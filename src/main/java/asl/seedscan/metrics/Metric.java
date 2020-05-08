@@ -175,27 +175,6 @@ public abstract class Metric {
 		return crossPower;
 	}
 
-	/* (non-javadoc) run crosspower over a pre-selected range of data, i.e., 3 hours before W phase
-	 * for noise analysis in w phase quality metric
-	 */
-	protected CrossPower getCrossPower(Channel channelA, Channel channelB,
-			double[] aData, double[] bData) throws MetricException {
-		CrossPowerKey key = new CrossPowerKey(channelA, channelB);
-		CrossPower crossPower = null;
-
-		if (crossPowerMap.containsKey(key)) {
-			crossPower = crossPowerMap.get(key);
-		} else {
-			try {
-				crossPower = new CrossPower(channelA, channelB, metricData, aData, bData);
-				crossPowerMap.put(key, crossPower);
-			} catch (MetricPSDException | ChannelMetaException e) {
-				throw new MetricException("Unable to create CrossPower", e);
-			}
-		}
-		return crossPower;
-	}
-
 	/**
 	 * Gets the event synthetics.
 	 *
