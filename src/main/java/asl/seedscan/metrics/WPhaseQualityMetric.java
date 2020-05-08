@@ -6,6 +6,7 @@ import static asl.utils.FilterUtils.bandFilter;
 import asl.metadata.Channel;
 import asl.metadata.ChannelArray;
 import asl.metadata.meta_new.ChannelMeta;
+import asl.metadata.meta_new.ChannelMetaException;
 import asl.metadata.meta_new.PoleZeroStage;
 import asl.metadata.meta_new.ResponseStage;
 import asl.seedscan.event.ArrivalTimeUtils.ArrivalTimeException;
@@ -16,9 +17,6 @@ import asl.util.Logging;
 import asl.utils.NumericUtils;
 import edu.sc.seis.TauP.SphericalCoords;
 import java.nio.ByteBuffer;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -224,7 +222,14 @@ public class WPhaseQualityMetric extends Metric {
           double[] prescreenCheck =
               metricData.getWindowedData(channel, prescreenWindowStart, eventStart);
           // run the getCrossPower stuff specifically on the above range of data and no more
-          CrossPower crossPower = getCrossPower(channel, channel, prescreenCheck, prescreenCheck);
+          CrossPower crossPower = null;
+          try {
+            crossPower = new CrossPower(channel, channel, metricData,
+                prescreenCheck, prescreenCheck);
+          } catch (MetricPSDException | ChannelMetaException e) {
+            logger.error("Unable to create CrossPower for channel {}-{}", getStation(), channel, e);
+            continue;
+          }
           double difference =
               passesPSDNoiseScreening(crossPower.getSpectrum(), crossPower.getSpectrumDeltaF());
 
@@ -340,7 +345,7 @@ public class WPhaseQualityMetric extends Metric {
 
         if (!passesMisfitScreening(synthDataDbl, data)) {
           logger.warn("Trace misfit against synthetic data outside bound of 3.0; "
-              + "channel=[{}] is too noisy.", getStation() + "-" + channel.toString());
+              + "channel=[{}-{}] is too noisy.", getStation(), channel.toString());
           channelsWithMetricResults.get(channel).addInvalidCase();
           continue;
         }
