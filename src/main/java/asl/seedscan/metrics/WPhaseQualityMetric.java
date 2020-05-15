@@ -5,7 +5,9 @@ import static asl.utils.FilterUtils.bandFilter;
 
 import asl.metadata.Channel;
 import asl.metadata.ChannelArray;
+import asl.metadata.ChannelKey;
 import asl.metadata.meta_new.ChannelMeta;
+import asl.metadata.meta_new.ChannelMetaException;
 import asl.metadata.meta_new.PoleZeroStage;
 import asl.metadata.meta_new.ResponseStage;
 import asl.seedscan.event.ArrivalTimeUtils.ArrivalTimeException;
@@ -116,6 +118,8 @@ public class WPhaseQualityMetric extends Metric {
         ChannelArray channelArray = new ChannelArray(channel.getLocation(), channel.getChannel());
         metricData.checkForRotatedChannels(channelArray);
         if (metricData.getNextMetricData() != null) {
+          logger.info("No result gotten for station:[{}] channel:[{}] day:[{}]",
+              getStation(), channel, getDay());
           metricData.getNextMetricData().checkForRotatedChannels(channelArray);
         }
         validChannels.add(channel);
@@ -123,8 +127,9 @@ public class WPhaseQualityMetric extends Metric {
     }
 
     try { // computeMetric() handle
-      Map<Channel, ResultIncrementer> results = computeMetric(validChannels, eventCMTs, basechannel);
-      for (Channel channel : results.keySet()) {
+      Map<ChannelKey, ResultIncrementer> results = computeMetric(validChannels, eventCMTs, basechannel);
+      for (ChannelKey channelKey : results.keySet()) {
+        Channel channel = channelKey.toChannel();
         ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel),
             getForceUpdate());
         if (digest == null) {
@@ -132,14 +137,17 @@ public class WPhaseQualityMetric extends Metric {
               getStation(), channel, getDay());
           continue;
         }
-        metricResult.addResult(channel, results.get(channel).getResult(), digest);
+        double result = results.get(channelKey).getResult();
+        if (result != NO_RESULT) {
+          metricResult.addResult(channel, result, digest);
+        }
       }
     } catch (MetricException e) {
       logger.error(Logging.prettyExceptionWithCause(e));
     }
   }
 
-  private Map<Channel, ResultIncrementer> computeMetric(Collection<Channel> channels,
+  private Map<ChannelKey, ResultIncrementer> computeMetric(Collection<Channel> channels,
       Hashtable<String, EventCMT> eventCMTs, String[] basechannel) throws MetricException {
 
     // the logic in this method is a bit weird because we have a series of filtering operations
@@ -148,11 +156,11 @@ public class WPhaseQualityMetric extends Metric {
     // intermediate results of functions that we want to keep cached for later.
 
     // used to store the damping parameter for channels that pass the first screening
-    Map<Channel, Double> channelsWithCornerFreq = new HashMap<>();
+    Map<ChannelKey, Double> channelsWithCornerFreq = new HashMap<>();
     // used to identify outliers of peak-to-peak difference compared to median value
-    Map<Channel, double[]> tracesPerUnfilteredChannel = new HashMap<>();
+    Map<ChannelKey, double[]> tracesPerUnfilteredChannel = new HashMap<>();
     // stores metric results for data, and is what is actually returned
-    Map<Channel, ResultIncrementer> channelsWithMetricResults = new HashMap<>();
+    Map<ChannelKey, ResultIncrementer> channelsWithMetricResults = new HashMap<>();
 
     // this allows us to immediately filter-out results with inappropriate metadata
     for (Channel channel : channels) {
@@ -173,7 +181,7 @@ public class WPhaseQualityMetric extends Metric {
             + " skipping", getStation() + "-" + channel.toString());
         continue;
       }
-      channelsWithCornerFreq.put(channel, w);
+      channelsWithCornerFreq.put(new ChannelKey(channel), w);
     }
 
     double stationLatitude = stationMeta.getLatitude();
@@ -208,15 +216,23 @@ public class WPhaseQualityMetric extends Metric {
       // and then get the average difference over the 1-10 mHz range with the NHNM curve
       // if the average difference is positive then don't compute the metric here
       // we also extract the traces from data that passes this check to do more comparisons on
-      for (Channel channel : channelsWithCornerFreq.keySet()) {
-        channelsWithMetricResults.put(channel, new ResultIncrementer());
+      for (ChannelKey channelKey : channelsWithCornerFreq.keySet()) {
+        Channel channel = channelKey.toChannel();
+        channelsWithMetricResults.put(channelKey, new ResultIncrementer());
         // this block will do the prescreening operation and scope out the 3-hour timeseries data
         {
           long prescreenWindowStart = eventStart - THREE_HRS_MILLIS;
           double[] prescreenCheck =
               metricData.getWindowedData(channel, prescreenWindowStart, eventStart);
           // run the getCrossPower stuff specifically on the above range of data and no more
-          CrossPower crossPower = getCrossPower(channel, channel, prescreenCheck, prescreenCheck);
+          CrossPower crossPower = null;
+          try {
+            crossPower = new CrossPower(channel, channel, metricData,
+                prescreenCheck, prescreenCheck);
+          } catch (MetricPSDException | ChannelMetaException e) {
+            logger.error("Unable to create CrossPower for channel {}-{}", getStation(), channel, e);
+            continue;
+          }
           double difference =
               passesPSDNoiseScreening(crossPower.getSpectrum(), crossPower.getSpectrumDeltaF());
 
@@ -224,12 +240,12 @@ public class WPhaseQualityMetric extends Metric {
             logger.warn("Difference ({}) between NHNM and PSD was positive; "
                     + "channel=[{}] is too noisy.", difference,
                 getStation() + "-" + channel.toString());
-            channelsWithMetricResults.get(channel).addInvalidCase();
+            channelsWithMetricResults.get(channelKey).addInvalidCase();
             continue;
           }
         }
 
-        double w = channelsWithCornerFreq.get(channel);
+        double w = channelsWithCornerFreq.get(channelKey);
         // getting the data. time range is from event start to 15sec * degrees distance
         long endTime = eventStart + (long) (15000 * angleBetween);
         double[] data = metricData.getWindowedData(channel, eventStart, endTime);
@@ -237,7 +253,6 @@ public class WPhaseQualityMetric extends Metric {
         // time-domain deconvolution and bandpass filtering (1-5 mHz band) goes here
         // we require the gain, so we can use the stage 0 as overall gain
         double gain = stationMeta.getChannelMetadata(channel).getStage(0).getStageGain();
-        logger.debug("channel {} | w: {}, g: {}", channel.toString(), w, gain);
         data = getRecursiveFilter(data, 1. / sampleRate, w, gain);
 
         // perform a band-pass filter on the data from 1-5 milliHertz
@@ -247,16 +262,22 @@ public class WPhaseQualityMetric extends Metric {
         // and now into displacement by integrating twice
         data = performIntegrationByTrapezoid(data, 1. / sampleRate);
 
-        tracesPerUnfilteredChannel.put(channel, data);
+        tracesPerUnfilteredChannel.put(channelKey, data);
+      }
+
+      if (tracesPerUnfilteredChannel.size() == 0) {
+        logger.error("No data matched to event {} was able to be acquired for peak-to-peak "
+            + "analysis at station {}", key, getStation());
+        continue;
       }
 
       // next step to check: does each channel have a peak-to-peak difference that's near the
       // median value of that set? This is over ALL channels associated with the station that
       // haven't yet been filtered out
       {
-        Map<Channel, Double> channelToPeakToPeak = new HashMap<>();
-        for (Channel channel : tracesPerUnfilteredChannel.keySet()) {
-          double[] data = tracesPerUnfilteredChannel.get(channel);
+        Map<ChannelKey, Double> channelToPeakToPeak = new HashMap<>();
+        for (ChannelKey channelKey : tracesPerUnfilteredChannel.keySet()) {
+          double[] data = tracesPerUnfilteredChannel.get(channelKey);
           double min = data[0];
           double max = data[0];
           for (int i = 1; i < data.length; ++i) {
@@ -264,7 +285,7 @@ public class WPhaseQualityMetric extends Metric {
             max = Math.max(max, data[i]);
           }
           double peakToPeak = max - min;
-          channelToPeakToPeak.put(channel, peakToPeak);
+          channelToPeakToPeak.put(channelKey, peakToPeak);
         }
         double median;
         {
@@ -274,8 +295,9 @@ public class WPhaseQualityMetric extends Metric {
         }
         // now to actually check each channel and find the ones that are in the set
         // and we will filter out the ones that are not so we don't keep processing them here
-        for (Channel channel : channelToPeakToPeak.keySet()) {
-          double peakToPeak = channelToPeakToPeak.get(channel);
+        for (ChannelKey channelKey : channelToPeakToPeak.keySet()) {
+          Channel channel = channelKey.toChannel();
+          double peakToPeak = channelToPeakToPeak.get(channelKey);
           if (peakToPeak < median * 0.1 || peakToPeak > median * 3.) {
             logger.info(
                 "Amplitude difference ({}) of event trace outside median ({}) screen bounds; "
@@ -283,8 +305,8 @@ public class WPhaseQualityMetric extends Metric {
                 peakToPeak, median, getStation() + "-" + channel.toString());
             // almost 100% sure that trying to remove from the map while in the loop would
             // mess up the iteration here and make everything wrong
-            tracesPerUnfilteredChannel.remove(channel);
-            channelsWithMetricResults.get(channel).addInvalidCase();
+            tracesPerUnfilteredChannel.remove(channelKey);
+            channelsWithMetricResults.get(channelKey).addInvalidCase();
           }
         }
       }
@@ -296,8 +318,9 @@ public class WPhaseQualityMetric extends Metric {
         continue;
       }
 
-      for (Channel channel : tracesPerUnfilteredChannel.keySet()) {
-        double[] data = tracesPerUnfilteredChannel.get(channel);
+      for (ChannelKey channelKey : tracesPerUnfilteredChannel.keySet()) {
+        Channel channel = channelKey.toChannel();
+        double[] data = tracesPerUnfilteredChannel.get(channelKey);
         double sampleRate = stationMeta.getChannelMetadata(channel).getSampleRate();
         String syntheticsName =
             getStn() + "." + basechannel[0] + "." + basechannel[1].substring(0, 2)
@@ -327,13 +350,13 @@ public class WPhaseQualityMetric extends Metric {
 
         if (!passesMisfitScreening(synthDataDbl, data)) {
           logger.warn("Trace misfit against synthetic data outside bound of 3.0; "
-              + "channel=[{}] is too noisy.", getStation() + "-" + channel.toString());
-          channelsWithMetricResults.get(channel).addInvalidCase();
+              + "channel=[{}-{}] is too noisy.", getStation(), channel.toString());
+          channelsWithMetricResults.get(channelKey).addInvalidCase();
           continue;
         }
 
         // now that we've passed all screenings, we've got an event that is good, and can count it
-        channelsWithMetricResults.get(channel).addValidCase();
+        channelsWithMetricResults.get(channelKey).addValidCase();
       }
     }
 

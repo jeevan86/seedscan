@@ -30,7 +30,6 @@ public class FFTUtilsTest {
     double[] reals = FFTUtils.getRealArray(inversefft, size);
 
     for (int i = 0; i < size; i++) {
-      System.out.println(inversefft[i].abs());
       assertEquals(output[i], (Double) reals[i]);
     }
 
