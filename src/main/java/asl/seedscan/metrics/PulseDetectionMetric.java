@@ -2,9 +2,12 @@ package asl.seedscan.metrics;
 
 import static asl.utils.NumericUtils.detrend;
 import static asl.utils.NumericUtils.getMean;
+import static java.lang.Math.PI;
+import static java.util.Collections.sort;
 
 import asl.metadata.Channel;
 import asl.metadata.ChannelKey;
+import asl.metadata.meta_new.ChannelMeta;
 import asl.metadata.meta_new.ChannelMeta.ResponseUnits;
 import asl.metadata.meta_new.ChannelMetaException;
 import asl.utils.FFTResult;
@@ -57,27 +60,20 @@ public abstract class PulseDetectionMetric extends Metric {
     double sampleRate = stationMeta.getChannelMetadata(channel).getSampleRate();
     // remove response, convert to acceleration, detrend, and filter (order 4 butterworth)
     // here's the response removal block
-    {
-      FFTResult frequencySpace = FFTResult.simpleFFT(trace, sampleRate);
-      Complex[] complexData = frequencySpace.getFFT();
-      Complex[] response = stationMeta.getChannelMetadata(channel).getResponse(
-          frequencySpace.getFreqs(), ResponseUnits.VELOCITY);
-      complexData[0] = Complex.ZERO;
-      for (int i = 1; i < complexData.length; ++i) {
-        complexData[i] = complexData[i].multiply(response[i].conjugate())
-            .divide(response[i].multiply(response[i].conjugate()));
-      }
-      trace = FFTResult.simpleInverseFFT(complexData, trace.length);
-    }
+    trace = removeResponseOnTimeDomainData(trace, stationMeta.getChannelMetadata(channel),
+        0.001);
     // now do the conversion into acceleration and detrend
-    trace = differentiateTimeSeries(trace, sampleRate);
-    logger.info("Trace after resp rem. and differentiation: {}", Arrays.toString(Arrays.copyOfRange(trace, 0, 25)));
+    // trace = differentiateTimeSeries(trace, sampleRate);
     trace = detrend(trace);
     double filterBand = 1. / 40;
     trace = FilterUtils.lowPassFilter(trace, sampleRate, filterBand, 4);
 
-    // HPF the data in order to remove long-period (~1 hr) trend
-    double[] traceFiltered = FilterUtils.highPassFilter(trace, sampleRate, 1. / 3600, 4);
+    // use moving average to remove long-period (~1 hr) trend
+    double[] meanOffset = getCenteredMovingAverage(trace, (int) (3600 * sampleRate));
+    double[] traceFiltered = new double[meanOffset.length];
+    for (int i = 0; i < meanOffset.length; ++i) {
+      traceFiltered[i] = traceFiltered[i] - meanOffset[i];
+    }
 
     // correl is the cross-correlation value, called xcC in the matlab code
     // scale is the scale factor thereof, used to get the pulse amplitude at the given point
@@ -89,15 +85,20 @@ public abstract class PulseDetectionMetric extends Metric {
       scale = crossCorr[1];
     }
 
+    // this set will keep track of points which pass the following constraints on pulse data
+    Set<Integer> pointInclusions = new HashSet<>();
+
     // with cross-correlation done we now set up exclusion criteria for possible peaks
     // get a 240s window and then get the averages of the 33, 66, and 99 percentile
-    Set<Integer> pointInclusions = new HashSet<>(); // indices of points to not report in set
     int windowLength = (int) (sampleRate * 240);
     // outer index is 0 for lowThird, 1 for midThird, and 2 is for upperThird of curve
     double[][] movingAverages = getCenteredMovingAveragePercentiles(traceFiltered, windowLength);
     assert (3 == movingAverages.length);
 
-    // first constraint for pulses: sign 140 s before and after must be the same sign
+    // first constraint for pulses: sign of difference between points on either side of 140s
+    // must match the sign of the average; this constraint would not hold in a case of
+    // sharp changes, such as during an actual earthquake (in which case the pulse is not an
+    // artifact of the sensor but a reflection of ground motion behavior).
     int startingPoint = (int) (140 * sampleRate);
     for (int i = startingPoint; i < correl.length; ++i) {
       // expect that all points are potentially valid here
@@ -106,17 +107,21 @@ public abstract class PulseDetectionMetric extends Metric {
     // over the three percentile moving average filter out what doesn't match our criteria
     for (double[] movingAverage : movingAverages) {
       for (int i = startingPoint; i < trace.length - startingPoint; ++i) {
-        double past = Math.signum(movingAverage[i - startingPoint]);
+        if (!pointInclusions.contains(i)) {
+          continue;
+        }
+
+        double changeOverTime = Math.signum(movingAverage[i + startingPoint]
+            - movingAverage[i - startingPoint]);
         double present = Math.signum(movingAverage[i]);
-        double future = Math.signum(movingAverage[i + 1]);
-        // if the signs don't match, the point is excluded. We only need two checks to do that.
-        // If past and future have a different sign at least one must be different from present
-        if (pointInclusions.contains(i) && (past != present || present != future)) {
+        // if the signs don't match, the point is excluded
+        if (present != changeOverTime) {
           pointInclusions.remove(i);
         }
       }
     }
 
+    logger.info("Number of points under potential consideration: {}", trace.length);
     logger.info("Number of points that pass moving average criteria: {}", pointInclusions.size());
 
     // next exclusion criteria: sharpness constraint.
@@ -138,9 +143,9 @@ public abstract class PulseDetectionMetric extends Metric {
       // now for all the points ensure that the 60s value is > 4 times the 900s value
       for (int i : iteration) {
         double sixtyPoint = Math.abs(windowedSixtySec[i]);
-        double pointOfComparison =
-            (((windowedFifteenMin[i] * 900) - (sixtyPoint * 60)) / 840) / windowedSixtySec[i];
-        if (pointOfComparison <= 0.25) {
+        double pointOfComparison = (((windowedFifteenMin[i] * 900) - (sixtyPoint * 60)) / 840)
+                / windowedSixtySec[i];
+        if (pointInclusions.contains(i) && Math.abs(pointOfComparison) > 0.25) {
           pointInclusions.remove(i);
         }
       }
@@ -177,9 +182,9 @@ public abstract class PulseDetectionMetric extends Metric {
   }
 
   /**
-   * Produces a value to use to prevent issues with division by zero, by getting
-   * 0.1% of the maximum magnitude value of a trace.
-   * Add this to the denominator of a calculation involving the trace.
+   * Produces a value to use to prevent issues with division by zero, by getting 0.1% of the maximum
+   * magnitude value of a trace. Add this to the denominator of a calculation involving the trace.
+   *
    * @param trace timeseries data to get max value for
    * @return Value to use as water level calculation
    */
@@ -218,7 +223,7 @@ public abstract class PulseDetectionMetric extends Metric {
       summedSquares += Math.pow(point, 2);
     }
     summedSquares = Math.sqrt(summedSquares);
-    for(int i = 0; i < stepFunctionProcessed.length; ++i) {
+    for (int i = 0; i < stepFunctionProcessed.length; ++i) {
       stepFunctionProcessed[i] /= summedSquares;
     }
 
@@ -228,7 +233,7 @@ public abstract class PulseDetectionMetric extends Metric {
     double[] correl = new double[corrLen];
     double[] scal = new double[corrLen];
     // double[] xerr = new double[trace.length]; // this value was taken from old matlab code
-    for(int i = 0; i < corrLen; ++i) {
+    for (int i = 0; i < corrLen; ++i) {
       double[] tr2 = Arrays.copyOfRange(trace, i, i + stepFunction.length);
       tr2 = detrend(tr2);
       // now some inner loops to do the calculations of cross-correlation over this trimmed range
@@ -257,7 +262,7 @@ public abstract class PulseDetectionMetric extends Metric {
 
     for (int i = 0; i < output.length; ++i) {
       // sample rate is in units of 1/Hz so multiplying it is like dividing by a unit of seconds
-      output[i] = (data[i+1] - data[i]) * sampleRate;
+      output[i] = (data[i + 1] - data[i]) * sampleRate;
     }
     return output;
   }
@@ -308,12 +313,70 @@ public abstract class PulseDetectionMetric extends Metric {
     return new double[][]{lowestThird, middleThird, upperThird};
   }
 
+  public static double[] removeResponseOnTimeDomainData(double[] trace, ChannelMeta metadata,
+      double waterLevel) throws ChannelMetaException {
+    double sampleRate = metadata.getSampleRate();
+    // while this should be nearly identical to the response removal operation in ChannelMeta,
+    // we handle it this way to use a water level parameter similar to one available in obspy
+    FFTResult frequencySpace = FFTResult.simpleFFT(trace, sampleRate);
+    Complex[] complexData = frequencySpace.getFFT();
+    Complex[] response = metadata.getResponseUnscaled(frequencySpace.getFreqs(),
+        ResponseUnits.VELOCITY);
+    for (int i = 0; i < response.length; ++i) {
+      if (response[i].equals(Complex.ZERO)) {
+        continue;
+      }
+      Complex c = new Complex(0, 2 * PI * frequencySpace.getFreq(i));
+      response[i] = response[i].divide(c);
+    }
+    response = applyWaterLevelToResponse(response, waterLevel);
+    // that step also inverts the response, so our next step will be to multiply, not divide
+    for (int i = 0; i < complexData.length; ++i) {
+      complexData[i] = complexData[i].multiply(response[i]);
+    }
+    double[] returnValue = FFTResult.simpleInverseFFT(complexData, trace.length);
+    for (int i = 0; i < returnValue.length; ++i) {
+      returnValue[i] /= metadata.getStage(0).getStageGain();
+    }
+    return returnValue;
+  }
+
+  static Complex[] applyWaterLevelToResponse(Complex[] response, double waterLevel) {
+    Complex[] invertedResponse = Arrays.copyOf(response, response.length);
+    double max = Double.NEGATIVE_INFINITY;
+    for (Complex complex : response) {
+      max = Math.max(max, complex.abs());
+    }
+
+    double waterLevelScaled = max * waterLevel;
+    // initial water-level scale for points less than water level scale
+    for (int i = 0; i < response.length; ++i) {
+      double respAbs = response[i].abs();
+
+      if (respAbs > 0 && respAbs < waterLevelScaled) {
+        invertedResponse[i] = response[i].multiply(waterLevelScaled / respAbs);
+        System.out.println(invertedResponse[i]);
+        respAbs = invertedResponse[i].abs();
+      }
+      // if it's still greater than zero amplitude, then invert the response
+      if (respAbs > 0) {
+        invertedResponse[i] = Complex.ONE.divide(invertedResponse[i]);
+      } else {
+        // if it's zero just keep it at zero because otherwise we'd get NaNs from inversion
+        invertedResponse[i] = Complex.ZERO; // this explicit assignment is probably not necessary
+      }
+    }
+    return invertedResponse;
+  }
+
   public static class PulseDetectionData {
+
     public final List<PulseDetectionPoint> correlationsWithAmplitude;
     public final double peakAmplitude;
     public final double corrOfPeak;
 
     protected static class PulseDetectionPoint {
+
       public final double correlationValue;
       public final double amplitude;
 
@@ -329,18 +392,50 @@ public abstract class PulseDetectionMetric extends Metric {
 
     public PulseDetectionData(double[] correlations, double[] amplitudes, Set<Integer> inclusions,
         double sensitivity) {
+      if (inclusions.size() == 0) {
+        correlationsWithAmplitude = Collections.unmodifiableList(Collections.emptyList());
+        peakAmplitude = 0;
+        corrOfPeak = 0;
+        return;
+      }
       List<PulseDetectionPoint> tempList = new ArrayList<>(correlations.length);
       double tempMax = Math.abs(amplitudes[0]) * sensitivity;
       double tempCorr = correlations[0];
       tempList.add(new PulseDetectionPoint(tempCorr, tempMax));
-      for (Integer i : inclusions) {
+      List<Integer> inclusionList = new ArrayList<>(inclusions);
+      sort(inclusionList);
+      int idx = 0;
+      // this is a little weird because we're iterating over a filtered set of indices
+      do {
+        int i = inclusionList.get(idx);
+        List<Integer> contiguousIndices = new ArrayList<>();
+        contiguousIndices.add(i);
+        // get all indices that are in a contiguous range (i.e., 3, 4, 5,)
+        while (idx + 1 < inclusionList.size() &&
+            contiguousIndices.get(contiguousIndices.size() - 1) + 1 ==
+                inclusionList.get(idx + 1)) {
+          idx += 1;
+          contiguousIndices.add(inclusionList.get(idx));
+        }
+        // out of the contiguous index range, report the one with the largest pulse value
+        double maxPulse = 0;
+        // don't forget that the entries in the list are indicies into the corr/amp arrays
+        for (int contiguousIndex : contiguousIndices) {
+          double candidatePulse = Math.abs(amplitudes[contiguousIndex]) * sensitivity;
+          if (candidatePulse > maxPulse) {
+            i = contiguousIndex;
+          }
+        }
+        // having found the best pulse in the contiguous range we can add it to our list of reports
         double pulse = Math.abs(amplitudes[i]) * sensitivity;
         tempList.add(new PulseDetectionPoint(Math.abs(correlations[i]), pulse));
         tempMax = Math.max(tempMax, pulse);
         if (tempMax == pulse) {
           tempCorr = Math.abs(correlations[i]);
         }
-      }
+        ++idx;
+      } while (idx < inclusionList.size());
+      // now to use our collected points to publish a result
       peakAmplitude = tempMax;
       if (tempList.size() == 0) {
         corrOfPeak = 0;

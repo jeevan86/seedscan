@@ -94,7 +94,6 @@ public class PulseDetectionCountMetric extends PulseDetectionMetric {
       for (PulseDetectionPoint point : result.correlationsWithAmplitude) {
         if (point.amplitude > amplitudeThreshold &&
             point.correlationValue > coefficientThreshold) {
-          logger.info("Valid point: {}", point.toString());
           ++count;
         }
       }

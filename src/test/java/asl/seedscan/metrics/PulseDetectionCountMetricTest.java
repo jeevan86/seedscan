@@ -38,10 +38,11 @@ public class PulseDetectionCountMetricTest {
     metric.setEventTable(eventLoader.getDayEvents(dataDate));
     metric.setEventSynthetics(eventLoader.getDaySynthetics(dataDate, station1));
     metric.add("channel-restriction", "VH");
+    metric.add("amplitude-threshold", "10");
     MetricTestMap expect = new MetricTestMap();
     expect.put("00,VH1", 0, 1E-10);
-    expect.put("00,VH2", 3, 1E-10);
-    expect.put("00,VHZ", 3, 1E-10);
+    expect.put("00,VH2", 0, 1E-10);
+    expect.put("00,VHZ", 0, 1E-10);
     expect.put("10,VH1", 0, 1E-10);
     expect.put("10,VH2", 0, 1E-10);
     expect.put("10,VHZ", 0, 1E-10);
@@ -49,7 +50,6 @@ public class PulseDetectionCountMetricTest {
     expect.put("60,VH2", 0, 1E-10);
     expect.put("60,VHZ", 0, 1E-10);
     TestUtils.testMetric(metric, expect);
-    System.out.println(metric.getPulseDetectionData());
   }
 
 }

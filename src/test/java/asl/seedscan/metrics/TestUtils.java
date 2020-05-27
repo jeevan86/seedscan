@@ -8,6 +8,8 @@ import asl.metadata.meta_new.StationMeta;
 import asl.testutils.MetricTestMap;
 import asl.testutils.ResourceManager;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 
 public class TestUtils {
@@ -62,8 +64,9 @@ public class TestUtils {
     MetricResult result = metric.getMetricResult();
 
     assertEquals("Result Size: ", expect.size(), result.getIdSet().size());
-
-    for (String id : expect.keySet()) {
+    ArrayList<String> channels = new ArrayList<>(expect.keySet());
+    Collections.sort(channels);
+    for (String id : channels) {
       //System.out.println(id+"   "+result.getResult(id));
 
       //System.out.println("expect.put(\""+id+"\", "+ result.getResult(id) +");");
