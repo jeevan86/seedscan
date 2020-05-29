@@ -90,6 +90,8 @@ public class PulseDetectionCountMetric extends PulseDetectionMetric {
       }
 
       PulseDetectionData result = pulseDetectionResultMap.get(key);
+      logger.info("Number of non-contiguous valid points: {}",
+          result.correlationsWithAmplitude.size());
       int count = 0;
       for (PulseDetectionPoint point : result.correlationsWithAmplitude) {
         if (point.amplitude > amplitudeThreshold &&

@@ -1,6 +1,8 @@
 package asl.seedscan.metrics;
 
+import static asl.utils.NumericUtils.demeanInPlace;
 import static asl.utils.NumericUtils.detrend;
+import static asl.utils.NumericUtils.detrendEnds;
 import static asl.utils.NumericUtils.getMean;
 import static java.lang.Math.PI;
 import static java.util.Collections.sort;
@@ -59,20 +61,22 @@ public abstract class PulseDetectionMetric extends Metric {
     FFTResult.cosineTaper(trace, 0.05); // taper done in-place
     double sampleRate = stationMeta.getChannelMetadata(channel).getSampleRate();
     // remove response, convert to acceleration, detrend, and filter (order 4 butterworth)
-    // here's the response removal block
+    // here's the response removal block, includes using accel to switch units
     trace = removeResponseOnTimeDomainData(trace, stationMeta.getChannelMetadata(channel),
         0.001);
     // now do the conversion into acceleration and detrend
     // trace = differentiateTimeSeries(trace, sampleRate);
+    demeanInPlace(trace);
     trace = detrend(trace);
+    FFTResult.cosineTaper(trace, 0.05); // taper done in-place
     double filterBand = 1. / 40;
-    trace = FilterUtils.lowPassFilter(trace, sampleRate, filterBand, 4);
+    trace = FilterUtils.lowPassFilter(trace, sampleRate, filterBand, 4, true);
 
     // use moving average to remove long-period (~1 hr) trend
     double[] meanOffset = getCenteredMovingAverage(trace, (int) (3600 * sampleRate));
     double[] traceFiltered = new double[meanOffset.length];
     for (int i = 0; i < meanOffset.length; ++i) {
-      traceFiltered[i] = traceFiltered[i] - meanOffset[i];
+      traceFiltered[i] = trace[i] - meanOffset[i];
     }
 
     // correl is the cross-correlation value, called xcC in the matlab code
@@ -85,73 +89,23 @@ public abstract class PulseDetectionMetric extends Metric {
       scale = crossCorr[1];
     }
 
-    // this set will keep track of points which pass the following constraints on pulse data
-    Set<Integer> pointInclusions = new HashSet<>();
-
-    // with cross-correlation done we now set up exclusion criteria for possible peaks
-    // get a 240s window and then get the averages of the 33, 66, and 99 percentile
-    int windowLength = (int) (sampleRate * 240);
-    // outer index is 0 for lowThird, 1 for midThird, and 2 is for upperThird of curve
-    double[][] movingAverages = getCenteredMovingAveragePercentiles(traceFiltered, windowLength);
-    assert (3 == movingAverages.length);
-
     // first constraint for pulses: sign of difference between points on either side of 140s
     // must match the sign of the average; this constraint would not hold in a case of
     // sharp changes, such as during an actual earthquake (in which case the pulse is not an
     // artifact of the sensor but a reflection of ground motion behavior).
-    int startingPoint = (int) (140 * sampleRate);
-    for (int i = startingPoint; i < correl.length; ++i) {
-      // expect that all points are potentially valid here
-      pointInclusions.add(i);
-    }
-    // over the three percentile moving average filter out what doesn't match our criteria
-    for (double[] movingAverage : movingAverages) {
-      for (int i = startingPoint; i < trace.length - startingPoint; ++i) {
-        if (!pointInclusions.contains(i)) {
-          continue;
-        }
 
-        double changeOverTime = Math.signum(movingAverage[i + startingPoint]
-            - movingAverage[i - startingPoint]);
-        double present = Math.signum(movingAverage[i]);
-        // if the signs don't match, the point is excluded
-        if (present != changeOverTime) {
-          pointInclusions.remove(i);
-        }
-      }
-    }
+    // this set will keep track of points which pass the following constraints on pulse data
+    // and will initially contain all points within the bounds of the correlation data
+    Set<Integer> pointInclusions = envelopeConstraint(traceFiltered, sampleRate);
 
-    logger.info("Number of points under potential consideration: {}", trace.length);
-    logger.info("Number of points that pass moving average criteria: {}", pointInclusions.size());
+    logger.info("Number of points to check: {}", trace.length);
+    logger.info("Number of points that pass envelope test: {}", pointInclusions.size());
 
     // next exclusion criteria: sharpness constraint.
-    {
-      // for 60-second moving average. per-point difference, then get windowed average
-      double[] windowedSixtySec = getPerPointDifference(traceFiltered);
-      // for 900-second moving average we ALSO need to get the abs val of that diff first
-      double[] windowedFifteenMin = new double[traceFiltered.length];
-      for (int i = 0; i < traceFiltered.length; ++i) {
-        windowedFifteenMin[i] = Math.abs(windowedSixtySec[i]);
-      }
-      // compare the 60-second moving average with the 900-second one over the absolute val
-      int samplesInSixty = (int) (60 * sampleRate);
-      int samplesInNineHund = (int) (900 * sampleRate);
-      windowedSixtySec = getCenteredMovingAverage(windowedSixtySec, samplesInSixty);
-      windowedFifteenMin = getCenteredMovingAverage(windowedFifteenMin, samplesInNineHund);
-      // construct this list to allow for removal from the set without messing up loop operation
-      Integer[] iteration = pointInclusions.toArray(new Integer[]{});
-      // now for all the points ensure that the 60s value is > 4 times the 900s value
-      for (int i : iteration) {
-        double sixtyPoint = Math.abs(windowedSixtySec[i]);
-        double pointOfComparison = (((windowedFifteenMin[i] * 900) - (sixtyPoint * 60)) / 840)
-                / windowedSixtySec[i];
-        if (pointInclusions.contains(i) && Math.abs(pointOfComparison) > 0.25) {
-          pointInclusions.remove(i);
-        }
-      }
-    }
+    pointInclusions.removeAll(
+        sharpnessConstraint(traceFiltered, sampleRate, pointInclusions.toArray(new Integer[]{})));
 
-    logger.info("Number of points that also pass sharpness criteria: {}", pointInclusions.size());
+    logger.info("Number of points that also pass sharpness test: {}", pointInclusions.size());
 
     // sensitivity is used to scale the correlation amplitude values to match the cutoff
     double sensitivity = stationMeta.getChannelMetadata(channel).getStage(0).getStageGain();
@@ -257,16 +211,6 @@ public abstract class PulseDetectionMetric extends Metric {
     return new double[][]{correl, scal};
   }
 
-  public static double[] differentiateTimeSeries(double[] data, double sampleRate) {
-    double[] output = new double[data.length - 1];
-
-    for (int i = 0; i < output.length; ++i) {
-      // sample rate is in units of 1/Hz so multiplying it is like dividing by a unit of seconds
-      output[i] = (data[i + 1] - data[i]) * sampleRate;
-    }
-    return output;
-  }
-
   public static double[] getCenteredMovingAverage(double[] data, int windowLength) {
     double[] mean = new double[data.length];
     // a bit weird but helps us make sure each side of the data is centered
@@ -293,7 +237,7 @@ public abstract class PulseDetectionMetric extends Metric {
 
     // a bit weird but helps us make sure each side of the data is centered
     // so if we have a 240 second window the data extends 119 seconds on each side
-    int singleSide = (int) Math.floor((Math.ceil(windowLength / 2.) * 2. - 1.) / 2.);
+    int singleSide = (int) ((Math.ceil(windowLength / 2.) * 2. - 1.) / 2.);
 
     // note that while this is supposed to be centered, due to array bounds points within the first
     // and last 120 seconds will not be centered in the moving average
@@ -305,12 +249,84 @@ public abstract class PulseDetectionMetric extends Metric {
       double[] window = Arrays.copyOfRange(data, minBound, maxBound);
       // need to sort here in order to get the percentile windows for each point
       Arrays.sort(window);
-      int thirdDivider = window.length / 3;
-      lowestThird[i] = getMean(Arrays.copyOfRange(window, 0, thirdDivider));
-      middleThird[i] = getMean(Arrays.copyOfRange(window, thirdDivider, 2 * thirdDivider));
-      upperThird[i] = getMean(Arrays.copyOfRange(window, thirdDivider, window.length));
+      int firstDivider = window.length / 3;
+      int secondDivider = (int) (window.length / 1.5);
+      lowestThird[i] = getMean(Arrays.copyOfRange(window, 0, firstDivider));
+      middleThird[i] = getMean(Arrays.copyOfRange(window, firstDivider, secondDivider));
+      upperThird[i] = getMean(Arrays.copyOfRange(window, secondDivider, window.length));
     }
     return new double[][]{lowestThird, middleThird, upperThird};
+  }
+
+  public static Set<Integer> envelopeConstraint(double[] data, double sampleRate) {
+
+    int startingPoint = (int) (140 * sampleRate);
+    int endingPoint = data.length - startingPoint;
+
+    int[] iteration = new int[endingPoint - startingPoint];
+    Arrays.setAll(iteration, i -> i + startingPoint);
+    Set<Integer> pointInclusions = new HashSet<>();
+    for (int value : iteration) {
+      pointInclusions.add(value);
+    }
+
+    // with cross-correlation done we now set up exclusion criteria for possible peaks
+    // get a 240s window and then get the averages of the 33, 66, and 99 percentile
+    int windowLength = (int) (sampleRate * 240);
+    // outer index is 0 for lowThird, 1 for midThird, and 2 is for upperThird of curve
+    double[][] movingAverages = getCenteredMovingAveragePercentiles(data, windowLength);
+
+    // over the three percentile moving average filter out what doesn't match our criteria
+    for (int i : iteration) {
+      double[] changeOverTime = new double[movingAverages.length];
+      for (int j = 0; j < movingAverages.length; ++j) {
+        if (!pointInclusions.contains(i)) {
+          continue;
+        }
+
+        changeOverTime[j] = Math.signum(movingAverages[j][i + startingPoint]
+            - movingAverages[j][i - startingPoint]);
+        // double present = Math.signum(movingAverage[i]);
+        // if the signs don't match, the point is excluded
+      }
+      if (changeOverTime[0] != changeOverTime[1] || changeOverTime[1] != changeOverTime[2]) {
+        pointInclusions.remove(i);
+      }
+    }
+    return pointInclusions;
+  }
+
+  public static Set<Integer> sharpnessConstraint(double[] traceFiltered, double sampleRate,
+      Integer[] validPoints) {
+    if (validPoints == null || validPoints.length == 0.) {
+      validPoints = new Integer[traceFiltered.length];
+      Arrays.setAll(validPoints, i -> i);
+    }
+
+    // for 60-second moving average. per-point difference, then get windowed average
+    double[] windowedSixtySec = getPerPointDifference(traceFiltered);
+    // for 900-second moving average we ALSO need to get the abs val of that diff first
+    double[] windowedFifteenMin = new double[traceFiltered.length];
+    for (int i = 0; i < traceFiltered.length; ++i) {
+      windowedFifteenMin[i] = Math.abs(windowedSixtySec[i]);
+    }
+    // compare the 60-second moving average with the 900-second one over the absolute val
+    int samplesInSixty = (int) (60 * sampleRate);
+    int samplesInNineHund = (int) (900 * sampleRate);
+    windowedSixtySec = getCenteredMovingAverage(windowedSixtySec, samplesInSixty);
+    windowedFifteenMin = getCenteredMovingAverage(windowedFifteenMin, samplesInNineHund);
+
+    Set<Integer> excludedPoints = new HashSet<>();
+    // now for all the points ensure that the 60s value is > 4 times the 900s value
+    for (int i : validPoints) {
+      double sixtyPoint = Math.abs(windowedSixtySec[i]);
+      double pointOfComparison = (((windowedFifteenMin[i] * 900) - (sixtyPoint * 60)) / 840)
+          / windowedSixtySec[i];
+      if (Math.abs(pointOfComparison) > 0.25) {
+        excludedPoints.add(i);
+      }
+    }
+    return excludedPoints;
   }
 
   public static double[] removeResponseOnTimeDomainData(double[] trace, ChannelMeta metadata,
@@ -338,7 +354,7 @@ public abstract class PulseDetectionMetric extends Metric {
     for (int i = 0; i < returnValue.length; ++i) {
       returnValue[i] /= metadata.getStage(0).getStageGain();
     }
-    return returnValue;
+    return detrendEnds(returnValue);
   }
 
   static Complex[] applyWaterLevelToResponse(Complex[] response, double waterLevel) {
@@ -355,7 +371,6 @@ public abstract class PulseDetectionMetric extends Metric {
 
       if (respAbs > 0 && respAbs < waterLevelScaled) {
         invertedResponse[i] = response[i].multiply(waterLevelScaled / respAbs);
-        System.out.println(invertedResponse[i]);
         respAbs = invertedResponse[i].abs();
       }
       // if it's still greater than zero amplitude, then invert the response
@@ -398,15 +413,17 @@ public abstract class PulseDetectionMetric extends Metric {
         corrOfPeak = 0;
         return;
       }
-      List<PulseDetectionPoint> tempList = new ArrayList<>(correlations.length);
-      double tempMax = Math.abs(amplitudes[0]) * sensitivity;
-      double tempCorr = correlations[0];
-      tempList.add(new PulseDetectionPoint(tempCorr, tempMax));
       List<Integer> inclusionList = new ArrayList<>(inclusions);
       sort(inclusionList);
+
+      List<PulseDetectionPoint> tempList = new ArrayList<>(correlations.length);
+      double tempMax;
+      double tempCorr;
       int idx = 0;
       // this is a little weird because we're iterating over a filtered set of indices
       do {
+        tempMax = Math.abs(amplitudes[inclusionList.get(idx)]) * sensitivity;
+        tempCorr = correlations[inclusionList.get(idx)];
         int i = inclusionList.get(idx);
         List<Integer> contiguousIndices = new ArrayList<>();
         contiguousIndices.add(i);
