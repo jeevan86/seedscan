@@ -112,7 +112,8 @@ public abstract class PulseDetectionMetric extends Metric {
 
     // because we parametrize other exclusion criteria we now publish our current results
     // so any additional filter (i.e., by amplitude) is to be managed by the implementing metric
-    return new PulseDetectionData(correl, scale, pointInclusions, sensitivity);
+    return new PulseDetectionData(correl, scale, pointInclusions, sensitivity,
+        getCorrelationOffset(trace.length, sampleRate));
   }
 
   static double[] getStepFunction(double sampleRate) {
@@ -165,6 +166,11 @@ public abstract class PulseDetectionMetric extends Metric {
     // first, get the 15-minute step function
     double[] stepFunction = getStepFunction(sampleRate);
     return crossCorrelate(trace, stepFunction);
+  }
+
+  private int getCorrelationOffset(int traceLength, double sampleRate) {
+    int stepPointCount = (int) (15 * 60 * sampleRate); // 900 seconds
+    return (stepPointCount / 2);
   }
 
   static double[][] crossCorrelate(double[] trace, double[] stepFunction) {
@@ -386,9 +392,7 @@ public abstract class PulseDetectionMetric extends Metric {
 
   public static class PulseDetectionData {
 
-    public final List<PulseDetectionPoint> correlationsWithAmplitude;
-    public final double peakAmplitude;
-    public final double corrOfPeak;
+    public final List<List<PulseDetectionPoint>> correlationsWithAmplitude;
 
     protected static class PulseDetectionPoint {
 
@@ -406,24 +410,18 @@ public abstract class PulseDetectionMetric extends Metric {
     }
 
     public PulseDetectionData(double[] correlations, double[] amplitudes, Set<Integer> inclusions,
-        double sensitivity) {
+        double sensitivity, int startingOffset) {
       if (inclusions.size() == 0) {
         correlationsWithAmplitude = Collections.unmodifiableList(Collections.emptyList());
-        peakAmplitude = 0;
-        corrOfPeak = 0;
         return;
       }
       List<Integer> inclusionList = new ArrayList<>(inclusions);
       sort(inclusionList);
 
-      List<PulseDetectionPoint> tempList = new ArrayList<>(correlations.length);
-      double tempMax;
-      double tempCorr;
+      List<List<PulseDetectionPoint>> tempList = new ArrayList<>(correlations.length);
       int idx = 0;
       // this is a little weird because we're iterating over a filtered set of indices
       do {
-        tempMax = Math.abs(amplitudes[inclusionList.get(idx)]) * sensitivity;
-        tempCorr = correlations[inclusionList.get(idx)];
         int i = inclusionList.get(idx);
         List<Integer> contiguousIndices = new ArrayList<>();
         contiguousIndices.add(i);
@@ -434,31 +432,18 @@ public abstract class PulseDetectionMetric extends Metric {
           idx += 1;
           contiguousIndices.add(inclusionList.get(idx));
         }
-        // out of the contiguous index range, report the one with the largest pulse value
-        double maxPulse = 0;
-        // don't forget that the entries in the list are indicies into the corr/amp arrays
+        List<PulseDetectionPoint> subList = new ArrayList<>(contiguousIndices.size());
         for (int contiguousIndex : contiguousIndices) {
-          double candidatePulse = Math.abs(amplitudes[contiguousIndex]) * sensitivity;
-          if (candidatePulse > maxPulse) {
-            i = contiguousIndex;
-          }
+          int indexWithOffset = contiguousIndex - startingOffset;
+          double pulse = Math.abs(amplitudes[indexWithOffset]) * sensitivity;
+          double correlation = Math.abs(correlations[indexWithOffset]);
+          subList.add(new PulseDetectionPoint(correlation, pulse));
         }
-        // having found the best pulse in the contiguous range we can add it to our list of reports
-        double pulse = Math.abs(amplitudes[i]) * sensitivity;
-        tempList.add(new PulseDetectionPoint(Math.abs(correlations[i]), pulse));
-        tempMax = Math.max(tempMax, pulse);
-        if (tempMax == pulse) {
-          tempCorr = Math.abs(correlations[i]);
-        }
+        subList = Collections.unmodifiableList(subList);
+        tempList.add(subList);
         ++idx;
       } while (idx < inclusionList.size());
       // now to use our collected points to publish a result
-      peakAmplitude = tempMax;
-      if (tempList.size() == 0) {
-        corrOfPeak = 0;
-      } else {
-        corrOfPeak = tempCorr;
-      }
       correlationsWithAmplitude = Collections.unmodifiableList(tempList);
     }
 

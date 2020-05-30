@@ -3,8 +3,10 @@ package asl.seedscan.metrics;
 import asl.metadata.Channel;
 import asl.metadata.ChannelKey;
 import asl.metadata.meta_new.ChannelMetaException;
+import asl.seedscan.metrics.PulseDetectionMetric.PulseDetectionData.PulseDetectionPoint;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,10 +77,19 @@ public class PulseDetectionPeakMetric extends PulseDetectionMetric {
             getStation(), channel, getDay());
         continue;
       }
-      if (pulseDetectionResultMap.get(key).corrOfPeak > coefficientThreshold) {
-        metricResult.addResult(channel, pulseDetectionResultMap.get(key).peakAmplitude, digest);
+      double maxPeak = 0;
+      List<List<PulseDetectionPoint>> allData =
+          pulseDetectionResultMap.get(key).correlationsWithAmplitude;
+      for (List<PulseDetectionPoint> points : allData) {
+        for (PulseDetectionPoint point : points) {
+          if (point.correlationValue > coefficientThreshold) {
+            maxPeak = Math.max(maxPeak, point.amplitude);
+          }
+        }
       }
-
+      if (maxPeak > 0) {
+        metricResult.addResult(channel, maxPeak, digest);
+      }
     }
   }
 }

@@ -6,6 +6,7 @@ import asl.metadata.meta_new.ChannelMetaException;
 import asl.seedscan.metrics.PulseDetectionMetric.PulseDetectionData.PulseDetectionPoint;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,13 +91,18 @@ public class PulseDetectionCountMetric extends PulseDetectionMetric {
       }
 
       PulseDetectionData result = pulseDetectionResultMap.get(key);
-      logger.info("Number of non-contiguous valid points: {}",
+      logger.info("Number of non-contiguous potentially valid points: {}",
           result.correlationsWithAmplitude.size());
       int count = 0;
-      for (PulseDetectionPoint point : result.correlationsWithAmplitude) {
-        if (point.amplitude > amplitudeThreshold &&
-            point.correlationValue > coefficientThreshold) {
-          ++count;
+      // sublist of points is all contiguous points over a region
+      for (List<PulseDetectionPoint> points : result.correlationsWithAmplitude) {
+        for (PulseDetectionPoint point : points) {
+          // all we need is at least one point greater than both thresholds
+          if (point.amplitude > amplitudeThreshold &&
+              point.correlationValue > coefficientThreshold) {
+            ++count;
+            break;
+          }
         }
       }
       metricResult.addResult(channel, (double) count, digest);
