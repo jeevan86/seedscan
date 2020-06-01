@@ -10,6 +10,15 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Gets a count of the pulse detection count by counting the number of returned points that match
+ * a user-specified lower bound for coefficient and amplitude values of the cross-correlation of
+ * a channel's data with a step function. If at least one point matching those restrictions in a
+ * contiguous list of points exists, then that list is counted as a pulse.
+ * @see PulseDetectionMetric (The backend for pulse enumeration)
+ * @see asl.seedscan.metrics.PulseDetectionMetric.PulseDetectionData (Specification for the
+ * list of (list of) contiguous pulse values)
+ */
 public class PulseDetectionCountMetric extends PulseDetectionMetric {
 
   private static final Logger logger = LoggerFactory.getLogger(PulseDetectionCountMetric.class);
@@ -98,6 +107,7 @@ public class PulseDetectionCountMetric extends PulseDetectionMetric {
       for (List<PulseDetectionPoint> points : result.correlationsWithAmplitude) {
         for (PulseDetectionPoint point : points) {
           // all we need is at least one point greater than both thresholds
+          // note that we don't bother with getter/setter because these are finalized
           if (point.amplitude > amplitudeThreshold &&
               point.correlationValue > coefficientThreshold) {
             ++count;

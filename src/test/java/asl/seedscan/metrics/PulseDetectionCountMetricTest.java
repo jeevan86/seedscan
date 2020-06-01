@@ -1,7 +1,5 @@
 package asl.seedscan.metrics;
 
-import static org.junit.Assert.assertArrayEquals;
-
 import asl.metadata.Station;
 import asl.seedscan.event.EventLoader;
 import asl.testutils.MetricTestMap;
