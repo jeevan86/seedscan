@@ -45,7 +45,7 @@ public abstract class Metric {
 	private String outputDir = null;
 
 	/** Dummy value when no results is computed. */
-	protected final double NO_RESULT = -999.999;
+	protected static final double NO_RESULT = -999.999;
 
 	/** The station metadata. */
 	protected StationMeta stationMeta = null;

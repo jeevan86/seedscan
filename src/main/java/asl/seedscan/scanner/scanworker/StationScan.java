@@ -1,5 +1,6 @@
 package asl.seedscan.scanner.scanworker;
 
+import asl.metadata.ChannelKey;
 import asl.metadata.Station;
 import asl.metadata.meta_new.StationMeta;
 import asl.seedscan.Global;
@@ -10,6 +11,8 @@ import asl.seedscan.metrics.Metric;
 import asl.seedscan.metrics.MetricData;
 import asl.seedscan.metrics.MetricResult;
 import asl.seedscan.metrics.MetricWrapper;
+import asl.seedscan.metrics.PulseDetectionMetric;
+import asl.seedscan.metrics.PulseDetectionMetric.PulseDetectionData;
 import asl.seedscan.scanner.DataLoader;
 import asl.seedscan.scanner.ScanManager;
 import asl.timeseries.CrossPower;
@@ -18,6 +21,7 @@ import asl.util.Logging;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Hashtable;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sac.SacTimeSeries;
@@ -125,6 +129,7 @@ public class StationScan extends ScanWorker {
 
         // Loop over Metrics to compute, for this station, for this day
         Hashtable<CrossPowerKey, CrossPower> crossPowerMap = null;
+        Map<ChannelKey, PulseDetectionData> pulseDetectionMap = null;
 
 				/*
          * TODO: The contents of this for loop should be extracted out into a task and run in the pool.
@@ -151,9 +156,18 @@ public class StationScan extends ScanWorker {
           if (crossPowerMap != null) {
             metric.setCrossPowerMap(crossPowerMap);
           }
+          // Do the same for pulseDetectionMap, if this is a pulse detection metric
+          if (metric instanceof PulseDetectionMetric && pulseDetectionMap != null) {
+            ((PulseDetectionMetric) metric).setPulseDetectionData(pulseDetectionMap);
+          }
+
           metric.process();
           // Save the current crossPowerMap for the next metric:
           crossPowerMap = metric.getCrossPowerMap();
+          // And similar for pulse detection as necessary
+          if (metric instanceof PulseDetectionMetric) {
+            pulseDetectionMap = ((PulseDetectionMetric) metric).getPulseDetectionData();
+          }
 
           MetricResult results = metric.getMetricResult();
           if (results != null) {

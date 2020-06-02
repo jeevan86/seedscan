@@ -1,5 +1,8 @@
 package asl.metadata.meta_new;
 
+import static asl.utils.NumericUtils.atanc;
+import static asl.utils.NumericUtils.unwrap;
+
 import asl.metadata.Blockette;
 import asl.metadata.Channel;
 import asl.metadata.ChannelKey;
@@ -10,6 +13,7 @@ import asl.security.MemberDigest;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Hashtable;
 import org.apache.commons.math3.complex.Complex;
 import org.slf4j.Logger;
@@ -348,6 +352,39 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 
 	public Complex[] getResponse(double[] freqs, ResponseUnits responseOut)
 			throws ChannelMetaException {
+		Complex[] response = getResponseUnscaled(freqs, responseOut);
+		// Scale polezero response by stage1Gain * stage2Gain:
+		// Unless stage1Gain*stage2Gain is different from stage0Gain
+		// (=Sensitivity) by more than 10%,
+		// in which case, use the Sensitivity (Adam says this is a problem with
+		// Q680's, e.g., IC_ENH
+		double stage0Gain = stages.get(0).getStageGain();
+		double stage1Gain = stages.get(1).getStageGain();
+		double stage2Gain = stages.get(2).getStageGain();
+
+		// Check stage1Gain * stage2Gain against the mid-level sensitivity
+		// (=stage0Gain):
+		double diff = 100 * (stage0Gain - (stage1Gain * stage2Gain))
+				/ stage0Gain;
+
+		double scale;
+		if (diff > 10) {
+			// System.out.println("== ChannelMeta.getResponse(): WARNING: Sensitivity != Stage1Gain * Stage2Gain "
+			// + "--> Use Sensitivity to scale!");
+			logger.warn("== getResponse WARNING: Sensitivity != Stage1Gain * Stage2Gain "
+					+ "--> Use Sensitivity to scale!");
+			scale = stage0Gain;
+		} else {
+			scale = stage1Gain * stage2Gain;
+		}
+		for (int i = 0; i < freqs.length; i++) {
+			response[i] = response[i].multiply(scale);
+		}
+		return response;
+	}
+
+	public Complex[] getResponseUnscaled(double[] freqs, ResponseUnits responseOut)
+			throws ChannelMetaException {
 		int outUnits = 0;
 		switch (responseOut) {
 		case DISPLACEMENT: // return Displacement Response
@@ -449,40 +486,6 @@ public class ChannelMeta extends MemberDigest implements Serializable,
 				}
 			} // Convert
 		} // else
-
-		// Scale polezero response by stage1Gain * stage2Gain:
-		// Unless stage1Gain*stage2Gain is different from stage0Gain
-		// (=Sensitivity) by more than 10%,
-		// in which case, use the Sensitivity (Adam says this is a problem with
-		// Q680's, e.g., IC_ENH
-		double stage0Gain = stages.get(0).getStageGain();
-		double stage1Gain = stages.get(1).getStageGain();
-		double stage2Gain = stages.get(2).getStageGain();
-
-		// Check stage1Gain * stage2Gain against the mid-level sensitivity
-		// (=stage0Gain):
-		double diff = 100 * (stage0Gain - (stage1Gain * stage2Gain))
-				/ stage0Gain;
-
-		double scale;
-		if (diff > 10) {
-			// System.out.println("== ChannelMeta.getResponse(): WARNING: Sensitivity != Stage1Gain * Stage2Gain "
-			// + "--> Use Sensitivity to scale!");
-			logger.warn("== getResponse WARNING: Sensitivity != Stage1Gain * Stage2Gain "
-					+ "--> Use Sensitivity to scale!");
-			scale = stage0Gain;
-		} else {
-			scale = stage1Gain * stage2Gain;
-		}
-
-		if (scale <= 0.) {
-			// System.out.println("== ChannelMeta.getResponse(): WARNING: Channel response scale <= 0 !!");
-			logger.warn("== getResponse WARNING: Channel response scale <= 0 !!");
-		}
-
-		for (int i = 0; i < freqs.length; i++) {
-			response[i] = response[i].multiply(scale);
-		}
 
 		return response;
 	}
