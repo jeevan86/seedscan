@@ -116,8 +116,8 @@ public abstract class PulseDetectionMetric extends Metric {
     double sampleRate = stationMeta.getChannelMetadata(channel).getSampleRate();
     // remove response, convert to acceleration, detrend, and filter (order 4 butterworth)
     // here's the response removal block, includes using accel to switch units
-    trace = removeResponseOnTimeDomainData(trace, stationMeta.getChannelMetadata(channel),
-        0.001);
+    trace = detrendEnds(removeResponseOnTimeDomainData(trace,
+        stationMeta.getChannelMetadata(channel), 0.001));
     // now detrend, taper again, and do a low-pass filter over the data
     demeanInPlace(trace);
     trace = detrend(trace);
@@ -193,23 +193,6 @@ public abstract class PulseDetectionMetric extends Metric {
       stepFunction[i] = numer / (double) slopeLength;
     }
     return stepFunction;
-  }
-
-  /**
-   * Produces a value to use to prevent issues with division by zero, by getting 0.1% of the maximum
-   * magnitude value of a trace. Add this to the denominator of a calculation involving the trace.
-   *
-   * @param trace timeseries data to get max value for
-   * @return Value to use as water level calculation
-   */
-  static double getWaterLevel(double[] trace) {
-    double waterLevel;
-    double traceMaxValue = trace[0];
-    for (double point : trace) {
-      traceMaxValue = Math.max(Math.abs(point), traceMaxValue);
-    }
-    waterLevel = 0.001 * traceMaxValue;
-    return waterLevel;
   }
 
   /**
@@ -523,7 +506,7 @@ public abstract class PulseDetectionMetric extends Metric {
     for (int i = 0; i < returnValue.length; ++i) {
       returnValue[i] /= metadata.getStage(0).getStageGain();
     }
-    return detrendEnds(returnValue);
+    return returnValue;
   }
 
   /**

@@ -401,7 +401,6 @@ public class PulseDetectionMetricTest {
         6.765001845277449E-8, 6.766650078579518E-8, 6.768116724909628E-8, 6.769551941043154E-8,
         6.771147328422025E-8, 6.773092901050929E-8, 6.77489535773228E-8, 6.776520086919118E-8,
         6.77814287359702E-8, 6.780130470541931E-8};
-
     for (int i = 0; i < compareStartAgainst.length; ++i) {
       assertEquals("failed at index " + i, compareStartAgainst[i], trace[i], 1E-12);
     }
