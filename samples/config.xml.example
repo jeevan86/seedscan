@@ -63,7 +63,18 @@
             <cfg:argument cfg:name="channel-restriction">LH</cfg:argument>
             <cfg:argument cfg:name="base-channel">XX-LX</cfg:argument>
         </cfg:metric>
-
+<!-- PulseDetection Metrics:-->
+        <cfg:metric>
+            <cfg:class_name>asl.seedscan.metrics.PulseDetectionCountMetric</cfg:class_name>
+            <cfg:argument cfg:name="channel-restriction">LH</cfg:argument>
+            <cfg:argument cfg:name="coefficient-threshold">0.7</cfg:argument>
+            <cfg:argument cfg:name="amplitude-threshold">10.</cfg:argument>
+        </cfg:metric>
+        <cfg:metric>
+            <cfg:class_name>asl.seedscan.metrics.PulseDetectionPeakMetric</cfg:class_name>
+            <cfg:argument cfg:name="channel-restriction">LH</cfg:argument>
+            <cfg:argument cfg:name="coefficient-threshold">0.7</cfg:argument>
+        </cfg:metric>
 <!-- PowerBand Metrics:  -->
         <cfg:metric>
             <cfg:class_name>asl.seedscan.metrics.ALNMDeviationMetric</cfg:class_name>
