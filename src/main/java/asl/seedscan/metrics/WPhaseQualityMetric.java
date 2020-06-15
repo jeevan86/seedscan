@@ -249,6 +249,9 @@ public class WPhaseQualityMetric extends Metric {
         // getting the data. time range is from event start to 15sec * degrees distance
         long endTime = eventStart + (long) (15000 * angleBetween);
         double[] data = metricData.getWindowedData(channel, eventStart, endTime);
+        if (data == null) {
+          continue;
+        }
         double sampleRate = stationMeta.getChannelMetadata(channel).getSampleRate();
         // time-domain deconvolution and bandpass filtering (1-5 mHz band) goes here
         // we require the gain, so we can use the stage 0 as overall gain
@@ -514,6 +517,10 @@ public class WPhaseQualityMetric extends Metric {
       }
       PoleZeroStage pzStage = (PoleZeroStage) stage;
       List<Complex> poles = pzStage.getPoles();
+      if (poles.size() == 0) {
+        // prevent index out of bounds exception for unusual metadata where PZ stage has no poles
+        continue;
+      }
       NumericUtils.complexMagnitudeSorter(poles);
       Complex pole = poles.get(0);
       double w = pole.abs(); // corner frequency (2pi correction accounted for in resp check)
