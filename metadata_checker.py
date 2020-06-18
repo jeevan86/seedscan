@@ -25,8 +25,8 @@ def get_connection_from_config_file():
     # url is something like [domain].cr.usgs.gov:[port]
     # port, username, password should be gotten from .pgpass file
     # specified in a line like server:port:database:username:password
-    # domain = server.partition('.')[0]
-    return server, database
+    domain = server.partition('.')[0]
+    return domain, database
 
 
 def run_scan(networks=None, start=None, end=None):
