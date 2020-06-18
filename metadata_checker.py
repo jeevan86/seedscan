@@ -11,6 +11,24 @@ def run_test():
     run_scan(["IU"], start, end)
 
 
+def get_connection_from_config_file():
+    xml_data = et.parse('config.xml')
+    namespace = {
+        'cfg': 'config.seedscan.asl'
+    }
+    root = xml_data.getroot()
+    database = root.find('cfg:database', namespace)
+    url = database.find('cfg:uri', namespace)
+    # get only the split components we need
+    # the empty terms are protocol and empty string where '//' was
+    (_, _, server, database) = url.text.split('/')
+    # url is something like [domain].cr.usgs.gov:[port]
+    # port, username, password should be gotten from .pgpass file
+    # specified in a line like server:port:database:username:password
+    # domain = server.partition('.')[0]
+    return server, database
+
+
 def run_scan(networks=None, start=None, end=None):
     # there are two child tags that describe the new metadata epoch (Channel)
     # and the description. While the description may be useful the channel
@@ -72,8 +90,8 @@ def run_scan(networks=None, start=None, end=None):
                     end_day + timedelta(days=1)
                 # conversion to strings here makes for both easy hashing as
                 # tuple and storing as DB components
-                time_tuple = (
-                date.isoformat(start_day), date.isoformat(end_day))
+                time_tuple = (date.isoformat(start_day),
+                              date.isoformat(end_day))
                 if time_tuple not in epoch_change_map.keys():
                     epoch_change_map[time_tuple] = set([])
                 epoch_change_map[time_tuple].add(location)
@@ -91,11 +109,10 @@ def run_scan(networks=None, start=None, end=None):
                 for channel in station_map[station][epoch]:
                     print(network, station, start, end, channel)
     """
-
     # OK so now that we have the map of networks to stations the next thing
     # to do would be to populate the DB
-    # TODO: change this to the DQA main scan db for running as a cron'd script
-    dqa_db = psycopg2.connect(dbname='dqa_prod_prod_clone', host='vmdbx01')
+    (host, dbname) = get_connection_from_config_file()
+    dqa_db = psycopg2.connect(dbname=dbname, host=host)
     # now presumably we can iterate through our map structures and get each
     # table entry to add
     cursor = dqa_db.cursor()
@@ -121,4 +138,4 @@ if __name__ == '__main__':
     # TODO: parse in args from command line for custom scans?
     # if this is being run from the terminal it's almost certainly as a
     # cronjob where we run over the previous day's worth of metadata changes
-    run_test()
+    run_test()  # TODO: replace with run_scan call instead
