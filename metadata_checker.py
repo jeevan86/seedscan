@@ -96,10 +96,10 @@ def run_scan(networks=None, start=None, end=None):
                     # if we are then also check if we're past the date boundary
                     # and roll over to the next day if so
                     date_start = datetime.combine(end_day, time(0))
+                    if end_dt - date_start > timedelta(0):
+                        end_day + timedelta(days=1)
                     if end_dt - max_day > timedelta(0):
                         end_day = max_day
-                    elif end_dt - date_start > timedelta(0):
-                        end_day + timedelta(days=1)
                     iso_end = date.isoformat(end_day)
                 # conversion to strings here makes for both easy hashing as
                 # tuple and storing as DB components
