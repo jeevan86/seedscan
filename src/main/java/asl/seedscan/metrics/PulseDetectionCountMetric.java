@@ -81,6 +81,14 @@ public class PulseDetectionCountMetric extends PulseDetectionMetric {
     for (Channel channel : stationMeta.getChannelArray(preSplitBands, true, true)) {
       ChannelKey key = new ChannelKey(channel);
 
+        ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel),
+                getForceUpdate());
+        if (digest == null) {
+            logger.info("Digest unchanged station:[{}] channel:[{}] day:[{}] --> Skip metric",
+                    getStation(), channel, getDay());
+            continue;
+        }
+
       // only calculate a new result if the map is currently unpopulated
       if (!pulseDetectionResultMap.containsKey(key)) {
         try {
@@ -89,14 +97,6 @@ public class PulseDetectionCountMetric extends PulseDetectionMetric {
           logger.error("Could not get metadata for channel [{}-{}]", getStation(), channel, e);
           continue;
         }
-      }
-
-      ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel),
-          getForceUpdate());
-      if (digest == null) {
-        logger.info("Digest unchanged station:[{}] channel:[{}] day:[{}] --> Skip metric",
-            getStation(), channel, getDay());
-        continue;
       }
 
       PulseDetectionData result = pulseDetectionResultMap.get(key);
