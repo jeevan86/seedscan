@@ -67,6 +67,14 @@ public class PulseDetectionPeakMetric extends PulseDetectionMetric {
     for (Channel channel : stationMeta.getChannelArray(preSplitBands, true, true)) {
       ChannelKey key = new ChannelKey(channel);
 
+      ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel),
+          getForceUpdate());
+      if (digest == null) {
+        logger.info("Digest unchanged station:[{}] channel:[{}] day:[{}] --> Skip metric",
+            getStation(), channel, getDay());
+        continue;
+      }
+
       // only calculate a new result if the map is currently unpopulated
       if (!pulseDetectionResultMap.containsKey(key)) {
         try {
@@ -78,13 +86,6 @@ public class PulseDetectionPeakMetric extends PulseDetectionMetric {
         }
       }
 
-      ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel),
-          getForceUpdate());
-      if (digest == null) {
-        logger.info("Digest unchanged station:[{}] channel:[{}] day:[{}] --> Skip metric",
-            getStation(), channel, getDay());
-        continue;
-      }
       double maxPeak = 0;
       List<List<PulseDetectionPoint>> allData =
           pulseDetectionResultMap.get(key).correlationsWithAmplitude;
