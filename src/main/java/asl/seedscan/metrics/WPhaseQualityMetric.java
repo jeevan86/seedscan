@@ -77,7 +77,6 @@ public class WPhaseQualityMetric extends Metric {
   public void process() {
     logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
 
-    // a bunch of this is copy-pasted from eventCompareSynthetic since it's the same thing
     Hashtable<String, EventCMT> eventCMTs = getEventTable();
     if (eventCMTs == null) {
       logger.info(
@@ -126,29 +125,25 @@ public class WPhaseQualityMetric extends Metric {
       }
     }
 
-    try { // computeMetric() handle
-      Map<ChannelKey, ResultIncrementer> results = computeMetric(validChannels, eventCMTs, basechannel);
-      for (ChannelKey channelKey : results.keySet()) {
-        Channel channel = channelKey.toChannel();
-        ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel),
-            getForceUpdate());
-        if (digest == null) {
-          logger.info("Digest unchanged station:[{}] channel:[{}] day:[{}] --> Skip metric",
-              getStation(), channel, getDay());
-          continue;
-        }
-        double result = results.get(channelKey).getResult();
-        if (result != NO_RESULT) {
-          metricResult.addResult(channel, result, digest);
-        }
+    Map<ChannelKey, ResultIncrementer> results = computeMetric(validChannels, eventCMTs, basechannel);
+    for (ChannelKey channelKey : results.keySet()) {
+      Channel channel = channelKey.toChannel();
+      ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel),
+          getForceUpdate());
+      if (digest == null) {
+        logger.info("Digest unchanged station:[{}] channel:[{}] day:[{}] --> Skip metric",
+            getStation(), channel, getDay());
+        continue;
       }
-    } catch (MetricException e) {
-      logger.error(Logging.prettyExceptionWithCause(e));
+      double result = results.get(channelKey).getResult();
+      if (result != NO_RESULT) {
+        metricResult.addResult(channel, result, digest);
+      }
     }
   }
 
   private Map<ChannelKey, ResultIncrementer> computeMetric(Collection<Channel> channels,
-      Hashtable<String, EventCMT> eventCMTs, String[] basechannel) throws MetricException {
+      Hashtable<String, EventCMT> eventCMTs, String[] basechannel){
 
     // the logic in this method is a bit weird because we have a series of filtering operations
     // that remove some data a couple steps into the operation -- and then have to do a test
