@@ -76,18 +76,18 @@ public class MetaGenerator {
   public MetaGenerator(String datalessDir, String datalessFilePattern, List<String> networkSubset) {
     volumes = new Hashtable<>();
 
-    File dir = new File(datalessDir);
-    if (!dir.exists()) {
-      logger.error("Path '" + dir + "' does not exist.");
-      System.exit(0);
-    } else if (!dir.isDirectory()) {
-      logger.error("Path '" + dir + "' is not a directory.");
-      System.exit(0);
-    }
-
-    // this will try to create a list of all paths that define dataless based on network data
-
     for (String networkName : networkSubset) {
+
+      // Allow for differing network directories
+      File dir = new File(datalessDir.replace("${NETWORK}", networkName));
+      if (!dir.exists()) {
+        logger.error("Path '" + dir + "' does not exist.");
+        System.exit(0);
+      } else if (!dir.isDirectory()) {
+        logger.error("Path '" + dir + "' is not a directory.");
+        System.exit(0);
+      }
+
       List<String> files = getDatalessFilesForNetwork(dir, datalessFilePattern, networkName);
 
       if (files.size() == 0) {
