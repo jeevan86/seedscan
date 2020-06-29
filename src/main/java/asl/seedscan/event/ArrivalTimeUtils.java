@@ -38,7 +38,7 @@ public class ArrivalTimeUtils {
     List<Arrival> arrivals = timeTool.getArrivals();
 
     double arrivalTimeP;
-    if (arrivals.get(0).getName().equals("P")) {
+    if (arrivals.size() > 0 && arrivals.get(0).getName().equals("P")) {
       arrivalTimeP = arrivals.get(0).getTime();
     } else {
       logger.info("Got an arrival, but it was not a P-wave, called by metric {}", callingMetric);

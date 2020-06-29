@@ -83,15 +83,27 @@ def run_scan(networks=None, start=None, end=None):
                     location = '--'
                 start_time_string = channel_node.get('starttime')
                 start_day = isoparse(start_time_string).date()
+                # if the metadata change leads to an open epoch we end the
+                # scan 2 days from today, as otherwise there may not be enough
+                # information in the data repository to be useful
+                max_day = date.today() - timedelta(days=2)
+                iso_end = date.isoformat(max_day)
                 end_time_string = channel_node.get('endtime')
-                end_dt = isoparse(end_time_string)
-                end_day = end_dt.date()
-                if end_dt - datetime.combine(end_day, time(0)) > timedelta(0):
-                    end_day + timedelta(days=1)
+                if end_time_string is not None:
+                    end_dt = isoparse(end_time_string)
+                    end_day = end_dt.date()
+                    # first check if we're past the useful data limit
+                    # if we are then also check if we're past the date boundary
+                    # and roll over to the next day if so
+                    date_start = datetime.combine(end_day, time(0))
+                    if end_dt - date_start > timedelta(0):
+                        end_day + timedelta(days=1)
+                    if end_dt - max_day > timedelta(0):
+                        end_day = max_day
+                    iso_end = date.isoformat(end_day)
                 # conversion to strings here makes for both easy hashing as
                 # tuple and storing as DB components
-                time_tuple = (date.isoformat(start_day),
-                              date.isoformat(end_day))
+                time_tuple = (date.isoformat(start_day), iso_end)
                 if time_tuple not in epoch_change_map.keys():
                     epoch_change_map[time_tuple] = set([])
                 epoch_change_map[time_tuple].add(location)
