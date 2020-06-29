@@ -1,12 +1,25 @@
 package asl.metadata;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 public class ChannelArray {
 
   private ArrayList<Channel> channels = null;
+
+  /**
+   * Create an arbitrary length list of channels from a collection of Channels.
+   *
+   * @param channelsIn Collection of Channel objects.
+   */
+  public ChannelArray(Collection<Channel> channelsIn) {
+    channels = new ArrayList<>();
+    for (Channel channel : channelsIn){
+      channels.add(new Channel(channel.getLocation(), channel.getChannel()));
+    }
+  }
 
   /**
    * Create triplet of Channels from Location Code and Channel Codes.
