@@ -111,32 +111,56 @@ public class WPhaseQualityMetric extends Metric {
     List<Channel> channels = stationMeta.getRotatableChannels();
     List<Channel> validChannels = new LinkedList<>();
     for (Channel channel : channels) {
+      // This digest is not injected into the DB, but this prevents channels with missing data from being processed.
+      // This also rotates channels if possible.
+      ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel),
+          getForceUpdate());
+      if (digest == null) {
+        continue;
+      }
+
       String channelVal = channel.toString().split("-")[1];
       if (allowedBands.contains(channelVal.substring(0, 2))) {
-        //Rotate channels as needed.
-        ChannelArray channelArray = new ChannelArray(channel.getLocation(), channel.getChannel());
-        metricData.checkForRotatedChannels(channelArray);
+
         if (metricData.getNextMetricData() != null) {
           logger.info("No result gotten for station:[{}] channel:[{}] day:[{}]",
               getStation(), channel, getDay());
-          metricData.getNextMetricData().checkForRotatedChannels(channelArray);
+          //Rotate next day's data if possible, not handled by valuedigest. Special case for event metrics.
+          metricData.getNextMetricData().checkForRotatedChannels(new ChannelArray(channel.getLocation(), channel.getChannel()));
         }
         validChannels.add(channel);
       }
     }
 
+    // Because this metric is dependent across all valid channels, the digest must be based on an aggregate of all allowed channels.
+    //First we need a fake channel aggregating all the allowed channels.
+    StringBuilder locationAggregate = new StringBuilder();
+    StringBuilder channelAggregate = new StringBuilder();
+    for (Channel channel : validChannels){
+      locationAggregate.append("-").append(channel.getLocation());
+      channelAggregate.append("-").append(channel.getChannel());
+    }
+
+    Channel mockChannel = new Channel(locationAggregate.toString(), channelAggregate.toString());
+
+    //Compare only to the first channel, since all channels should have the same digest value if they exist.
+    //At this point all channels in allowed list will have data, because of the earlier check.
+    ByteBuffer digest = metricData.valueDigestChanged(new ChannelArray(validChannels), createIdentifier(validChannels.get(0)),
+        getForceUpdate());
+    if (digest == null) {
+      logger.info("Digest unchanged station:[{}] channel:[{}] day:[{}] --> Skip metric",
+          getStation(), mockChannel, getDay());
+      //Bail, nothing is changed since last calculation in any of the channels, nothing to compute.
+      return;
+    }
+
     Map<ChannelKey, ResultIncrementer> results = computeMetric(validChannels, eventCMTs, basechannel);
     for (ChannelKey channelKey : results.keySet()) {
       Channel channel = channelKey.toChannel();
-      ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel),
-          getForceUpdate());
-      if (digest == null) {
-        logger.info("Digest unchanged station:[{}] channel:[{}] day:[{}] --> Skip metric",
-            getStation(), channel, getDay());
-        continue;
-      }
+
       double result = results.get(channelKey).getResult();
       if (result != NO_RESULT) {
+        //Use the shared digest between all dependent channels.
         metricResult.addResult(channel, result, digest);
       }
     }
