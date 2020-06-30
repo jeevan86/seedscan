@@ -77,7 +77,6 @@ public class WPhaseQualityMetric extends Metric {
   public void process() {
     logger.info("-Enter- [ Station {} ] [ Day {} ]", getStation(), getDay());
 
-    // a bunch of this is copy-pasted from eventCompareSynthetic since it's the same thing
     Hashtable<String, EventCMT> eventCMTs = getEventTable();
     if (eventCMTs == null) {
       logger.info(
@@ -112,43 +111,52 @@ public class WPhaseQualityMetric extends Metric {
     List<Channel> channels = stationMeta.getRotatableChannels();
     List<Channel> validChannels = new LinkedList<>();
     for (Channel channel : channels) {
+      // This digest is not injected into the DB, but this prevents channels with missing data from being processed.
+      // This also rotates channels if possible.
+      ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel),
+          getForceUpdate());
+      if (digest == null) {
+        continue;
+      }
+
       String channelVal = channel.toString().split("-")[1];
       if (allowedBands.contains(channelVal.substring(0, 2))) {
-        //Rotate channels as needed.
-        ChannelArray channelArray = new ChannelArray(channel.getLocation(), channel.getChannel());
-        metricData.checkForRotatedChannels(channelArray);
+
         if (metricData.getNextMetricData() != null) {
           logger.info("No result gotten for station:[{}] channel:[{}] day:[{}]",
               getStation(), channel, getDay());
-          metricData.getNextMetricData().checkForRotatedChannels(channelArray);
+          //Rotate next day's data if possible, not handled by valuedigest. Special case for event metrics.
+          metricData.getNextMetricData().checkForRotatedChannels(new ChannelArray(channel.getLocation(), channel.getChannel()));
         }
         validChannels.add(channel);
       }
     }
 
-    try { // computeMetric() handle
-      Map<ChannelKey, ResultIncrementer> results = computeMetric(validChannels, eventCMTs, basechannel);
-      for (ChannelKey channelKey : results.keySet()) {
-        Channel channel = channelKey.toChannel();
-        ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel),
-            getForceUpdate());
-        if (digest == null) {
-          logger.info("Digest unchanged station:[{}] channel:[{}] day:[{}] --> Skip metric",
-              getStation(), channel, getDay());
-          continue;
-        }
-        double result = results.get(channelKey).getResult();
-        if (result != NO_RESULT) {
-          metricResult.addResult(channel, result, digest);
-        }
+    //Compare only to the first channel, since all channels should have the same digest value if they exist.
+    //At this point all channels in allowed list will have data, because of the earlier check.
+    ByteBuffer digest = metricData.valueDigestChanged(new ChannelArray(validChannels), createIdentifier(validChannels.get(0)),
+        getForceUpdate());
+    if (digest == null) {
+      logger.info("Digest unchanged station:[{}] channel:[{}] day:[{}] --> Skip metric",
+          getStation(), validChannels.get(0).toString(), getDay());
+      //Bail, nothing is changed since last calculation in any of the channels, nothing to compute.
+      return;
+    }
+
+    Map<ChannelKey, ResultIncrementer> results = computeMetric(validChannels, eventCMTs, basechannel);
+    for (ChannelKey channelKey : results.keySet()) {
+      Channel channel = channelKey.toChannel();
+
+      double result = results.get(channelKey).getResult();
+      if (result != NO_RESULT) {
+        //Use the shared digest between all dependent channels.
+        metricResult.addResult(channel, result, digest);
       }
-    } catch (MetricException e) {
-      logger.error(Logging.prettyExceptionWithCause(e));
     }
   }
 
   private Map<ChannelKey, ResultIncrementer> computeMetric(Collection<Channel> channels,
-      Hashtable<String, EventCMT> eventCMTs, String[] basechannel) throws MetricException {
+      Hashtable<String, EventCMT> eventCMTs, String[] basechannel){
 
     // the logic in this method is a bit weird because we have a series of filtering operations
     // that remove some data a couple steps into the operation -- and then have to do a test

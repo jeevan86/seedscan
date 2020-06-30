@@ -1219,7 +1219,7 @@ public class MetricData implements Serializable {
           createRotatedChannelData(channel.getLocation(), channelPrefix);
         }
       } catch (MetricException e) {
-        logger.error(Logging.prettyExceptionWithCause(e));
+        logger.warn(Logging.prettyExceptionWithCause(e));
       }
     }
   }
