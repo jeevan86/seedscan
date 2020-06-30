@@ -132,6 +132,11 @@ public class WPhaseQualityMetric extends Metric {
       }
     }
 
+    if (validChannels.size() == 0){
+      // Bail, no valid channels.
+      return;
+    }
+
     //Compare only to the first channel, since all channels should have the same digest value if they exist.
     //At this point all channels in allowed list will have data, because of the earlier check.
     ByteBuffer digest = metricData.valueDigestChanged(new ChannelArray(validChannels), createIdentifier(validChannels.get(0)),
