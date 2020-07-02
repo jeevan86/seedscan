@@ -1,58 +1,51 @@
 from datetime import datetime, date, timedelta
 from itertools import product
-
-import psycopg2
 import json
+
+# pip-installed
 from kafka import KafkaProducer
+
+# requires a local repo
+from dqatools.dqaclient import call_dqa
 
 
 def run_test():
-    start = date(year=2020, month=1, day=1)
-    publish_messages(["IU"], [start], True)
+    start = [date(year=2020, month=1, day=1)]
+    metrics = ['NLNMDeviationMetric:0.5-1']
+    publish_messages(["IU"], start, metrics, True)
 
 
-def publish_messages(networks=None, select_dates=None, is_test=False):
-    if networks is None:
+def publish_messages(networks=None, select_dates=None, metrics=None,
+                     is_test=False):
+    if networks is None or len(networks) == 0:
         networks = ['CU', 'GS', 'GT', 'IC', 'II', 'IU', 'IW', 'NE', 'US', 'N4']
     if select_dates is None or len(select_dates) == 0:
         # scan over the past 5 days if no date was set
         select_dates = []
         for offset in range(1, 5):
             select_dates.append(datetime.now().date() - timedelta(days=offset))
-    # TODO: change this to the DQA main scan db for running as a cron'd script
-    dqa_db = psycopg2.connect(dbname='dqa_prod_prod_clone', host='vmdbx01')
-    # now presumably we can iterate through our map structures and get each
-    # table entry to add
-    cursor = dqa_db.cursor()
-    # TODO: will probably need to iterate over a list of metric names to get
+    if metrics is None or len(metrics) == 0:
+        metrics = ['NLNMDeviationMetric:0.5-1']
+    # TODO: expect to iterate over a list of metric names to get
     #  data from -- WPhase, NLNMDeviation, etc.
-    for select_date, network in product(select_dates, networks):
+    for select_date, network, metric in product(select_dates, networks,
+                                                metrics):
         date_string = select_date.strftime("%Y-%m-%d")
-        # TODO: need to make sure that WHERE clause filters by date
-        cursor.execute("""SELECT tblmetric.displayname, tblmetricdata.value, 
-                       tblchannel.name, tblsensor.location, 
-                       tblstation.name, "tblGroup".name 
-                       FROM tblmetric INNER JOIN tblmetricdata 
-                       ON tblmetric.pkmetricid = tblmetricdata.fkmetricid 
-                       INNER JOIN tbldate 
-                       ON tbldate.pkdateid = tblmetricdata.date 
-                       INNER JOIN tblchannel 
-                       ON tblchannel.pkchannelid = tblmetricdata.fkchannelid 
-                       INNER JOIN tblsensor 
-                       ON tblsensor.pksensorid = tblchannel.fksensorid 
-                       INNER JOIN tblstation 
-                       ON tblstation.pkstationid = tblsensor.fkstationid 
-                       INNER JOIN "tblGroup" 
-                       ON "tblGroup".pkgroupid = tblstation.fknetworkid 
-                       WHERE tblmetric.name = \'NLNMDeviationMetric:0.5-1\' 
-                       AND "tblGroup".name = (%s)
-                       AND tbldate.date = (%s)""", (network, select_date))
+        output = call_dqa(network=network, metric=metric, begin=date_string,
+                          end=date_string, format='csv')
         # set up the kafka (producer) connection here
         producer = KafkaProducer(bootstrap_servers='igskcicgvmkafka:9092',
                                  client_id='producer-from-dqa')
-        for record in cursor:
+        # each line is effectively a row in the database
+        for record in iter(output.splitlines()):
+            print(record)
             # now we get the fields and jsonify them for publication
-            (metric, value, channel, location, station, network) = record
+            # value order is how they come out of the call_dqa method
+            (date, network, station, location, channel, metric, value) = \
+                record.split(',')
+            # (metric, value, channel, location, station, network) = record
+            # metric name might have disallowed character in it
+            metric = metric.replace(':', '_')
             # json format description:
             # https://github.com/usgs/earthquake-detection-formats (cont.)
             # /blob/master/format-docs/StationInfo.md
@@ -68,7 +61,8 @@ def publish_messages(networks=None, select_dates=None, is_test=False):
             topic_name = metric
             if is_test:
                 topic_name += "_test"
-            producer.send(topic_name, message)
+            # print(topic_name, message)
+            producer.send(topic_name, value=message.encode('utf-8'))
 
 
 if __name__ == '__main__':
