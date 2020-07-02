@@ -38,6 +38,7 @@ def publish_messages(networks=None, select_dates=None, metrics=None,
                                  client_id='producer-from-dqa')
         # each line is effectively a row in the database
         for record in iter(output.splitlines()):
+            print(record)
             # now we get the fields and jsonify them for publication
             # value order is how they come out of the call_dqa method
             (date, network, station, location, channel, metric, value) = \
@@ -61,7 +62,7 @@ def publish_messages(networks=None, select_dates=None, metrics=None,
             if is_test:
                 topic_name += "_test"
             # print(topic_name, message)
-            producer.send(topic_name, message)
+            producer.send(topic_name, value=message.encode('utf-8'))
 
 
 if __name__ == '__main__':
