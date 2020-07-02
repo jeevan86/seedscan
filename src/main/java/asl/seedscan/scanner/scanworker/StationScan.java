@@ -188,7 +188,7 @@ public class StationScan extends ScanWorker {
       }
 
     } catch (Exception e) {
-      String message = Logging.prettyExceptionWithCause(e);
+      String message = "Scan Date: " + this.currentDate + "\n" + Logging.prettyExceptionWithCause(e);
       logger.error(message);
       manager.database
           .insertScanMessage(databaseScan.parentScanID, station.getNetwork(), station.getStation(),

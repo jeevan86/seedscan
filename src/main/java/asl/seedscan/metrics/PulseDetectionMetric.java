@@ -622,7 +622,7 @@ public abstract class PulseDetectionMetric extends Metric {
         List<PulseDetectionPoint> subList = new ArrayList<>(contiguousIndices.size());
         for (int contiguousIndex : contiguousIndices) {
           int indexWithOffset = contiguousIndex - startingOffset;
-          if (indexWithOffset < 0 || indexWithOffset > amplitudes.length) {
+          if (indexWithOffset < 0 || indexWithOffset >= amplitudes.length) {
             // this check may not be necessary but prevents us running into issues where
             // data was accepted close to the boundary of the day and wound up not being filtered
             // by the exclusion criteria but had a zero-valued correlation/amplitude
