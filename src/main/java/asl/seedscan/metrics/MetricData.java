@@ -100,6 +100,11 @@ public class MetricData implements Serializable {
   private transient MetricData nextMetricData;
 
   /**
+   * The previous day's MetricData. Only used for event metrics that require samples
+   */
+  private transient MetricData previousMetricData;
+
+  /**
    * Gets the next metric data.
    *
    * @return the next metric data
@@ -113,6 +118,19 @@ public class MetricData implements Serializable {
    */
   public void setNextMetricDataToNull() {
     this.nextMetricData = null;
+  }
+
+
+  public MetricData getPreviousMetricData() {
+    return previousMetricData;
+  }
+
+  public void setPreviousMetricData(MetricData previousMetricData) {
+    this.previousMetricData = previousMetricData;
+  }
+
+  public void setPreviousMetricDataToNull() {
+    this.previousMetricData = null;
   }
 
   /**

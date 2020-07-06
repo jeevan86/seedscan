@@ -20,6 +20,7 @@ import asl.timeseries.CrossPowerKey;
 import asl.util.Logging;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Calendar;
 import java.util.Hashtable;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -47,6 +48,7 @@ public class StationScan extends ScanWorker {
    * Data for the day that chronologically follows day being scanned.
    */
   private MetricData nextMetricData;
+  private MetricData previousMetricData;
 
 
   /**
@@ -89,6 +91,7 @@ public class StationScan extends ScanWorker {
       EventLoader eventLoader = new EventLoader(Global.getEventsDir());
 
       LocalDate nextDayTimestamp = currentDate.plusDays(1);
+      LocalDate previousDayTimestamp = currentDate.minusDays(1);
 
       // Get all the channel metadata for this station, for this day
       StationMeta stnMeta = manager.metaGenerator
@@ -103,9 +106,16 @@ public class StationScan extends ScanWorker {
 
       Hashtable<String, Hashtable<String, SacTimeSeries>> eventSynthetics = null;
 
+      boolean eventNearStartOfDay = false;
       Hashtable<String, EventCMT> eventCMTs = eventLoader.getDayEvents(currentDate);
       if (eventCMTs != null) {
         eventSynthetics = eventLoader.getDaySynthetics(currentDate, station);
+
+        for( String key : eventCMTs.keySet()){
+          if (eventCMTs.get(key).getCalendar().get(Calendar.HOUR_OF_DAY) < 4 ){
+            eventNearStartOfDay = true;
+          }
+        }
       }
 
       // May have been passed from previous day
@@ -114,9 +124,15 @@ public class StationScan extends ScanWorker {
       }
       nextMetricData = DataLoader.getMetricData(nextDayTimestamp, station, manager);
 
+
       if (currentMetricData != null) {
         // This doesn't mean nextMetricData isn't null!
         currentMetricData.setNextMetricData(nextMetricData);
+        if (eventNearStartOfDay){
+          // This 
+          previousMetricData = DataLoader.getMetricData(previousDayTimestamp, station, manager);
+          currentMetricData.setPreviousMetricData(previousMetricData);
+        }
       }
 
       // No Metadata found for this station-day --> skip day
@@ -195,8 +211,18 @@ public class StationScan extends ScanWorker {
               null, null, null, message);
     } finally {
       // Cleanup
+
+      // Release the previous day since we are done with it.
+      if (currentMetricData != null) {
+        if (currentMetricData.getPreviousMetricData() != null) {
+          currentMetricData.getPreviousMetricData().setNextMetricDataToNull();
+        }
+        currentMetricData.setPreviousMetricDataToNull();
+      }
+
       currentMetricData = null;
       nextMetricData = null;
+      previousMetricData = null;
     }
   }
 
