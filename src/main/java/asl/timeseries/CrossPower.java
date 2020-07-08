@@ -45,15 +45,37 @@ public class CrossPower {
 	}
 
 	/**
-	 * Perform the crosspower for a specific segment of data rather than the full day data by default
+	 * Perform the crosspower for a specific segment of data rather than the full day data by default.
+	 * Due to method visibility in MetricData the extraction of windowed data must be handled by
+	 * the metric.
 	 * @param channelX
+	 *            - X-channel used for power-spectral-density computation
 	 * @param channelY
+	 *            - Y-channel used for power-spectral-density computation
 	 * @param metricData
+	 *            - data to use as source of CrossPower computation
 	 * @param xData
+	 * 						- trimmed data taken from channelX in metricData
 	 * @param yData
+	 * 						- trimmed data taken from channelY in metricData
+	 * @throws ChannelMetaException
+	 *             the channel metadata exception
+	 * @throws MetricPSDException
+	 *             the metric psd exception
 	 */
 	public CrossPower(Channel channelX, Channel channelY, MetricData metricData, double[] xData, double[] yData)
 			throws MetricPSDException, ChannelMetaException {
+
+		if (xData == null && yData == null && !channelX.equals(channelY)) {
+			throw new MetricPSDException("Data for both channels (" + channelX.toString() +
+					", " + channelY.toString() + ") is null");
+		} else if (xData == null) {
+			throw new MetricPSDException("Data for first channel (" +
+					channelX.toString() + ") was null for some reason");
+		} else if (yData == null) {
+			throw new MetricPSDException("Data for second channel (" +
+					channelY.toString() + ") was null for some reason");
+		}
 
 		double sampleRate = metricData.getChannelData(channelX).get(0).getSampleRate();
 
