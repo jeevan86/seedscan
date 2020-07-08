@@ -34,14 +34,14 @@ def publish_messages(networks=None, select_dates=None, metrics=None,
         output = call_dqa(network=network, metric=metric, begin=date_string,
                           end=date_string, format='csv')
         # set up the kafka (producer) connection here
-        producer = KafkaProducer(bootstrap_servers='igskcicgvmkafka:9092',
+        producer = KafkaProducer(bootstrap_servers=
+                                 'igskcicgvmkafka.cr.usgs.gov:9092',
                                  client_id='producer-from-dqa')
         # each line is effectively a row in the database
         for record in iter(output.splitlines()):
-            print(record)
             # now we get the fields and jsonify them for publication
             # value order is how they come out of the call_dqa method
-            (date, network, station, location, channel, metric, value) = \
+            (r_date, network, station, location, channel, metric, value) = \
                 record.split(',')
             # (metric, value, channel, location, station, network) = record
             # metric name might have disallowed character in it
@@ -56,7 +56,7 @@ def publish_messages(networks=None, select_dates=None, metrics=None,
                                                  "Station": station,
                                                  "Location": location,
                                                  "Channel": channel},
-                 "Quality": value, "Date": date_string, "Enable": True})
+                 "Quality": value, "Date": date_string, "Enable": "true"})
             # next step is to actually send this message
             topic_name = metric
             if is_test:
