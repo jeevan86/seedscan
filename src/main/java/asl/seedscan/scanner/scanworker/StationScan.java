@@ -129,7 +129,7 @@ public class StationScan extends ScanWorker {
         // This doesn't mean nextMetricData isn't null!
         currentMetricData.setNextMetricData(nextMetricData);
         if (eventNearStartOfDay){
-          // This 
+          // This doesn't use previously loaded data. It reloads metricdata for the day.
           previousMetricData = DataLoader.getMetricData(previousDayTimestamp, station, manager);
           currentMetricData.setPreviousMetricData(previousMetricData);
         }
