@@ -17,9 +17,10 @@ public class MetaGeneratorTest {
     String networkName = "IU";
     List<String> files = MetaGenerator.getDatalessFilesForNetwork(dir, filePattern, networkName);
 
-    assertEquals(2, files.size());
-    assertTrue(files.get(0).contains("ANMO") || files.get(1).contains("ANMO"));
-    assertTrue(files.get(0).contains("ANTO") || files.get(1).contains("ANTO"));
+    assertEquals(3, files.size());
+    assertTrue(files.get(0).contains("ANMO") || files.get(1).contains("ANMO") || files.get(2).contains("ANMO"));
+    assertTrue(files.get(0).contains("ANTO") || files.get(1).contains("ANTO") || files.get(2).contains("ANTO"));
+    assertTrue(files.get(0).contains("RSSD") || files.get(1).contains("RSSD") || files.get(2).contains("RSSD"));
   }
 
   @Test

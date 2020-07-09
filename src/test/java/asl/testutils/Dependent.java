@@ -37,6 +37,7 @@ public class Dependent {
         ResourceManager.getDirectoryPath("/seed_data/") + "${NETWORK}_${STATION}/${YEAR}/${JDAY}";
     GlobalMock.setDataDir(dataPath);
     GlobalMock.setQualityFlags("All");
+    GlobalMock.setEventsDir(ResourceManager.getDirectoryPath("/event_synthetics"));
   }
 
 
