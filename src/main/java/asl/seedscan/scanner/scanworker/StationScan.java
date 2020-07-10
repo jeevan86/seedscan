@@ -40,15 +40,19 @@ public class StationScan extends ScanWorker {
 
   final LocalDate currentDate;
 
+  Hashtable<String, EventCMT> eventCMTs;
+  Hashtable<String, Hashtable<String, SacTimeSeries>> eventSynthetics;
+
+  private StationMeta currentMetadata;
   /**
    * Data for the day being scanned.
    */
-  private MetricData currentMetricData;
+  MetricData currentMetricData;
   /**
    * Data for the day that chronologically follows day being scanned.
    */
-  private MetricData nextMetricData;
-  private MetricData previousMetricData;
+  MetricData nextMetricData;
+  MetricData previousMetricData;
 
 
   /**
@@ -81,67 +85,69 @@ public class StationScan extends ScanWorker {
     this.currentMetricData = metricData;
   }
 
+  /**
+   * Load the scan data independently of the run method. This allows better testing.
+   */
+  void loadScanData(){
+    // CMT Event loader - use to load events for each day
+    EventLoader eventLoader = new EventLoader(Global.getEventsDir());
+
+    // Get all the channel metadata for this station, for this day
+    currentMetadata = manager.metaGenerator
+        .getStationMeta(station, currentDate.atStartOfDay());
+
+    if (databaseScan.location != null && databaseScan.location.length() > 0) {
+      // expect that the channel filter is a list of comma-delineated locations
+      // in the event that only one location is specified this should still work
+      String[] locations = databaseScan.location.split(",");
+      currentMetadata.addToWhitelist(databaseScan.location);
+    }
+
+    boolean eventNearStartOfDay = false;
+    eventCMTs = eventLoader.getDayEvents(currentDate);
+    if (eventCMTs != null) {
+      eventSynthetics = eventLoader.getDaySynthetics(currentDate, station);
+
+      for( String key : eventCMTs.keySet()){
+        if (eventCMTs.get(key).getCalendar().get(Calendar.HOUR_OF_DAY) < 4 ){
+          eventNearStartOfDay = true;
+        }
+      }
+    }
+
+    // May have been passed from previous day
+    if (currentMetricData == null) {
+      currentMetricData = DataLoader.getMetricData(currentDate, station, manager);
+    }
+    nextMetricData = DataLoader.getMetricData(currentDate.plusDays(1), station, manager);
+
+
+    if (currentMetricData != null) {
+      // This doesn't mean nextMetricData isn't null!
+      currentMetricData.setNextMetricData(nextMetricData);
+      if (eventNearStartOfDay){
+        // This doesn't use previously loaded data. It reloads metricdata for the day.
+        previousMetricData = DataLoader.getMetricData(currentDate.minusDays(1), station, manager);
+        currentMetricData.setPreviousMetricData(previousMetricData);
+      }
+    }
+  }
+
   @Override
   public void run() {
     try {
       logger.debug("Scan Station={} Day={} Thread id=[{}]", station,
           currentDate.format(DateTimeFormatter.ISO_ORDINAL_DATE), Thread.currentThread().getId());
 
-      // CMT Event loader - use to load events for each day
-      EventLoader eventLoader = new EventLoader(Global.getEventsDir());
-
-      LocalDate nextDayTimestamp = currentDate.plusDays(1);
-      LocalDate previousDayTimestamp = currentDate.minusDays(1);
-
-      // Get all the channel metadata for this station, for this day
-      StationMeta stnMeta = manager.metaGenerator
-          .getStationMeta(station, currentDate.atStartOfDay());
-
-      if (databaseScan.location != null && databaseScan.location.length() > 0) {
-        // expect that the channel filter is a list of comma-delineated locations
-        // in the event that only one location is specified this should still work
-        String[] locations = databaseScan.location.split(",");
-        stnMeta.addToWhitelist(databaseScan.location);
-      }
-
-      Hashtable<String, Hashtable<String, SacTimeSeries>> eventSynthetics = null;
-
-      boolean eventNearStartOfDay = false;
-      Hashtable<String, EventCMT> eventCMTs = eventLoader.getDayEvents(currentDate);
-      if (eventCMTs != null) {
-        eventSynthetics = eventLoader.getDaySynthetics(currentDate, station);
-
-        for( String key : eventCMTs.keySet()){
-          if (eventCMTs.get(key).getCalendar().get(Calendar.HOUR_OF_DAY) < 4 ){
-            eventNearStartOfDay = true;
-          }
-        }
-      }
-
-      // May have been passed from previous day
-      if (currentMetricData == null) {
-        currentMetricData = DataLoader.getMetricData(currentDate, station, manager);
-      }
-      nextMetricData = DataLoader.getMetricData(nextDayTimestamp, station, manager);
-
-
-      if (currentMetricData != null) {
-        // This doesn't mean nextMetricData isn't null!
-        currentMetricData.setNextMetricData(nextMetricData);
-        if (eventNearStartOfDay){
-          // This doesn't use previously loaded data. It reloads metricdata for the day.
-          previousMetricData = DataLoader.getMetricData(previousDayTimestamp, station, manager);
-          currentMetricData.setPreviousMetricData(previousMetricData);
-        }
-      }
+      loadScanData();
 
       // No Metadata found for this station-day --> skip day
-      if (stnMeta == null) {
+      if (currentMetadata == null) {
         logger.info("== Scanner: No Metadata found for Station:{}_{} for Day:{} --> Skipping",
             station.getNetwork(), station.getStation(),
             currentDate.format(DateTimeFormatter.ISO_ORDINAL_DATE));
       } else {
-        stnMeta.printStationInfo();
+        currentMetadata.printStationInfo();
 
         // Loop over Metrics to compute, for this station, for this day
         Hashtable<CrossPowerKey, CrossPower> crossPowerMap = null;
@@ -156,7 +162,7 @@ public class StationScan extends ScanWorker {
           metric.setBaseOutputDir(Global.getPlotsDir());
 
           if (currentMetricData == null) {
-            metric.setData(new MetricData(manager.database, stnMeta));
+            metric.setData(new MetricData(manager.database, currentMetadata));
           } else {
             metric.setData(currentMetricData);
           }
@@ -194,9 +200,9 @@ public class StationScan extends ScanWorker {
         } // end loop over metrics
       }
       // Insert Next Day task
-      if (nextDayTimestamp.compareTo(databaseScan.endDate) <= 0) {
+      if (currentDate.plusDays(1).compareTo(databaseScan.endDate) <= 0) {
         manager.addTask(
-            new StationScan(this.manager, this.databaseScan, nextDayTimestamp,
+            new StationScan(this.manager, this.databaseScan, currentDate.plusDays(1),
                 this.nextMetricData));
       } else {
         // We have finished this station
