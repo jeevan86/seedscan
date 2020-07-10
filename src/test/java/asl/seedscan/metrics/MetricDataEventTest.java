@@ -53,21 +53,21 @@ public class MetricDataEventTest {
 
   @Test
   public void testWindowWithinDay() {
-   assertTrue(False);
+   assertTrue(false);
   }
   @Test
   public void testWindowOverlapPrevious() {
-    assertTrue(False);
+    assertTrue(false);
   }
 
   @Test
   public void testWindowOverlapNext() {
-    assertTrue(False);
+    assertTrue(false);
   }
 
   @Test
   public void testWindowOverlapBoth() {
-    assertTrue(False);
+    assertTrue(false);
   }
 
 }
