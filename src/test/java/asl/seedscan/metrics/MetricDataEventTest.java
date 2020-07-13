@@ -46,47 +46,50 @@ public class MetricDataEventTest {
     doy = String.format("%03d", dataDate.minusDays(1).getDayOfYear());
     seedDataLocation = "/seed_data/" + networkName + "_" + stationName + "/" +
         dataDate.getYear() + "/" + doy + "";
-    data.setPreviousMetricData(ResourceManager.getMetricData(seedDataLocation, metadataLocation, dataDate.minusDays(1), station1));
+    data.setPreviousMetricData(ResourceManager
+        .getMetricData(seedDataLocation, metadataLocation, dataDate.minusDays(1), station1));
 
     doy = String.format("%03d", dataDate.plusDays(1).getDayOfYear());
     seedDataLocation = "/seed_data/" + networkName + "_" + stationName + "/" +
         dataDate.getYear() + "/" + doy + "";
-    data.setNextMetricData(ResourceManager.getMetricData(seedDataLocation, metadataLocation, dataDate.plusDays(1), station1));
+    data.setNextMetricData(ResourceManager
+        .getMetricData(seedDataLocation, metadataLocation, dataDate.plusDays(1), station1));
 
     eventLoader = new EventLoader(ResourceManager.getDirectoryPath("/event_synthetics"));
   }
 
   @Test
-  public void testWindowWithinDay(){
+  public void testWindowWithinDay() {
     // 2019-01-20 0800
     long start = 1547971200000L;
     // 2019-01-20 1500
     long end = 1547996400000L;
-    double[] results = data.getWindowedData(new Channel("00", "LHZ"), start, end );
+    double[] results = data.getWindowedData(new Channel("00", "LHZ"), start, end);
     double resultMin = DoubleStream.of(results).min().getAsDouble();
     double resultMax = DoubleStream.of(results).max().getAsDouble();
     double resultSum = DoubleStream.of(results).sum();
     int resultCount = results.length;
     assertEquals(25200, resultCount);
-    assertEquals(1165370757, (int)resultSum);
-    assertEquals(42808, (int)resultMin);
-    assertEquals(49598, (int)resultMax);
+    assertEquals(1165370757, (int) resultSum);
+    assertEquals(42808, (int) resultMin);
+    assertEquals(49598, (int) resultMax);
   }
+
   @Test
   public void testWindowOverlapPrevious() {
     // 2019-01-19 1500
     long start = 1547910000000L;
     // 2019-01-20 1500
     long end = 1547996400000L;
-    double[] results = data.getWindowedData(new Channel("00", "LHZ"), start, end );
+    double[] results = data.getWindowedData(new Channel("00", "LHZ"), start, end);
     double resultMin = DoubleStream.of(results).min().getAsDouble();
     double resultMax = DoubleStream.of(results).max().getAsDouble();
     double resultSum = DoubleStream.of(results).sum();
     int resultCount = results.length;
     assertEquals(86400, resultCount);
-    assertEquals(3908047188L, (long)resultSum);
-    assertEquals(14629, (int)resultMin);
-    assertEquals(71711, (int)resultMax);
+    assertEquals(3908047188L, (long) resultSum);
+    assertEquals(14629, (int) resultMin);
+    assertEquals(71711, (int) resultMax);
   }
 
   @Test
@@ -95,15 +98,15 @@ public class MetricDataEventTest {
     long start = 1547971200000L;
     // 2019-01-21 1500
     long end = 1548082800000L;
-    double[] results = data.getWindowedData(new Channel("00", "LHZ"), start, end );
+    double[] results = data.getWindowedData(new Channel("00", "LHZ"), start, end);
     double resultMin = DoubleStream.of(results).min().getAsDouble();
     double resultMax = DoubleStream.of(results).max().getAsDouble();
     double resultSum = DoubleStream.of(results).sum();
     int resultCount = results.length;
     assertEquals(111600, resultCount);
-    assertEquals(5073549637L, (long)resultSum);
-    assertEquals(36847, (int)resultMin);
-    assertEquals(55294, (int)resultMax);
+    assertEquals(5073549637L, (long) resultSum);
+    assertEquals(36847, (int) resultMin);
+    assertEquals(55294, (int) resultMax);
   }
 
   @Test
@@ -112,14 +115,34 @@ public class MetricDataEventTest {
     long start = 1547910000000L;
     // 2019-01-21 1500
     long end = 1548082800000L;
-    double[] results = data.getWindowedData(new Channel("00", "LHZ"), start, end );
+    double[] results = data.getWindowedData(new Channel("00", "LHZ"), start, end);
     double resultMin = DoubleStream.of(results).min().getAsDouble();
     double resultMax = DoubleStream.of(results).max().getAsDouble();
     double resultSum = DoubleStream.of(results).sum();
     int resultCount = results.length;
     assertEquals(172800, resultCount);
-    assertEquals(7816226068L, (long)resultSum);
-    assertEquals(14629, (int)resultMin);
-    assertEquals(71711, (int)resultMax);  }
+    assertEquals(7816226068L, (long) resultSum);
+    assertEquals(14629, (int) resultMin);
+    assertEquals(71711, (int) resultMax);
+  }
 
+  @Test
+  public void testWindowNoPreviousDay() {
+    assertTrue(false);
+  }
+
+  @Test
+  public void testWindowBeforeStart() {
+    assertTrue(false);
+  }
+
+  @Test
+  public void testWindowAfterEnd() {
+    assertTrue(false);
+  }
+
+  @Test
+  public void testWindowNoNextDay() {
+    assertTrue(false);
+  }
 }
