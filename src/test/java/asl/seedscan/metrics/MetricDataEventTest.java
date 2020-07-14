@@ -1,7 +1,5 @@
 package asl.seedscan.metrics;
 
-import static asl.utils.ResponseUnits.ResolutionType.HIGH;
-import static asl.utils.ResponseUnits.SensorType.STS2gen3;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -10,24 +8,17 @@ import static org.junit.Assert.assertTrue;
 import asl.metadata.Channel;
 import asl.metadata.Station;
 import asl.seedscan.event.EventLoader;
-import asl.testutils.MetricTestMap;
 import asl.testutils.ResourceManager;
-import asl.utils.input.InstrumentResponse;
-import java.io.IOException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.OptionalDouble;
 import java.util.stream.DoubleStream;
-import org.apache.commons.math3.complex.Complex;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class MetricDataEventTest {
 
   private WPhaseQualityMetric metric;
-  private static MetricData data;
+  private static MetricData rssdMetricData;
   private static EventLoader eventLoader;
   private static LocalDate dataDate = LocalDate.ofYearDay(2019, 20);
   private static Station station1;
@@ -41,18 +32,18 @@ public class MetricDataEventTest {
     String seedDataLocation = "/seed_data/" + networkName + "_" + stationName + "/" +
         dataDate.getYear() + "/" + doy + "";
     station1 = new Station(networkName, stationName);
-    data = ResourceManager.getMetricData(seedDataLocation, metadataLocation, dataDate, station1);
+    rssdMetricData = ResourceManager.getMetricData(seedDataLocation, metadataLocation, dataDate, station1);
 
     doy = String.format("%03d", dataDate.minusDays(1).getDayOfYear());
     seedDataLocation = "/seed_data/" + networkName + "_" + stationName + "/" +
         dataDate.getYear() + "/" + doy + "";
-    data.setPreviousMetricData(ResourceManager
+    rssdMetricData.setPreviousMetricData(ResourceManager
         .getMetricData(seedDataLocation, metadataLocation, dataDate.minusDays(1), station1));
 
     doy = String.format("%03d", dataDate.plusDays(1).getDayOfYear());
     seedDataLocation = "/seed_data/" + networkName + "_" + stationName + "/" +
         dataDate.getYear() + "/" + doy + "";
-    data.setNextMetricData(ResourceManager
+    rssdMetricData.setNextMetricData(ResourceManager
         .getMetricData(seedDataLocation, metadataLocation, dataDate.plusDays(1), station1));
 
     eventLoader = new EventLoader(ResourceManager.getDirectoryPath("/event_synthetics"));
@@ -64,7 +55,7 @@ public class MetricDataEventTest {
     long start = 1547971200000L;
     // 2019-01-20 1500
     long end = 1547996400000L;
-    double[] results = data.getWindowedData(new Channel("00", "LHZ"), start, end);
+    double[] results = rssdMetricData.getWindowedData(new Channel("00", "LHZ"), start, end);
     double resultMin = DoubleStream.of(results).min().getAsDouble();
     double resultMax = DoubleStream.of(results).max().getAsDouble();
     double resultSum = DoubleStream.of(results).sum();
@@ -81,7 +72,7 @@ public class MetricDataEventTest {
     long start = 1547910000000L;
     // 2019-01-20 1500
     long end = 1547996400000L;
-    double[] results = data.getWindowedData(new Channel("00", "LHZ"), start, end);
+    double[] results = rssdMetricData.getWindowedData(new Channel("00", "LHZ"), start, end);
     double resultMin = DoubleStream.of(results).min().getAsDouble();
     double resultMax = DoubleStream.of(results).max().getAsDouble();
     double resultSum = DoubleStream.of(results).sum();
@@ -98,7 +89,7 @@ public class MetricDataEventTest {
     long start = 1547971200000L;
     // 2019-01-21 1500
     long end = 1548082800000L;
-    double[] results = data.getWindowedData(new Channel("00", "LHZ"), start, end);
+    double[] results = rssdMetricData.getWindowedData(new Channel("00", "LHZ"), start, end);
     double resultMin = DoubleStream.of(results).min().getAsDouble();
     double resultMax = DoubleStream.of(results).max().getAsDouble();
     double resultSum = DoubleStream.of(results).sum();
@@ -115,7 +106,7 @@ public class MetricDataEventTest {
     long start = 1547910000000L;
     // 2019-01-21 1500
     long end = 1548082800000L;
-    double[] results = data.getWindowedData(new Channel("00", "LHZ"), start, end);
+    double[] results = rssdMetricData.getWindowedData(new Channel("00", "LHZ"), start, end);
     double resultMin = DoubleStream.of(results).min().getAsDouble();
     double resultMax = DoubleStream.of(results).max().getAsDouble();
     double resultSum = DoubleStream.of(results).sum();
@@ -128,21 +119,31 @@ public class MetricDataEventTest {
 
   @Test
   public void testWindowNoPreviousDay() {
-    assertTrue(false);
+    MetricData previousDay = rssdMetricData.getPreviousMetricData();
+    // Check pulling from 2019-01-18 2300
+    Assert.assertNull(previousDay.getWindowedData(new Channel("00", "LHZ"),
+        1547852400000L, 1547910000000L));
   }
 
   @Test
   public void testWindowBeforeStart() {
-    assertTrue(false);
+    //Check pulling from before the previousDay's start
+    Assert.assertNull(rssdMetricData.getWindowedData(new Channel("00", "LHZ"),
+        1547852400000L, 1547910000000L));
   }
 
   @Test
   public void testWindowAfterEnd() {
-    assertTrue(false);
+    //Check pulling from after the nextDay's start
+    Assert.assertNull(rssdMetricData.getWindowedData(new Channel("00", "LHZ"),
+        1547971200000L, 1548198000000L));
   }
 
   @Test
   public void testWindowNoNextDay() {
-    assertTrue(false);
+    MetricData previousDay = rssdMetricData.getNextMetricData();
+    // Check pulling from 2019-01-22 2300
+    Assert.assertNull(previousDay.getWindowedData(new Channel("00", "LHZ"),
+        1547971200000L, 1548198000000L));
   }
 }
