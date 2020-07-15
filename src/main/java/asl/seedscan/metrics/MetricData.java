@@ -569,6 +569,11 @@ public class MetricData implements Serializable {
       logger.warn("We have NO data for channel=[{}] date=[{}]", channel, metadata.getDate());
       return null;
     }
+
+    //Determine boundaries for day.
+    //If window boundary preceeds day start get from previousData.getwindowed...
+    //If window boundary exceeds day end get from nextData.getwindowed...
+
     ArrayList<DataSet> datasets = getChannelData(channel);
     DataSet data = null;
     boolean windowFound = false;
