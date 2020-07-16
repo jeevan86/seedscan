@@ -6,23 +6,6 @@ import static asl.utils.NumericUtils.demeanInPlace;
 import static asl.utils.NumericUtils.detrend;
 import static asl.utils.TimeSeriesUtils.concatAll;
 
-import asl.timeseries.PreprocessingUtils;
-import asl.util.Logging;
-import asl.utils.FFTResult;
-import asl.utils.FilterUtils;
-import java.io.Serializable;
-import java.nio.ByteBuffer;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.commons.math3.complex.Complex;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import asl.metadata.Channel;
 import asl.metadata.ChannelArray;
 import asl.metadata.ChannelException;
@@ -39,8 +22,25 @@ import asl.seedsplitter.ContiguousBlock;
 import asl.seedsplitter.DataSet;
 import asl.seedsplitter.IllegalSampleRateException;
 import asl.seedsplitter.SequenceRangeException;
+import asl.timeseries.PreprocessingUtils;
 import asl.timeseries.TimeseriesException;
+import asl.util.Logging;
 import asl.util.Time;
+import asl.utils.FFTResult;
+import asl.utils.FilterUtils;
+import java.io.Serializable;
+import java.nio.ByteBuffer;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.DoubleStream;
+import org.apache.commons.math3.complex.Complex;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import seed.Blockette320;
 
 /**
@@ -553,11 +553,15 @@ public class MetricData implements Serializable {
    * Gets the windowed data.
    *
    * @param channel the channel
-   * @param windowStartEpoch the window start epoch
-   * @param windowEndEpoch the window end epoch
+   * @param windowStartEpochMillis the window start epoch milliseconds
+   * @param windowEndEpochMillis the window end epoch milliseconds
    * @return the windowed data
    */
-  double[] getWindowedData(Channel channel, long windowStartEpoch, long windowEndEpoch) {
+  double[] getWindowedData(Channel channel, long windowStartEpochMillis, long windowEndEpochMillis) {
+    return getWindowedDataMicroSeconds(channel, windowStartEpochMillis * 1000, windowEndEpochMillis * 1000);
+  }
+
+  double[] getWindowedDataMicroSeconds(Channel channel, long windowStartEpoch, long windowEndEpoch) {
     if (windowStartEpoch > windowEndEpoch) {
       logger.error("Requested window Epoch (ms timestamp) [{} - {}] is NOT VALID (start > end)",
           windowStartEpoch,
@@ -574,125 +578,151 @@ public class MetricData implements Serializable {
     //If window boundary preceeds day start get from previousData.getwindowed...
     //If window boundary exceeds day end get from nextData.getwindowed...
 
-    ArrayList<DataSet> datasets = getChannelData(channel);
-    DataSet data = null;
-    boolean windowFound = false;
+    ArrayList<DataSet> dataSets = getChannelData(channel);
+    long dayStart = dataSets.get(0).getStartTime();
+    long dayEnd = dataSets.get(0).getEndTime();
 
-    for (DataSet dataset : datasets) {
-      data = dataset;
-      long startEpoch = data.getStartTime() / 1000; // Convert microsecs
-      // --> millisecs
-      long endEpoch = data.getEndTime() / 1000; // ...
-      if (windowStartEpoch >= startEpoch && windowStartEpoch < endEpoch) {
-        windowFound = true;
+
+    DataSet wholeData = null;
+    for( DataSet dataSet : dataSets){
+      //Convert to millisecs No data should actually be sampled submillisec.
+      long dataStart = dataSet.getStartTime();
+      long dataEnd = dataSet.getEndTime();
+      dayStart = Long.min(dayStart, dataStart);
+      dayEnd = Long.max(dayEnd, dataEnd);
+
+      //Check if within a sample of the needed window.
+      long sampleDelta = dataSet.getInterval();
+
+      // Add a little bit of fudging to match window start if close enough
+      if (dataStart <= windowStartEpoch + 1.5 * sampleDelta && dataStart >= windowStartEpoch){
+        windowStartEpoch = dataStart;
+      }
+      if (dataEnd >= windowEndEpoch - 1.5 * sampleDelta && dataStart <= windowEndEpoch){
+        windowEndEpoch = dataEnd;
+      }
+
+      if (windowStartEpoch >= dataStart && windowEndEpoch <= dataEnd){
+        //Is wholely found within this chunk of data.
+        wholeData = dataSet;
         break;
       }
     }
 
-    if (!windowFound) {
-      logger.warn(
-          "Requested window Epoch (ms timestamp) [{} - {}] was NOT FOUND "
-              + "within DataSet for channel=[{}] date=[{}]",
-          windowStartEpoch, windowEndEpoch, channel, metadata.getDate());
+    //Did we find a datasegment containing everything?
+    if (wholeData != null){
+      //Yes, return trimmed values or null if error occurs
+      try {
+        return Arrays.stream(wholeData.getSeries(windowStartEpoch, windowEndEpoch)).asDoubleStream().toArray();
+      } catch (SequenceRangeException e) {
+        logger.warn("Sequence Exception caught reading data for channel=[{}] date=[{}] window (in epoch millis): {} msto {} ms", channel, metadata.getDate(), windowStartEpoch, windowEndEpoch);
+        return null;
+      }
+    }
+
+    boolean getPreviousDay = false;
+    boolean getNextDay = false;
+
+    //Data was not found in a single chunk
+    //Is it because it is outside the day boundary?
+    if (windowStartEpoch < dayStart) {
+      getPreviousDay = true;
+    }
+    if (windowEndEpoch > dayEnd) {
+      getNextDay = true;
+    }
+
+    if (!(getPreviousDay || getNextDay)){
+      // It wasn't outside the day boundary, must have a gap then.
+      logger.warn("Gap found in data for channel=[{}] date=[{}] window (in epoch millis): {} msto {} ms", channel, metadata.getDate(), windowStartEpoch, windowEndEpoch);
       return null;
     }
 
-    long dataStartEpoch = data.getStartTime() / 1000; // Convert microsecs
-    // --> millisecs
-    long dataEndEpoch = data.getEndTime() / 1000; // ...
-    long interval = data.getInterval() / 1000; // Convert microsecs -->
-    // millisecs (dt = sample
-    // interval)
-    double srate1 = data.getSampleRate();
+    //Merge parts together since it overlaps day boundaries
 
-    // Requested Window must start in Day 1 (taken from current dataset(0))
-    if (windowStartEpoch < dataStartEpoch || windowStartEpoch > dataEndEpoch) {
-      logger.warn(
-          "Requested window Epoch (ms timestamp) [{} - {}] does NOT START "
-              + "in current day data window Epoch [{} - {}] for channel=[{}] date=[{}]",
-          windowStartEpoch, windowEndEpoch, dataStartEpoch, dataEndEpoch, channel,
-          metadata.getDate());
+    //First do other days have data loaded?
+    //HasChannelData ends up being checked twice once on the sub getWindowedData call and here.
+    if(getPreviousDay &&
+        (this.previousMetricData == null
+            || !this.previousMetricData.hasChannelData(channel))){
+      logger.warn("Missing Previous day's data for channel=[{}] date=[{}] window (in epoch millis): {} msto {} ms", channel, metadata.getDate(), windowStartEpoch, windowEndEpoch);
+      return null;
+    }
+    if(getNextDay && (this.nextMetricData == null || !this.nextMetricData.hasChannelData(channel))){
+      logger.warn("Missing Next day's data for channel=[{}] date=[{}] window (in epoch millis): {} msto {} ms", channel, metadata.getDate(), windowStartEpoch, windowEndEpoch);
       return null;
     }
 
-    boolean spansDay = false;
-    DataSet nextData = null;
+    //This will be set otherwise gap check earlier would have failed.
+    //Distance in millisecs between samples.
+    long sampleDelta = 0;
 
-    if (windowEndEpoch > dataEndEpoch) { // Window appears to span into next
-      // day
-      if (nextMetricData == null) {
-        logger.warn(String.format(
-            "== getWindowedData: Requested Epoch window[%d-%d] spans into next day, but we have NO data "
-                + "for channel=[%s] date=[%s] for next day\n",
-            windowStartEpoch, windowEndEpoch, channel, metadata.getDate()));
+    //Data found, do sample rates match?
+    //Grab interval while checking samplerates.
+    if(getPreviousDay){
+      ArrayList<DataSet> prevDataSets = this.previousMetricData.getChannelData(channel);
+      //Compare last dataset of previous day to first dataset of today.
+      //This compares doubles, but I don't see a clean way to refactor this to something else.
+      //Pre-existing code did this same type of comparison.
+      sampleDelta = dataSets.get(0).getInterval();
+      if (prevDataSets.get(prevDataSets.size() - 1).getSampleRate() != dataSets.get(0).getSampleRate()){
+        logger.warn("Previous Day's samplerate doesn't match current Day's samplerate for channel=[{}] date=[{}] window (in epoch millis): {} msto {} ms", channel, metadata.getDate(), windowStartEpoch, windowEndEpoch);
         return null;
       }
-      if (!nextMetricData.hasChannelData(channel)) {
-        logger.warn("Requested Epoch window spans into next day, but we have NO data "
-            + "for channel=[{}] date=[{}] for next day", channel, metadata.getDate());
-        return null;
-      }
-
-      datasets = nextMetricData.getChannelData(channel);
-      nextData = datasets.get(0);
-
-      long nextDataStartEpoch = nextData.getStartTime() / 1000; // Convert
-      // microsecs
-      // -->
-      // millisecs
-      long nextDataEndEpoch = nextData.getEndTime() / 1000; // ...
-      double srate2 = nextData.getSampleRate();
-
-      if (srate2 != srate1) {
-        logger.warn(String.format(
-            "== getWindowedData: Requested window Epoch [%d - %d] extends into "
-                + "nextData window Epoch [%d - %d] for channel=[%s] date=[%s] but srate1[%f] != srate2[%f]\n",
-            windowStartEpoch, windowEndEpoch, nextDataStartEpoch, nextDataEndEpoch, channel,
-            metadata.getDate(), srate1, srate2));
-        return null;
-      }
-
-      // Requested Window must end in Day 2 (taken from next day
-      // dataset(0))
-
-      if (windowEndEpoch > nextDataEndEpoch) {
-        logger.warn(String.format(
-            "== getWindowedData: Requested window Epoch [%d - %d] extends BEYOND "
-                + "found nextData window Epoch [%d - %d] for channel=[%s] date=[%s]\n",
-            windowStartEpoch, windowEndEpoch, nextDataStartEpoch, nextDataEndEpoch, channel,
-            metadata.getDate()));
-        return null;
-      }
-
-      spansDay = true;
     }
-
-    long windowMilliSecs = windowEndEpoch - windowStartEpoch;
-    int nWindowPoints = (int) (windowMilliSecs / interval);
-
-    double[] dataArray = new double[nWindowPoints];
-
-    int[] series1 = data.getSeries();
-    int[] series2 = null;
-    if (spansDay) {
-      series2 = nextData.getSeries();
-    }
-    int j = 0;
-
-    // MTH: this seems to line it up better with rdseed output window but
-    // doesn't seem right ...
-    int istart = (int) ((windowStartEpoch - dataStartEpoch) / interval) + 1;
-
-    for (int i = 0; i < nWindowPoints; i++) {
-      if ((istart + i) < data.getLength()) {
-        dataArray[i] = (double) series1[i + istart];
-      } else if (j < nextData.getLength()) {
-        dataArray[i] = (double) series2[j++];
+    if(getNextDay){
+      ArrayList<DataSet> nextDataSets = this.nextMetricData.getChannelData(channel);
+      //Compare first set of next day to last set of today
+      //Same double comparison concerns as above.
+      sampleDelta = nextDataSets.get(0).getInterval();
+      if (nextDataSets.get(0).getSampleRate() != dataSets.get(dataSets.size() - 1).getSampleRate()){
+        logger.warn("Next Day's samplerate doesn't match current Day's samplerate for channel=[{}] date=[{}] window (in epoch millis): {} msto {} ms", channel, metadata.getDate(), windowStartEpoch, windowEndEpoch);
+        return null;
       }
     }
 
-    return dataArray;
+    //Solidify boundaries to query for
+    long prevDayStart = 0;
+    long prevDayEnd = 0;
+    long currentDayStart = windowStartEpoch;
+    long currentDayEnd = windowEndEpoch;
+    long nextDayStart = 0;
+    long nextDayEnd = 0;
 
+    if(getPreviousDay){
+      prevDayStart = windowStartEpoch;
+      prevDayEnd = (dayStart - sampleDelta);
+      currentDayStart = dayStart;
+    }
+
+    if(getNextDay){
+      nextDayStart = (dayEnd + sampleDelta);
+      nextDayEnd = windowEndEpoch;
+      currentDayEnd = dayEnd;
+    }
+
+    //Load actual data
+    DoubleStream results = Arrays.stream(this.getWindowedDataMicroSeconds(channel, currentDayStart, currentDayEnd));
+
+    if(getPreviousDay){
+      double[] prevResults = this.previousMetricData.getWindowedDataMicroSeconds(channel, prevDayStart, prevDayEnd);
+      if(prevResults == null){
+        logger.warn("Could not get data for previous day for channel=[{}] date=[{}] window (in epoch millis): {} msto {} ms", channel, metadata.getDate(), windowStartEpoch, windowEndEpoch);
+        return null;
+      }
+      results = DoubleStream.concat(Arrays.stream(prevResults), results);
+    }
+
+    if(getNextDay){
+      double[] nextResults = this.nextMetricData.getWindowedDataMicroSeconds(channel, nextDayStart, nextDayEnd);
+      if(nextResults == null){
+        logger.warn("Could not get data for next day for channel=[{}] date=[{}] window (in epoch millis): {} msto {} ms", channel, metadata.getDate(), windowStartEpoch, windowEndEpoch);
+        return null;
+      }
+      results = DoubleStream.concat(results, Arrays.stream(nextResults));
+    }
+
+    return results.toArray();
   }
 
   /**
