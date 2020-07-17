@@ -598,7 +598,7 @@ public class MetricData implements Serializable {
       if (dataStart <= windowStartEpoch + 1.5 * sampleDelta && dataStart >= windowStartEpoch){
         windowStartEpoch = dataStart;
       }
-      if (dataEnd >= windowEndEpoch - 1.5 * sampleDelta && dataStart <= windowEndEpoch){
+      if (dataEnd >= windowEndEpoch - 1.5 * sampleDelta && dataEnd <= windowEndEpoch){
         windowEndEpoch = dataEnd;
       }
 
