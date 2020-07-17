@@ -620,6 +620,12 @@ public class MetricData implements Serializable {
       }
     }
 
+    // Was it entirely outside our requested window?
+    if(windowEndEpoch < dayStart || windowStartEpoch > dayEnd){
+      logger.warn("Entirety of requested window outside currentDay for channel=[{}] date=[{}] window (in epoch millis): {} msto {} ms", channel, metadata.getDate(), windowStartEpoch, windowEndEpoch);
+      return null;
+    }
+
     boolean getPreviousDay = false;
     boolean getNextDay = false;
 
@@ -685,19 +691,19 @@ public class MetricData implements Serializable {
     long prevDayStart = 0;
     long prevDayEnd = 0;
     long currentDayStart = windowStartEpoch;
-    long currentDayEnd = windowEndEpoch;
+    long currentDayEnd = windowEndEpoch + sampleDelta;
     long nextDayStart = 0;
     long nextDayEnd = 0;
 
     if(getPreviousDay){
       prevDayStart = windowStartEpoch;
-      prevDayEnd = (dayStart - sampleDelta);
+      prevDayEnd = dayStart;
       currentDayStart = dayStart;
     }
 
     if(getNextDay){
-      nextDayStart = (dayEnd + sampleDelta);
-      nextDayEnd = windowEndEpoch;
+      nextDayStart = dayEnd;
+      nextDayEnd = windowEndEpoch + sampleDelta;
       currentDayEnd = dayEnd;
     }
 
