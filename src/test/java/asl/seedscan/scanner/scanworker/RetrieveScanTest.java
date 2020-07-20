@@ -76,7 +76,7 @@ public class RetrieveScanTest {
 
     scan.parseScan(dbScan);
     assertEquals(0, manager.getNumberTasksAdded());
-    assertEquals(157, database.getNumberOfInsertedChildScans());
+    assertEquals(160, database.getNumberOfInsertedChildScans());
     assertEquals(0, database.getNumberErrors());
   }
 
@@ -93,7 +93,7 @@ public class RetrieveScanTest {
     scan.parseScan(dbScan);
     assertEquals(0, manager.getNumberTasksAdded());
     //157*36=5652 30 day scans
-    assertEquals(5652, database.getNumberOfInsertedChildScans());
+    assertEquals(5760, database.getNumberOfInsertedChildScans());
     assertEquals(0, database.getNumberErrors());
   }
 

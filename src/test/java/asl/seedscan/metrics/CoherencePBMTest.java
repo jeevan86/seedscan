@@ -54,9 +54,9 @@ public class CoherencePBMTest {
     metric.add("upper-limit", "8");
     metric.setData(maleableData);
     MetricTestMap expect = new MetricTestMap();
-    expect.put("00-10,LHZ-LHZ",   0.4664829917692734);
-    expect.put("00-10,LHND-LHND", 0.5168012156749662);
-    expect.put("00-10,LHED-LHED", 0.6143960248066318);
+    expect.put("00-10,LHZ-LHZ",   0.46650701372368103);
+    expect.put("00-10,LHND-LHND", 0.5182666130353961);
+    expect.put("00-10,LHED-LHED", 0.6147684499533778);
     TestUtils.testMetric(metric, expect);
   }
 
@@ -97,8 +97,8 @@ public class CoherencePBMTest {
     metric.setData(data);
     MetricTestMap expect = new MetricTestMap();
     expect.put("00-10,LHZ-LHZ",   0.4220825); // was 0.2937884614962973
-    expect.put("00-10,LHND-LHND", 0.3879628); // was 0.2116717537635636
-    expect.put("00-10,LHED-LHED", 0.3641875); // was 0.21227322319511213
+    expect.put("00-10,LHND-LHND", 0.3879783); // was 0.2116717537635636
+    expect.put("00-10,LHED-LHED", 0.3641776); // was 0.21227322319511213
     TestUtils.testMetric(metric, expect);
   }
 
@@ -113,8 +113,8 @@ public class CoherencePBMTest {
     metric.setData(data);
     MetricTestMap expect = new MetricTestMap();
     expect.put("10-00,LHZ-LHZ",   0.4220825);
-    expect.put("10-00,LHND-LHND", 0.3879628);
-    expect.put("10-00,LHED-LHED", 0.3641875);
+    expect.put("10-00,LHND-LHND", 0.3879783);
+    expect.put("10-00,LHED-LHED", 0.3641776);
     TestUtils.testMetric(metric, expect);
 
   }
