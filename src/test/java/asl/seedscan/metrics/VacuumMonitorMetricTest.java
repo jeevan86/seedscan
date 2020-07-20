@@ -48,7 +48,7 @@ public class VacuumMonitorMetricTest {
   @Test
   public final void testProcessDefault() throws Exception {
     HashMap<String, Double> expect = new HashMap<>();
-    expect.put("00,VY1", 39.2043354373);
+    expect.put("00,VY1", 39.2043192984);
     expect.put("00,VY2", 39.4955981431);
     expect.put("00,VYZ", 45.5289258911);
 
@@ -61,7 +61,7 @@ public class VacuumMonitorMetricTest {
     metric.add("channel-restriction", "VY");
 
     HashMap<String, Double> expect = new HashMap<>();
-    expect.put("00,VY1", 39.2043354373);
+    expect.put("00,VY1", 39.2043192984);
     expect.put("00,VY2", 39.4955981431);
     expect.put("00,VYZ", 45.5289258911);
 

@@ -15,4 +15,8 @@ public class GlobalMock extends Global {
     dataDir = directory;
   }
 
+  public static void setEventsDir(String directory) {
+    eventsDir = directory;
+  }
+
 }
