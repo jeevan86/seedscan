@@ -83,8 +83,8 @@ public class EventComparePWaveOrientationTest {
     metric.setEventTable(eventLoader.getDayEvents(dataDate));
     metric.setEventSynthetics(eventLoader.getDaySynthetics(dataDate, station1));
     MetricTestMap expect = new MetricTestMap();
-    expect.put("00,LHND", -2.207, 1E-3);
-    expect.put("10,LHND", 0.595, 1E-3);
+    expect.put("00,LHND", -2.386, 1E-3);
+    expect.put("10,LHND", 0.429, 1E-3);
     TestUtils.testMetric(metric, expect);
   }
 
@@ -108,8 +108,8 @@ public class EventComparePWaveOrientationTest {
     metric.setEventSynthetics(eventLoader.getDaySynthetics(tucDate, station2));
     MetricTestMap expect = new MetricTestMap();
     expect.put("00,LHND", -6.299, 1E-3);
-    expect.put("10,LHND", -0.240, 1E-3);
-    expect.put("60,LHND", -0.660, 1E-3);
+    expect.put("10,LHND", -0.238, 1E-3);
+    expect.put("60,LHND", -0.662, 1E-3);
     TestUtils.testMetric(metric, expect);
   }
 
@@ -120,7 +120,7 @@ public class EventComparePWaveOrientationTest {
     metric.setEventTable(eventLoader.getDayEvents(dataDate));
     metric.setEventSynthetics(eventLoader.getDaySynthetics(dataDate, station4));
     MetricTestMap expect = new MetricTestMap();
-    expect.put("10,LHND", -2.148, 1E-3);
+    expect.put("10,LHND", -2.260, 1E-3);
     TestUtils.testMetric(metric, expect);
   }
 
@@ -136,8 +136,8 @@ public class EventComparePWaveOrientationTest {
     metric.setEventTable(eventLoader.getDayEvents(dataDate));
     metric.setEventSynthetics(eventLoader.getDaySynthetics(dataDate, station1));
     MetricTestMap expect = new MetricTestMap();
-    expect.put("00,LHND", -2.207, 1E-3);
-    expect.put("10,LHND", 0.595, 1E-3);
+    expect.put("00,LHND", -2.387, 1E-3);
+    expect.put("10,LHND", 0.429, 1E-3);
     TestUtils.testMetric(metric, expect);
   }
 
@@ -156,7 +156,7 @@ public class EventComparePWaveOrientationTest {
     // and don't actually use the raw synthetic data for anything in this test
     MetricTestMap expect = new MetricTestMap();
     expect.put("00,BHND", -2.283, 1E-3);
-    expect.put("10,BHND", 0.528, 1E-3);
+    expect.put("10,BHND", 0.523, 1E-3);
     TestUtils.testMetric(metric, expect);
   }
 

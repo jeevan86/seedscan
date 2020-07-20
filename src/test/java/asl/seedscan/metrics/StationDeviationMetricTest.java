@@ -72,9 +72,9 @@ public class StationDeviationMetricTest {
     expect.put("00,LH1",  0.233198, err);
     expect.put("00,LH2", 14.616353, err);
     expect.put("00,LHZ", 22.065026, err);
-    expect.put("00,HH1",  2.803574, err);
-    expect.put("00,HH2", 13.600219, err);
-    expect.put("00,HHZ", 21.547133, err);
+    expect.put("00,HH1",  2.803599, err);
+    expect.put("00,HH2", 13.600242, err);
+    expect.put("00,HHZ", 21.547157, err);
 
     TestUtils.testMetric(metric, expect);
   }
