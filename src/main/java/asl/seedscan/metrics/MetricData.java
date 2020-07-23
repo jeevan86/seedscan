@@ -708,7 +708,12 @@ public class MetricData implements Serializable {
     }
 
     //Load actual data
-    DoubleStream results = Arrays.stream(this.getWindowedDataMicroSeconds(channel, currentDayStart, currentDayEnd));
+    double[] todaysResults = this.getWindowedDataMicroSeconds(channel, currentDayStart, currentDayEnd);
+    if(todaysResults == null){
+      logger.warn("Could not get data for current day for channel=[{}] date=[{}] window (in epoch millis): {} msto {} ms", channel, metadata.getDate(), windowStartEpoch, windowEndEpoch);
+      return null;
+    }
+    DoubleStream results = Arrays.stream(todaysResults);
 
     if(getPreviousDay){
       double[] prevResults = this.previousMetricData.getWindowedDataMicroSeconds(channel, prevDayStart, prevDayEnd);
