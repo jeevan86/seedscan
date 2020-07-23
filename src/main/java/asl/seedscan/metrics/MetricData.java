@@ -1010,9 +1010,7 @@ public class MetricData implements Serializable {
     dataLists.add(channelXData);
     dataLists.add(channelYData);
 
-    BlockLocator locator = new BlockLocator(dataLists);
-    locator.doInBackground(); //Not actually in background.
-    ArrayList<ContiguousBlock> blocks = locator.getBlocks();
+    ArrayList<ContiguousBlock> blocks = BlockLocator.buildBlockList(dataLists);
 
     ContiguousBlock largestBlock = null;
     ContiguousBlock lastBlock = null;
