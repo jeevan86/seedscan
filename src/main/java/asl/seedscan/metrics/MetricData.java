@@ -862,6 +862,14 @@ public class MetricData implements Serializable {
       Channel channelN = new Channel(location, String.format("%sND", channelPrefix));
       Channel channelE = new Channel(location, String.format("%sED", channelPrefix));
 
+      double srate1 = getChannelData(channel1).get(0).getSampleRate();
+      double srate2 = getChannelData(channel2).get(0).getSampleRate();
+      if (srate1 != srate2) {
+        throw new MetricException(String.format(
+            "createRotatedChannels: channel1=[%s] and/or channel2=[%s] date=[%s]: srate1 != srate2 !!",
+            channel1, channel2, metadata.getDate()));
+      }
+
       // Get overlapping data for 2 horizontal channels and confirm equal
       // sample rate, etc.
       long[] foo = new long[1];
@@ -877,14 +885,6 @@ public class MetricData implements Serializable {
 			 */
 
       int ndata = chan1Data.length;
-
-      double srate1 = getChannelData(channel1).get(0).getSampleRate();
-      double srate2 = getChannelData(channel2).get(0).getSampleRate();
-      if (srate1 != srate2) {
-        throw new MetricException(String.format(
-            "createRotatedChannels: channel1=[%s] and/or channel2=[%s] date=[%s]: srate1 != srate2 !!",
-            channel1, channel2, metadata.getDate()));
-      }
 
       double[] chanNData = new double[ndata];
       double[] chanEData = new double[ndata];
@@ -990,8 +990,10 @@ public class MetricData implements Serializable {
    * @param channelY the channel y
    * @param startTime the start time
    * @return the channel overlap
+   * @throws MetricException if datasets have any mismatching sample rates.
    */
-  private double[][] getChannelOverlap(Channel channelX, Channel channelY, long[] startTime) {
+  private double[][] getChannelOverlap(Channel channelX, Channel channelY, long[] startTime)
+      throws MetricException {
 
     ArrayList<ArrayList<DataSet>> dataLists = new ArrayList<>();
 

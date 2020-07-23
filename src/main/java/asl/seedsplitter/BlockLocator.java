@@ -1,5 +1,6 @@
 package asl.seedsplitter;
 
+import asl.seedscan.metrics.MetricException;
 import java.util.ArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +27,8 @@ public class BlockLocator {
    *
    * @return A ArrayList of ContiguousBlock objects.
    */
-  public static ArrayList<ContiguousBlock> buildBlockList(ArrayList<ArrayList<DataSet>> dataLists) {
+  public static ArrayList<ContiguousBlock> buildBlockList(ArrayList<ArrayList<DataSet>> dataLists)
+      throws MetricException {
     // The first ArrayList sets up the base ArrayList of ContiguousBlock
     // objects
     // Step through each of the remaining ArrayLists and build a new group
@@ -36,12 +38,7 @@ public class BlockLocator {
 
     ArrayList<ContiguousBlock> blockList = _buildFirstList(dataLists.get(0));
     for (ArrayList<DataSet> datalist : dataLists) {
-      try {
         blockList = _buildDependentList(datalist, blockList);
-      } catch (BlockIntervalMismatchException e) {
-        logger.debug("Interval (sample rate) does not match across channels.");
-        return null;
-      }
     }
 
     return blockList;
@@ -74,12 +71,12 @@ public class BlockLocator {
    *                  blocks.
    * @param blockList The previous list of contiguous data blocks.
    * @return A new list of contiguous data blocks.
-   * @throws BlockIntervalMismatchException If the sample rate of any of the DataSets does not match
+   * @throws MetricException If the sample rate of any of the DataSets does not match
    *                                        with those of the ContiguousBlocks.
    */
   private static ArrayList<ContiguousBlock> _buildDependentList(
       ArrayList<DataSet> dataList, ArrayList<ContiguousBlock> blockList)
-      throws BlockIntervalMismatchException {
+      throws MetricException {
     ArrayList<ContiguousBlock> resultList = new ArrayList<>();
     DataSet tempData;
     ContiguousBlock oldBlock;
@@ -93,7 +90,9 @@ public class BlockLocator {
       oldBlock = blockList.get(blockIndex);
 
       if (tempData.getInterval() != oldBlock.getInterval()) {
-        throw new BlockIntervalMismatchException();
+        throw new MetricException(String.format(
+            "_buildDependentList: interval1=[%s] and/or interval2=[%s]",
+            tempData.getInterval(), oldBlock.getInterval()));
       }
 
       if (tempData.getEndTime() <= oldBlock.getStartTime()) {
