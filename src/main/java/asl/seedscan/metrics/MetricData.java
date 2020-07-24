@@ -1014,6 +1014,11 @@ public class MetricData implements Serializable {
 
     ArrayList<ContiguousBlock> blocks = BlockLocator.buildBlockList(dataLists);
 
+    if (blocks == null || blocks.size() == 0) {
+      String error = "Could not get any blocks from the datasets!";
+      throw new MetricException(error);
+    }
+
     ContiguousBlock largestBlock = null;
     ContiguousBlock lastBlock = null;
     for (ContiguousBlock block : blocks) {
@@ -1283,7 +1288,7 @@ public class MetricData implements Serializable {
           createRotatedChannelData(channel.getLocation(), channelPrefix);
         }
       } catch (MetricException e) {
-        logger.warn(Logging.prettyExceptionWithCause(e));
+        logger.error(Logging.prettyExceptionWithCause(e));
       }
     }
   }
