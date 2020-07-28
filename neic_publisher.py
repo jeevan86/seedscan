@@ -4,6 +4,7 @@ import json
 
 # pip-installed
 from kafka import KafkaProducer
+from kafka.errors import KafkaError
 
 # requires a local repo
 from dqatools.dqaclient import call_dqa
@@ -16,7 +17,7 @@ def run_test():
 
 
 def publish_messages(networks=None, select_dates=None, metrics=None,
-                     is_test=False):
+    is_test=False):
     if networks is None or len(networks) == 0:
         networks = ['CU', 'GS', 'GT', 'IC', 'II', 'IU', 'IW', 'NE', 'US', 'N4']
     if select_dates is None or len(select_dates) == 0:
@@ -34,9 +35,14 @@ def publish_messages(networks=None, select_dates=None, metrics=None,
         output = call_dqa(network=network, metric=metric, begin=date_string,
                           end=date_string, format='csv')
         # set up the kafka (producer) connection here
+        # default blocktime is 60000 ms -- so let's try multiplying by 5
+        blocktime = 10000
         producer = KafkaProducer(bootstrap_servers=
                                  'igskcicgvmkafka.cr.usgs.gov:9092',
-                                 client_id='producer-from-dqa')
+                                 client_id='producer-from-dqa', acks=0,
+                                 max_block_ms=blocktime,
+                                 value_serializer=lambda v: json.dumps(v)
+                                 .encode('utf-8'))
         # each line is effectively a row in the database
         for record in iter(output.splitlines()):
             # now we get the fields and jsonify them for publication
@@ -51,18 +57,20 @@ def publish_messages(networks=None, select_dates=None, metrics=None,
             # /blob/master/format-docs/StationInfo.md
             # we have some custom formats added here to disambiguate metric
             # and to give the date of data this metric was evaluated upon
-            message = json.JSONEncoder().encode(
-                {"Type": "StationInfo", "Site": {"Network": network,
-                                                 "Station": station,
-                                                 "Location": location,
-                                                 "Channel": channel},
-                 "Quality": value, "Date": date_string, "Enable": "true"})
+            message = {"Type": "StationInfo", "Site": {"Network": network,
+                                                       "Station": station,
+                                                       "Location": location,
+                                                       "Channel": channel},
+                       "Quality": value, "Date": date_string, "Enable": "true"}
             # next step is to actually send this message
             topic_name = metric
             if is_test:
-                topic_name += "_test"
-            # print(topic_name, message)
-            producer.send(topic_name, value=message.encode('utf-8'))
+                topic_name += ".test"
+            topic_name = topic_name.replace('_', '')
+            topic_name = topic_name.replace('-', 'to')
+            topic_name = topic_name.replace(' ', '')
+            producer.send(topic_name, message)
+        producer.flush()
 
 
 if __name__ == '__main__':
