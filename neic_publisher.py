@@ -50,8 +50,6 @@ def publish_messages(networks=None, select_dates=None, metrics=None,
             (r_date, network, station, location, channel, metric, value) = \
                 record.split(',')
             # (metric, value, channel, location, station, network) = record
-            # metric name might have disallowed character in it
-            metric = metric.replace(':', '_')
             # json format description:
             # https://github.com/usgs/earthquake-detection-formats (cont.)
             # /blob/master/format-docs/StationInfo.md
@@ -63,11 +61,14 @@ def publish_messages(networks=None, select_dates=None, metrics=None,
                                                        "Channel": channel},
                        "Quality": value, "Date": date_string, "Enable": "true"}
             # next step is to actually send this message
+            # metric (topic) name might have disallowed character in it
             topic_name = metric
             if is_test:
                 topic_name += ".test"
             topic_name = topic_name.replace('_', '')
+            # turn, e.g., "0.5-1" to "0.5to1"
             topic_name = topic_name.replace('-', 'to')
+            topic_name = topic_name.replace(':', '')
             topic_name = topic_name.replace(' ', '')
             producer.send(topic_name, message)
         producer.flush()
