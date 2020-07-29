@@ -15,15 +15,20 @@ import asl.metadata.meta_new.PolynomialStage;
 import asl.seedsplitter.DataSet;
 
 /**
- * Pressure metric for atmospheric sensors
+ * Pressure metric for atmospheric sensors -- computes RMS value of the sensor.
+ * This is then corrected for elevation and returned as atmospheres, so the metric
+ * should return 1 for a correctly functioning pressure sensor with good metadata.
  */
 public class PressureMetric extends Metric {
 
     private static final double CONSTANT_FACTOR = 2.25577E-5;
     private static final double CONSTANT_EXPONENT = 5.25588;
+    // conversion factor from atmospheres to pascals
+    private static final double ATM_CONV_FACTOR = 101325.;
 
     /** The Constant logger. */
-    private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.metrics.PressureMetric.class);
+    private static final Logger logger =
+        LoggerFactory.getLogger(asl.seedscan.metrics.PressureMetric.class);
 
     public PressureMetric() {
         super();
@@ -60,7 +65,8 @@ public class PressureMetric extends Metric {
         }
 
         // Get all VM? channels in metadata to use for loop
-        List<Channel> channels = this.stationMeta.getChannelArray(bands, false, true);
+        List<Channel> channels = this.stationMeta.getChannelArray(bands,
+            false, true);
         for (Channel channel : channels) {
             ByteBuffer digest = this.metricData.valueDigestChanged(channel,
                     this.createIdentifier(channel), this.getForceUpdate());
@@ -115,20 +121,23 @@ public class PressureMetric extends Metric {
         ResponseStage stage = chanMeta.getStage(0);
         if (!(stage instanceof PolynomialStage)) {
             throw new UnsupportedEncodingException(String
-                    .format("station=[%s] channel=[%s] day=[%s]: Stage 0 is NOT a PolynomialStage--> Skip metric",
+                    .format("station=[%s] channel=[%s] day=[%s]: Stage 0 is NOT a "
+                            + "PolynomialStage--> Skip metric",
                             station, channel.toString(), day));
         }
         PolynomialStage polyStage = (PolynomialStage) stage;
         double[] coefficients = polyStage.getRealPolynomialCoefficients();
 
-        // Make sure we have enough ingredients to calculate something useful (i.e., not everything is zero)
+        // Make sure we have enough ingredients to calculate something useful
+        // (i.e., not everything is zero)
         boolean hasAtLeastOneNonzeroCoefficient = false;
         for (double coeff : coefficients) {
             hasAtLeastOneNonzeroCoefficient |= (coeff > 0);
         }
         if (!hasAtLeastOneNonzeroCoefficient) {
             throw new MetricException(String
-                    .format("station=[%s] channel=[%s] day=[%s]: We don't have enough information to compute pressure!--> Skip metric",
+                    .format("station=[%s] channel=[%s] day=[%s]: We don't have enough information "
+                            + "to compute pressure!--> Skip metric",
                             station, channel.toString(), day));
         }
 
@@ -136,7 +145,7 @@ public class PressureMetric extends Metric {
         int pointCount = 0;
 
         for (DataSet dataset : datasets) {
-            int intArray[] = dataset.getSeries();
+            int[] intArray = dataset.getSeries();
             for (int dataPoint : intArray) {
                 double polynomialAccumulator = 0.; // a0 + a1 * x + a2 * x^2, etc.
                 // we expect there to be only a0 and a1 but won't enforce this as a constraint
@@ -150,6 +159,7 @@ public class PressureMetric extends Metric {
 
         rmsValue = Math.sqrt(rmsValue / pointCount);
         // correct for elevation and then convert to atmospheres (assume resp in Pascals)
-        return (rmsValue / Math.pow(1. - (CONSTANT_FACTOR * elevation), CONSTANT_EXPONENT)) / 101325.;
+        return (rmsValue / Math.pow(1. - (CONSTANT_FACTOR * elevation), CONSTANT_EXPONENT))
+            / ATM_CONV_FACTOR;
     }
 }

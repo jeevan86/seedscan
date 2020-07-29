@@ -23,6 +23,18 @@ import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * This metric compares the p-wave arrival of data to a synthetic source to
+ * determine the azimuthal orientation of the sensor.
+ *
+ * Specifically, this comparison is done between the phase of the p-wave as
+ * detected by a horizontal sensor and its rotational pair (i.e., LHN and LHE),
+ * comparing the event azimuth to the determined back-azimuth.
+ *
+ * Because of how back-azimuth is calculated, we determine the specific quadrant of
+ * the back-azimuth (and thus the actual sensor orientation) by comparing the signs of
+ * the detected for all 3 sensor components (that is, including the vertical).
+ */
 public class EventComparePWaveOrientation extends Metric {
 
   private static final Logger logger =
@@ -35,7 +47,7 @@ public class EventComparePWaveOrientation extends Metric {
   private static final int MIN_DEGREES = 20;
   private static final int MAX_DEGREES = 90;
   /**
-   * https://github.com/usgs/seedscan.git Filter corner 0.05 Hz or 20 seconds period.
+   * Filter corner 0.05 Hz or 20 seconds period.
    */
   private static final double LOW_PASS_FILTER_CORNER = 0.05;
   /**
@@ -424,7 +436,7 @@ public class EventComparePWaveOrientation extends Metric {
   private double calculateBackAzimuth(double[] north, double[] east, double evtAzimuth,
       int signalOffset) {
 
-    // we don'fintt care a but the intercept, only the slope
+    // we don't care about the intercept, only the slope
     SimpleRegression slopeCalculation = new SimpleRegression(false);
     for (int i = signalOffset; i < north.length; ++i) {
       slopeCalculation.addData(east[i], north[i]);

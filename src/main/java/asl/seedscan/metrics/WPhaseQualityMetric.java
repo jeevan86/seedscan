@@ -14,7 +14,6 @@ import asl.seedscan.event.ArrivalTimeUtils.ArrivalTimeException;
 import asl.seedscan.event.EventCMT;
 import asl.timeseries.CrossPower;
 import asl.timeseries.InterpolatedNHNM;
-import asl.util.Logging;
 import asl.utils.NumericUtils;
 import edu.sc.seis.TauP.SphericalCoords;
 import java.nio.ByteBuffer;
@@ -38,6 +37,14 @@ import sac.SacTimeSeries;
 
 /**
  * Calculates the quality of data relative to an event if it is a feasible candidate for
+ * use in synthetic generation. This performs several of the prescreening steps as specified
+ * in Duputel, Rivera, Kanamori, Hayes (2012), "W phase source inversion for
+ * moderate to large earthquakes", Geophysical Journal International.
+ * The methods are taken from section 3.2 in particular.
+ *
+ * In addition, response inversion is performed by a recursive method specified in
+ * Kanamori and Rivera (2008), "Source inversion of W-Phase: speeding up seismic tsunami warning",
+ * Geophysical Journal International.
  *
  */
 public class WPhaseQualityMetric extends Metric {
@@ -534,7 +541,7 @@ public class WPhaseQualityMetric extends Metric {
         // prevent index out of bounds exception for unusual metadata where PZ stage has no poles
         continue;
       }
-      NumericUtils.complexMagnitudeSorter(poles);
+      NumericUtils.complexMagnitudeSorter(poles.toArray(new Complex[]{}));
       Complex pole = poles.get(0);
       double w = pole.abs(); // corner frequency (2pi correction accounted for in resp check)
       double h = Math.abs(pole.getReal() / pole.abs()); // damping

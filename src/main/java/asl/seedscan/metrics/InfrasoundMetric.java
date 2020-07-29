@@ -11,12 +11,13 @@ import org.slf4j.LoggerFactory;
 import asl.metadata.Channel;
 
 /**
- * Pressure PSD metric for atmospheric sensors
+ * Pressure PSD metric for atmospheric sensors; this is the mean value over the .1Hz to .4Hz range.
  */
 public class InfrasoundMetric extends Metric {
 
     /** The Constant logger. */
-    private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.metrics.InfrasoundMetric.class);
+    private static final Logger logger =
+        LoggerFactory.getLogger(asl.seedscan.metrics.InfrasoundMetric.class);
 
     public InfrasoundMetric() {
         super();
@@ -53,7 +54,8 @@ public class InfrasoundMetric extends Metric {
         }
 
         // Get all VM? channels in metadata to use for loop
-        List<Channel> channels = this.stationMeta.getChannelArray(bands, false, true);
+        List<Channel> channels = this.stationMeta.getChannelArray(bands,
+            false, true);
         for (Channel channel : channels) {
             ByteBuffer digest = this.metricData.valueDigestChanged(channel,
                     this.createIdentifier(channel), this.getForceUpdate());
@@ -77,7 +79,8 @@ public class InfrasoundMetric extends Metric {
     }
 
     /**
-     * Compute infrasound metric. Get the PSD over the range .1Hz to .4Hz and compute the mean value in that range.
+     * Compute infrasound metric. Get the PSD over the range .1Hz to .4Hz and
+     * compute the mean value in that range.
      *
      * @param channel
      *            the channel
@@ -89,7 +92,8 @@ public class InfrasoundMetric extends Metric {
      * @throws MetricException
      *             the metric exception
      */
-    private double computeMetric(Channel channel, String station, String day) throws MetricException {
+    private double computeMetric(Channel channel, String station, String day)
+        throws MetricException {
 
         // Compute/Get the 1-sided psd[f] using Peterson's algorithm (24 hrs, 13
         // segments, etc.)
@@ -101,7 +105,8 @@ public class InfrasoundMetric extends Metric {
         int upperBound = (int) (.4 / df) + 1;
         if (upperBound >= psd.length || lowerBound >= psd.length) {
             throw new MetricException(String
-                    .format("station=[%s] channel=[%s] day=[%s]: We don't have enough information to get microbarom peak!--> Skip metric",
+                    .format("station=[%s] channel=[%s] day=[%s]: We don't have enough information "
+                            + "to get microbarom peak!--> Skip metric",
                             station, channel.toString(), day));
         }
         int count = upperBound - lowerBound;
