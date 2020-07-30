@@ -23,11 +23,13 @@ public class PulseDetectionPeakMetric extends PulseDetectionMetric {
   private static final Logger logger = LoggerFactory.getLogger(PulseDetectionPeakMetric.class);
 
   private double coefficientThreshold = 0.7;
+  private double amplitudeThreshold = 0.1;
 
   public PulseDetectionPeakMetric() {
     super();
     addArgument("channel-restriction");
     addArgument("coefficient-threshold");
+    addArgument("amplitude-threshold");
   }
 
   @Override
@@ -60,11 +62,17 @@ public class PulseDetectionPeakMetric extends PulseDetectionMetric {
 
     try {
       coefficientThreshold = Double.parseDouble(get("coefficient-threshold"));
-    } catch (NoSuchFieldException | NumberFormatException ignored) {
+    } catch (NoSuchFieldException | NumberFormatException | NullPointerException ignored) {
+    }
+
+    try {
+      amplitudeThreshold = Double.parseDouble(get("amplitude-threshold"));
+    } catch (NoSuchFieldException | NumberFormatException | NullPointerException ignored) {
     }
 
     // iterate over channels but ignore triggered and derived channels
-    for (Channel channel : stationMeta.getChannelArray(preSplitBands, true, true)) {
+    for (Channel channel : stationMeta.getChannelArray(preSplitBands,
+        true, true)) {
       ChannelKey key = new ChannelKey(channel);
 
       ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel),
@@ -91,8 +99,9 @@ public class PulseDetectionPeakMetric extends PulseDetectionMetric {
           pulseDetectionResultMap.get(key).correlationsWithAmplitude;
       for (List<PulseDetectionPoint> points : allData) {
         for (PulseDetectionPoint point : points) {
-          if (point.correlationValue > coefficientThreshold) {
-            maxPeak = Math.max(maxPeak, point.amplitude);
+          if (point.correlationValue > coefficientThreshold &&
+              point.amplitude > amplitudeThreshold) {
+            maxPeak = Math.max(maxPeak, point.rawData);
           }
         }
       }
