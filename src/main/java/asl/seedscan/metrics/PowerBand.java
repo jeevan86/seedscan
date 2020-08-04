@@ -21,8 +21,8 @@ package asl.seedscan.metrics;
 
 public class PowerBand {
 
-	private double low;
-	private double high;
+	private final double low;
+	private final double high;
 
 	public PowerBand(double low, double high) {
 		this.low = low;
