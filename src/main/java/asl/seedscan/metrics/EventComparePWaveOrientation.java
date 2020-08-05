@@ -166,6 +166,21 @@ public class EventComparePWaveOrientation extends Metric {
     }
   }
 
+  @Override
+  public String getSimpleDescription() {
+    return "Computes estimated azimuth based on p-wave arrival phase";
+  }
+
+  @Override
+  public String getLongDescription() {
+    return "This metric compares the p-wave arrival of data to a synthetic source to determine the "
+        + "azimuthal orientation of the sensor. Specifically, this comparison is done between the "
+        + "phase of the p-wave as detected by a horizontal sensor and its rotational pair "
+        + "(i.e., LHN and LHE), comparing the event azimuth to the determined back-azimuth. "
+        + "This value is associated then with both pairs of values and requires the channel pairs "
+        + "to be perpendicular in order for this value to be valid.";
+  }
+
   double computeMetric(Hashtable<String, EventCMT> eventCMTs, Channel curChannel,
       Channel pairChannel, Channel vertChannel) {
 

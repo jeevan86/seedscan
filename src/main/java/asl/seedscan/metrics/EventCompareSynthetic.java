@@ -226,6 +226,28 @@ public class EventCompareSynthetic extends Metric {
 		}
 	}
 
+	@Override
+	public String getSimpleDescription() {
+		return "Compares displacement (magnitude) and phase (sign) of channel data with synthetics.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This metric compares compare MINEOS synthetic normal mode seismograms to rotated N, E, "
+				+ "and vertical data in the 100 to 400s period band.  Data is compared in an 8000s window "
+				+ "starting at the moment tensor time of the event.  The synthetics are corrected with a "
+				+ "ource-time function using a half-triangle.  The difference between the synthetics and "
+				+ "the data is given by the normalized scale factor of sum x(t)*y(t)/"
+				+ "(sum(x(t))*sum(y(t))), where x(t) is the data and y(t) is the synthetic seismogram.  "
+				+ "We restrict results to cases where the correlation is greater than 0.85. "
+				+ "A result of 1 means the channel data matches the synthetic exactly, with values "
+				+ "greater than 1 meaning that the data has more displacement than the synthetic, values "
+				+ "between 0 and 1 meaning less displacement, and negative values being out-of-phase with "
+				+ "the synthetic (a value of -1 matches the displacement but with a 180-deg. phase "
+				+ "difference). See also Ekström, Dalton, Nettles (2006): \"Observations of Time-dependent "
+				+ "Errors in Long-period Instrument Gain at Global Seismic Stations\", SRL.";
+	}
+
 	/**
 	 * Gets the sac start time in millis.
 	 * 

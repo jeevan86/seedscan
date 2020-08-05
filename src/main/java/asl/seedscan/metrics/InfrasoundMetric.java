@@ -78,6 +78,17 @@ public class InfrasoundMetric extends Metric {
         }
     }
 
+    @Override
+    public String getSimpleDescription() {
+        return "Gets the mean value of a pressure sensor's PSD over the .1-.4Hz range";
+    }
+
+    @Override
+    public String getLongDescription() {
+        return "This metric computes a full-day PSD for pressure sensors and returns the mean "
+            + "value of the PSD over the 0.1Hz to 0.4Hz range.";
+    }
+
     /**
      * Compute infrasound metric. Get the PSD over the range .1Hz to .4Hz and
      * compute the mean value in that range.

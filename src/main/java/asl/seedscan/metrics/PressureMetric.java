@@ -92,6 +92,20 @@ public class PressureMetric extends Metric {
         }
     }
 
+    @Override
+    public String getSimpleDescription() {
+        return "Computes RMS of value of sensor, elevation-corrected, in atmospheres (expect 1).";
+    }
+
+    @Override
+    public String getLongDescription() {
+        return "Computes the RMS value of a pressure sensor's full-day data with the coefficient "
+            + "response applied to it. This value is presumed to be stored in the response as "
+            + "Pascals and returned as atmospheres. This value is also corrected for sensor "
+            + "elevation, so a properly-functioning sensor with good metadata should return a "
+            + "value of 1 here.";
+    }
+
     /**
      * Computes the elevation-corrected RMS of the given channel's pressure metric.
      *

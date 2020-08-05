@@ -118,7 +118,8 @@ public class WPhaseQualityMetric extends Metric {
     List<Channel> channels = stationMeta.getRotatableChannels();
     List<Channel> validChannels = new LinkedList<>();
     for (Channel channel : channels) {
-      // This digest is not injected into the DB, but this prevents channels with missing data from being processed.
+      // This digest is not injected into the DB, but this prevents
+      // channels with missing data from being processed.
       // This also rotates channels if possible.
       ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel),
           getForceUpdate());
@@ -133,7 +134,8 @@ public class WPhaseQualityMetric extends Metric {
           logger.info("No result gotten for station:[{}] channel:[{}] day:[{}]",
               getStation(), channel, getDay());
           //Rotate next day's data if possible, not handled by valuedigest. Special case for event metrics.
-          metricData.getNextMetricData().checkForRotatedChannels(new ChannelArray(channel.getLocation(), channel.getChannel()));
+          metricData.getNextMetricData().checkForRotatedChannels(
+              new ChannelArray(channel.getLocation(), channel.getChannel()));
         }
         validChannels.add(channel);
       }
@@ -144,9 +146,11 @@ public class WPhaseQualityMetric extends Metric {
       return;
     }
 
-    //Compare only to the first channel, since all channels should have the same digest value if they exist.
-    //At this point all channels in allowed list will have data, because of the earlier check.
-    ByteBuffer digest = metricData.valueDigestChanged(new ChannelArray(validChannels), createIdentifier(validChannels.get(0)),
+    // Compare only to the first channel, since all channels should have
+    // the same digest value if they exist.
+    // At this point all channels in allowed list should have data, because of the earlier check.
+    ByteBuffer digest = metricData.valueDigestChanged(
+        new ChannelArray(validChannels), createIdentifier(validChannels.get(0)),
         getForceUpdate());
     if (digest == null) {
       logger.info("Digest unchanged station:[{}] channel:[{}] day:[{}] --> Skip metric",
@@ -165,6 +169,26 @@ public class WPhaseQualityMetric extends Metric {
         metricResult.addResult(channel, result, digest);
       }
     }
+  }
+
+  @Override
+  public String getSimpleDescription() {
+    return "Performs an initial screen on W-phase signal for use in synthetics generation";
+  }
+
+  @Override
+  public String getLongDescription() {
+    return "This metric calculates the quality of data relative to an event if it is a feasible "
+        + "candidate for use in synthetic generation. This performs several of the prescreening "
+        + "steps as specified in Duputel, Rivera, Kanamori, Hayes (2012), "
+        + "\"W phase source inversion for moderate to large earthquakes\", Geophysical Journal "
+        + "International. The methods are taken from section 3.2. "
+        + "The value returned by this metric is an average of the events taken per day "
+        + "with the number of events this channel would be suitable for synthetic generation on. "
+        + "In addition, response inversion "
+        + "is performed by a recursive method specified in Kanamori and Rivera (2008), "
+        + "\"Source inversion of W-Phase: speeding up seismic tsunami warning\", "
+        + "Geophysical Journal International.";
   }
 
   private Map<ChannelKey, ResultIncrementer> computeMetric(Collection<Channel> channels,
@@ -251,6 +275,7 @@ public class WPhaseQualityMetric extends Metric {
                 prescreenCheck, prescreenCheck);
           } catch (MetricPSDException | ChannelMetaException e) {
             logger.error("Unable to create CrossPower for channel {}-{}", getStation(), channel, e);
+            channelsWithMetricResults.get(channelKey).addInvalidCase();
             continue;
           }
           double difference =
@@ -270,6 +295,7 @@ public class WPhaseQualityMetric extends Metric {
         long endTime = eventStart + (long) (15000 * angleBetween);
         double[] data = metricData.getWindowedData(channel, eventStart, endTime);
         if (data == null) {
+          channelsWithMetricResults.get(channelKey).addInvalidCase();
           continue;
         }
         double sampleRate = stationMeta.getChannelMetadata(channel).getSampleRate();

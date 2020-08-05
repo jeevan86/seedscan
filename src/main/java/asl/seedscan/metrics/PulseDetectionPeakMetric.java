@@ -110,4 +110,19 @@ public class PulseDetectionPeakMetric extends PulseDetectionMetric {
       }
     }
   }
+
+  @Override
+  public String getSimpleDescription() {
+    return "Calculates the largest pulse found over a day's data";
+  }
+
+  @Override
+  public String getLongDescription() {
+    return "This metric convolves the (response-corrected) timeseries data with a step function "
+        + "in order to identify potential pulse sources. Pulse candidates are screened for"
+        + "a matching envelope over a 140s range, and a sharpness constraint that the 1-minute"
+        + "amplitude moving average must be 4 times greater than a 15-minute moving average. "
+        + "Pulses are then screened according to a user-specified threshold for the correlation "
+        + "amplitude and coefficient values. The peak of the largest valid pulse is returned.";
+  }
 }

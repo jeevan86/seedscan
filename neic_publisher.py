@@ -16,6 +16,15 @@ def run_test():
     publish_messages(["IU"], start, metrics, True)
 
 
+def topic_fix(topic_name):
+    new_name = topic_name.replace('_', '')
+    # turn, e.g., "0.5-1" to "0.5to1"
+    new_name = new_name.replace('-', 'to')
+    new_name = new_name.replace(':', '')
+    new_name = new_name.replace(' ', '')
+    return new_name
+
+
 def publish_messages(networks=None, select_dates=None, metrics=None,
     is_test=False):
     if networks is None or len(networks) == 0:
@@ -65,11 +74,8 @@ def publish_messages(networks=None, select_dates=None, metrics=None,
             topic_name = metric
             if is_test:
                 topic_name += ".test"
-            topic_name = topic_name.replace('_', '')
-            # turn, e.g., "0.5-1" to "0.5to1"
-            topic_name = topic_name.replace('-', 'to')
-            topic_name = topic_name.replace(':', '')
-            topic_name = topic_name.replace(' ', '')
+            topic_name = topic_fix(topic_name)
+            print(topic_name, message)
             producer.send(topic_name, message)
         producer.flush()
 

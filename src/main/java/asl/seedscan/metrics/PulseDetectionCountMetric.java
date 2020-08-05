@@ -21,6 +21,21 @@ import org.slf4j.LoggerFactory;
  */
 public class PulseDetectionCountMetric extends PulseDetectionMetric {
 
+  @Override
+  public String getSimpleDescription() {
+    return "Calculates the number of pulses found over a day's data";
+  }
+
+  @Override
+  public String getLongDescription() {
+    return "This metric convolves the (response-corrected) timeseries data with a step function "
+        + "in order to identify potential pulse sources. Pulse candidates are screened for"
+        + "a matching envelope over a 140s range, and a sharpness constraint that the 1-minute"
+        + "amplitude moving average must be 4 times greater than a 15-minute moving average. "
+        + "Pulses are then screened according to a user-specified threshold for the correlation "
+        + "amplitude and coefficient values. The number of valid pulses found is returned.";
+  }
+
   private static final Logger logger = LoggerFactory.getLogger(PulseDetectionCountMetric.class);
 
   private double coefficientThreshold = 0.7;

@@ -167,6 +167,19 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 		}
 	} // end process()
 
+	@Override
+	public String getSimpleDescription() {
+		return "Gets the NLNM deviation over the specified band";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This metric computes the PSD of the data for a channel. For the specified period band "
+				+ "(i.e., 0.5-1s), it computes the difference between the PSD and the Peterson new "
+				+ "low-noise model (NLNM). This is a basic difference, so values can be negative, if "
+				+ "points are below the NLNM.";
+	}
+
 	/**
 	 * Compute NLNM Deviation metric.
 	 *

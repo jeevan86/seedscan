@@ -20,7 +20,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import seed.Blockette320;
 
-public class CalibrationMetric extends Metric {
+/**
+ * This class was intended to measure results from calibrations. This was unsuited to the
+ * design of seedscan and has been effectively deprecated, with its functionality implemented
+ * in the instrument test tracker instead, which focuses specifically on running calibrations.
+ */
+public abstract class CalibrationMetric extends Metric {
 	private static final Logger logger = LoggerFactory
 			.getLogger(asl.seedscan.metrics.CalibrationMetric.class);
 
