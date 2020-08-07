@@ -16,17 +16,29 @@ def run_test():
     publish_messages(["IU"], start, metrics, True)
 
 
-def topic_fix(topic_name):
-    new_name = topic_name.replace('_', '')
-    # turn, e.g., "0.5-1" to "0.5to1"
-    new_name = new_name.replace('-', 'to')
-    new_name = new_name.replace(':', '')
-    new_name = new_name.replace(' ', '')
+def topic_fix(metric_name, is_test=False):
+    new_name = "ASL-"
+    # TODO: manually change to 'Prod' when ready production stuff
+    if is_test:
+        new_name += "Test"
+    else:
+        new_name += "Dev"
+    new_name += "-SeedScan-"
+    # remove the ':' and anything after it for metrics like NLNM deviation
+    # where the last half is what band the deviation was taken over
+    # (e.g., "NLNMDeviationMetric:0.5-1" becomes "NLNMDeviationMetric")
+    # the full metric name including range should be part of the JSON fields
+    truncated_metric_name = metric_name.split(':')[0]
+    # also remove any whitespace from the metric name. this is probably just a
+    # leading character so we could probably use lstrip(' '),
+    # but better safe than sorry
+    truncated_metric_name = truncated_metric_name.replace(' ', '')
+    new_name += truncated_metric_name
     return new_name
 
 
 def publish_messages(networks=None, select_dates=None, metrics=None,
-    is_test=False):
+                     is_test=False):
     if networks is None or len(networks) == 0:
         networks = ['CU', 'GS', 'GT', 'IC', 'II', 'IU', 'IW', 'NE', 'US', 'N4']
     if select_dates is None or len(select_dates) == 0:
@@ -68,13 +80,11 @@ def publish_messages(networks=None, select_dates=None, metrics=None,
                                                        "Station": station,
                                                        "Location": location,
                                                        "Channel": channel},
-                       "Quality": value, "Date": date_string, "Enable": "true"}
+                       "Quality": value, "Date": date_string, "Enable": "true",
+                       "Metric": metric}
             # next step is to actually send this message
             # metric (topic) name might have disallowed character in it
-            topic_name = metric
-            if is_test:
-                topic_name += ".test"
-            topic_name = topic_fix(topic_name)
+            topic_name = topic_fix(metric, is_test)
             print(topic_name, message)
             producer.send(topic_name, message)
         producer.flush()
