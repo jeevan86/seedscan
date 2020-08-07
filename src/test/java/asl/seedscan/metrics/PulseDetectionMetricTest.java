@@ -155,7 +155,6 @@ public class PulseDetectionMetricTest {
     // assertEquals(5625, x[75], 0);
     assertEquals(0, x[lengthOfParabola], 0);
     double[] corr = PulseDetectionMetric.computeCrossCorrelationWithStep(x, 0.1)[0];
-    System.out.println(Arrays.toString(corr));
     double[] expect = {
         0.026255574380320508, 0.026255574380320452, 0.02625557438032045, 0.026255574380320328,
         0.026255574380320452, 0.026255574380320258, 0.026255574380320546, 0.026255574380320383,
@@ -216,9 +215,6 @@ public class PulseDetectionMetricTest {
         -0.27039232114880807, -0.2567455786541392, -0.2433437304841074, -0.22839953974408403,
         -0.21161532618821027, -0.19252715821464367
     };
-    for (int i = 0; i < expect.length; ++i) {
-      System.out.println(corr[i] + " | " + expect[i]);
-    }
     assertArrayEquals(expect, corr, 1E-10);
   }
 

@@ -19,6 +19,7 @@ import asl.metadata.Station;
 public class DeadChannelMetric extends PowerBandMetric {
 	private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.metrics.DeadChannelMetric.class);
 
+	private static final double THRESHOLD = 7.0;
 	// MetricDatabase metricDB;
 
 	@Override
@@ -43,13 +44,11 @@ public class DeadChannelMetric extends PowerBandMetric {
 		LocalDate date;
 		String period;
 		Double NLNMValue;
-		Double threshold;
 		String NLNMBaseName;
 		String NLNMName;
 
 		date = stationMeta.getTimestamp().toLocalDate();
 		metric = getName();
-		threshold = -7.0;
 
 		// Pull lower/upper limits for NLNMDeviationMetric
 		netstat = getStation();
@@ -92,9 +91,9 @@ public class DeadChannelMetric extends PowerBandMetric {
 			double result = 0.0;
 			if (NLNMValue != null) {
 				// Dead channel if -7dB below NLNM
-				if (NLNMValue <= threshold) {
+				if (NLNMValue <= THRESHOLD) {
 					result = 0.0;
-				} else if (NLNMValue > threshold) {
+				} else if (NLNMValue > THRESHOLD) {
 					result = 1.0;
 				} else {
 					result = NO_RESULT;
@@ -106,5 +105,17 @@ public class DeadChannelMetric extends PowerBandMetric {
 				}
 			}
 		}
+	}
+
+	@Override
+	public String getSimpleDescription() {
+		return "Takes the difference of PSD over 4-8s period with NLNM; channel is dead when <-7dB";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This metric computes the difference (over 4-8 second period) between the "
+				+ "PSD of a channel's full-day data and the NLNM. A channel is considered to be dead "
+				+ "when the this difference is below -7dB. A result of 0 means the channel is dead.";
 	}
 }

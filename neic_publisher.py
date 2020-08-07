@@ -4,6 +4,7 @@ import json
 
 # pip-installed
 from kafka import KafkaProducer
+from kafka.errors import KafkaError
 
 # requires a local repo
 from dqatools.dqaclient import call_dqa
@@ -13,6 +14,27 @@ def run_test():
     start = [date(year=2020, month=1, day=1)]
     metrics = ['NLNMDeviationMetric:0.5-1']
     publish_messages(["IU"], start, metrics, True)
+
+
+def topic_fix(metric_name, is_test=False):
+    new_name = "ASL-"
+    # TODO: manually change to 'Prod' when ready production stuff
+    if is_test:
+        new_name += "Test"
+    else:
+        new_name += "Dev"
+    new_name += "-SeedScan-"
+    # remove the ':' and anything after it for metrics like NLNM deviation
+    # where the last half is what band the deviation was taken over
+    # (e.g., "NLNMDeviationMetric:0.5-1" becomes "NLNMDeviationMetric")
+    # the full metric name including range should be part of the JSON fields
+    truncated_metric_name = metric_name.split(':')[0]
+    # also remove any whitespace from the metric name. this is probably just a
+    # leading character so we could probably use lstrip(' '),
+    # but better safe than sorry
+    truncated_metric_name = truncated_metric_name.replace(' ', '')
+    new_name += truncated_metric_name
+    return new_name
 
 
 def publish_messages(networks=None, select_dates=None, metrics=None,
@@ -34,9 +56,14 @@ def publish_messages(networks=None, select_dates=None, metrics=None,
         output = call_dqa(network=network, metric=metric, begin=date_string,
                           end=date_string, format='csv')
         # set up the kafka (producer) connection here
+        # default blocktime is 60000 ms -- so let's try multiplying by 5
+        blocktime = 10000
         producer = KafkaProducer(bootstrap_servers=
                                  'igskcicgvmkafka.cr.usgs.gov:9092',
-                                 client_id='producer-from-dqa')
+                                 client_id='producer-from-dqa', acks=0,
+                                 max_block_ms=blocktime,
+                                 value_serializer=lambda v: json.dumps(v)
+                                 .encode('utf-8'))
         # each line is effectively a row in the database
         for record in iter(output.splitlines()):
             # now we get the fields and jsonify them for publication
@@ -44,25 +71,23 @@ def publish_messages(networks=None, select_dates=None, metrics=None,
             (r_date, network, station, location, channel, metric, value) = \
                 record.split(',')
             # (metric, value, channel, location, station, network) = record
-            # metric name might have disallowed character in it
-            metric = metric.replace(':', '_')
             # json format description:
             # https://github.com/usgs/earthquake-detection-formats (cont.)
             # /blob/master/format-docs/StationInfo.md
             # we have some custom formats added here to disambiguate metric
             # and to give the date of data this metric was evaluated upon
-            message = json.JSONEncoder().encode(
-                {"Type": "StationInfo", "Site": {"Network": network,
-                                                 "Station": station,
-                                                 "Location": location,
-                                                 "Channel": channel},
-                 "Quality": value, "Date": date_string, "Enable": "true"})
+            message = {"Type": "StationInfo", "Site": {"Network": network,
+                                                       "Station": station,
+                                                       "Location": location,
+                                                       "Channel": channel},
+                       "Quality": value, "Date": date_string, "Enable": "true",
+                       "Metric": metric}
             # next step is to actually send this message
-            topic_name = metric
-            if is_test:
-                topic_name += "_test"
-            # print(topic_name, message)
-            producer.send(topic_name, value=message.encode('utf-8'))
+            # metric (topic) name might have disallowed character in it
+            topic_name = topic_fix(metric, is_test)
+            print(topic_name, message)
+            producer.send(topic_name, message)
+        producer.flush()
 
 
 if __name__ == '__main__':

@@ -165,7 +165,7 @@ public abstract class PulseDetectionMetric extends Metric {
 
     // because we parametrize other exclusion criteria we now publish our current results
     // so any additional filter (i.e., by amplitude) is to be managed by the implementing metric
-    return new PulseDetectionData(correl, scale, pointInclusions, sensitivity,
+    return new PulseDetectionData(correl, scale, trace, pointInclusions, sensitivity,
         getCorrelationOffset(sampleRate));
   }
 
@@ -568,10 +568,12 @@ public abstract class PulseDetectionMetric extends Metric {
 
       public final double correlationValue;
       public final double amplitude;
+      public final double rawData; // the actual data coming from the sensor
 
-      public PulseDetectionPoint(double correlationValue, double amplitude) {
+      public PulseDetectionPoint(double correlationValue, double amplitude, double rawData) {
         this.correlationValue = correlationValue;
         this.amplitude = amplitude;
+        this.rawData = rawData;
       }
 
       public String toString() {
@@ -590,11 +592,12 @@ public abstract class PulseDetectionMetric extends Metric {
      * @see PulseDetectionPoint
      * @param correlations Correlated values between trace and step
      * @param amplitudes Amplitudes of the above correlation
+     * @param rawValues Seismic timeseries data
      * @param inclusions Indices in the original trace that passed screening criteria
      * @param sensitivity Sensitivity value of response (for scaling amplitude values)
      * @param startingOffset Index of first nonzero point in the untrimmed correlation arrays
      */
-    public PulseDetectionData(double[] correlations, double[] amplitudes,
+    public PulseDetectionData(double[] correlations, double[] amplitudes, double[] rawValues,
         Collection<Integer> inclusions, double sensitivity, int startingOffset) {
       if (inclusions.size() == 0) {
         correlationsWithAmplitude = Collections.unmodifiableList(Collections.emptyList());
@@ -628,9 +631,10 @@ public abstract class PulseDetectionMetric extends Metric {
             // by the exclusion criteria but had a zero-valued correlation/amplitude
             continue;
           }
+          double rawValue = rawValues[contiguousIndex];
           double pulse = Math.abs(amplitudes[indexWithOffset]) * sensitivity;
           double correlation = Math.abs(correlations[indexWithOffset]);
-          subList.add(new PulseDetectionPoint(correlation, pulse));
+          subList.add(new PulseDetectionPoint(correlation, pulse, rawValue));
         }
         subList = Collections.unmodifiableList(subList);
         if (subList.size() > 0) {
