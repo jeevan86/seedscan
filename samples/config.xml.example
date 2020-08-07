@@ -39,6 +39,9 @@
             <cfg:class_name>asl.seedscan.metrics.TimingQualityMetric</cfg:class_name>
         </cfg:metric>
         <cfg:metric>
+            <cfg:class_name>asl.seedscan.metrics.MinimumTimingMetric</cfg:class_name>
+        </cfg:metric>
+        <cfg:metric>
             <cfg:class_name>asl.seedscan.metrics.MassPositionMetric</cfg:class_name>
         </cfg:metric>
         <cfg:metric>
