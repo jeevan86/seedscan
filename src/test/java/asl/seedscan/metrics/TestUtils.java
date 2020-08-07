@@ -1,6 +1,7 @@
 package asl.seedscan.metrics;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import asl.metadata.MetaGeneratorMock;
 import asl.metadata.Station;
@@ -63,7 +64,11 @@ public class TestUtils {
     metric.process();
     MetricResult result = metric.getMetricResult();
 
-    assertEquals("Result Size: ", expect.size(), result.getIdSet().size());
+    if (!expect.keySet().equals(result.getIdSet())) {
+      String errorMessage = "Result has these traces: " + result.getIdSet()
+          + "\nbut input has these traces: " + expect.keySet();
+      fail(errorMessage);
+    }
     ArrayList<String> channels = new ArrayList<>(expect.keySet());
     Collections.sort(channels);
     for (String id : channels) {

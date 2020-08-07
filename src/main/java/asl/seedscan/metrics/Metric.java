@@ -107,6 +107,20 @@ public abstract class Metric {
 	public abstract void process();
 
 	/**
+	 * Get a simple summary of what the metric does.
+	 * @return short description of metric
+	 */
+	public abstract String getSimpleDescription();
+
+	/**
+	 * Return an extended summary of what the metric does.
+	 * Usually this should match the javadoc header for the class.
+	 * Things like citations, etc. should ideally be included.
+	 * @return complete description of metric.
+	 */
+	public abstract String getLongDescription();
+
+	/**
 	 * Creates the identifier.
 	 *
 	 * @param channel the channel

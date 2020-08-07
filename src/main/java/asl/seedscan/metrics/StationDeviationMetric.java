@@ -130,6 +130,18 @@ public class StationDeviationMetric extends PowerBandMetric {
 		}
 	} // end process()
 
+	@Override
+	public String getSimpleDescription() {
+		return "Compares PSD frequency bands for this station to a station-specific noise model";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "Like the NLNM and ALNM deviation models, this metric takes the PSD of a full day's "
+				+ "data and compares the named frequency range (period, in s) to a model of the station's "
+				+ "noise characteristic. Unlike those metrics, this model is specific to the station.";
+	}
+
 	private double computeMetric(Channel channel) throws MetricException {
 
 		// Read in specific noise model for this station+channel //

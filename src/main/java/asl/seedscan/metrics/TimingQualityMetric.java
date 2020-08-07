@@ -77,6 +77,17 @@ public class TimingQualityMetric extends Metric {
 		}// end foreach channel
 	} // end process()
 
+	@Override
+	public String getSimpleDescription() {
+		return "Returns the average of the blockette 1001 timing records for the day";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This metric takes the timing records for each blockette 1001 from a day's SEED data "
+				+ "and returns the average of these values.";
+	}
+
 	private double computeMetric(Channel channel) {
 
 		if (!metricData.hasChannelData(channel)) {

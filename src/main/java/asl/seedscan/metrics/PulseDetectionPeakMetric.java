@@ -23,11 +23,13 @@ public class PulseDetectionPeakMetric extends PulseDetectionMetric {
   private static final Logger logger = LoggerFactory.getLogger(PulseDetectionPeakMetric.class);
 
   private double coefficientThreshold = 0.7;
+  private double amplitudeThreshold = 0.1;
 
   public PulseDetectionPeakMetric() {
     super();
     addArgument("channel-restriction");
     addArgument("coefficient-threshold");
+    addArgument("amplitude-threshold");
   }
 
   @Override
@@ -60,11 +62,17 @@ public class PulseDetectionPeakMetric extends PulseDetectionMetric {
 
     try {
       coefficientThreshold = Double.parseDouble(get("coefficient-threshold"));
-    } catch (NoSuchFieldException | NumberFormatException ignored) {
+    } catch (NoSuchFieldException | NumberFormatException | NullPointerException ignored) {
+    }
+
+    try {
+      amplitudeThreshold = Double.parseDouble(get("amplitude-threshold"));
+    } catch (NoSuchFieldException | NumberFormatException | NullPointerException ignored) {
     }
 
     // iterate over channels but ignore triggered and derived channels
-    for (Channel channel : stationMeta.getChannelArray(preSplitBands, true, true)) {
+    for (Channel channel : stationMeta.getChannelArray(preSplitBands,
+        true, true)) {
       ChannelKey key = new ChannelKey(channel);
 
       ByteBuffer digest = metricData.valueDigestChanged(channel, createIdentifier(channel),
@@ -91,8 +99,9 @@ public class PulseDetectionPeakMetric extends PulseDetectionMetric {
           pulseDetectionResultMap.get(key).correlationsWithAmplitude;
       for (List<PulseDetectionPoint> points : allData) {
         for (PulseDetectionPoint point : points) {
-          if (point.correlationValue > coefficientThreshold) {
-            maxPeak = Math.max(maxPeak, point.amplitude);
+          if (point.correlationValue > coefficientThreshold &&
+              point.amplitude > amplitudeThreshold) {
+            maxPeak = Math.max(maxPeak, point.rawData);
           }
         }
       }
@@ -100,5 +109,20 @@ public class PulseDetectionPeakMetric extends PulseDetectionMetric {
         metricResult.addResult(channel, maxPeak, digest);
       }
     }
+  }
+
+  @Override
+  public String getSimpleDescription() {
+    return "Calculates the largest pulse found over a day's data";
+  }
+
+  @Override
+  public String getLongDescription() {
+    return "This metric convolves the (response-corrected) timeseries data with a step function "
+        + "in order to identify potential pulse sources. Pulse candidates are screened for"
+        + "a matching envelope over a 140s range, and a sharpness constraint that the 1-minute"
+        + "amplitude moving average must be 4 times greater than a 15-minute moving average. "
+        + "Pulses are then screened according to a user-specified threshold for the correlation "
+        + "amplitude and coefficient values. The peak of the largest valid pulse is returned.";
   }
 }

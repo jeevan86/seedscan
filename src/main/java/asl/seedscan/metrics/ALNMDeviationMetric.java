@@ -157,6 +157,19 @@ public class ALNMDeviationMetric extends PowerBandMetric {
 		}
 	} // end process()
 
+	@Override
+	public String getSimpleDescription() {
+		return "Gets the ALNM deviation over the specified band";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This metric computes the PSD of the data for a channel. For the specified period band "
+				+ "(i.e., 0.5-1s), it computes the difference between the PSD and the accelerometer "
+				+ "low-noise model (ALNM). This is a basic difference, so values can be negative, if "
+				+ "points are below the ALNM.";
+	}
+
 	/**
 	 * Compute ALNM Deviation metric.
 	 *

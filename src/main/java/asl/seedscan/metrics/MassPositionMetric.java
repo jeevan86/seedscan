@@ -65,7 +65,8 @@ public class MassPositionMetric extends Metric {
 		ResponseStage stage = chanMeta.getStage(1);
 		if (!(stage instanceof PolynomialStage)) {
 			throw new UnsupportedEncodingException(String
-					.format("station=[%s] channel=[%s] day=[%s]: Stage 1 is NOT a PolynomialStage--> Skip metric",
+					.format("station=[%s] channel=[%s] day=[%s]: Stage 1 is NOT a "
+									+ "PolynomialStage--> Skip metric",
 							station, channel.toString(), day));
 		}
 		PolynomialStage polyStage = (PolynomialStage) stage;
@@ -77,7 +78,8 @@ public class MassPositionMetric extends Metric {
 		// to represent mass position
 		if (coefficients.length != 2) {
 			throw new MetricException(String
-					.format("station=[%s] channel=[%s] day=[%s]: We're expecting 2 coefficients for this PolynomialStage!--> Skip metric",
+					.format("station=[%s] channel=[%s] day=[%s]: We're expecting 2 coefficients for this "
+									+ "PolynomialStage!--> Skip metric",
 							station, channel.toString(), day));
 		} else {
 			a0 = coefficients[0];
@@ -86,7 +88,8 @@ public class MassPositionMetric extends Metric {
 		// Make sure we have enough ingredients to calculate something useful
 		if (a0 == 0 && a1 == 0 || lowerBound == 0 && upperBound == 0) {
 			throw new MetricException(String
-					.format("station=[%s] channel=[%s] day=[%s]: We don't have enough information to compute mass position!--> Skip metric",
+					.format("station=[%s] channel=[%s] day=[%s]: We don't have enough information to "
+									+ "compute mass position!--> Skip metric",
 							station, channel.toString(), day));
 		}
 
@@ -182,5 +185,19 @@ public class MassPositionMetric extends Metric {
 			}
 
 		}
+	}
+
+	@Override
+	public String getSimpleDescription() {
+		return "Compares instrument data range to polynomial response to get mass-position offset";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This metric uses the polynomial response to identify the bounds of the instrument "
+				+ "(this is the operational voltage level that the instrument is operational in).  It then "
+				+ "uses that to derive the percentage of full scale.  That is "
+				+ "100*abs(massposition-massCenter)/mass range, where massCenter is the mass position "
+				+ "that would correspond to the sensor being centered (not always 0 V).";
 	}
 }
