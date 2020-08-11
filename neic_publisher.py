@@ -4,16 +4,24 @@ import json
 
 # pip-installed
 from kafka import KafkaProducer
-from kafka.errors import KafkaError
 
-# requires a local repo
+# requires a local installation of the dqatools python module
 from dqatools.dqaclient import call_dqa
+
+# this should contain all networks that DQA analyzes
+all_networks = ['CU', 'GS', 'GT', 'IC', 'II', 'IU', 'IW', 'NE', 'US', 'N4']
 
 
 def run_test():
     start = [date(year=2020, month=1, day=1)]
     metrics = ['NLNMDeviationMetric:0.5-1']
-    publish_messages(["IU"], start, metrics, True)
+    publish_messages(all_networks, start, metrics, True)
+
+
+def run_dev():
+    start = [datetime.today() - timedelta(days=3)]
+    metrics = ['NLNMDeviationMetric:0.5-1']
+    publish_messages(all_networks, start, metrics, True)
 
 
 def topic_fix(metric_name, is_test=False):
@@ -23,7 +31,7 @@ def topic_fix(metric_name, is_test=False):
         new_name += "Test"
     else:
         new_name += "Dev"
-    new_name += "-SeedScan-"
+    new_name += "-SEEDScan-"
     # remove the ':' and anything after it for metrics like NLNM deviation
     # where the last half is what band the deviation was taken over
     # (e.g., "NLNMDeviationMetric:0.5-1" becomes "NLNMDeviationMetric")
@@ -40,12 +48,12 @@ def topic_fix(metric_name, is_test=False):
 def publish_messages(networks=None, select_dates=None, metrics=None,
                      is_test=False):
     if networks is None or len(networks) == 0:
-        networks = ['CU', 'GS', 'GT', 'IC', 'II', 'IU', 'IW', 'NE', 'US', 'N4']
+        networks = all_networks
     if select_dates is None or len(select_dates) == 0:
         # scan over the past 5 days if no date was set
         select_dates = []
         for offset in range(1, 5):
-            select_dates.append(datetime.now().date() - timedelta(days=offset))
+            select_dates.append(datetime.today() - timedelta(days=offset))
     if metrics is None or len(metrics) == 0:
         metrics = ['NLNMDeviationMetric:0.5-1']
     # TODO: expect to iterate over a list of metric names to get
@@ -85,7 +93,7 @@ def publish_messages(networks=None, select_dates=None, metrics=None,
             # next step is to actually send this message
             # metric (topic) name might have disallowed character in it
             topic_name = topic_fix(metric, is_test)
-            print(topic_name, message)
+            # print(topic_name, message)
             producer.send(topic_name, message)
         producer.flush()
 
@@ -94,4 +102,4 @@ if __name__ == '__main__':
     # TODO: parse in args from command line for custom scans?
     # if this is being run from the terminal it's almost certainly as a
     # cronjob where we run over the previous day's worth of metadata changes
-    run_test()  # TODO: switch to non-test method
+    run_dev()  # TODO: switch to non-test method
