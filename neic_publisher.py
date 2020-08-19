@@ -1,6 +1,7 @@
 from datetime import datetime, date, timedelta
 from itertools import product
 import json
+import csv
 
 # pip-installed
 from kafka import KafkaProducer
@@ -37,10 +38,6 @@ def topic_fix(metric_name, is_test=False):
     # (e.g., "NLNMDeviationMetric:0.5-1" becomes "NLNMDeviationMetric")
     # the full metric name including range should be part of the JSON fields
     truncated_metric_name = metric_name.split(':')[0]
-    # also remove any whitespace from the metric name. this is probably just a
-    # leading character so we could probably use lstrip(' '),
-    # but better safe than sorry
-    truncated_metric_name = truncated_metric_name.replace(' ', '')
     new_name += truncated_metric_name
     return new_name
 
@@ -73,12 +70,12 @@ def publish_messages(networks=None, select_dates=None, metrics=None,
                                  value_serializer=lambda v: json.dumps(v)
                                  .encode('utf-8'))
         # each line is effectively a row in the database
-        for record in iter(output.splitlines()):
+        for record in csv.reader(output.splitlines(), skipinitialspace=True):
             # now we get the fields and jsonify them for publication
             # value order is how they come out of the call_dqa method
-            (r_date, network, station, location, channel, metric, value) = \
-                record.split(',')
-            # (metric, value, channel, location, station, network) = record
+            (r_date, network, station, location, channel, metric, value) = record
+            # get the topic name derived from the metric and run type
+            topic_name = topic_fix(metric, is_test)
             # json format description:
             # https://github.com/usgs/earthquake-detection-formats (cont.)
             # /blob/master/format-docs/StationInfo.md
@@ -92,7 +89,6 @@ def publish_messages(networks=None, select_dates=None, metrics=None,
                        "Metric": metric}
             # next step is to actually send this message
             # metric (topic) name might have disallowed character in it
-            topic_name = topic_fix(metric, is_test)
             # print(topic_name, message)
             producer.send(topic_name, message)
         producer.flush()

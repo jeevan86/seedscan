@@ -18,7 +18,7 @@ public class MinimumTimingMetric extends Metric {
 
   @Override
   public String getName() {
-    return "TimingQualityMetric";
+    return "MinimumTimingMetric";
   }
 
   public void process() {
