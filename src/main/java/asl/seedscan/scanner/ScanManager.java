@@ -37,8 +37,8 @@ public class ScanManager {
     this.metaGenerator = metaGenerator;
 
     int threadCount = Runtime.getRuntime().availableProcessors() - 1;
-    if(threadCount < 1){
-      threadCount = 1;
+    if(threadCount < 2){
+      threadCount = 2;
     }
     logger.info("Number of Threads to Use = [{}]", threadCount);
 
