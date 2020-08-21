@@ -12,6 +12,8 @@ public class DifferencePBMTest {
 
   private DifferencePBM metric;
   private static MetricData data;
+  
+  private static final double ERROR_TERM = 1E-4;
 
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
@@ -33,9 +35,9 @@ public class DifferencePBMTest {
     metric.add("upper-limit", "8");
     metric.setData(data);
     MetricTestMap expect = new MetricTestMap();
-    expect.put("00-10,LHZ-LHZ",    0.0277, 1E-4);
-    expect.put("00-10,LHND-LHND",  0.1678, 1E-4);
-    expect.put("00-10,LHED-LHED", -0.0590, 1E-4);
+    expect.put("00-10,LHZ-LHZ",    0.0277, ERROR_TERM);
+    expect.put("00-10,LHND-LHND",  0.1678, ERROR_TERM);
+    expect.put("00-10,LHED-LHED", -0.0590, ERROR_TERM);
     TestUtils.testMetric(metric, expect);
   }
 
@@ -47,9 +49,9 @@ public class DifferencePBMTest {
     metric.add("upper-limit", "22");
     metric.setData(data);
     MetricTestMap expect = new MetricTestMap();
-    expect.put("00-10,LHZ-LHZ",   -0.0122053, 1E-5);
-    expect.put("00-10,LHND-LHND",  0.2018929, 1E-5);
-    expect.put("00-10,LHED-LHED", -0.0444764, 1E-5);
+    expect.put("00-10,LHZ-LHZ",   -0.0122053, ERROR_TERM);
+    expect.put("00-10,LHND-LHND",  0.2018929, ERROR_TERM);
+    expect.put("00-10,LHED-LHED", -0.0444764, ERROR_TERM);
     TestUtils.testMetric(metric, expect);
   }
 
@@ -61,9 +63,9 @@ public class DifferencePBMTest {
     metric.add("upper-limit", "110");
     metric.setData(data);
     MetricTestMap expect = new MetricTestMap();
-    expect.put("00-10,LHZ-LHZ",   -0.873422, 1E-5);
-    expect.put("00-10,LHND-LHND", -1.468633, 1E-5);
-    expect.put("00-10,LHED-LHED",  1.898297, 1E-5);
+    expect.put("00-10,LHZ-LHZ",   -0.873422, ERROR_TERM);
+    expect.put("00-10,LHND-LHND", -1.468633, ERROR_TERM);
+    expect.put("00-10,LHED-LHED",  1.898297, ERROR_TERM);
     TestUtils.testMetric(metric, expect);
   }
 
@@ -75,9 +77,9 @@ public class DifferencePBMTest {
     metric.add("upper-limit", "500");
     metric.setData(data);
     MetricTestMap expect = new MetricTestMap();
-    expect.put("00-10,LHZ-LHZ",    2.378944, 1E-5);
-    expect.put("00-10,LHND-LHND", -3.201307, 1E-5);
-    expect.put("00-10,LHED-LHED",  6.398256, 1E-5);
+    expect.put("00-10,LHZ-LHZ",    2.378944, ERROR_TERM);
+    expect.put("00-10,LHND-LHND", -3.201307, ERROR_TERM);
+    expect.put("00-10,LHED-LHED",  6.398256, ERROR_TERM);
     TestUtils.testMetric(metric, expect);
   }
 
@@ -91,9 +93,9 @@ public class DifferencePBMTest {
     metric.add("base-channel", "10-LH");
     metric.setData(data);
     MetricTestMap expect = new MetricTestMap();
-    expect.put("10-00,LHZ-LHZ" ,  -2.378944, 1E-5);
-    expect.put("10-00,LHND-LHND",  3.2013067, 1E-5);
-    expect.put("10-00,LHED-LHED", -6.398256, 1E-5);
+    expect.put("10-00,LHZ-LHZ" ,  -2.378944, ERROR_TERM);
+    expect.put("10-00,LHND-LHND",  3.2013067, ERROR_TERM);
+    expect.put("10-00,LHED-LHED", -6.398256, ERROR_TERM);
     TestUtils.testMetric(metric, expect);
 
   }
