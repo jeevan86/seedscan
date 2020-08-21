@@ -50,7 +50,7 @@ public class StationDeviationMetricTest {
   public final void testProcessANMO() throws Exception {
     metric.setData(data1);
 
-    double err = 1E-5;
+    double err = 1E-4;
     MetricTestMap expect = new MetricTestMap();
     expect.put("00,LH1", -1.3673368, err);
     expect.put("00,LH2", -0.9144481, err);
