@@ -59,10 +59,10 @@ public class MassPositionMetric extends Metric {
 		double upperBound = 0;
 		double lowerBound = 0;
 
-		// Get Stage 1, make sure it is a Polynomial Stage (MacLaurin) and get
-		// Coefficients
-		// will add RuntimeException() to logger.error('msg', e)
-		ResponseStage stage = chanMeta.getStage(1);
+		// According to IRIS's spec the 0-stage for mass position data (VM* channels) is the relevant
+		// polynomial response. Hence this value here is hardcoded (and may break if the IRIS validator
+		// changes the ordering of response stages it expects) rather than just get first poly stage.
+		ResponseStage stage = chanMeta.getStage(0);
 		if (!(stage instanceof PolynomialStage)) {
 			throw new UnsupportedEncodingException(String
 					.format("station=[%s] channel=[%s] day=[%s]: Stage 1 is NOT a "
@@ -97,9 +97,9 @@ public class MassPositionMetric extends Metric {
 		int ndata = 0;
 
 		for (DataSet dataset : datasets) {
-			int intArray[] = dataset.getSeries();
-			for (int j = 0; j < intArray.length; j++) {
-				massPosition += Math.pow((a0 + intArray[j] * a1), 2);
+			int[] intArray = dataset.getSeries();
+			for (int i : intArray) {
+				massPosition += Math.pow((a0 + i * a1), 2);
 			}
 			ndata += dataset.getLength();
 		} // end for each dataset
