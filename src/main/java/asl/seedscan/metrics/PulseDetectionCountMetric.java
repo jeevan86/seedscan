@@ -55,7 +55,7 @@ public class PulseDetectionCountMetric extends PulseDetectionMetric {
 
   @Override
   public String getName() {
-    return "PulseDetectionMetric";
+    return "PulseDetectionCountMetric";
   }
 
   @Override
