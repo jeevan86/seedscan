@@ -30,6 +30,7 @@ public class WPhaseQualityMetricTest {
 
   @BeforeClass
   public static void setUpBeforeClass() {
+    // set up first set of data
     String doy = String.format("%03d", dataDate1.getDayOfYear());
     String networkName = "IU";
     String stationName = "PMG";
@@ -37,13 +38,14 @@ public class WPhaseQualityMetricTest {
     String seedDataLocation = "/seed_data/" + networkName + "_" + stationName + "/" +
         dataDate1.getYear() + "/" + doy + "";
     station1 = new Station(networkName, stationName);
+    data = ResourceManager.getMetricData(seedDataLocation, metadataLocation, dataDate1, station1);
+    // now for the second set
     doy = String.format("%03d", dataDate2.getDayOfYear());
     stationName = "KIP";
     station2 = new Station(networkName, stationName);
     metadataLocation = "/metadata/rdseed/" + networkName + "-" + stationName + "-ascii.txt";
     seedDataLocation = "/seed_data/" + networkName + "_" + stationName + "/" +
         dataDate2.getYear() + "/" + doy + "";
-    data = ResourceManager.getMetricData(seedDataLocation, metadataLocation, dataDate1, station1);
     data2 = ResourceManager.getMetricData(seedDataLocation, metadataLocation, dataDate2, station2);
     eventLoader = new EventLoader(ResourceManager.getDirectoryPath("/event_synthetics"));
   }
