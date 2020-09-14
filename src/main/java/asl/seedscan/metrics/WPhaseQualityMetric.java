@@ -133,7 +133,8 @@ public class WPhaseQualityMetric extends Metric {
         if (metricData.getNextMetricData() != null) {
           logger.info("No result gotten for station:[{}] channel:[{}] day:[{}]",
               getStation(), channel, getDay());
-          //Rotate next day's data if possible, not handled by valuedigest. Special case for event metrics.
+          // Rotate next day's data if possible, not handled by valuedigest.
+          // Special case for event metrics.
           metricData.getNextMetricData().checkForRotatedChannels(
               new ChannelArray(channel.getLocation(), channel.getChannel()));
         }
@@ -233,6 +234,13 @@ public class WPhaseQualityMetric extends Metric {
     SortedSet<String> eventKeys = new TreeSet<>(eventCMTs.keySet());
     for (String key : eventKeys) {
       EventCMT eventCMT = eventCMTs.get(key);
+      // first step is to make sure the synthetic data actually exists
+      Hashtable<String, SacTimeSeries> synthetics = getEventSynthetics(key);
+
+      if (synthetics == null) {
+        logger.warn("No synthetics found for key=[{}] for this station=[{}]\n", key, getStation());
+        continue;
+      }
 
       // first prescreen step is to ensure that we're close enough to the event for it to matter
       double eventLatitude = eventCMT.getLatitude();
@@ -262,6 +270,13 @@ public class WPhaseQualityMetric extends Metric {
       // we also extract the traces from data that passes this check to do more comparisons on
       for (ChannelKey channelKey : channelsWithCornerFreq.keySet()) {
         Channel channel = channelKey.toChannel();
+        String syntheticsName = getSyntheticsName(getStn(), basechannel, channel);
+        if (!synthetics.containsKey(syntheticsName)) {
+          logger.error("Did not find sac synthetic=[{}] in Hashtable", syntheticsName);
+          // if there's no synthetic to compare to, don't increase the event count
+          continue; // Try next event
+        }
+
         channelsWithMetricResults.put(channelKey, new ResultIncrementer());
         // this block will do the prescreening operation and scope out the 3-hour timeseries data
         {
@@ -269,7 +284,7 @@ public class WPhaseQualityMetric extends Metric {
           double[] prescreenCheck =
               metricData.getWindowedData(channel, prescreenWindowStart, eventStart);
           // run the getCrossPower stuff specifically on the above range of data and no more
-          CrossPower crossPower = null;
+          CrossPower crossPower;
           try {
             crossPower = new CrossPower(channel, channel, metricData,
                 prescreenCheck, prescreenCheck);
@@ -282,9 +297,8 @@ public class WPhaseQualityMetric extends Metric {
               passesPSDNoiseScreening(crossPower.getSpectrum(), crossPower.getSpectrumDeltaF());
 
           if (difference > 0) {
-            logger.warn("Difference ({}) between NHNM and PSD was positive; "
-                    + "channel=[{}] is too noisy.", difference,
-                getStation() + "-" + channel.toString());
+            logger.warn("Difference ({}) between NHNM and PSD was positive; channel=[{}-{}] is "
+                + "too noisy.", difference, getStation(), channel.toString());
             channelsWithMetricResults.get(channelKey).addInvalidCase();
             continue;
           }
@@ -361,24 +375,13 @@ public class WPhaseQualityMetric extends Metric {
       }
 
       // last screen is misfit against the synthetic data over the same time range
-      Hashtable<String, SacTimeSeries> synthetics = getEventSynthetics(key);
-      if (synthetics == null) {
-        logger.warn("No synthetics found for key=[{}] for this station=[{}]\n", key, getStation());
-        continue;
-      }
-
       for (ChannelKey channelKey : tracesPerUnfilteredChannel.keySet()) {
         Channel channel = channelKey.toChannel();
         double[] data = tracesPerUnfilteredChannel.get(channelKey);
         double sampleRate = stationMeta.getChannelMetadata(channel).getSampleRate();
-        String syntheticsName =
-            getStn() + "." + basechannel[0] + "." + basechannel[1].substring(0, 2)
-                + channel.toString().split("-")[1].substring(2, 3) + ".modes.sac.proc";
-        if (!synthetics.containsKey(syntheticsName)) {
-          logger.error("Did not find sac synthetic=[{}] in Hashtable", syntheticsName);
-          // if there's no synthetic to compare to, don't increase the event count (TODO: verify)
-          continue; // Try next event
-        }
+        // TODO: move this up sooner so data without a matching sac.proc file can't be used as
+        //  part of the screening (i.e., median check won't include data that can't be synth'd)?
+        String syntheticsName = getSyntheticsName(getStn(), basechannel, channel);
 
         SacTimeSeries sacSynthetics = synthetics.get(syntheticsName);
         SacHeader header = sacSynthetics.getHeader();
@@ -410,6 +413,13 @@ public class WPhaseQualityMetric extends Metric {
     }
 
     return channelsWithMetricResults;
+  }
+
+  static String getSyntheticsName(String station, String[] basechannel, Channel channel) {
+    String syntheticsName =
+        station + "." + basechannel[0] + "." + basechannel[1].substring(0, 2)
+            + channel.toString().split("-")[1].charAt(2) + ".modes.sac.proc";
+    return syntheticsName;
   }
 
   /**

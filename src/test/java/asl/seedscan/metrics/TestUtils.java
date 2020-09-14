@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 
 public class TestUtils {
 
@@ -65,8 +66,11 @@ public class TestUtils {
     MetricResult result = metric.getMetricResult();
 
     if (!expect.keySet().equals(result.getIdSet())) {
-      String errorMessage = "Result has these traces: " + result.getIdSet()
-          + "\nbut input has these traces: " + expect.keySet();
+      // let's make the result array a list to make parsing its data easier
+      List<String> resultList = new ArrayList<>(result.getIdSet());
+      Collections.sort(resultList);
+      String errorMessage = "Result has these " + resultList.size() + " traces: " + resultList
+          + "\nbut input has these " + expect.keySet().size() + " traces: " + expect.keySet();
       fail(errorMessage);
     }
     ArrayList<String> channels = new ArrayList<>(expect.keySet());

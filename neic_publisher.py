@@ -1,4 +1,4 @@
-from datetime import datetime, date, timedelta
+from datetime import date, timedelta
 from itertools import product
 import json
 import csv
@@ -20,9 +20,10 @@ def run_test():
 
 
 def run_dev():
-    start = [datetime.today() - timedelta(days=3)]
+    start = None
     metrics = ['NLNMDeviationMetric:0.5-1']
-    publish_messages(all_networks, start, metrics, True)
+    # This should not be run as a test, it's dev!
+    publish_messages(all_networks, start, metrics, False)
 
 
 def topic_fix(metric_name, is_test=False):
@@ -50,11 +51,9 @@ def publish_messages(networks=None, select_dates=None, metrics=None,
         # scan over the past 5 days if no date was set
         select_dates = []
         for offset in range(1, 5):
-            select_dates.append(datetime.today() - timedelta(days=offset))
+            select_dates.append(date.today() - timedelta(days=offset))
     if metrics is None or len(metrics) == 0:
         metrics = ['NLNMDeviationMetric:0.5-1']
-    # TODO: expect to iterate over a list of metric names to get
-    #  data from -- WPhase, NLNMDeviation, etc.
     for select_date, network, metric in product(select_dates, networks,
                                                 metrics):
         date_string = select_date.strftime("%Y-%m-%d")
@@ -70,7 +69,11 @@ def publish_messages(networks=None, select_dates=None, metrics=None,
                                  value_serializer=lambda v: json.dumps(v)
                                  .encode('utf-8'))
         # each line is effectively a row in the database
-        for record in csv.reader(output.splitlines(), skipinitialspace=True):
+        data = csv.reader(output.splitlines(), skipinitialspace=True)
+        if str(list(data)[0][0]).startswith("Error") and is_test:
+            print("Nothing available for", select_date, network, metric)
+            continue
+        for record in data:
             # now we get the fields and jsonify them for publication
             # value order is how they come out of the call_dqa method
             (r_date, network, station, location, channel, metric, value) = record
