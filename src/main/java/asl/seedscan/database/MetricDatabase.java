@@ -454,9 +454,11 @@ public class MetricDatabase {
 				"UPDATE tblscan "
 						+ "SET taken=FALSE "
 						+ "WHERE "
-						+ "fkparentscan IS NOT NULL "
-						+ "AND finished = FALSE "
-						+ "AND taken = TRUE")) {
+            + "finished = FALSE "
+            + "AND taken = TRUE "
+            + "AND pkscanid NOT IN ( "
+            + "SELECT DISTINCT fkparentscan FROM tblscan WHERE fkparentscan IS NOT NULL "
+            + ")")) {
 			//@formatter:off
 			//@formatter:on
 			int orphanCount = statement.executeUpdate();

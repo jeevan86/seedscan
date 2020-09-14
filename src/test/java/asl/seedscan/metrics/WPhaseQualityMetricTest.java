@@ -22,21 +22,31 @@ import org.junit.Test;
 public class WPhaseQualityMetricTest {
 
   private WPhaseQualityMetric metric;
-  private static MetricData data;
+  private static MetricData data, data2;
   private static EventLoader eventLoader;
-  private static LocalDate dataDate = LocalDate.ofYearDay(2016, 62);
-  private static Station station1;
+  private static final LocalDate dataDate1 = LocalDate.ofYearDay(2016, 62);
+  private static final LocalDate dataDate2 = LocalDate.ofYearDay(2020, 234);
+  private static Station station1, station2;
 
   @BeforeClass
   public static void setUpBeforeClass() {
-    String doy = String.format("%03d", dataDate.getDayOfYear());
+    // set up first set of data
+    String doy = String.format("%03d", dataDate1.getDayOfYear());
     String networkName = "IU";
     String stationName = "PMG";
     String metadataLocation = "/metadata/rdseed/" + networkName + "-" + stationName + "-ascii.txt";
     String seedDataLocation = "/seed_data/" + networkName + "_" + stationName + "/" +
-        dataDate.getYear() + "/" + doy + "";
+        dataDate1.getYear() + "/" + doy + "";
     station1 = new Station(networkName, stationName);
-    data = ResourceManager.getMetricData(seedDataLocation, metadataLocation, dataDate, station1);
+    data = ResourceManager.getMetricData(seedDataLocation, metadataLocation, dataDate1, station1);
+    // now for the second set
+    doy = String.format("%03d", dataDate2.getDayOfYear());
+    stationName = "KIP";
+    station2 = new Station(networkName, stationName);
+    metadataLocation = "/metadata/rdseed/" + networkName + "-" + stationName + "-ascii.txt";
+    seedDataLocation = "/seed_data/" + networkName + "_" + stationName + "/" +
+        dataDate2.getYear() + "/" + doy + "";
+    data2 = ResourceManager.getMetricData(seedDataLocation, metadataLocation, dataDate2, station2);
     eventLoader = new EventLoader(ResourceManager.getDirectoryPath("/event_synthetics"));
   }
 
@@ -44,8 +54,8 @@ public class WPhaseQualityMetricTest {
   public void testProcessDefault() {
     metric = new WPhaseQualityMetric();
     metric.setData(data);
-    metric.setEventTable(eventLoader.getDayEvents(dataDate));
-    metric.setEventSynthetics(eventLoader.getDaySynthetics(dataDate, station1));
+    metric.setEventTable(eventLoader.getDayEvents(dataDate1));
+    metric.setEventSynthetics(eventLoader.getDaySynthetics(dataDate1, station1));
     MetricTestMap expect = new MetricTestMap();
     expect.put("00,LHND", 1, 1E-3);
     //expect.put("00,LHED", 1, 1E-3);
@@ -56,6 +66,23 @@ public class WPhaseQualityMetricTest {
     expect.put("60,LHND", 1, 1E-3);
     expect.put("60,LHED", 1, 1E-3);
     //expect.put("60,LHZ", 1, 1E-3);
+    TestUtils.testMetric(metric, expect);
+  }
+
+  @Test
+  public void testProcessDefaultKIP() {
+    metric = new WPhaseQualityMetric();
+    metric.setData(data2);
+    metric.setEventTable(eventLoader.getDayEvents(dataDate2));
+    metric.setEventSynthetics(eventLoader.getDaySynthetics(dataDate2, station2));
+    MetricTestMap expect = new MetricTestMap();
+    expect.put("00,LHND", 1, 1E-3);
+    expect.put("00,LHED", 1, 1E-3);
+    expect.put("00,LHZ", 0, 1E-3);
+    expect.put("10,LHND", 1, 1E-3);
+    expect.put("10,LHED", 1, 1E-3);
+    expect.put("10,LHZ", 0, 1E-3);
+    expect.put("60,LHED", 1, 1E-3);
     TestUtils.testMetric(metric, expect);
   }
 
