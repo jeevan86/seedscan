@@ -20,8 +20,6 @@ def run_test():
 
 
 def run_dev():
-    start = [date.today() - timedelta(days=3)]
-    print(start)
     start = None
     metrics = ['NLNMDeviationMetric:0.5-1']
     # This should not be run as a test, it's dev!
