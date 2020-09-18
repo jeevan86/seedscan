@@ -70,14 +70,20 @@ def publish_messages(networks=None, select_dates=None, metrics=None,
                                  .encode('utf-8'))
         # each line is effectively a row in the database
         data = csv.reader(output.splitlines(), skipinitialspace=True)
-        if str(list(data)[0][0]).startswith("Error"):
-            if is_test:
-                print("Nothing available for", select_date, network, metric)
-            continue
+        # note that CSV class works in such a way that the iterator is the only reasonable way to
+        # access the data once converted into it -- fortunately the first entry can still easily be
+        # checked to determine if there's really any content to iterator over
         for record in data:
+            # this will happen if DQA doesn't have data for a given day/metric, not an empty list
+            if str(record[0]).startswith("Error"):
+                if is_test:
+                    print("Nothing available for", select_date, network, metric)
+                break  # go back to outer loop, no data in this record exists
             # now we get the fields and jsonify them for publication
             # value order is how they come out of the call_dqa method
             (r_date, network, station, location, channel, metric, value) = record
+            if is_test:
+                print(r_date, network, station, location, channel, metric, value)
             # get the topic name derived from the metric and run type
             topic_name = topic_fix(metric, is_test)
             # json format description:
