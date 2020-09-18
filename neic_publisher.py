@@ -70,7 +70,11 @@ def publish_messages(networks=None, select_dates=None, metrics=None,
                                  .encode('utf-8'))
         # each line is effectively a row in the database
         data = csv.reader(output.splitlines(), skipinitialspace=True)
+        # note that CSV class works in such a way that the iterator is the only reasonable way to
+        # access the data once converted into it -- fortunately the first entry can still easily be
+        # checked to determine if there's really any content to iterator over
         for record in data:
+            # this will happen if DQA doesn't have data for a given day/metric, not an empty list
             if str(record[0]).startswith("Error"):
                 if is_test:
                     print("Nothing available for", select_date, network, metric)
