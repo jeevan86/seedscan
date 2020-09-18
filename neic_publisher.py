@@ -70,8 +70,9 @@ def publish_messages(networks=None, select_dates=None, metrics=None,
                                  .encode('utf-8'))
         # each line is effectively a row in the database
         data = csv.reader(output.splitlines(), skipinitialspace=True)
-        if str(list(data)[0][0]).startswith("Error") and is_test:
-            print("Nothing available for", select_date, network, metric)
+        if str(list(data)[0][0]).startswith("Error"):
+            if is_test:
+                print("Nothing available for", select_date, network, metric)
             continue
         for record in data:
             # now we get the fields and jsonify them for publication
