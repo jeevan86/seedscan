@@ -124,6 +124,6 @@ public class PulseDetectionPeakMetric extends PulseDetectionMetric {
         + "amplitude moving average must be 4 times greater than a 15-minute moving average. "
         + "Pulses are then screened according to a user-specified threshold for the correlation "
         + "amplitude and coefficient values. The peak of the largest valid pulse is returned, "
-        + "in units of nanometers (i.e., signal value * 10^9).";
+        + "represented as the correlation amplitude value.";
   }
 }
