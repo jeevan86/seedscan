@@ -124,15 +124,22 @@ public abstract class ResourceManager { // NO_UCD (test only)
   }
 
   public static synchronized MetaGenerator loadMetaGenerator() throws Exception {
-    Dependent.assumeRDSeed();
+    Dependent.requireRDSeed();
     if (sharedMetaGenerator == null) {
-      String[] netArray = {"CU", "GT", "IC", "IW", "NE", "US"};
+      String[] netArray = {"CU", "GT", "IC", "IW", "NE", "US", "IU"};
       sharedMetaGenerator = new MetaGenerator(
           ResourceManager.getDirectoryPath("/metadata/station_dataless"),
           "${NETWORK}_${STATION}.dataless", Arrays.asList(netArray));
     }
 
     return sharedMetaGenerator;
+  }
+
+  public static StationMeta getMetadata(String metadataLocation, LocalDate date, Station station) {
+    MetaGeneratorMock mockMetadata =
+        new MetaGeneratorMock(metadataLocation, station);
+    StationMeta stationMeta = mockMetadata.getStationMeta(station, date.atStartOfDay());
+    return stationMeta;
   }
 
   /**
@@ -146,14 +153,14 @@ public abstract class ResourceManager { // NO_UCD (test only)
    * @return complete MetricData object for station day.
    */
   public static MetricData getMetricData(String timeSeriesDataLocation, String metadataLocation,
-      LocalDate date, Station station, String networkName) {
+      LocalDate date, Station station) {
     // TODO: may need additional data for how to load in metadata objects (i.,e., locations)
     // or to construct new metadata objects for specifically test data
-    MetricDatabaseMock mockDB = new MetricDatabaseMock();
-    MetaGeneratorMock mockMetadata =
-        new MetaGeneratorMock(metadataLocation, networkName, station.getStation());
-    StationMeta stationMeta = mockMetadata.getStationMeta(station, date.atStartOfDay());
+    String networkName = station.getNetwork();
 
+    MetricDatabaseMock mockDB = new MetricDatabaseMock();
+
+    StationMeta stationMeta = getMetadata(metadataLocation, date, station);
     File dir = new File(getDirectoryPath(timeSeriesDataLocation));
     File[] files = dir.listFiles((dir1, name) -> name.endsWith(".seed"));
 
@@ -198,6 +205,23 @@ public abstract class ResourceManager { // NO_UCD (test only)
     executor.awaitTermination(300, TimeUnit.SECONDS);
 
     return new SplitterObject(splitter, table);
+  }
+
+  public static MetricData loadANMOMainTestCase() {
+    final String metadataLocation = "/metadata/rdseed/IU-ANMO-ascii.txt";
+    final String seedDataLocation = "/seed_data/IU_ANMO/2015/206";
+    final String networkName = "IU";
+    final Station station = new Station(networkName, "ANMO");
+    final LocalDate dataDate = LocalDate.ofYearDay(2015, 206);
+    return getMetricData(seedDataLocation, metadataLocation, dataDate, station);
+  }
+
+  public static MetricData loadNWAOMainTestCase() {
+    final String seedLocation = "/seed_data/IU_NWAO/2015/299";
+    final String metadataLocation = "/metadata/rdseed/IU-NWAO-ascii.txt";
+    final LocalDate dataDate = LocalDate.ofYearDay(2015, 299);
+    final Station station = new Station("IU","NWAO");
+    return getMetricData(seedLocation, metadataLocation, dataDate, station);
   }
 
   // Class to assign seedplitter object and seedsplitter table

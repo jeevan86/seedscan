@@ -71,6 +71,19 @@ public class AvailabilityMetric extends Metric {
 
 	} // end process()
 
+	@Override
+	public String getSimpleDescription() {
+		return "Returns a percentage of expected samples in the trace";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "For a sensor's sample rate and the length of a full day, this metric compares the "
+				+ "number of points gotten from the data archive with the expected number of samples it "
+				+ "should have. This is returned as a percentage; if we have 1 point when we expected 2, "
+				+ "this would be a 50% availability result.";
+	}
+
 	private double computeMetric(Channel channel) {
 
 		// AvailabilityMetric still returns a result (availability=0) even when

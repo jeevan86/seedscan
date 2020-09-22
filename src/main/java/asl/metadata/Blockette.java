@@ -124,6 +124,17 @@ public class Blockette implements java.io.Serializable {
 	}
 
 	/**
+	 * Method used to construct basic metadata for module testing
+	 * @param fieldIdentifier numeric field id for a given field (i.e., field 4)
+	 * @param value Value of whatever is to be placed in the given field (i.e., station latitude)
+	 */
+	public void addFieldData(int fieldIdentifier, String value) {
+		Field field = new Field(fieldIdentifier, "");
+		field.addValue(value);
+		fields.put(fieldIdentifier, field);
+	}
+
+	/**
 	 * Gets the field value.
 	 *
 	 * @param fieldID the field id

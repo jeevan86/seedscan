@@ -2,6 +2,8 @@ package asl.timeseries;
 
 import static org.junit.Assert.assertEquals;
 
+import asl.utils.FFTResult;
+import java.util.Arrays;
 import org.apache.commons.math3.complex.Complex;
 import org.junit.Test;
 
@@ -13,28 +15,6 @@ import org.junit.Test;
  */
 public class FFTUtilsTest {
 
-  @Test
-  public final void testGetPaddedSize() throws Exception {
-    Integer result = FFTUtils.getPaddedSize(0);
-    Integer expected = 1;
-    assertEquals(expected, result);
-
-    result = FFTUtils.getPaddedSize(1023);
-    expected = 1024;
-    assertEquals(expected, result);
-
-    result = FFTUtils.getPaddedSize(512);
-    expected = 512;
-    assertEquals(expected, result);
-
-    result = FFTUtils.getPaddedSize(513);
-    expected = 1024;
-    assertEquals(expected, result);
-
-    result = FFTUtils.getPaddedSize(2500000);
-    expected = 4194304;
-    assertEquals(expected, result);
-  }
 
   @Test
   public final void testGetRealArray() throws Exception {
@@ -64,11 +44,11 @@ public class FFTUtilsTest {
     }
 
     Complex[] fft = FFTUtils.singleSidedFFT(input);
-    Complex[] inversefft = FFTUtils.inverseFFT(fft);
+    double[] inverseReal = FFTResult.singleSidedInverseFFT(fft, input.length);
 
     // Check inverse
-    for (int i = 0; i < inversefft.length; i++) {
-      assertEquals((Double) input[i], (Double) inversefft[i].getReal());
+    for (int i = 0; i < inverseReal.length; i++) {
+      assertEquals((Double) input[i], (Double) inverseReal[i]);
     }
   }
 

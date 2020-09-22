@@ -66,6 +66,20 @@ public class GapCountMetric extends Metric {
 		}// end foreach channel
 	} // end process()
 
+	@Override
+	public String getSimpleDescription() {
+		return "Returns the number of gaps found between data records for a sensor's full-day trace.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This metric compares the start and end times of consecutive data records from a seed "
+				+ "file for a sensor's full-day data. If these records are more than a sample apart in "
+				+ "time, then that is counted as a gap. The total number of gaps found is reported. "
+				+ "Some metrics require a gapless trace, so if this value is positive, other metrics will "
+				+ "have an empty result.";
+	}
+
 	private double computeMetric(Channel channel, String station, String day,
 			String metric) {
 

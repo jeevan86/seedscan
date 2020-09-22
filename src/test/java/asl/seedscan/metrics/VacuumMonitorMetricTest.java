@@ -2,7 +2,9 @@ package asl.seedscan.metrics;
 
 import static org.junit.Assert.assertEquals;
 
+import asl.metadata.Station;
 import asl.testutils.ResourceManager;
+import java.time.LocalDate;
 import java.util.HashMap;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -17,8 +19,11 @@ public class VacuumMonitorMetricTest {
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
     try {
-      data1 = (MetricData) ResourceManager
-          .loadCompressedObject("/java_serials/data/IU.ADK.2015.40.MetricData.ser.gz", false);
+      String dataPath = "/seed_data/IU_ADK/2015/040";
+      String metaPath = "/metadata/rdseed/IU-ADK-VY-ascii.txt";
+      LocalDate date = LocalDate.ofYearDay(2015, 40);
+      Station station = new Station("IU", "ADK");
+      data1 = ResourceManager.getMetricData(dataPath, metaPath, date, station);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -43,7 +48,7 @@ public class VacuumMonitorMetricTest {
   @Test
   public final void testProcessDefault() throws Exception {
     HashMap<String, Double> expect = new HashMap<>();
-    expect.put("00,VY1", 39.2043354373);
+    expect.put("00,VY1", 39.2043192984);
     expect.put("00,VY2", 39.4955981431);
     expect.put("00,VYZ", 45.5289258911);
 
@@ -56,7 +61,7 @@ public class VacuumMonitorMetricTest {
     metric.add("channel-restriction", "VY");
 
     HashMap<String, Double> expect = new HashMap<>();
-    expect.put("00,VY1", 39.2043354373);
+    expect.put("00,VY1", 39.2043192984);
     expect.put("00,VY2", 39.4955981431);
     expect.put("00,VYZ", 45.5289258911);
 

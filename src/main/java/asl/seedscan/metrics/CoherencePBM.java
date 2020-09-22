@@ -67,7 +67,9 @@ public class CoherencePBM extends PowerBandMetric {
 			String channelLoc = channel.toString().split("-")[0];
 			String channelVal = channel.toString().split("-")[1];
 			String regex = "^"+basechannel[1]+".*";
-			if(channelVal.matches(regex) && !channelLoc.equals(basechannel[0]) && weHaveChannels(basechannel[0], basechannel[1]) && weHaveChannels(channelLoc, basechannel[1]))
+			if(channelVal.matches(regex) && !channelLoc.equals(basechannel[0]) &&
+					weHaveChannels(basechannel[0], basechannel[1]) &&
+					weHaveChannels(channelLoc, basechannel[1]))
 			{
 				Channel channelX = new Channel(basechannel[0], channelVal);
 				Channel channelY = new Channel(channelLoc, channelVal);
@@ -119,6 +121,20 @@ public class CoherencePBM extends PowerBandMetric {
 		
 	} // end process()
 
+	@Override
+	public String getSimpleDescription() {
+		return "Computes the coherence between two channels' PSDs over the given period range (s)";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This metric computes the full-day PSD and cross-power between two matching channels at "
+				+ "different  locations (i.e., 00-LHZ vs. 10-LHZ) over the specified period range "
+				+ "(in seconds). The formula for coherence is P_ab^2 / (P_aa * P_bb), where the subscripts "
+				+ "represent which sensors are inputted into the cross-power function. This coherence "
+				+ "result is what is published for the metric. Data sample rates must match.";
+	}
+
 	private double computeMetric(Channel channelX, Channel channelY,
 			String station, String day, String metric) throws MetricException,
 			PlotMakerException, TraceException {
@@ -138,14 +154,16 @@ public class CoherencePBM extends PowerBandMetric {
 
 		if (dfX != dfY) { // Oops - spectra have different frequency sampling!
 			throw new MetricException(String
-					.format("station=[%s] channelX[%s] channelY=[%s] day=[%s]: dfX != dfY --> Can't continue\n",
+					.format("station=[%s] channelX[%s] channelY=[%s] day=[%s]: "
+									+ "dfX != dfY --> Can't continue\n",
 							station, channelX, channelY, day));
 		}
 
 		if (Gxx.length != Gyy.length || Gxx.length != Gxy.length) { // Something's
 			// wrong ...
 			throw new MetricException(String
-					.format("station=[%s] channelX=[%s] channelY=[%s] day=[%s]: Gxx.length != Gyy.length --> Can't continue\n",
+					.format("station=[%s] channelX=[%s] channelY=[%s] day=[%s]: "
+									+ "Gxx.length != Gyy.length --> Can't continue\n",
 							station, channelX, channelY, day));
 		}
 		// nf = number of positive frequencies + DC (nf = nfft/2 + 1, [f: 0, df,
@@ -207,7 +225,8 @@ public class CoherencePBM extends PowerBandMetric {
 
 		if (nPeriods == 0) {
 			throw new MetricException(String
-					.format("station=[%s] channelX=[%s] channelY=[%s] day=[%s]: Requested band [%f - %f] contains NO periods --> divide by zero!\n",
+					.format("station=[%s] channelX=[%s] channelY=[%s] day=[%s]: "
+									+ "Requested band [%f - %f] contains NO periods --> divide by zero!\n",
 							station, channelX, channelY, day, lowPeriod,
 							highPeriod));
 		}

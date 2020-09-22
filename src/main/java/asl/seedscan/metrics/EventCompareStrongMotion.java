@@ -22,7 +22,8 @@ import edu.sc.seis.TauP.TauModelException;
 import edu.sc.seis.TauP.TauP_Time;
 
 public class EventCompareStrongMotion extends Metric {
-	private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.metrics.EventCompareStrongMotion.class);
+	private static final Logger logger = LoggerFactory.getLogger(
+			asl.seedscan.metrics.EventCompareStrongMotion.class);
 
 	private Hashtable<String, EventCMT> eventCMTs = null;
 
@@ -156,7 +157,8 @@ public class EventCompareStrongMotion extends Metric {
 							double[] arrivalTimes = getEventArrivalTimes(eventCMT);
 							if (arrivalTimes == null) {
 								logger.info(
-										"== {}: arrivalTimes==null for stn=[{}] day=[{}]: Distance to stn probably > 97-deg --> Don't compute metric\n",
+										"== {}: arrivalTimes==null for stn=[{}] day=[{}]: "
+												+ "Distance to stn probably > 97-deg --> Don't compute metric\n",
 										getName(), getStation(), getDay());
 								continue;
 							}
@@ -202,6 +204,22 @@ public class EventCompareStrongMotion extends Metric {
 		}
 	}
 
+	@Override
+	public String getSimpleDescription() {
+		return "Compares co-located data in 4-20s period for events >M6.5, as a correlation";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "We compare co-located strong motion accelerometer data to broadband seismic data in "
+				+ "the 4 to 20 s period band for all M6.5 and greater events.  We compare the data in a "
+				+ "common window of 2 minutes before the P wave arrival to 1 minute after the S wave "
+				+ "arrival.  If x(t) denote the broadband seismometer and y(t) denotes the accelerometer, "
+				+ "then their ratio is computed as sum(y(t)*x(t))/sum(x(t)**2).  We require that the "
+				+ "traces have a correlation of greater than 0.85.  We convert all units to displacement "
+				+ "for the comparison.";
+	}
+
 	private double scaleFac(double[] data1, double[] data2, int n1, int n2) {
 		// if n1 < n2 or nend < data.length ...
 		double numerator = 0.;
@@ -212,7 +230,8 @@ public class EventCompareStrongMotion extends Metric {
 		}
 		if (denominator == 0.) {
 			logger.error(
-					"station=[{}] day=[{}]: scaleFac: denominator==0 --> Divide by 0 --> Expect result = Infinity!",
+					"station=[{}] day=[{}]: scaleFac: denominator==0 --> "
+							+ "Divide by 0 --> Expect result = Infinity!",
 					getStation(), getDay());
 		}
 
@@ -238,7 +257,8 @@ public class EventCompareStrongMotion extends Metric {
 		}
 		if (n2 >= data1.length || n2 >= data2.length) {
 			logger.error(
-					"station=[{}] day=[{}]: calcDiff: n2=[{}] > data1.length=[{}] and/or data2.length=[{}] --> Bad window",
+					"station=[{}] day=[{}]: calcDiff: n2=[{}] > "
+							+ "data1.length=[{}] and/or data2.length=[{}] --> Bad window",
 					getStation(), getDay(), n2, data1.length, data2.length);
 			return NO_RESULT;
 		}
@@ -286,7 +306,7 @@ public class EventCompareStrongMotion extends Metric {
 		double stlo = stationMeta.getLongitude();
 		double gcarc = SphericalCoords.distance(evla, evlo, stla, stlo);
 		double azim = SphericalCoords.azimuth(evla, evlo, stla, stlo);
-		TauP_Time timeTool = null;
+		TauP_Time timeTool;
 		try {
 			timeTool = new TauP_Time("prem");
 			timeTool.parsePhaseList("P,S");
@@ -323,8 +343,10 @@ public class EventCompareStrongMotion extends Metric {
 		}
 
 		logger.info(String.format(
-				"Event:%s <evla,evlo> = <%.2f, %.2f> Station:%s <%.2f, %.2f> gcarc=%.2f azim=%.2f tP=%.3f tS=%.3f\n",
-				eventCMT.getEventID(), evla, evlo, getStation(), stla, stlo, gcarc, azim, arrivalTimeP, arrivalTimeS));
+				"Event:%s <evla,evlo> = <%.2f, %.2f> Station:%s <%.2f, %.2f> "
+						+ "gcarc=%.2f azim=%.2f tP=%.3f tS=%.3f\n",
+				eventCMT.getEventID(), evla, evlo, getStation(), stla, stlo, gcarc, azim,
+				arrivalTimeP, arrivalTimeS));
 
 		double[] arrivalTimes = new double[2];
 		arrivalTimes[0] = arrivalTimeP;

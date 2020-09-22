@@ -1,6 +1,7 @@
 package asl.seedscan.metrics;
 
 import asl.util.Logging;
+import asl.utils.FilterUtils;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -47,7 +48,8 @@ import sac.SacTimeSeries;
  */
 public class EventCompareSynthetic extends Metric {
 
-	private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.metrics.EventCompareSynthetic.class);
+	private static final Logger logger = LoggerFactory.getLogger(
+			asl.seedscan.metrics.EventCompareSynthetic.class);
 
 	private static final double PERIOD1 = 500;
 
@@ -96,7 +98,8 @@ public class EventCompareSynthetic extends Metric {
 		Hashtable<String, EventCMT> eventCMTs = getEventTable();
 		if (eventCMTs == null) {
 			logger.info(
-					String.format("No Event CMTs found for Day=[%s] --> Skip EventCompareSynthetic Metric", getDay()));
+					String.format("No Event CMTs found for Day=[%s] --> "
+							+ "Skip EventCompareSynthetic Metric", getDay()));
 			return;
 		}
 
@@ -131,7 +134,8 @@ public class EventCompareSynthetic extends Metric {
 			String channelVal = curChannel.toString().split("-")[1];
 			if (bands.contains(channelVal.substring(0, 2))) {
 				//Rotate channels as needed.
-				ChannelArray channelArray = new ChannelArray(curChannel.getLocation(), curChannel.getChannel());
+				ChannelArray channelArray = new ChannelArray(
+						curChannel.getLocation(), curChannel.getChannel());
 				metricData.checkForRotatedChannels(channelArray);
 				if (metricData.getNextMetricData() != null) {
 					metricData.getNextMetricData().checkForRotatedChannels(channelArray);
@@ -152,7 +156,7 @@ public class EventCompareSynthetic extends Metric {
 					for (String key : eventKeys) {
 						Hashtable<String, SacTimeSeries> synthetics = getEventSynthetics(key);
 						if (synthetics == null) {
-							logger.info("== {}: No synthetics found for key=[{}] for this station\n", getName(), key);
+							logger.info("No synthetics found for key=[{}] for this station\n", key);
 							continue;
 						}
 
@@ -162,7 +166,13 @@ public class EventCompareSynthetic extends Metric {
 						// e.g. "ANMO.XX.LXZ.modes.sac.proc"
 						if (synthetics.containsKey(fileKey)) {
 							sacSynthetics = synthetics.get(fileKey);
-							MyFilter.bandpass(sacSynthetics, FREQUENCY1, FREQUENCY2, FREQUENCY3, FREQUENCY4);
+							SacHeader hdr = sacSynthetics.getHeader();
+							double delta = (double) hdr.getDelta();
+							double sampRate = 1./delta;
+							float[] fdata = sacSynthetics.getY();
+							double[] data = MyFilter.convertFloatsToDoubles(fdata);
+							data = FilterUtils.bandFilter(data, sampRate, FREQUENCY2, FREQUENCY3, 2);
+							sacSynthetics.setY(MyFilter.convertDoublesToFloats(data));
 						} else {
 							logger.info("Did not find sac synthetic=[{}] in Hashtable", fileKey);
 							continue; // Try next event
@@ -188,8 +198,8 @@ public class EventCompareSynthetic extends Metric {
 						ResponseUnits units = ResponseUnits.DISPLACEMENT;
 
 						double[] baseData = sacArrayToDouble(sacSynthetics);
-						double[] channelData = metricData.getFilteredDisplacement(units, curChannel, eventStartTime,
-								eventEndTime, FREQUENCY1, FREQUENCY2, FREQUENCY3, FREQUENCY4);
+						double[] channelData = metricData.getFilteredDisplacement(units, curChannel,
+								eventStartTime, eventEndTime, FREQUENCY1, FREQUENCY2, FREQUENCY3, FREQUENCY4);
 
 						if(baseData == null || channelData == null){
 							//Not enough data to compute skip this event
@@ -219,6 +229,28 @@ public class EventCompareSynthetic extends Metric {
 		}
 	}
 
+	@Override
+	public String getSimpleDescription() {
+		return "Compares displacement (magnitude) and phase (sign) of channel data with synthetics.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This metric compares compare MINEOS synthetic normal mode seismograms to rotated N, E, "
+				+ "and vertical data in the 100 to 400s period band.  Data is compared in an 8000s window "
+				+ "starting at the moment tensor time of the event.  The synthetics are corrected with a "
+				+ "ource-time function using a half-triangle.  The difference between the synthetics and "
+				+ "the data is given by the normalized scale factor of sum x(t)*y(t)/"
+				+ "(sum(x(t))*sum(y(t))), where x(t) is the data and y(t) is the synthetic seismogram.  "
+				+ "We restrict results to cases where the correlation is greater than 0.85. "
+				+ "A result of 1 means the channel data matches the synthetic exactly, with values "
+				+ "greater than 1 meaning that the data has more displacement than the synthetic, values "
+				+ "between 0 and 1 meaning less displacement, and negative values being out-of-phase with "
+				+ "the synthetic (a value of -1 matches the displacement but with a 180-deg. phase "
+				+ "difference). See also Ekstroem, Dalton, Nettles (2006): \"Observations of "
+				+ "Time-dependent Errors in Long-period Instrument Gain at Global Seismic Stations\", SRL.";
+	}
+
 	/**
 	 * Gets the sac start time in millis.
 	 * 
@@ -226,7 +258,7 @@ public class EventCompareSynthetic extends Metric {
 	 *            the sac header
 	 * @return the sac start time in millis
 	 */
-	private long getSacStartTimeInMillis(SacHeader hdr) {
+	public static long getSacStartTimeInMillis(SacHeader hdr) {
 		GregorianCalendar gcal = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
 		gcal.set(Calendar.YEAR, hdr.getNzyear());
 		gcal.set(Calendar.DAY_OF_YEAR, hdr.getNzjday());
@@ -284,12 +316,14 @@ public class EventCompareSynthetic extends Metric {
 	 */
 	private double calcDiff(double[] data1, double[] data2, int n1, int n2) {
 		if (n2 < n1) {
-			logger.error("station=[{}] day=[{}]: calcDiff: n2 < n1 --> Bad window", getStation(), getDay());
+			logger.error("station=[{}] day=[{}]: calcDiff: n2 < n1 --> Bad window",
+					getStation(), getDay());
 			return NO_RESULT;
 		}
 		if (n2 >= data1.length || n2 >= data2.length) {
 			logger.error(
-					"station=[{}] day=[{}]: calcDiff: n2=[{}] > data1.length=[{}] and/or data2.length=[{}] --> Bad window",
+					"station=[{}] day=[{}]: calcDiff: n2=[{}] > data1.length=[{}] and/or data2.length=[{}] "
+							+ "--> Bad window",
 					getStation(), getDay(), n2, data1.length, data2.length);
 			return NO_RESULT;
 		}
@@ -303,7 +337,8 @@ public class EventCompareSynthetic extends Metric {
 
 		if (denomenator == 0.) {
 			logger.error(
-					"station=[{}] day=[{}]: calcDiff: denomenator==0 --> Divide by 0 --> Expect result = Infinity!",
+					"station=[{}] day=[{}]: calcDiff: denomenator==0 --> Divide by 0 --> "
+							+ "Expect result = Infinity!",
 					getStation(), getDay());
 		}
 		double result = numerator / denomenator;
@@ -322,12 +357,14 @@ public class EventCompareSynthetic extends Metric {
 		// This function computs the Pearson's correlation value for the two
 		// time series
 		if (n2 < n1) {
-			logger.error("station=[{}] day=[{}]: calcDiff: n2 < n1 --> Bad window", getStation(), getDay());
+			logger.error("station=[{}] day=[{}]: calcDiff: n2 < n1 --> Bad window",
+					getStation(), getDay());
 			return NO_RESULT;
 		}
 		if (n2 >= data1.length || n2 >= data2.length) {
 			logger.error(
-					"station=[{}] day=[{}]: calcDiff: n2=[{}] > data1.length=[{}] and/or data2.length=[{}] --> Bad window",
+					"station=[{}] day=[{}]: calcDiff: n2=[{}] > data1.length=[{}] and/or data2.length=[{}] "
+							+ "--> Bad window",
 					getStation(), getDay(), n2, data1.length, data2.length);
 			return NO_RESULT;
 		}

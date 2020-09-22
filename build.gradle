@@ -1,4 +1,3 @@
-
 buildscript {
     dependencies {
         classpath  'org.postgresql:postgresql:42.2.1'
@@ -7,19 +6,16 @@ buildscript {
 
 plugins {
     id 'org.liquibase.gradle' version '1.2.4'
-    id 'com.github.jacobono.jaxb' version '1.3.5'
+    id 'org.unbroken-dome.xjc' version '1.4.3'
+    id 'java'
+    id 'application'
 }
-
-apply plugin: 'java'
-apply plugin: 'eclipse'
-apply plugin: 'idea'
-apply plugin: 'application'
 
 if (file('database.gradle').exists()) {
-   apply from:'database.gradle'
+    apply from:'database.gradle'
 }
 
-version = '1.7.0'
+version = '1.8.3'
 
 mainClassName = 'asl.seedscan.SeedScan'
 applicationDefaultJvmArgs = ["-Xms64m", "-Xmx30g"]
@@ -29,34 +25,34 @@ repositories {
 }
 
 dependencies {
-        // https://mvnrepository.com/artifact/uk.me.berndporr/iirj
-        compile group: 'uk.me.berndporr', name: 'iirj', version: '1.0'
-        compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.+'
-        compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.+'
-        compile group: 'org.jfree', name: 'jfreechart', version: '1.0.+'
-        compile group: 'org.apache.commons', name: 'commons-math3', version: '3.+'
-        compile group: 'org.postgresql', name: 'postgresql', version: '42.2.1'
-        compile group: 'com.mchange', name: 'c3p0', version: '0.9.5.2'
-        compile 'edu.sc.seis:seedCodec:1.0.11'
-        compile ('edu.sc.seis:TauP:2.4.1') {
-            exclude group: 'org.slf4j'
-        }
-       // compile files('lib/TauP-2.1.0.jar')
+    compile project(':asl-java-utils')
 
-        testCompile group: 'org.mockito', name: 'mockito-all', version: '1.10.19'
-        testCompile group: 'junit', name: 'junit', version: '4.+'
+    compile group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3+'
+    compile group: 'com.sun.xml.bind', name: 'jaxb-core', version: '2.3+'
+    compile group: 'com.sun.xml.bind', name: 'jaxb-impl', version: '2.3+'
+    compile group: 'com.sun.activation', name: 'javax.activation', version: '1.2.0'
 
-        jaxb 'com.sun.xml.bind:jaxb-xjc:2.2.7-b41'
-        jaxb 'com.sun.xml.bind:jaxb-impl:2.2.7-b41'
-        jaxb 'javax.xml.bind:jaxb-api:2.2.7'
+    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.+'
+    compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.+'
+    compile group: 'org.jfree', name: 'jfreechart', version: '1.0.+'
+    compile group: 'org.apache.commons', name: 'commons-math3', version: '3.+'
+    compile group: 'org.postgresql', name: 'postgresql', version: '42.2.1'
+    compile group: 'com.mchange', name: 'c3p0', version: '0.9.5.2'
+    compile 'edu.sc.seis:seedCodec:1.0.11'
+    compile ('edu.sc.seis:TauP:2.4.1') {
+        exclude group: 'org.slf4j'
+    }
+    // compile files('lib/TauP-2.1.0.jar')
+
+    testCompile group: 'org.mockito', name: 'mockito-all', version: '1.10.19'
+    testCompile group: 'junit', name: 'junit', version: '4.+'
+
+    xjcClasspath 'com.sun.xml.bind:jaxb-xjc:2.3+'
 }
 
-jaxb {
-    xsdDir = "src/main/resources/schemas"
-        xjc {
-            destinationDir = 'src/main/java'
-                removeOldOutput = 'yes'
-        }
+xjcGenerate {
+    source = fileTree('src/main/resources/schemas')
+    outputDirectory = file('src/main/java')
 }
 
 jar {
@@ -72,12 +68,13 @@ jar {
 
     manifest {
         attributes 'Implementation-Title': 'ASL SeedScan Data Quality Analyzer',
-                   'Implementation-Version': version,
-                   'Main-Class': mainClassName
+                'Implementation-Version': version,
+                'Main-Class': mainClassName
     }
 }
 
 test {
+    maxHeapSize = "4096m"
     maxParallelForks = 4;
     testLogging {
         events "skipped", "failed"
@@ -106,7 +103,7 @@ compileJava {
     options.incremental = true
 }
 
-tasks.compileJava.dependsOn('xjc')
+tasks.compileJava.dependsOn('xjcGenerate')
 
 if (file('database.gradle').exists()) {
     liquibase {
@@ -122,3 +119,12 @@ if (file('database.gradle').exists()) {
     }
 }
 
+task gitSubmodule(type: Exec) {
+    description 'Update git submodules'
+    println 'Downloading the test data submodule may take a long time, potentially hours depending on your connection speed.'
+    println 'Interrupting may corrupt the test data submodule.'
+    commandLine 'git', 'submodule', 'update', '--init', '--recursive'
+}
+
+compileJava.dependsOn(gitSubmodule)
+build.dependsOn gitSubmodule

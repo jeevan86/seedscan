@@ -136,4 +136,17 @@ public class VacuumMonitorMetric extends Metric {
 
 		}
 	}
+
+	@Override
+	public String getSimpleDescription() {
+		return "Reports a sensor's mean pressure in kPa for detecting loss of vacuum over time";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This metric takes the average value of a vacuum sensor (i.e., VY channels) over a "
+				+ "full-day's data, and normalizes that on the response gain to produce an average "
+				+ "pressure value in kPa. This value is intended to be interpreted over a long-term period "
+				+ "to determine if the sensor is experiencing a loss of vacuum over time.";
+	}
 }

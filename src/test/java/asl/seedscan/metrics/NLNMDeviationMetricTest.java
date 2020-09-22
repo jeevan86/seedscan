@@ -3,8 +3,10 @@ package asl.seedscan.metrics;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import asl.metadata.Station;
+import asl.testutils.MetricTestMap;
 import asl.testutils.ResourceManager;
-import java.util.HashMap;
+import java.time.LocalDate;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -18,8 +20,7 @@ public class NLNMDeviationMetricTest {
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
     try {
-      data1 = (MetricData) ResourceManager
-          .loadCompressedObject("/java_serials/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
+      data1 = ResourceManager.loadANMOMainTestCase();
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -49,13 +50,14 @@ public class NLNMDeviationMetricTest {
     metric.add("channel-restriction", "LH");
 
 		/* The String key matches the MetricResult ids */
-    HashMap<String, Double> expect = new HashMap<>();
-    expect.put("00,LH1", 6.144156714847165);
-    expect.put("00,LH2", 6.94984340838684);
-    expect.put("00,LHZ", 9.502837498158087);
-    expect.put("10,LH1", 7.126248440694965);
-    expect.put("10,LH2", 6.701346629427542);
-    expect.put("10,LHZ", 9.473855204418532);
+    MetricTestMap expect = new MetricTestMap();
+    double error = 1E-5;
+    expect.put("00,LH1",  8.872056, error);
+    expect.put("00,LH2",  8.459049, error);
+    expect.put("00,LHZ", 10.898116, error);
+    expect.put("10,LH1",  8.528913, error);
+    expect.put("10,LH2",  8.537544, error);
+    expect.put("10,LHZ", 10.869350, error);
 
     TestUtils.testMetric(metric, expect);
 
@@ -110,16 +112,25 @@ public class NLNMDeviationMetricTest {
     metric.setData(data1);
 
 		/* The String key matches the MetricResult ids */
-    expect = new HashMap<>();
+    expect = new MetricTestMap();
 
-    expect.put("00,BH1", 9.232908381769587);
-    expect.put("00,BH2", 10.195579936296998);
-    expect.put("00,BHZ", 14.13441804592783);
-    expect.put("10,BH1", 11.99869763918782);
-    expect.put("10,BH2", 11.413398919704086);
-    expect.put("10,BHZ", 12.496385325897268);
+    expect.put("00,BH1", 10.435224, error);
+    expect.put("00,BH2", 11.514057, error);
+    expect.put("00,BHZ", 14.297192, error);
+    expect.put("10,BH1", 13.105149, error);
+    expect.put("10,BH2", 12.010476, error);
+    expect.put("10,BHZ", 12.022624, error);
 
     TestUtils.testMetric(metric, expect);
+  }
+
+  @Test
+  public final void testProcess_PMSA() {
+    String seedDataLocation = "/seed_data/IU_PMSA/2019/062";
+    String metadataLocation = "";
+    Station pmsa = new Station("IU", "PMSA");
+    LocalDate dataDate = LocalDate.of(2019, 1, 10);
+
   }
 
   @Test
@@ -143,13 +154,11 @@ public class NLNMDeviationMetricTest {
 
   @Test
   public final void testGetNLNM() throws Exception {
-    metric.add("nlnm-modelfile", "build/resources/main/noiseModels/NLNM.ascii");
     assertTrue(NLNMDeviationMetric.getNLNM().isValid());
   }
 
   @Test
   public final void testGetNHNM() throws Exception {
-    metric.add("nhnm-modelfile", "build/resources/main/noiseModels/NHNM.ascii");
     assertTrue(NLNMDeviationMetric.getNHNM().isValid());
   }
 

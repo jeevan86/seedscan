@@ -1,3 +1,6 @@
 [submodule "src/test/resources"]
 	path = src/test/resources
-	url = https://github.com/usgs/seismic-test-data.git
+	url = ../../seismic-test-data.git
+[submodule "asl-java-utils"]
+	path = asl-java-utils
+	url = ../../asl-java-utils.git

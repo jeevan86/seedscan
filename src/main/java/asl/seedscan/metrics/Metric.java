@@ -45,7 +45,7 @@ public abstract class Metric {
 	private String outputDir = null;
 
 	/** Dummy value when no results is computed. */
-	protected final double NO_RESULT = -999.999;
+	protected static final double NO_RESULT = -999.999;
 
 	/** The station metadata. */
 	protected StationMeta stationMeta = null;
@@ -105,6 +105,20 @@ public abstract class Metric {
 	 * Process.
 	 */
 	public abstract void process();
+
+	/**
+	 * Get a simple summary of what the metric does.
+	 * @return short description of metric
+	 */
+	public abstract String getSimpleDescription();
+
+	/**
+	 * Return an extended summary of what the metric does.
+	 * Usually this should match the javadoc header for the class.
+	 * Things like citations, etc. should ideally be included.
+	 * @return complete description of metric.
+	 */
+	public abstract String getLongDescription();
 
 	/**
 	 * Creates the identifier.
@@ -358,14 +372,11 @@ public abstract class Metric {
 		}
 		arguments.put(name, value);
 
-		if (name.equals("forceupdate")) {
-			if (value.toLowerCase().equals("true")
-					|| value.toLowerCase().equals("yes")) {
+		if (value.toLowerCase().equals("true") || value.toLowerCase().equals("yes")) {
+			if (name.equals("forceupdate")) {
 				setForceUpdate();
 			}
-		} else if (name.equals("makeplots")) {
-			if (value.toLowerCase().equals("true")
-					|| value.toLowerCase().equals("yes")) {
+			else if (name.equals("makeplots")) {
 				setMakePlots();
 			}
 		}

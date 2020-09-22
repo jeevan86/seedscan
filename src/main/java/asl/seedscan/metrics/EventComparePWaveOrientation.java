@@ -1,13 +1,13 @@
 package asl.seedscan.metrics;
 
-import asl.metadata.Channel;
-import asl.seedscan.event.EventCMT;
-import asl.timeseries.TimeseriesUtils;
-import edu.sc.seis.TauP.Arrival;
-import edu.sc.seis.TauP.SphericalCoords;
-import edu.sc.seis.TauP.TauModelException;
-import edu.sc.seis.TauP.TauP_Time;
+import static asl.seedscan.event.ArrivalTimeUtils.getPArrivalTime;
 
+import asl.metadata.Channel;
+import asl.seedscan.event.ArrivalTimeUtils.ArrivalTimeException;
+import asl.seedscan.event.EventCMT;
+import asl.utils.FilterUtils;
+import asl.utils.NumericUtils;
+import edu.sc.seis.TauP.SphericalCoords;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -16,16 +16,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
-
 import org.apache.commons.math3.linear.BlockRealMatrix;
 import org.apache.commons.math3.linear.EigenDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sac.SacTimeSeries;
-import uk.me.berndporr.iirj.Butterworth;
 
+/**
+ * This metric compares the p-wave arrival of data to a synthetic source to
+ * determine the azimuthal orientation of the sensor.
+ *
+ * Specifically, this comparison is done between the phase of the p-wave as
+ * detected by a horizontal sensor and its rotational pair (i.e., LHN and LHE),
+ * comparing the event azimuth to the determined back-azimuth.
+ *
+ * Because of how back-azimuth is calculated, we determine the specific quadrant of
+ * the back-azimuth (and thus the actual sensor orientation) by comparing the signs of
+ * the detected for all 3 sensor components (that is, including the vertical).
+ */
 public class EventComparePWaveOrientation extends Metric {
 
   private static final Logger logger =
@@ -38,7 +47,7 @@ public class EventComparePWaveOrientation extends Metric {
   private static final int MIN_DEGREES = 20;
   private static final int MAX_DEGREES = 90;
   /**
-   * https://github.com/usgs/seedscan.git Filter corner 0.05 Hz or 20 seconds period.
+   * Filter corner 0.05 Hz or 20 seconds period.
    */
   private static final double LOW_PASS_FILTER_CORNER = 0.05;
   /**
@@ -48,7 +57,6 @@ public class EventComparePWaveOrientation extends Metric {
 
   EventComparePWaveOrientation() {
     super();
-    addArgument("base-channel");
     addArgument("channel-restriction");
   }
 
@@ -92,20 +100,6 @@ public class EventComparePWaveOrientation extends Metric {
     }
 
     List<Channel> channels = stationMeta.getRotatableChannels();
-
-    // get pairs of ED, ND data and then do the rotation with those
-    String basePreSplit = null;
-
-    try {
-      basePreSplit = get("base-channel");
-    } catch (NoSuchFieldException ignored) {
-    }
-
-    if (basePreSplit == null) {
-      basePreSplit = "XX-LX";
-      logger.info("No base channel for Event Compare P Orientation using: " + basePreSplit);
-    }
-
     String preSplitBands = null;
     try {
       preSplitBands = get("channel-restriction");
@@ -113,8 +107,7 @@ public class EventComparePWaveOrientation extends Metric {
     }
     if (preSplitBands == null) {
       preSplitBands = "LH";
-      logger.info("No band restriction set for Event Compare P Orientation using: "
-          + preSplitBands);
+      logger.info("== {}: No band restriction set, using: {}", getName(), preSplitBands);
     }
     List<String> allowedBands = Arrays.asList(preSplitBands.split(","));
 
@@ -135,8 +128,10 @@ public class EventComparePWaveOrientation extends Metric {
       int lastCharIdx = channelVal.length() - 1;
       char last = channelVal.charAt(lastCharIdx);
       if (last == 'Z' || last == 'E') {
-        // assume vertical sensor component requires no orientation
-        // assume east sensor will be referenced when north is read in
+        // we'll assign metric results to ND channels, with the assumption that ED shares the same
+        // orientation, and Z is only useful for phase determination of quadrant
+        // we rescan all channels when doing a whitelist scan (metadata changes), so we can
+        // reasonably presume that the N channel is part of the channel list iterated through
         continue;
       } else if (last == 'D') {
         if (channelVal.charAt(lastCharIdx - 1) == 'E') {
@@ -152,6 +147,8 @@ public class EventComparePWaveOrientation extends Metric {
           getForceUpdate());
 
       if (digest == null) {
+        logger.info("Digest unchanged station:[{}] channel:[{}] day:[{}] --> Skip metric",
+            getStation(), curChannel, getDay());
         continue;
       }
 
@@ -160,13 +157,28 @@ public class EventComparePWaveOrientation extends Metric {
 
       double angleDifference = computeMetric(eventCMTs, curChannel, pairChannel, vertChannel);
 
-      //Catch any bail out of internal metric.
-      if (Double.isNaN(angleDifference)) {
+      // Catch any bail out of internal metric.
+      if (angleDifference == NO_RESULT) {
         continue;
       }
 
       metricResult.addResult(curChannel, angleDifference, digest);
     }
+  }
+
+  @Override
+  public String getSimpleDescription() {
+    return "Computes estimated azimuth based on p-wave arrival phase";
+  }
+
+  @Override
+  public String getLongDescription() {
+    return "This metric compares the p-wave arrival of data to a synthetic source to determine the "
+        + "azimuthal orientation of the sensor. Specifically, this comparison is done between the "
+        + "phase of the p-wave as detected by a horizontal sensor and its rotational pair "
+        + "(i.e., LHN and LHE), comparing the event azimuth to the determined back-azimuth. "
+        + "This value is associated then with both pairs of values and requires the channel pairs "
+        + "to be perpendicular in order for this value to be valid.";
   }
 
   double computeMetric(Hashtable<String, EventCMT> eventCMTs, Channel curChannel,
@@ -188,7 +200,7 @@ public class EventComparePWaveOrientation extends Metric {
 
     // now to get the synthetics data
     SortedSet<String> eventKeys = new TreeSet<>(eventCMTs.keySet());
-    for (String key : eventKeys) {
+    outerLoop: for (String key : eventKeys) {
 
       EventCMT eventMeta = eventCMTs.get(key);
       double eventLatitude = eventMeta.getLatitude();
@@ -205,18 +217,11 @@ public class EventComparePWaveOrientation extends Metric {
         continue;
       }
 
-      Hashtable<String, SacTimeSeries> synthetics = getEventSynthetics(key);
-      if (synthetics == null) {
-        logger.warn("== {}: No synthetics found for key=[{}] for this station=[{}]\n",
-            getName(), key, getStation());
-        continue;
-      }
-
       // get start time of p-wave, then take data 100 secs before that
       long stationDataStartTime = eventMeta.getTimeInMillis();
       try {
         // give us a 10 second cushion for start of the p-arrival in case metadata is wrong
-        long pTravelTime = getPArrivalTime(eventMeta) - (10 * 1000);
+        long pTravelTime = getPArrivalTime(eventMeta, stationMeta, getName()) - (10 * 1000);
         stationDataStartTime += pTravelTime;
       } catch (ArrivalTimeException ignore) {
         // error was already logged in getPArrivalTime
@@ -297,6 +302,14 @@ public class EventComparePWaveOrientation extends Metric {
       int signumZ = 0;
       while (signumN == 0 || signumE == 0 || signumZ == 0) {
         offsetForSignCalculations += increment;
+        int lookupIndex = signalOffset + offsetForSignCalculations;
+        if (lookupIndex >= northData.length) {
+          logger.warn("== {}: Check that traces under consideration do not have data issues; "
+                  + "could not find nonzero data for quadrant orientation -- [STA:{}-{},{},{}]",
+              getName(), getStation(), curChannel, pairChannel, vertChannel
+          );
+          continue outerLoop;
+        }
         signumN = (int) Math.signum(northData[signalOffset + offsetForSignCalculations]);
         signumE = (int) Math.signum(eastData[signalOffset + offsetForSignCalculations]);
         signumZ = (int) Math.signum(vertData[signalOffset + offsetForSignCalculations]);
@@ -319,9 +332,11 @@ public class EventComparePWaveOrientation extends Metric {
 
     //Average our event angle differences.
     if (numEvents <= 0) {
-      return Double.NaN;
+      return NO_RESULT;
     } else {
-      return sumAngleDifference / numEvents;
+      // this is an average, and the returned result should be between +/- 360
+      // which also prevents collision with value NO_RESULT above (-999.999)
+      return (sumAngleDifference / numEvents) % 360;
     }
   }
 
@@ -342,14 +357,14 @@ public class EventComparePWaveOrientation extends Metric {
     // first, we low-pass filter the data
     // filter corner at 0.05Hz (20 s interval)
     // and use a 4 poles in the filter
-    data = lowPassFilter(data, sampleRate, LOW_PASS_FILTER_CORNER);
+    data = FilterUtils.lowPassFilter(data, sampleRate, LOW_PASS_FILTER_CORNER, 4);
 
     // assume there are filter artifacts in first 50 seconds' worth of data
     int afterRinging = getSamplesInTimePeriod(P_WAVE_RINGING_OFFSET, sampleRate);
     data = Arrays.copyOfRange(data, afterRinging, data.length - afterRinging);
 
     // detrend operations are done in-place
-    TimeseriesUtils.demean(data);
+    NumericUtils.demeanInPlace(data);
 
     return data;
 
@@ -436,7 +451,7 @@ public class EventComparePWaveOrientation extends Metric {
   private double calculateBackAzimuth(double[] north, double[] east, double evtAzimuth,
       int signalOffset) {
 
-    // we don'fintt care a but the intercept, only the slope
+    // we don't care about the intercept, only the slope
     SimpleRegression slopeCalculation = new SimpleRegression(false);
     for (int i = signalOffset; i < north.length; ++i) {
       slopeCalculation.addData(east[i], north[i]);
@@ -488,67 +503,6 @@ public class EventComparePWaveOrientation extends Metric {
   static int getSamplesInTimePeriod(int secs, double sampleRate) {
     // samples = time (s) * sampleRate (samp/s)
     return (int) Math.ceil(secs * sampleRate);
-  }
-
-  private long getPArrivalTime(EventCMT eventCMT) throws ArrivalTimeException {
-
-    double eventLatitude = eventCMT.getLatitude();
-    double eventLongitude = eventCMT.getLongitude();
-    double eventDepth = eventCMT.getDepth();
-    double stationLatitude = stationMeta.getLatitude();
-    double stationLongitude = stationMeta.getLongitude();
-    double greatCircleArc = SphericalCoords
-        .distance(eventLatitude, eventLongitude, stationLatitude, stationLongitude);
-    TauP_Time timeTool;
-    try {
-      timeTool = new TauP_Time("prem");
-      timeTool.parsePhaseList("P");
-      timeTool.setSourceDepth(eventDepth);
-      timeTool.calculate(greatCircleArc);
-    } catch (TauModelException e) {
-      //Arrival times are not determinable.
-      logger.error(e.getMessage());
-      throw new ArrivalTimeException(e.getMessage());
-    }
-
-    List<Arrival> arrivals = timeTool.getArrivals();
-
-    double arrivalTimeP;
-    if (arrivals.get(0).getName().equals("P")) {
-      arrivalTimeP = arrivals.get(0).getTime();
-    } else {
-      logger.info("Got an arrival, but it was not a P-wave");
-      throw new ArrivalTimeException("Arrival time found was not a P-wave");
-    }
-
-    logger.info(
-        "Event:{} <eventLatitude,eventLongitude> = <{}, {}> Station:{} <{}, {}> greatCircleArc={} tP={}",
-        eventCMT.getEventID(), eventLatitude, eventLongitude, getStation(), stationLatitude,
-        stationLongitude, greatCircleArc, arrivalTimeP);
-
-    return ((long) arrivalTimeP) * 1000; // get the arrival time in ms
-  }
-
-  private static double[] lowPassFilter(double[] toFilt, double sps, double corner) {
-    Butterworth cascadeFilter = new Butterworth();
-    cascadeFilter.lowPass(4, sps, corner);
-
-    double[] filtered = new double[toFilt.length];
-    for (int i = 0; i < toFilt.length; ++i) {
-      filtered[i] = cascadeFilter.filter(toFilt[i]);
-    }
-
-    return filtered;
-  }
-
-  private class ArrivalTimeException extends Exception {
-
-    private static final long serialVersionUID = 6851116640460104395L;
-
-    ArrivalTimeException(String message) {
-      super(message);
-    }
-
   }
 
 }

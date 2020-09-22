@@ -68,7 +68,9 @@ public class DifferencePBM extends PowerBandMetric {
 			String channelLoc = channel.toString().split("-")[0];
 			String channelVal = channel.toString().split("-")[1];
 			String regex = "^"+basechannel[1]+".*";
-			if(channelVal.matches(regex) && !channelLoc.equals(basechannel[0]) && weHaveChannels(basechannel[0], basechannel[1]) && weHaveChannels(channelLoc, basechannel[1]))
+			if(channelVal.matches(regex) && !channelLoc.equals(basechannel[0]) &&
+					weHaveChannels(basechannel[0], basechannel[1])
+					&& weHaveChannels(channelLoc, basechannel[1]))
 			{
 				Channel channelX = new Channel(basechannel[0], channelVal);
 				Channel channelY = new Channel(channelLoc, channelVal);
@@ -118,6 +120,18 @@ public class DifferencePBM extends PowerBandMetric {
 		}
 	} // end process()
 
+	@Override
+	public String getSimpleDescription() {
+		return "Takes the difference of the PSDs between matching channels on different locations";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This metric compares locations with the same channel name (i.e., 00-LHZ and "
+				+ "10-LHZ) and compares their full-day PSDs over the specified period range. The value "
+				+ "is a simple difference. It is designed for PSD bands of, e.g., 90-110s and 200-500s.";
+	}
+
 	private double computeMetric(Channel channelX, Channel channelY,
 			String station, String day, String metric) throws MetricException,
 			PlotMakerException, TraceException {
@@ -133,19 +147,18 @@ public class DifferencePBM extends PowerBandMetric {
 		double[] Gyy = crossPower.getSpectrum();
 		double dfY = crossPower.getSpectrumDeltaF();
 
-		crossPower = getCrossPower(channelX, channelY);
-		double[] Gxy = crossPower.getSpectrum();
-
 		if (dfX != dfY) { // Oops - spectra have different frequency sampling!
 			throw new MetricException(String
-					.format("station=[%s] channelX[%s] channelY=[%s] day=[%s]: dfX != dfY --> Can't continue\n",
+					.format("station=[%s] channelX[%s] channelY=[%s] day=[%s]: "
+									+ "dfX != dfY --> Can't continue\n",
 							station, channelX, channelY, day));
 		}
 
-		if (Gxx.length != Gyy.length || Gxx.length != Gxy.length) { // Something's
+		if (Gxx.length != Gyy.length) { // Something's
 			// wrong ...
 			throw new MetricException(String
-					.format("station=[%s] channelX[%s] channelY=[%s] day=[%s]: Gxx.length != Gyy.length --> Can't continue\n",
+					.format("station=[%s] channelX[%s] channelY=[%s] day=[%s]: "
+									+ "Gxx.length != Gyy.length --> Can't continue\n",
 							station, channelX, channelY, day));
 		}
 
@@ -197,7 +210,8 @@ public class DifferencePBM extends PowerBandMetric {
 
 		if (nPeriods == 0) {
 			throw new MetricException(String
-					.format("station=[%s] channelX=[%s] channelY=[%s] day=[%s]: Requested band [%f - %f] contains NO periods --> divide by zero!\n",
+					.format("station=[%s] channelX=[%s] channelY=[%s] day=[%s]: Requested band [%f - %f] "
+									+ "contains NO periods --> divide by zero!\n",
 							station, channelX, channelY, day, lowPeriod,
 							highPeriod));
 		}

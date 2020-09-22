@@ -36,7 +36,10 @@ public class ScanManager {
     this.database = database;
     this.metaGenerator = metaGenerator;
 
-    int threadCount = Runtime.getRuntime().availableProcessors();
+    int threadCount = Runtime.getRuntime().availableProcessors() - 1;
+    if(threadCount < 2){
+      threadCount = 2;
+    }
     logger.info("Number of Threads to Use = [{}]", threadCount);
 
     workQueue = new PriorityBlockingQueue<>();

@@ -1,18 +1,10 @@
 package asl.seedscan.metrics;
 
-import asl.util.Logging;
-import java.io.Serializable;
-import java.nio.ByteBuffer;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.commons.math3.complex.Complex;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static asl.utils.FFTResult.cosineTaper;
+import static asl.utils.FFTResult.singleSidedFFT;
+import static asl.utils.NumericUtils.demeanInPlace;
+import static asl.utils.NumericUtils.detrend;
+import static asl.utils.TimeSeriesUtils.concatAll;
 
 import asl.metadata.Channel;
 import asl.metadata.ChannelArray;
@@ -30,10 +22,25 @@ import asl.seedsplitter.ContiguousBlock;
 import asl.seedsplitter.DataSet;
 import asl.seedsplitter.IllegalSampleRateException;
 import asl.seedsplitter.SequenceRangeException;
-import asl.timeseries.FFTUtils;
+import asl.timeseries.PreprocessingUtils;
 import asl.timeseries.TimeseriesException;
-import asl.timeseries.TimeseriesUtils;
+import asl.util.Logging;
 import asl.util.Time;
+import asl.utils.FFTResult;
+import asl.utils.FilterUtils;
+import java.io.Serializable;
+import java.nio.ByteBuffer;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.DoubleStream;
+import org.apache.commons.math3.complex.Complex;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import seed.Blockette320;
 
 /**
@@ -93,6 +100,11 @@ public class MetricData implements Serializable {
   private transient MetricData nextMetricData;
 
   /**
+   * The previous day's MetricData. Only used for event metrics that require samples
+   */
+  private transient MetricData previousMetricData;
+
+  /**
    * Gets the next metric data.
    *
    * @return the next metric data
@@ -106,6 +118,19 @@ public class MetricData implements Serializable {
    */
   public void setNextMetricDataToNull() {
     this.nextMetricData = null;
+  }
+
+
+  public MetricData getPreviousMetricData() {
+    return previousMetricData;
+  }
+
+  public void setPreviousMetricData(MetricData previousMetricData) {
+    this.previousMetricData = previousMetricData;
+  }
+
+  public void setPreviousMetricDataToNull() {
+    this.previousMetricData = null;
   }
 
   /**
@@ -145,6 +170,14 @@ public class MetricData implements Serializable {
    */
   public StationMeta getMetaData() {
     return metadata;
+  }
+
+  /**
+   * Metadata setter for use in some test cases
+   * @param metadata new metadata to load in for verification purposes
+   */
+  public void setMetadata(StationMeta metadata) {
+    this.metadata = metadata;
   }
 
   /**
@@ -303,7 +336,7 @@ public class MetricData implements Serializable {
    * @return true, if either the calibration blockette exists or Calibration channels exist
    */
   boolean hasCalibrationData() {
-    if (randomCal != null) {
+    if (randomCal != null && randomCal.size() > 0) {
       return true;
     } else if (metadata.getNetwork()
         .equals("II")) { //This hardcoded station needs to be address (Ticket 9727)
@@ -422,31 +455,6 @@ public class MetricData implements Serializable {
   }
 
   /**
-   * Bpass Needs documentation,
-   *
-   * @param n the n
-   * @param n1 the n1
-   * @param n2 the n2
-   * @param n3 the n3
-   * @param n4 the n4
-   * @return the double
-   */
-  private double bpass(int n, int n1, int n2, int n3, int n4) {
-
-    if (n <= n1 || n >= n4) {
-      return (0.);
-    } else if (n >= n2 && n <= n3) {
-      return (1.);
-    } else if (n > n1 && n < n2) {
-      return (.5 * (1 - Math.cos(Math.PI * (n - n1) / (n2 - n1))));
-    } else if (n > n3 && n < n4) {
-      return (.5 * (1 - Math.cos(Math.PI * (n4 - n) / (n4 - n3))));
-    } else {
-      return (-9999999.);
-    }
-  }
-
-  /**
    * Removes the instrument and filter. Needs documentation.
    *
    * @param responseUnits the response units
@@ -464,10 +472,9 @@ public class MetricData implements Serializable {
       double[] timeseries,
       double f1, double f2, double f3, double f4) throws ChannelMetaException, MetricException {
 
-    if (!(f1 < f2 && f2 < f3 && f3 < f4)) {
+    if (!(f2 < f3)) {
       logger.error(String
-          .format("removeInstrumentAndFilter: invalid freq: range: [%f-%f ----- %f-%f]", f1, f2,
-              f3, f4));
+          .format("removeInstrumentAndFilter: invalid freq: range: [%f-%f]", f2, f3));
       return null;
     }
 
@@ -495,64 +502,66 @@ public class MetricData implements Serializable {
 
     double[] data = new double[timeseries.length];
     System.arraycopy(timeseries, 0, data, 0, timeseries.length);
-    TimeseriesUtils.detrend(data);
-    TimeseriesUtils.demean(data);
-    TimeseriesUtils.costaper(data, .01);
+    data = detrend(data);
+    demeanInPlace(data);
+    cosineTaper(data, .01);
 
+    /*
     double[] freq = new double[nf];
     for (int k = 0; k < nf; k++) {
       freq[k] = (double) k * df;
     }
+    */
+
+    // return the (nf = nfft/2 + 1) positive frequencies
+    // variable false is here because we don't have any reason to flip the data in this method
+    FFTResult result = singleSidedFFT(data, srate, false);
+    Complex[] xfft = result.getFFT();
+    double[] freq = result.getFreqs();
 
     // Get the instrument response for requested ResponseUnits
     Complex[] instrumentResponse = chanMeta.getResponse(freq, responseUnits);
 
-    // fft2 returns just the (nf = nfft/2 + 1) positive frequencies
-    Complex[] xfft = FFTUtils.singleSidedFFT(data);
-
-    double fNyq = (double) (nf - 1) * df;
-
-    if (f4 > fNyq) {
-      f4 = fNyq;
-    }
-
-    int k1 = (int) (f1 / df);
-    int k2 = (int) (f2 / df);
-    int k3 = (int) (f3 / df);
-    int k4 = (int) (f4 / df);
-
-    for (int k = 0; k < nf; k++) {
-      double taper = bpass(k, k1, k2, k3, k4);
+    for (int k = 0; k < freq.length; k++) {
       // Because Apache's FFT matches our imaginary sign, we don't
       // need a conjugate. If we were using Numerical Recipes we would
       // need to.
-      xfft[k] = xfft[k].divide(instrumentResponse[k]); // Remove
-      // instrument
-      xfft[k] = xfft[k].multiply(taper); // Bandpass
+      if (instrumentResponse[k].equals(Complex.ZERO)) {
+        xfft[k] = Complex.ZERO;
+      } else {
+        xfft[k] = xfft[k].divide(instrumentResponse[k]); // Remove instrument
+      }
     }
 
+
+    /*
+    // we can almost certainly replace all of this with calls to FFTResult.getSingleSidedInverse
     Complex[] cfft = new Complex[nfft];
     cfft[0] = Complex.ZERO; // DC
     cfft[nf - 1] = xfft[nf - 1]; // Nyq
-    for (int k = 1; k < nf - 1; k++) { // Reflect spec about the Nyquist
-      // to get -ve freqs
+    for (int k = 1; k < nf - 1; k++) { // Reflect spec about the Nyquist to get negative freqs
       cfft[k] = xfft[k];
-      cfft[2 * nf - 2 - k] = xfft[k].conjugate();
+      cfft[2 * nf - 2 - k] = xfft[k].conjugate(); // this populates the negative frequencies
     }
+     */
 
-    Complex[] invertedFFT = FFTUtils.inverseFFT(cfft);
-    return FFTUtils.getRealArray(invertedFFT, ndata);
+    double[] inverse = FFTResult.singleSidedInverseFFT(xfft, timeseries.length);
+    return FilterUtils.bandFilter(inverse, srate, f2, f3, 2);
   }
 
   /**
    * Gets the windowed data.
    *
    * @param channel the channel
-   * @param windowStartEpoch the window start epoch
-   * @param windowEndEpoch the window end epoch
+   * @param windowStartEpochMillis the window start epoch milliseconds
+   * @param windowEndEpochMillis the window end epoch milliseconds
    * @return the windowed data
    */
-  double[] getWindowedData(Channel channel, long windowStartEpoch, long windowEndEpoch) {
+  double[] getWindowedData(Channel channel, long windowStartEpochMillis, long windowEndEpochMillis) {
+    return getWindowedDataMicroSeconds(channel, windowStartEpochMillis * 1000, windowEndEpochMillis * 1000);
+  }
+
+  double[] getWindowedDataMicroSeconds(Channel channel, long windowStartEpoch, long windowEndEpoch) {
     if (windowStartEpoch > windowEndEpoch) {
       logger.error("Requested window Epoch (ms timestamp) [{} - {}] is NOT VALID (start > end)",
           windowStartEpoch,
@@ -564,134 +573,232 @@ public class MetricData implements Serializable {
       logger.warn("We have NO data for channel=[{}] date=[{}]", channel, metadata.getDate());
       return null;
     }
-    ArrayList<DataSet> datasets = getChannelData(channel);
-    DataSet data = null;
-    boolean windowFound = false;
 
-    for (DataSet dataset : datasets) {
-      data = dataset;
-      long startEpoch = data.getStartTime() / 1000; // Convert microsecs
-      // --> millisecs
-      long endEpoch = data.getEndTime() / 1000; // ...
-      if (windowStartEpoch >= startEpoch && windowStartEpoch < endEpoch) {
-        windowFound = true;
+    //Determine boundaries for day.
+    //If window boundary preceeds day start get from previousData.getwindowed...
+    //If window boundary exceeds day end get from nextData.getwindowed...
+
+    ArrayList<DataSet> dataSets = getChannelData(channel);
+    long dayStart = dataSets.get(0).getStartTime();
+    long dayEnd = dataSets.get(0).getEndTime();
+
+
+    DataSet wholeData = null;
+    for( DataSet dataSet : dataSets){
+      //Convert to millisecs No data should actually be sampled submillisec.
+      long dataStart = dataSet.getStartTime();
+      long dataEnd = dataSet.getEndTime();
+      dayStart = Long.min(dayStart, dataStart);
+      dayEnd = Long.max(dayEnd, dataEnd);
+
+      //Check if within a sample of the needed window.
+      long sampleDelta = dataSet.getInterval();
+
+      // Add a little bit of fudging to match window start if close enough
+      if (dataStart <= windowStartEpoch + 1.5 * sampleDelta && dataStart >= windowStartEpoch){
+        windowStartEpoch = dataStart;
+      }
+      if (dataEnd >= windowEndEpoch - 1.5 * sampleDelta && dataEnd <= windowEndEpoch){
+        windowEndEpoch = dataEnd;
+      }
+
+      if (windowStartEpoch >= dataStart && windowEndEpoch <= dataEnd){
+        //Is wholely found within this chunk of data.
+        wholeData = dataSet;
         break;
       }
     }
 
-    if (!windowFound) {
-      logger.warn(
-          "Requested window Epoch (ms timestamp) [{} - {}] was NOT FOUND "
-              + "within DataSet for channel=[{}] date=[{}]",
-          windowStartEpoch, windowEndEpoch, channel, metadata.getDate());
+    //Did we find a datasegment containing everything?
+    if (wholeData != null){
+      //Yes, return trimmed values or null if error occurs
+      try {
+        return Arrays.stream(wholeData.getSeries(windowStartEpoch, windowEndEpoch)).asDoubleStream().toArray();
+      } catch (SequenceRangeException e) {
+        logger.warn("Sequence Exception caught reading data for channel=[{}] date=[{}] window (in epoch millis): {} msto {} ms", channel, metadata.getDate(), windowStartEpoch, windowEndEpoch);
+        return null;
+      }
+    }
+
+    // Was it entirely outside our requested window?
+    if(windowEndEpoch < dayStart || windowStartEpoch > dayEnd){
+      logger.warn("Entirety of requested window outside currentDay for channel=[{}] date=[{}] window (in epoch millis): {} msto {} ms", channel, metadata.getDate(), windowStartEpoch, windowEndEpoch);
       return null;
     }
 
-    long dataStartEpoch = data.getStartTime() / 1000; // Convert microsecs
-    // --> millisecs
-    long dataEndEpoch = data.getEndTime() / 1000; // ...
-    long interval = data.getInterval() / 1000; // Convert microsecs -->
-    // millisecs (dt = sample
-    // interval)
-    double srate1 = data.getSampleRate();
+    boolean getPreviousDay = false;
+    boolean getNextDay = false;
 
-    // Requested Window must start in Day 1 (taken from current dataset(0))
-    if (windowStartEpoch < dataStartEpoch || windowStartEpoch > dataEndEpoch) {
-      logger.warn(
-          "Requested window Epoch (ms timestamp) [{} - {}] does NOT START "
-              + "in current day data window Epoch [{} - {}] for channel=[{}] date=[{}]",
-          windowStartEpoch, windowEndEpoch, dataStartEpoch, dataEndEpoch, channel,
-          metadata.getDate());
+    //Data was not found in a single chunk
+    //Is it because it is outside the day boundary?
+    if (windowStartEpoch < dayStart) {
+      getPreviousDay = true;
+    }
+    if (windowEndEpoch > dayEnd) {
+      getNextDay = true;
+    }
+
+    if (!(getPreviousDay || getNextDay)){
+      // It wasn't outside the day boundary, must have a gap then.
+      logger.warn("Gap found in data for channel=[{}] date=[{}] window (in epoch millis): {} msto {} ms", channel, metadata.getDate(), windowStartEpoch, windowEndEpoch);
       return null;
     }
 
-    boolean spansDay = false;
-    DataSet nextData = null;
+    //Merge parts together since it overlaps day boundaries
 
-    if (windowEndEpoch > dataEndEpoch) { // Window appears to span into next
-      // day
-      if (nextMetricData == null) {
-        logger.warn(String.format(
-            "== getWindowedData: Requested Epoch window[%d-%d] spans into next day, but we have NO data "
-                + "for channel=[%s] date=[%s] for next day\n",
-            windowStartEpoch, windowEndEpoch, channel, metadata.getDate()));
-        return null;
-      }
-      if (!nextMetricData.hasChannelData(channel)) {
-        logger.warn("Requested Epoch window spans into next day, but we have NO data "
-            + "for channel=[{}] date=[{}] for next day", channel, metadata.getDate());
-        return null;
-      }
-
-      datasets = nextMetricData.getChannelData(channel);
-      nextData = datasets.get(0);
-
-      long nextDataStartEpoch = nextData.getStartTime() / 1000; // Convert
-      // microsecs
-      // -->
-      // millisecs
-      long nextDataEndEpoch = nextData.getEndTime() / 1000; // ...
-      double srate2 = nextData.getSampleRate();
-
-      if (srate2 != srate1) {
-        logger.warn(String.format(
-            "== getWindowedData: Requested window Epoch [%d - %d] extends into "
-                + "nextData window Epoch [%d - %d] for channel=[%s] date=[%s] but srate1[%f] != srate2[%f]\n",
-            windowStartEpoch, windowEndEpoch, nextDataStartEpoch, nextDataEndEpoch, channel,
-            metadata.getDate(), srate1, srate2));
-        return null;
-      }
-
-      // Requested Window must end in Day 2 (taken from next day
-      // dataset(0))
-
-      if (windowEndEpoch > nextDataEndEpoch) {
-        logger.warn(String.format(
-            "== getWindowedData: Requested window Epoch [%d - %d] extends BEYOND "
-                + "found nextData window Epoch [%d - %d] for channel=[%s] date=[%s]\n",
-            windowStartEpoch, windowEndEpoch, nextDataStartEpoch, nextDataEndEpoch, channel,
-            metadata.getDate()));
-        return null;
-      }
-
-      spansDay = true;
+    //First do other days have data loaded?
+    //HasChannelData ends up being checked twice once on the sub getWindowedData call and here.
+    if(getPreviousDay &&
+        (this.previousMetricData == null
+            || !this.previousMetricData.hasChannelData(channel))){
+      logger.warn("Missing Previous day's data for channel=[{}] date=[{}] window (in epoch millis): {} msto {} ms", channel, metadata.getDate(), windowStartEpoch, windowEndEpoch);
+      return null;
+    }
+    if(getNextDay && (this.nextMetricData == null || !this.nextMetricData.hasChannelData(channel))){
+      logger.warn("Missing Next day's data for channel=[{}] date=[{}] window (in epoch millis): {} msto {} ms", channel, metadata.getDate(), windowStartEpoch, windowEndEpoch);
+      return null;
     }
 
-    long windowMilliSecs = windowEndEpoch - windowStartEpoch;
-    int nWindowPoints = (int) (windowMilliSecs / interval);
+    //This will be set otherwise gap check earlier would have failed.
+    //Distance in millisecs between samples.
+    long sampleDelta = 0;
 
-    double[] dataArray = new double[nWindowPoints];
-
-    int[] series1 = data.getSeries();
-    int[] series2 = null;
-    if (spansDay) {
-      series2 = nextData.getSeries();
+    //Data found, do sample rates match?
+    //Grab interval while checking samplerates.
+    if(getPreviousDay){
+      ArrayList<DataSet> prevDataSets = this.previousMetricData.getChannelData(channel);
+      //Compare last dataset of previous day to first dataset of today.
+      //This compares doubles, but I don't see a clean way to refactor this to something else.
+      //Pre-existing code did this same type of comparison.
+      sampleDelta = dataSets.get(0).getInterval();
+      if (prevDataSets.get(prevDataSets.size() - 1).getSampleRate() != dataSets.get(0).getSampleRate()){
+        logger.warn("Previous Day's samplerate doesn't match current Day's samplerate for channel=[{}] date=[{}] window (in epoch millis): {} msto {} ms", channel, metadata.getDate(), windowStartEpoch, windowEndEpoch);
+        return null;
+      }
     }
-    int j = 0;
-
-    // MTH: this seems to line it up better with rdseed output window but
-    // doesn't seem right ...
-    int istart = (int) ((windowStartEpoch - dataStartEpoch) / interval) + 1;
-
-    for (int i = 0; i < nWindowPoints; i++) {
-      if ((istart + i) < data.getLength()) {
-        dataArray[i] = (double) series1[i + istart];
-      } else if (j < nextData.getLength()) {
-        dataArray[i] = (double) series2[j++];
+    if(getNextDay){
+      ArrayList<DataSet> nextDataSets = this.nextMetricData.getChannelData(channel);
+      //Compare first set of next day to last set of today
+      //Same double comparison concerns as above.
+      sampleDelta = nextDataSets.get(0).getInterval();
+      if (nextDataSets.get(0).getSampleRate() != dataSets.get(dataSets.size() - 1).getSampleRate()){
+        logger.warn("Next Day's samplerate doesn't match current Day's samplerate for channel=[{}] date=[{}] window (in epoch millis): {} msto {} ms", channel, metadata.getDate(), windowStartEpoch, windowEndEpoch);
+        return null;
       }
     }
 
-    return dataArray;
+    //Solidify boundaries to query for
+    long prevDayStart = 0;
+    long prevDayEnd = 0;
+    long currentDayStart = windowStartEpoch;
+    long currentDayEnd = windowEndEpoch + sampleDelta;
+    long nextDayStart = 0;
+    long nextDayEnd = 0;
 
+    if(getPreviousDay){
+      prevDayStart = windowStartEpoch;
+      prevDayEnd = dayStart;
+      currentDayStart = dayStart;
+    }
+
+    if(getNextDay){
+      nextDayStart = dayEnd;
+      nextDayEnd = windowEndEpoch + sampleDelta;
+      currentDayEnd = dayEnd;
+    }
+
+    //Load actual data
+    double[] todaysResults = this.getWindowedDataMicroSeconds(channel, currentDayStart, currentDayEnd);
+    if(todaysResults == null){
+      logger.warn("Could not get data for current day for channel=[{}] date=[{}] window (in epoch millis): {} msto {} ms", channel, metadata.getDate(), windowStartEpoch, windowEndEpoch);
+      return null;
+    }
+    DoubleStream results = Arrays.stream(todaysResults);
+
+    if(getPreviousDay){
+      double[] prevResults = this.previousMetricData.getWindowedDataMicroSeconds(channel, prevDayStart, prevDayEnd);
+      if(prevResults == null){
+        logger.warn("Could not get data for previous day for channel=[{}] date=[{}] window (in epoch millis): {} msto {} ms", channel, metadata.getDate(), windowStartEpoch, windowEndEpoch);
+        return null;
+      }
+      results = DoubleStream.concat(Arrays.stream(prevResults), results);
+    }
+
+    if(getNextDay){
+      double[] nextResults = this.nextMetricData.getWindowedDataMicroSeconds(channel, nextDayStart, nextDayEnd);
+      if(nextResults == null){
+        logger.warn("Could not get data for next day for channel=[{}] date=[{}] window (in epoch millis): {} msto {} ms", channel, metadata.getDate(), windowStartEpoch, windowEndEpoch);
+        return null;
+      }
+      results = DoubleStream.concat(results, Arrays.stream(nextResults));
+    }
+
+    return results.toArray();
   }
 
   /**
-   * Return a demeaned full day (86400 sec) array of data assembled from a channel's
+   * Return segments representing contiguous regions of a full day (86400 sec) of data
+   * assembled from a channel's DataSets, with any gaps zero-padded.
+   *
+   * @param channel the channel
+   * @return the padded day data
+   */
+  double[][] getPaddedDayData(Channel channel) {
+    if (!hasChannelData(channel)) {
+      logger.warn(String
+          .format("== getPaddedDayData(): We have NO data for channel=[%s] date=[%s]\n", channel,
+              metadata.getDate()));
+      return null;
+    }
+    List<DataSet> datasets = getChannelData(channel);
+
+    /*epoch microsecs since 1970*/
+    long dayStartTime = Time.calculateEpochMicroSeconds(metadata.getTimestamp());
+    long interval = datasets.get(0).getInterval(); // sample dt in microsecs
+
+    int nPointsPerDay = (int) (86400000000L / interval);
+    List<double[]> segments = new ArrayList<>();
+
+    long lastEndTime = dayStartTime;
+    int totalPointCount = 0; // easy way to keep track of the number of points added to the list
+    // append each dataset to the new data as necessary,
+    for (DataSet dataset : datasets) {
+      long startTime = dataset.getStartTime(); // microsecs since 1970 Jan. 1
+      long endTime = dataset.getEndTime();
+      // first, add zero padding over any gap between previous dataset and this current one
+      int npad = (int) ((startTime - lastEndTime) / interval) - 1;
+      if (npad > 0) {
+        totalPointCount += npad;
+        segments.add(new double[npad]);
+      }
+      // now convert the series to doubles and add it to the list of data
+      int[] series = dataset.getSeries();
+      double[] seriesAsDoubles = new double[series.length];
+      for (int j = 0; j < series.length; ++j) {
+        seriesAsDoubles[j] = (double) series[j];
+      }
+      segments.add(seriesAsDoubles);
+      totalPointCount += series.length;
+      // now the current time will be used to account for gap between this and next dataset start
+      lastEndTime = endTime;
+    }
+
+    // in event the last segment doesn't reach the end of the day length, pad out until data does
+    if (totalPointCount < nPointsPerDay) {
+      double[] lastGapFiller = new double[nPointsPerDay - totalPointCount];
+      segments.add(lastGapFiller);
+    }
+
+    return segments.toArray(new double[][]{});
+  }
+
+  /**
+   * Return a linear-detrended full day (86400 sec) array of data assembled from a channel's
    * DataSets<br>
    * Zero pad any gaps between DataSets.
    *
    * @param channel the channel
-   * @return the padded day data
+   * @return the padded day data with linear trend removed
    */
   public double[] getDetrendedPaddedDayData(Channel channel) {
     if (!hasChannelData(channel)) {
@@ -700,84 +807,11 @@ public class MetricData implements Serializable {
               metadata.getDate()));
       return null;
     }
-    ArrayList<DataSet> datasets = getChannelData(channel);
+    double[][] segments = getPaddedDayData(channel);
 
-		/*epoch microsecs since 1970*/
-    long dayStartTime = Time.calculateEpochMicroSeconds(metadata.getTimestamp());
-    long interval = datasets.get(0).getInterval(); // sample dt in microsecs
-
-    int nPointsPerDay = (int) (86400000000L / interval);
-
-    double[] data = new double[nPointsPerDay];
-
-    long lastEndTime = dayStartTime;
-    int k = 0;
-
-    long xSum = 0;
-    long ySum = 0;
-    long xySum = 0;
-    long xxSum = 0;
-    long count = 0;
-    for (DataSet dataset : datasets) {
-			/*microsecs since Jan. 1, 1970*/
-      long startTime = dataset.getStartTime();
-      long endTime = dataset.getEndTime();
-      int length = dataset.getLength();
-
-      int[] series = dataset.getSeries();
-
-      k += (int) ((startTime - lastEndTime) / interval);
-
-      for (int j = 0; j < length; j++) {
-        xSum += k;
-        ySum += series[j];
-        xySum = xySum + (k * (long) series[j]);
-        xxSum = xxSum + (k * (long) k);
-        k++;
-        count++;
-      }
-
-      lastEndTime = endTime;
-    }
-
-    double slope = (count * xySum - xSum * ySum) / (double) (count * xxSum - xSum * xSum);
-    double yOffset = (ySum - slope * xSum) / (double) count;
-
-    lastEndTime = dayStartTime;
-    k = 0;
-
-    for (int i = 0; i < datasets.size(); i++) {
-      DataSet dataset = datasets.get(i);
-      long startTime = dataset.getStartTime(); // microsecs since Jan. 1,
-      // 1970
-      long endTime = dataset.getEndTime();
-      int length = dataset.getLength();
-      int[] series = dataset.getSeries();
-
-      if (i == 0) {
-        lastEndTime = dayStartTime;
-      }
-      int npad = (int) ((startTime - lastEndTime) / interval) - 1;
-
-			/*Begin does nothing except increase k by npad*/
-      for (int j = 0; j < npad; j++) {
-        if (k < data.length) {
-          data[k] = 0.;
-        }
-        k++;
-      }
-			/*End does nothing*/
-
-      for (int j = 0; j < length; j++) {
-        if (k < data.length) {
-          data[k] = series[j] - k * slope - yOffset;
-        }
-        k++;
-      }
-
-      lastEndTime = endTime;
-    }
-    return data;
+    // now concatenate the segments and detrend the whole thing
+    double[] toDetrend = concatAll(segments);
+    return detrend(toDetrend);
   }
 
   /**
@@ -828,6 +862,14 @@ public class MetricData implements Serializable {
       Channel channelN = new Channel(location, String.format("%sND", channelPrefix));
       Channel channelE = new Channel(location, String.format("%sED", channelPrefix));
 
+      double srate1 = getChannelData(channel1).get(0).getSampleRate();
+      double srate2 = getChannelData(channel2).get(0).getSampleRate();
+      if (srate1 != srate2) {
+        throw new MetricException(String.format(
+            "createRotatedChannels: channel1=[%s] and/or channel2=[%s] date=[%s]: srate1 != srate2 !!",
+            channel1, channel2, metadata.getDate()));
+      }
+
       // Get overlapping data for 2 horizontal channels and confirm equal
       // sample rate, etc.
       long[] foo = new long[1];
@@ -844,21 +886,13 @@ public class MetricData implements Serializable {
 
       int ndata = chan1Data.length;
 
-      double srate1 = getChannelData(channel1).get(0).getSampleRate();
-      double srate2 = getChannelData(channel2).get(0).getSampleRate();
-      if (srate1 != srate2) {
-        throw new MetricException(String.format(
-            "createRotatedChannels: channel1=[%s] and/or channel2=[%s] date=[%s]: srate1 != srate2 !!",
-            channel1, channel2, metadata.getDate()));
-      }
-
       double[] chanNData = new double[ndata];
       double[] chanEData = new double[ndata];
 
       double az1 = (metadata.getChannelMetadata(channel1)).getAzimuth();
       double az2 = (metadata.getChannelMetadata(channel2)).getAzimuth();
 
-      TimeseriesUtils.rotate_xy_to_ne(az1, az2, chan1Data, chan2Data, chanNData, chanEData);
+      PreprocessingUtils.rotate_xy_to_ne(az1, az2, chan1Data, chan2Data, chanNData, chanEData);
 			/*
 			  az1 = azimuth of the H1 channel/vector. az2 = azimuth of the
 			  H2 channel/vector // Find the smallest (<= 180) angle between
@@ -956,8 +990,10 @@ public class MetricData implements Serializable {
    * @param channelY the channel y
    * @param startTime the start time
    * @return the channel overlap
+   * @throws MetricException if datasets have any mismatching sample rates.
    */
-  private double[][] getChannelOverlap(Channel channelX, Channel channelY, long[] startTime) {
+  private double[][] getChannelOverlap(Channel channelX, Channel channelY, long[] startTime)
+      throws MetricException {
 
     ArrayList<ArrayList<DataSet>> dataLists = new ArrayList<>();
 
@@ -976,9 +1012,12 @@ public class MetricData implements Serializable {
     dataLists.add(channelXData);
     dataLists.add(channelYData);
 
-    BlockLocator locator = new BlockLocator(dataLists);
-    locator.doInBackground(); //Not actually in background.
-    ArrayList<ContiguousBlock> blocks = locator.getBlocks();
+    ArrayList<ContiguousBlock> blocks = BlockLocator.buildBlockList(dataLists);
+
+    if (blocks == null || blocks.size() == 0) {
+      String error = "Could not get any blocks from the datasets!";
+      throw new MetricException(error);
+    }
 
     ContiguousBlock largestBlock = null;
     ContiguousBlock lastBlock = null;

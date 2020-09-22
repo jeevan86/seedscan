@@ -1,15 +1,12 @@
 language: java
 
 jdk:
-  - oraclejdk8
   - openjdk8
 
-git:
-    submodules: false
-
 before_install:
-    - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
-    - git submodule update --init --recursive
+  - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
+  - sed -i 's/git@code.usgs.gov:/https:\/\/code.usgs.gov\//' .gitmodules
+  - git submodule update --init --recursive
 
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock

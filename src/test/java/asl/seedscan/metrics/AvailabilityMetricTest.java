@@ -25,13 +25,14 @@ public class AvailabilityMetricTest {
 
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
-    data = (MetricData) ResourceManager
-        .loadCompressedObject("/java_serials/data/IU.ANMO.2015.206.MetricData.ser.gz", false);
-    maleableData = (MetricData) ResourceManager
-        .loadCompressedObject("/java_serials/data/IU.ANMO.2015.206.MetricData.ser.gz", true);
 
-    metadata = (StationMeta) ResourceManager
-        .loadCompressedObject("/java_serials/metadata/CU.BCIP.2015.228.StationMeta.ser.gz", false);
+    data = ResourceManager.loadANMOMainTestCase();
+    maleableData = ResourceManager.loadANMOMainTestCase();
+
+    Station metaStation = new Station("CU", "BCIP");
+    LocalDate metaDate = LocalDate.ofYearDay(2015, 228);
+    String metaLocation = "/metadata/rdseed/CU-BCIP-ascii.txt";
+    metadata = ResourceManager.getMetadata(metaLocation, metaDate, metaStation);
 
     MetricDatabaseMock mockdatabase = new MetricDatabaseMock();
 
@@ -78,26 +79,26 @@ public class AvailabilityMetricTest {
     HashMap<String, Double> expect = new HashMap<>();
     expect.put("00,BH2", 99.99994212966313);
     expect.put("00,BH1", 99.99994212966313);
-    expect.put("35,LDO", 99.99884260598836);
+    expect.put("35,LDO", 99.99768521197672);
     expect.put("00,VM2", 99.9884272653628);
     expect.put("00,VM1", 99.9884272653628);
     expect.put("10,BHZ", 99.99997106482319);
-    expect.put("31,LDO", 99.99884260598836);
-    expect.put("50,LKO", 99.99884260598836);
+    expect.put("31,LDO", 99.99768521197672);
+    expect.put("50,LKO", 99.99768521197672);
     expect.put("40,LFZ", 99.99884260598836);
-    expect.put("50,LWS", 99.99884260598836);
+    expect.put("50,LWS", 99.99768521197672);
     expect.put("10,VMW", 99.9884272653628);
     expect.put("10,VMV", 99.9884272653628);
     expect.put("10,VH2", 99.9884272653628);
     expect.put("10,VMU", 99.9884272653628);
     expect.put("10,VH1", 99.9884272653628);
     expect.put("00,VHZ", 99.9884272653628);
-    expect.put("50,LWD", 99.99884260598836);
+    expect.put("50,LWD", 99.99768521197672);
     expect.put("10,LH2", 99.99884260598836);
     expect.put("10,LH1", 99.99884260598836);
     expect.put("30,LDO", 99.99884260598836);
     expect.put("00,LHZ", 99.99884260598836);
-    expect.put("50,LDO", 99.99884260598836);
+    expect.put("50,LDO", 99.99768521197672);
     expect.put("60,HDF", 99.99998842592727);
     expect.put("20,LNZ", 99.99884260598836);
     expect.put("10,BH2", 99.99997106482319);
@@ -109,12 +110,12 @@ public class AvailabilityMetricTest {
     expect.put("00,VH2", 99.9884272653628);
     expect.put("00,VH1", 99.9884272653628);
     expect.put("10,VHZ", 99.9884272653628);
-    expect.put("50,LIO", 99.99884260598836);
+    expect.put("50,LIO", 99.99768521197672);
     expect.put("00,LH2", 99.99884260598836);
     expect.put("00,LH1", 99.99884260598836);
-    expect.put("50,LRI", 99.99884260598836);
+    expect.put("50,LRI", 99.99768521197672);
     expect.put("20,LN2", 99.99884260598836);
-    expect.put("50,LRH", 99.99884260598836);
+    expect.put("50,LRH", 99.99768521197672);
     expect.put("20,LN1", 99.99884260598836);
     expect.put("10,LHZ", 99.99884260598836);
     TestUtils.testMetric(metric, expect);
@@ -293,8 +294,7 @@ public class AvailabilityMetricTest {
         ByteBuffer.wrap(DatatypeConverter.parseHexBinary("EECF1753EBA6A435D851081EE39B372E")));
 
     Metric metric = new AvailabilityMetric();
-    MetricData metricData = (MetricData) ResourceManager
-        .loadCompressedObject("/java_serials/data/IU.ANMO.2015.206.MetricData.ser.gz", true);
+    MetricData metricData = ResourceManager.loadANMOMainTestCase();
     metricData.setMetricReader(database);
     metric.setData(metricData);
 
@@ -389,8 +389,7 @@ public class AvailabilityMetricTest {
   @Test
   public final void testProcess_NoDerivedChannels_NoTriggered() throws Exception {
     Metric metric = new AvailabilityMetric();
-    MetricData metricData = (MetricData) ResourceManager
-        .loadCompressedObject("/java_serials/data/IU.ANMO.2015.206.MetricData.ser.gz", true);
+    MetricData metricData = ResourceManager.loadANMOMainTestCase();
 
     //Rotate and add Derived channels to metricData
     metricData.checkForRotatedChannels(new ChannelArray("00", "LHND", "LHED", "LHZ"));
@@ -401,26 +400,26 @@ public class AvailabilityMetricTest {
     HashMap<String, Double> expect = new HashMap<>();
     expect.put("00,BH2", 99.99994212966313);
     expect.put("00,BH1", 99.99994212966313);
-    expect.put("35,LDO", 99.99884260598836);
+    expect.put("35,LDO", 99.99768521197672);
     expect.put("00,VM2", 99.9884272653628);
     expect.put("00,VM1", 99.9884272653628);
     expect.put("10,BHZ", 99.99997106482319);
-    expect.put("31,LDO", 99.99884260598836);
-    expect.put("50,LKO", 99.99884260598836);
+    expect.put("31,LDO", 99.99768521197672);
+    expect.put("50,LKO", 99.99768521197672);
     expect.put("40,LFZ", 99.99884260598836);
-    expect.put("50,LWS", 99.99884260598836);
+    expect.put("50,LWS", 99.99768521197672);
     expect.put("10,VMW", 99.9884272653628);
     expect.put("10,VMV", 99.9884272653628);
     expect.put("10,VH2", 99.9884272653628);
     expect.put("10,VMU", 99.9884272653628);
     expect.put("10,VH1", 99.9884272653628);
     expect.put("00,VHZ", 99.9884272653628);
-    expect.put("50,LWD", 99.99884260598836);
+    expect.put("50,LWD", 99.99768521197672);
     expect.put("10,LH2", 99.99884260598836);
     expect.put("10,LH1", 99.99884260598836);
     expect.put("30,LDO", 99.99884260598836);
     expect.put("00,LHZ", 99.99884260598836);
-    expect.put("50,LDO", 99.99884260598836);
+    expect.put("50,LDO", 99.99768521197672);
     expect.put("60,HDF", 99.99998842592727);
     expect.put("20,LNZ", 99.99884260598836);
     expect.put("10,BH2", 99.99997106482319);
@@ -432,12 +431,12 @@ public class AvailabilityMetricTest {
     expect.put("00,VH2", 99.9884272653628);
     expect.put("00,VH1", 99.9884272653628);
     expect.put("10,VHZ", 99.9884272653628);
-    expect.put("50,LIO", 99.99884260598836);
+    expect.put("50,LIO", 99.99768521197672);
     expect.put("00,LH2", 99.99884260598836);
     expect.put("00,LH1", 99.99884260598836);
-    expect.put("50,LRI", 99.99884260598836);
+    expect.put("50,LRI", 99.99768521197672);
     expect.put("20,LN2", 99.99884260598836);
-    expect.put("50,LRH", 99.99884260598836);
+    expect.put("50,LRH", 99.99768521197672);
     expect.put("20,LN1", 99.99884260598836);
     expect.put("10,LHZ", 99.99884260598836);
     TestUtils.testMetric(metric, expect);

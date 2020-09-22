@@ -1,8 +1,10 @@
 package asl.seedscan.scanner.scanworker;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import asl.metadata.Channel;
 import asl.metadata.MetaGenerator;
 import asl.metadata.Station;
 import asl.seedscan.database.DatabaseScan;
@@ -103,7 +105,6 @@ public class StationScanTest {
     assertEquals("Number of station Scans added: ", 1, manager.getNumberTasksAdded());
   }
 
-
   @Test(timeout = 20000)
   public void run_DidTheNextDayGetAdded_LaterDays() throws Exception {
     //Null metadata
@@ -138,6 +139,33 @@ public class StationScanTest {
     scan.run();
 
     assertEquals("Number of station Scans added: ", 0, manager.getNumberTasksAdded());
+  }
+
+  @Test//(timeout = 20000)
+  public void run_DoesLoadPreviousDayWhenEventWithin4HoursOfUTCMidnight() throws Exception {
+//Null metadata
+    DatabaseScan dbScan = new DatabaseScan(
+        new UUID(100, 100),
+        new UUID(10, 10),
+        null,
+        "IU", "RSSD", null, null,
+        LocalDate.of(2019, 1, 20), LocalDate.of(2019, 1, 20),
+        1, false);
+    StationScan scan = new StationScan(manager, dbScan, LocalDate.of(2019, 1, 20), null);
+    scan.loadScanData();
+    assertEquals(LocalDate.of(2019, 1, 20), scan.currentDate);
+    // Did it load data?
+    assertNotNull(scan.currentMetricData.getChannelData(new Channel("00", "LHZ")));
+    // Did it find the CMT?
+    assertEquals(1, scan.eventCMTs.size());
+    // Did it find synthetics?
+    assertEquals(1, scan.eventSynthetics.size());
+    //NextDay's Data?
+    assertNotNull(scan.currentMetricData.getNextMetricData());
+    assertNotNull(scan.nextMetricData);
+    //Should have loaded previous day because of the 4 hour window?
+    assertNotNull(scan.currentMetricData.getPreviousMetricData());
+    assertNotNull(scan.previousMetricData);
   }
 
   @Ignore

@@ -1,18 +1,14 @@
 package asl.seedscan.metrics;
 
 import asl.util.Logging;
+import asl.utils.FFTResult;
+import asl.utils.NumericUtils;
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.List;
 
+import org.jfree.data.xy.XYSeries;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,7 +18,6 @@ import asl.plotmaker.PlotMakerException;
 import asl.plotmaker.Trace;
 import asl.plotmaker.TraceException;
 import asl.timeseries.CrossPower;
-import asl.timeseries.TimeseriesUtils;
 
 /**
  * NLNMDeviationMetric - Compute Difference (over specified range of periods =
@@ -59,22 +54,8 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 	 */
 	public NLNMDeviationMetric() {
 		super();
-		addArgument("nlnm-modelfile");
-		addArgument("nhnm-modelfile");
 		addArgument("channel-restriction");
 	}
-
-	/** The Constant DEFAULT_NLNM_PATH. */
-	private static final String DEFAULT_NLNM_PATH = "/noiseModels/NLNM.ascii";
-
-	/** The Constant DEFAULT_NHNM_PATH. */
-	private static final String DEFAULT_NHNM_PATH = "/noiseModels/NHNM.ascii";
-
-	/** The new low noise model file. */
-	private static URL NLNMFile;
-
-	/** The new high noise model file. */
-	private static URL NHNMFile;
 
 	/** The new low noise model. */
 	private static NoiseModel NLNM;
@@ -99,28 +80,13 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 		String bands = null;
 
 		try {
-
-			String nlnmPath = get("nlnm-modelfile");
-			String nhnmPath = get("nhnm-modelfile");
 			bands = get("channel-restriction");
-
-			if (nlnmPath == null) {
-				NLNMFile = this.getClass().getResource(DEFAULT_NLNM_PATH);
-			} else {
-				NLNMFile = new File(get("nlnm-modelfile")).toURI().toURL();
-			}
-
-			if (nhnmPath == null) {
-				NHNMFile = this.getClass().getResource(DEFAULT_NHNM_PATH);
-			} else {
-				NHNMFile = new File(get("nhnm-modelfile")).toURI().toURL();
-			}
 			
 			if(bands == null){
 				bands = "LH,BH,HH";
 			}
 
-		}  catch (NoSuchFieldException | MalformedURLException e) {
+		}  catch (NoSuchFieldException e) {
 			logger.error("station=[{}] day=[{}]: Failed to load a noise model file", station, day);
 		}
 
@@ -201,6 +167,19 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 		}
 	} // end process()
 
+	@Override
+	public String getSimpleDescription() {
+		return "Gets the NLNM deviation over the specified band";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This metric computes the PSD of the data for a channel. For the specified period band "
+				+ "(i.e., 0.5-1s), it computes the difference between the PSD and the Peterson new "
+				+ "low-noise model (NLNM). This is a basic difference, so values can be negative, if "
+				+ "points are below the NLNM.";
+	}
+
 	/**
 	 * Compute NLNM Deviation metric.
 	 *
@@ -223,38 +202,39 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 
 		CrossPower crossPower = getCrossPower(channel, channel);
 		double[] psd = crossPower.getSpectrum();
-		double df = crossPower.getSpectrumDeltaF();
+		double[] freq = crossPower.getSpectrumFrequencies();
 
 		// nf = number of positive frequencies + DC (nf = nfft/2 + 1, [f: 0, df,
 		// 2df, ...,nfft/2*df] )
-		int nf = psd.length;
-		double freq[] = new double[nf];
+		//int nf = psd.length;
+
 
 		// Fill freq array & Convert spectrum to dB
-		for (int k = 0; k < nf; k++) {
-			freq[k] = (double) k * df;
+		for (int k = 0; k < psd.length; k++) {
 			psd[k] = 10. * Math.log10(psd[k]);
 		}
 
 		// Convert psd[f] to psd[T]
 		// Reverse freq[] --> per[] where per[0]=shortest T and
 		// per[nf-2]=longest T:
-
-		double[] per = new double[nf];
-		double[] psdPer = new double[nf];
+		// TODO: this probably isn't necessary to do -- could just replace low/high period bound with
+		// conversion to frequency which is faster
+		double[] per = new double[psd.length];
+		double[] psdPer = new double[psd.length];
 		// per[nf-1] = 1/freq[0] = 1/0 = inf --> set manually:
-		per[nf - 1] = 0;
-		for (int k = 0; k < nf - 1; k++) {
-			per[k] = 1. / freq[nf - k - 1];
-			psdPer[k] = psd[nf - k - 1];
+		per[psd.length - 1] = 0;
+		for (int k = 0; k < psd.length - 1; k++) {
+			per[k] = 1. / freq[psd.length - k - 1];
+			psdPer[k] = psd[psd.length - k - 1];
 		}
 		double Tmin = per[0]; // Should be = 1/fNyq = 2/fs = 0.1 for fs=20Hz
-		double Tmax = per[nf - 2]; // Should be = 1/df = Ndt
+		// note that the value at the end of the period array is 1/0 so we ignore it as max period value
+		double Tmax = per[psd.length - 2]; // Should be = 1/df = Ndt
 
 		// Timeseries.timeoutXY(per, psdPer, outFile);
 
 		// Interpolate the smoothed psd to the periods of the NLNM Model:
-		double psdInterp[] = TimeseriesUtils.interpolate(per, psdPer, getNLNM().getPeriods());
+		double[] psdInterp = NumericUtils.interpolate(per, psdPer, getNLNM().getPeriods());
 
 		// outFile = channel.toString() + ".psd.Fsmooth.T.Interp";
 		// Timeseries.timeoutXY(NLNMPeriods, psdInterp, outFile);
@@ -376,11 +356,8 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 	private synchronized static void initNHNM() {
 		if (NHNM == null) {
 			NHNM = new NoiseModel();
-			try {
-				readNoiseModel(NHNMFile, NHNM);
-			} catch (MetricException e) {
-				logger.error(Logging.prettyExceptionWithCause(e));
-			}
+			XYSeries modelAsSeries = FFTResult.getHighNoiseModel(false); // false -- return as periods
+			readNoiseModel(modelAsSeries, NHNM);
 		}
 	}
 
@@ -402,63 +379,20 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 	private synchronized static void initNLNM() {
 		if (NLNM == null) {
 			NLNM = new NoiseModel();
-			try {
-				readNoiseModel(NLNMFile, NLNM);
-			} catch (MetricException e) {
-				logger.error(Logging.prettyExceptionWithCause(e));
-			}
+			NLNM = new NoiseModel();
+			XYSeries modelAsSeries = FFTResult.getLowNoiseModel(false); // false -- return as periods
+			readNoiseModel(modelAsSeries, NLNM);
 		}
 	}
 
-	/**
-	 * Read in Peterson's NewLow(or High)NoiseModel from file specified in
-	 * config.xml or a default file found in the jar.
-	 *
-	 * @param fileURL
-	 *            the file url
-	 * @param noiseModel
-	 *            the NoiseModel
-	 * @throws MetricException
-	 *             if the noise model file is malformed, not exactly 2 values
-	 *             per line.
-	 */
-	private synchronized static void readNoiseModel(URL fileURL, NoiseModel noiseModel) throws MetricException {
-		logger.info("Read in Noise Model from file=[{}]", fileURL.toString());
+	private synchronized static void readNoiseModel(XYSeries xys, NoiseModel noiseModel) {
 
-		// Temporary ArrayList(s) to read in unknown number of (x,y) pairs:
-		ArrayList<Double> tmpPers = new ArrayList<>();
-		ArrayList<Double> tmpPows = new ArrayList<>();
-		BufferedReader br = null;
-		try {
-			String line;
-			br = new BufferedReader(new InputStreamReader(fileURL.openStream()));
-			while ((line = br.readLine()) != null) {
-				String[] args = line.trim().split("\\s+");
-				if (args.length != 2) {
-					throw new MetricException("==Error reading NLNM: got " + args.length + " args on one line!");
-				}
-				tmpPers.add(Double.valueOf(args[0].trim()));
-				tmpPows.add(Double.valueOf(args[1].trim()));
-			}
-		} catch (IOException e) {
-			logger.error("IOException:", e);
-		} finally {
-			try {
-				if (br != null)
-					br.close();
-			} catch (IOException ex) {
-				logger.error("IOException:", ex);
-			}
-		}
-		Double[] modelPeriods = tmpPers.toArray(new Double[] {});
-		Double[] modelPowers = tmpPows.toArray(new Double[] {});
+		noiseModel.periods = new double[xys.getItemCount()];
+		noiseModel.powers = new double[xys.getItemCount()];
 
-		noiseModel.periods = new double[modelPeriods.length];
-		noiseModel.powers = new double[modelPowers.length];
-
-		for (int i = 0; i < modelPeriods.length; i++) {
-			noiseModel.periods[i] = modelPeriods[i];
-			noiseModel.powers[i] = modelPowers[i];
+		for (int i = 0; i < xys.getItemCount(); i++) {
+			noiseModel.periods[i] = (double) xys.getX(i);
+			noiseModel.powers[i] = (double) xys.getY(i);
 		}
 
 		noiseModel.valid = true;
@@ -477,7 +411,7 @@ public class NLNMDeviationMetric extends PowerBandMetric {
 
 		/**
 		 * True if valid, False if not. Set in
-		 * {@link asl.seedscan.metrics.NLNMDeviationMetric#readNoiseModel(URL, NoiseModel)}
+		 * {@link asl.seedscan.metrics.NLNMDeviationMetric#readNoiseModel(XYSeries, NoiseModel)}
 		 */
 		private boolean valid = false;
 

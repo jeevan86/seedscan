@@ -1,6 +1,7 @@
 package asl.seedscan.metrics;
 
 import asl.util.Logging;
+import asl.utils.NumericUtils;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.io.BufferedReader;
@@ -9,6 +10,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -22,7 +24,6 @@ import asl.plotmaker.Trace;
 import asl.plotmaker.TraceException;
 import asl.seedscan.ArchivePath;
 import asl.timeseries.CrossPower;
-import asl.timeseries.TimeseriesUtils;
 
 public class StationDeviationMetric extends PowerBandMetric {
 	private static final Logger logger = LoggerFactory
@@ -129,12 +130,24 @@ public class StationDeviationMetric extends PowerBandMetric {
 		}
 	} // end process()
 
+	@Override
+	public String getSimpleDescription() {
+		return "Compares PSD frequency bands for this station to a station-specific noise model";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "Like the NLNM and ALNM deviation models, this metric takes the PSD of a full day's "
+				+ "data and compares the named frequency range (period, in s) to a model of the station's "
+				+ "noise characteristic. Unlike those metrics, this model is specific to the station.";
+	}
+
 	private double computeMetric(Channel channel) throws MetricException {
 
 		// Read in specific noise model for this station+channel //
-		// ../ANMO.00.LH1.90
-		String modelFileName = stationMeta.getStation() + "."
-				+ channel.getLocation() + "." + channel.getChannel() + ".90";
+		// ../IU.ANMO.00.LH1.csv
+		String modelFileName = stationMeta.getNetwork() + "." + stationMeta.getStation() + "."
+				+ channel.getLocation() + "." + channel.getChannel() + ".csv";
 		try {
 			if (!readModel(modelFileName)) {
 				logger.warn(String
@@ -181,7 +194,7 @@ public class StationDeviationMetric extends PowerBandMetric {
 
 		// Interpolate the smoothed psd to the periods of the Station/Channel
 		// Noise Model:
-		double psdInterp[] = TimeseriesUtils.interpolate(per, psdPer, modelPeriods);
+		double psdInterp[] = NumericUtils.interpolate(per, psdPer, modelPeriods);
 
 		PowerBand band = getPowerBand();
 		double lowPeriod = band.getLow();
@@ -280,7 +293,7 @@ public class StationDeviationMetric extends PowerBandMetric {
 
 	private boolean readModel(String fName) throws MetricException {
 
-		// ../stationmodel/IU_ANMO/ANMO.00.LHZ.90
+		// ../stationmodel/IU_ANMO/IU.ANMO.00.LHZ.csv
 		String fileName = modelDirectory + fName;
 
 		// First see if the file exists
@@ -289,31 +302,51 @@ public class StationDeviationMetric extends PowerBandMetric {
 					fileName);
 			return false;
 		}
-		// Temp ArrayList(s) to read in unknown number of (x,y) pairs:
-		ArrayList<Double> tmpPers = new ArrayList<>();
-		ArrayList<Double> tmpPows = new ArrayList<>();
+
+		// This uses the following lines to get the old format for station models
+		// which had percent as the first value and powers (mean) as second value
+		// Temp linkedlist(s) to read in unknown number of (x,y) pairs with constant-time inserts:
+		List<Double> tmpPers = new LinkedList<>();
+		List<Double> tmpPows = new LinkedList<>();
 		BufferedReader br = null;
 		try {
-			String line;
 			br = new BufferedReader(new FileReader(fileName));
-			while ((line = br.readLine()) != null) {
-				String[] args = line.trim().split("\\s+");
-				// MTH: This is hard-wired for Adam's station model files which
-				// have 7 columns:
-				if (args.length != 7) {
+			String line = br.readLine();
+			String[] args = line.trim().split("\\s+");
+			if (args.length != 5 && args.length != 7) {
+				throw new MetricException("== reading Station Model File: got "
+						+ args.length + " args on one line!");
+
+			}
+			// if this first line is a format description header skip it
+			try {
+				Double.valueOf(args[0].trim());
+			} catch (NumberFormatException e) {
+				// skip to the next line, this first one has no value
+				line = br.readLine();
+			}
+
+			do {
+				args = line.trim().split(",\\s+");
+				// hard-wired for new format has only 5 columns (percent, mean, median, 10th, 90th)
+				if (args.length == 5) {
+					try {
+						tmpPers.add(Double.valueOf(args[0].trim()));
+						tmpPows.add(Double.valueOf(args[1].trim()));
+					} catch (NumberFormatException e) {
+						logger.error(String.format(
+								"== %s: Error reading modelFile=[%s]: \n",
+								getDay(), fName), e);
+						return false;
+					}
+				}
+
+				else {
 					throw new MetricException("== reading Station Model File: got "
 							+ args.length + " args on one line!");
 				}
-				try {
-					tmpPers.add(Double.valueOf(args[0].trim()));
-					tmpPows.add(Double.valueOf(args[2].trim()));
-				} catch (NumberFormatException e) {
-					logger.error(String.format(
-							"== %s: Error reading modelFile=[%s]: \n",
-							getDay(), fName), e);
-					return false;
-				}
-			}
+			} while((line = br.readLine()) != null);
+
 		} catch (IOException e) {
 			logger.error("IOException:", e);
 		} finally {
@@ -324,15 +357,13 @@ public class StationDeviationMetric extends PowerBandMetric {
 				logger.error("IOException:", ex);
 			}
 		}
-		Double[] tmpPeriods = tmpPers.toArray(new Double[] {});
-		Double[] tmpPowers = tmpPows.toArray(new Double[] {});
 
-		modelPeriods = new double[tmpPeriods.length];
-		modelPowers = new double[tmpPowers.length];
+		modelPeriods = new double[tmpPers.size()];
+		modelPowers = new double[tmpPers.size()];
 
-		for (int i = 0; i < tmpPeriods.length; i++) {
-			modelPeriods[i] = tmpPeriods[i];
-			modelPowers[i] = tmpPowers[i];
+		for (int i = 0; i < tmpPers.size(); i++) {
+			modelPeriods[i] = tmpPers.get(i);
+			modelPowers[i] = tmpPows.get(i);
 		}
 
 		return true;

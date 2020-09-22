@@ -453,7 +453,7 @@ public class Sequence extends MemberDigest implements Comparable<Sequence>, Seri
 	 * @return ending timestamp
 	 */
 	public long getEndTime() {
-		return m_startTime + (m_interval * (m_length - 1));
+		return m_startTime + (m_interval * (m_length));
 	}
 
 	/**
