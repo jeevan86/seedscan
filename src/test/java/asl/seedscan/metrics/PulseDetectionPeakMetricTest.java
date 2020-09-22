@@ -13,7 +13,7 @@ public class PulseDetectionPeakMetricTest {
   private PulseDetectionPeakMetric metric;
   private static MetricData data;
   private static EventLoader eventLoader;
-  private static LocalDate dataDate = LocalDate.ofYearDay(2020, 104);
+  private static final LocalDate dataDate = LocalDate.ofYearDay(2020, 104);
   private static Station station1;
 
   @BeforeClass
@@ -39,10 +39,10 @@ public class PulseDetectionPeakMetricTest {
     metric.add("coefficient-threshold", "0.70");
     metric.add("amplitude-threshold", "0.0");
     MetricTestMap expect = new MetricTestMap();
-    //expect.put("00,VH2", 42.4, 1E-1);
-    //expect.put("10,VH2", 24.8, 1E-1);
-    expect.put("60,VH1", 1.2638052E2, 1E-5);
-    //expect.put("60,VH2", 2.1, 1E-1);
+    expect.put("00,VH2", 42.4, 1E-1);
+    expect.put("10,VH2", 24.8, 1E-1);
+    expect.put("60,VH1", 1.5, 1E-1);
+    expect.put("60,VH2", 2.1, 1E-1);
     TestUtils.testMetric(metric, expect);
   }
 
