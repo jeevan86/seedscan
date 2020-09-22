@@ -104,6 +104,7 @@ public abstract class PulseDetectionMetric extends Metric {
         .plus(1, ChronoUnit.DAYS).toEpochMilli();
 
     double[] trace = metricData.getWindowedData(channel, start, end);
+
     if (trace == null || trace.length == 0.) {
       // this happens if we're scanning the most recent full day of data, in which case we'll
       // just run on the data currently available to us to get some estimation of the values
