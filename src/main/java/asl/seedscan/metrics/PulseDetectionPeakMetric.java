@@ -22,10 +22,8 @@ public class PulseDetectionPeakMetric extends PulseDetectionMetric {
 
   private static final Logger logger = LoggerFactory.getLogger(PulseDetectionPeakMetric.class);
 
-  private static final double SCALE_FACTOR = 1E9; // to scale signal in meters to nanometers
-
   private double coefficientThreshold = 0.7;
-  private double amplitudeThreshold = 0.1;
+  private double amplitudeThreshold = 0.0; // can be used to restrict results
 
   public PulseDetectionPeakMetric() {
     super();
@@ -103,12 +101,12 @@ public class PulseDetectionPeakMetric extends PulseDetectionMetric {
         for (PulseDetectionPoint point : points) {
           if (point.correlationValue > coefficientThreshold &&
               point.amplitude > amplitudeThreshold) {
-            maxPeak = Math.max(maxPeak, point.rawData);
+            maxPeak = Math.max(maxPeak, point.amplitude);
           }
         }
       }
       if (maxPeak > 0) {
-        metricResult.addResult(channel, maxPeak * SCALE_FACTOR, digest);
+        metricResult.addResult(channel, maxPeak, digest);
       }
     }
   }
@@ -126,6 +124,6 @@ public class PulseDetectionPeakMetric extends PulseDetectionMetric {
         + "amplitude moving average must be 4 times greater than a 15-minute moving average. "
         + "Pulses are then screened according to a user-specified threshold for the correlation "
         + "amplitude and coefficient values. The peak of the largest valid pulse is returned, "
-        + "in units of nanometers (i.e., signal value * 10^9).";
+        + "represented as the correlation amplitude value.";
   }
 }

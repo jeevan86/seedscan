@@ -74,7 +74,7 @@ def publish_messages(networks=None, select_dates=None, metrics=None,
         # access the data once converted into it -- fortunately the first entry can still easily be
         # checked to determine if there's really any content to iterator over
         for record in data:
-            # this will happen if DQA doesn't have data for a given day/metric, not an empty list
+            # this will happen if DQA doesn't have data for a given day/metric, not an empty list:
             if str(record[0]).startswith("Error"):
                 if is_test:
                     print("Nothing available for", select_date, network, metric)
