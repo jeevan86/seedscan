@@ -197,12 +197,14 @@ public class MetricData implements Serializable {
 		  !Channel.validInstrumentCode(band.substring(1,2)) ) { return false; }
 		 */
     // First try kcmp = "Z", "1", "2"
-    ChannelArray chanArray = new ChannelArray(location, band + "Z", band + "1", band + "2");
+    ChannelArray chanArray = new ChannelArray(location,
+        band + "Z", band + "1", band + "2");
     if (hasChannelArrayData(chanArray)) {
       return true;
     }
     // Then try kcmp = "Z", "N", "E"
-    chanArray = new ChannelArray(location, band + "Z", band + "N", band + "E");
+    chanArray = new ChannelArray(location,
+        band + "Z", band + "N", band + "E");
     if (hasChannelArrayData(chanArray)) {
       return true;
     }
@@ -340,8 +342,8 @@ public class MetricData implements Serializable {
       return true;
     } else if (metadata.getNetwork()
         .equals("II")) { //This hardcoded station needs to be address (Ticket 9727)
-      if (hasChannelData("BC0") || hasChannelData("BC1") || hasChannelData("LC0") || hasChannelData(
-          "LC1")) {
+      if (hasChannelData("BC0") || hasChannelData("BC1") ||
+          hasChannelData("LC0") || hasChannelData("LC1")) {
         return true;
       }
     }
@@ -399,6 +401,11 @@ public class MetricData implements Serializable {
    */
   private ArrayList<Integer> getChannelTimingQualityData(String location, String name) {
     String locationName = location + "-" + name;
+    // there's a null check in the calling class but we still need to make sure the keySet
+    // actually instantiated or else we'll break before that exception can be handled
+    if (qualityData == null) {
+      return null;
+    }
     Set<String> keys = qualityData.keySet();
     for (String key : keys) { // key looks like "IU_ANMO 00-BHZ (20.0 Hz)"
       if (key.contains(locationName)) {
@@ -440,14 +447,16 @@ public class MetricData implements Serializable {
       throws ChannelMetaException, MetricException {
     if (!metadata.hasChannel(channel)) {
       logger.error(
-          "Metadata NOT found for station=[{}-{}] channel=[{}] date=[{}] --> Can't return Displacement",
+          "Metadata NOT found for station=[{}-{}] channel=[{}] date=[{}] --> "
+              + "Can't return Displacement",
           metadata.getNetwork(), metadata.getStation(), channel, metadata.getDate());
       return null;
     }
     double[] timeseries = getWindowedData(channel, windowStartEpoch, windowEndEpoch);
     if (timeseries == null) {
       logger.warn(
-          "Did not get requested window for station=[{}-{}] channel=[{}] date=[{}] --> Can't return Displacement",
+          "Did not get requested window for station=[{}-{}] channel=[{}] date=[{}] --> "
+              + "Can't return Displacement",
           metadata.getNetwork(), metadata.getStation(), channel, metadata.getDate());
       return null;
     }
@@ -558,7 +567,8 @@ public class MetricData implements Serializable {
    * @return the windowed data
    */
   double[] getWindowedData(Channel channel, long windowStartEpochMillis, long windowEndEpochMillis) {
-    return getWindowedDataMicroSeconds(channel, windowStartEpochMillis * 1000, windowEndEpochMillis * 1000);
+    return getWindowedDataMicroSeconds(channel, windowStartEpochMillis * 1000,
+        windowEndEpochMillis * 1000);
   }
 
   double[] getWindowedDataMicroSeconds(Channel channel, long windowStartEpoch, long windowEndEpoch) {
@@ -613,16 +623,21 @@ public class MetricData implements Serializable {
     if (wholeData != null){
       //Yes, return trimmed values or null if error occurs
       try {
-        return Arrays.stream(wholeData.getSeries(windowStartEpoch, windowEndEpoch)).asDoubleStream().toArray();
+        return Arrays.stream(wholeData.getSeries(windowStartEpoch, windowEndEpoch))
+            .asDoubleStream().toArray();
       } catch (SequenceRangeException e) {
-        logger.warn("Sequence Exception caught reading data for channel=[{}] date=[{}] window (in epoch millis): {} msto {} ms", channel, metadata.getDate(), windowStartEpoch, windowEndEpoch);
+        logger.warn("Sequence Exception caught reading data for channel=[{}] date=[{}] "
+            + "window (in epoch millis): {} msto {} ms", channel, metadata.getDate(),
+            windowStartEpoch, windowEndEpoch);
         return null;
       }
     }
 
     // Was it entirely outside our requested window?
     if(windowEndEpoch < dayStart || windowStartEpoch > dayEnd){
-      logger.warn("Entirety of requested window outside currentDay for channel=[{}] date=[{}] window (in epoch millis): {} msto {} ms", channel, metadata.getDate(), windowStartEpoch, windowEndEpoch);
+      logger.warn("Entirety of requested window outside currentDay for channel=[{}] date=[{}] "
+          + "window (in epoch millis): {} msto {} ms", channel, metadata.getDate(),
+          windowStartEpoch, windowEndEpoch);
       return null;
     }
 
@@ -640,7 +655,8 @@ public class MetricData implements Serializable {
 
     if (!(getPreviousDay || getNextDay)){
       // It wasn't outside the day boundary, must have a gap then.
-      logger.warn("Gap found in data for channel=[{}] date=[{}] window (in epoch millis): {} msto {} ms", channel, metadata.getDate(), windowStartEpoch, windowEndEpoch);
+      logger.warn("Gap found in data for channel=[{}] date=[{}] window (in epoch millis): "
+          + "{} msto {} ms", channel, metadata.getDate(), windowStartEpoch, windowEndEpoch);
       return null;
     }
 
@@ -651,11 +667,14 @@ public class MetricData implements Serializable {
     if(getPreviousDay &&
         (this.previousMetricData == null
             || !this.previousMetricData.hasChannelData(channel))){
-      logger.warn("Missing Previous day's data for channel=[{}] date=[{}] window (in epoch millis): {} msto {} ms", channel, metadata.getDate(), windowStartEpoch, windowEndEpoch);
+      logger.warn("Missing Previous day's data for channel=[{}] date=[{}] window "
+          + "(in epoch millis): {} msto {} ms", channel, metadata.getDate(),
+          windowStartEpoch, windowEndEpoch);
       return null;
     }
     if(getNextDay && (this.nextMetricData == null || !this.nextMetricData.hasChannelData(channel))){
-      logger.warn("Missing Next day's data for channel=[{}] date=[{}] window (in epoch millis): {} msto {} ms", channel, metadata.getDate(), windowStartEpoch, windowEndEpoch);
+      logger.warn("Missing Next day's data for channel=[{}] date=[{}] window (in epoch millis): "
+          + "{} msto {} ms", channel, metadata.getDate(), windowStartEpoch, windowEndEpoch);
       return null;
     }
 
@@ -671,8 +690,11 @@ public class MetricData implements Serializable {
       //This compares doubles, but I don't see a clean way to refactor this to something else.
       //Pre-existing code did this same type of comparison.
       sampleDelta = dataSets.get(0).getInterval();
-      if (prevDataSets.get(prevDataSets.size() - 1).getSampleRate() != dataSets.get(0).getSampleRate()){
-        logger.warn("Previous Day's samplerate doesn't match current Day's samplerate for channel=[{}] date=[{}] window (in epoch millis): {} msto {} ms", channel, metadata.getDate(), windowStartEpoch, windowEndEpoch);
+      if (prevDataSets.get(prevDataSets.size() - 1).getSampleRate() !=
+          dataSets.get(0).getSampleRate()){
+        logger.warn("Previous Day's samplerate doesn't match current Day's samplerate for "
+            + "channel=[{}] date=[{}] window (in epoch millis): {} msto {} ms",
+            channel, metadata.getDate(), windowStartEpoch, windowEndEpoch);
         return null;
       }
     }
@@ -682,7 +704,9 @@ public class MetricData implements Serializable {
       //Same double comparison concerns as above.
       sampleDelta = nextDataSets.get(0).getInterval();
       if (nextDataSets.get(0).getSampleRate() != dataSets.get(dataSets.size() - 1).getSampleRate()){
-        logger.warn("Next Day's samplerate doesn't match current Day's samplerate for channel=[{}] date=[{}] window (in epoch millis): {} msto {} ms", channel, metadata.getDate(), windowStartEpoch, windowEndEpoch);
+        logger.warn("Next Day's samplerate doesn't match current Day's samplerate for channel=[{}] "
+            + "date=[{}] window (in epoch millis): {} msto {} ms", channel,
+            metadata.getDate(), windowStartEpoch, windowEndEpoch);
         return null;
       }
     }
@@ -710,24 +734,32 @@ public class MetricData implements Serializable {
     //Load actual data
     double[] todaysResults = this.getWindowedDataMicroSeconds(channel, currentDayStart, currentDayEnd);
     if(todaysResults == null){
-      logger.warn("Could not get data for current day for channel=[{}] date=[{}] window (in epoch millis): {} msto {} ms", channel, metadata.getDate(), windowStartEpoch, windowEndEpoch);
+      logger.warn("Could not get data for current day for channel=[{}] date=[{}] window "
+          + "(in epoch millis): {} msto {} ms", channel, metadata.getDate(),
+          windowStartEpoch, windowEndEpoch);
       return null;
     }
     DoubleStream results = Arrays.stream(todaysResults);
 
     if(getPreviousDay){
-      double[] prevResults = this.previousMetricData.getWindowedDataMicroSeconds(channel, prevDayStart, prevDayEnd);
+      double[] prevResults =
+          this.previousMetricData.getWindowedDataMicroSeconds(channel, prevDayStart, prevDayEnd);
       if(prevResults == null){
-        logger.warn("Could not get data for previous day for channel=[{}] date=[{}] window (in epoch millis): {} msto {} ms", channel, metadata.getDate(), windowStartEpoch, windowEndEpoch);
+        logger.warn("Could not get data for previous day for channel=[{}] date=[{}] window "
+            + "(in epoch millis): {} msto {} ms", channel, metadata.getDate(),
+            windowStartEpoch, windowEndEpoch);
         return null;
       }
       results = DoubleStream.concat(Arrays.stream(prevResults), results);
     }
 
     if(getNextDay){
-      double[] nextResults = this.nextMetricData.getWindowedDataMicroSeconds(channel, nextDayStart, nextDayEnd);
+      double[] nextResults =
+          this.nextMetricData.getWindowedDataMicroSeconds(channel, nextDayStart, nextDayEnd);
       if(nextResults == null){
-        logger.warn("Could not get data for next day for channel=[{}] date=[{}] window (in epoch millis): {} msto {} ms", channel, metadata.getDate(), windowStartEpoch, windowEndEpoch);
+        logger.warn("Could not get data for next day for channel=[{}] date=[{}] window "
+            + "(in epoch millis): {} msto {} ms", channel, metadata.getDate(),
+            windowStartEpoch, windowEndEpoch);
         return null;
       }
       results = DoubleStream.concat(results, Arrays.stream(nextResults));
@@ -1135,8 +1167,8 @@ public class MetricData implements Serializable {
 		 */
     if (!metadata.hasChannels(channelArray)) {
       logger.warn(
-          "valueDigestChanged (date=[{}]): We don't have metadata to compute the digest for this channelArray "
-              + " --> return null digest\n",
+          "valueDigestChanged (date=[{}]): We don't have metadata to compute the digest for this "
+              + "channelArray --> return null digest\n",
           strdate);
       return null;
     }
@@ -1184,7 +1216,8 @@ public class MetricData implements Serializable {
 						 * metric computation
 						 */
             logger.info(
-                "== valueDigestChanged: metricName={} date={} Digests are Equal BUT forceUpdate=[true] so compute the metric anyway.",
+                "== valueDigestChanged: metricName={} date={} Digests are Equal BUT "
+                    + "forceUpdate=[true] so compute the metric anyway.",
                 metricName, strdate);
           } else {
             newDigest = null;
