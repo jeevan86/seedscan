@@ -13,14 +13,13 @@ import asl.metadata.Station;
 /**
  * DeadChannelMetric - Computes Difference (over 4-8 second period) between the
  * the power spectral density (psd) of a channel and the NLNM if this value is
- * at or below a 7dB threshold the channel is dead
+ * at or below a -7dB threshold the channel is dead
  */
 
 public class DeadChannelMetric extends PowerBandMetric {
 	private static final Logger logger = LoggerFactory.getLogger(asl.seedscan.metrics.DeadChannelMetric.class);
 
-	private static final double THRESHOLD = 7.0;
-	// MetricDatabase metricDB;
+	private static final double THRESHOLD = -7.0;
 
 	@Override
 	public long getVersion() {
