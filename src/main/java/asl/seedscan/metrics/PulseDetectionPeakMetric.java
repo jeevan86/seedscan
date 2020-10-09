@@ -107,7 +107,7 @@ public class PulseDetectionPeakMetric extends PulseDetectionMetric {
       for (List<PulseDetectionPoint> points : allData) {
         for (PulseDetectionPoint point : points) {
           if (point.correlationValue > coefficientThreshold &&
-              point.amplitude  > amplitudeThreshold / result.sensitivity) {
+              point.amplitude > amplitudeThreshold / result.sensitivity) {
             maxPeak = Math.max(maxPeak, point.amplitude * METERS_TO_NANOMETERS);
           }
         }

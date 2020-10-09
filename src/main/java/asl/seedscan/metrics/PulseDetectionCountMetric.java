@@ -123,7 +123,7 @@ public class PulseDetectionCountMetric extends PulseDetectionMetric {
         for (PulseDetectionPoint point : points) {
           // all we need is at least one point greater than both thresholds
           // note that we don't bother with getter/setter because these are finalized
-          if (point.amplitude > amplitudeThreshold &&
+          if (point.amplitude > amplitudeThreshold / result.sensitivity &&
               point.correlationValue > coefficientThreshold) {
             ++count;
             break;
