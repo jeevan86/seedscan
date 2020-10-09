@@ -1,3 +1,5 @@
+import groovy.json.JsonSlurper
+
 buildscript {
     dependencies {
         classpath  'org.postgresql:postgresql:42.2.1'
@@ -15,8 +17,17 @@ if (file('database.gradle').exists()) {
     apply from:'database.gradle'
 }
 
-version = '1.8.4'
+/* Get first three version numbers from code.json */
+def codeJson = new JsonSlurper().parseText(new File("code.json").text)
+// NOTE: codeJson.version is a String[], and any IDE warning here can be safely ignored
+def jsonVersion = codeJson.version[0]
+/* Get last version number from commit counts */
+def lastTagHash = "git rev-list --tags --max-count=1".execute().text
+lastTagHash = lastTagHash.substring(0, lastTagHash.length() - 1)
+def commitCount = ("git rev-list "+lastTagHash+".. --count").execute().text
+commitCount = commitCount.substring(0, commitCount.length() - 1)
 
+version = "$jsonVersion.$commitCount"
 mainClassName = 'asl.seedscan.SeedScan'
 applicationDefaultJvmArgs = ["-Xms64m", "-Xmx30g"]
 
