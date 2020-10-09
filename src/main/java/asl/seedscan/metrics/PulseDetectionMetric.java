@@ -98,7 +98,8 @@ public abstract class PulseDetectionMetric extends Metric {
     // instead of having the boundary be right at midnight, seedscan doesn't easily support getting
     // the previous day's data for doing centered differences on windowed estimations
     // instead pulse detections will be off such that the first 140 or so seconds of the next day
-    // are included in the current day's metric, unless
+    // are included in the current day's metric, unless the data does not exist
+
     long start = metricData.getChannelData(channel).get(0).getStartTime();
     long end = Instant.ofEpochMilli(start).plus(280, ChronoUnit.SECONDS)
         .plus(1, ChronoUnit.DAYS).toEpochMilli();
@@ -111,6 +112,8 @@ public abstract class PulseDetectionMetric extends Metric {
       // though we will miss pulses that happen within ~5 minutes of the day boundary
       trace = metricData.getDetrendedPaddedDayData(channel);
       logger.info("Got full day data for channel [{}]", channel.toString());
+    } else {
+      trace = detrend(trace);
     }
 
     FFTResult.cosineTaper(trace, 0.05); // taper done in-place
@@ -134,6 +137,7 @@ public abstract class PulseDetectionMetric extends Metric {
       assert (crossCorr.length == 2);
       correl = crossCorr[0];
       scale = crossCorr[1];
+      assert(correl.length == scale.length);
     }
 
     // use moving average to remove long-period (~1 hr) trend for constraint evaluation
@@ -166,7 +170,7 @@ public abstract class PulseDetectionMetric extends Metric {
 
     // because we parametrize other exclusion criteria we now publish our current results
     // so any additional filter (i.e., by amplitude) is to be managed by the implementing metric
-    return new PulseDetectionData(correl, scale, trace, pointInclusions, sensitivity,
+    return new PulseDetectionData(correl, scale, pointInclusions, sensitivity,
         getCorrelationOffset(sampleRate));
   }
 
@@ -271,7 +275,6 @@ public abstract class PulseDetectionMetric extends Metric {
     for (int i = 0; i < stepFunctionProcessed.length; ++i) {
       stepFunctionProcessed[i] /= summedSquares;
     }
-
     // pre-trim the outputted arrays; anything past this boundary will be zero
     int corrLen = trace.length - stepFunction.length;
     double[] correl = new double[corrLen];
@@ -297,7 +300,6 @@ public abstract class PulseDetectionMetric extends Metric {
       scal[i] = scalNumer / scalDenom;
       // xerr[i] = std(tr2 - scal(n). * q);
     }
-
     return new double[][]{correl, scal};
   }
 
@@ -307,7 +309,7 @@ public abstract class PulseDetectionMetric extends Metric {
    * 60-second averages for the sharpness constraint.
    * @param data Trace to get the windowed averages for
    * @param windowLength How many points to include in a windowed average
-   * @return
+   * @return Result of applying moving average to the data
    */
   public static double[] getCenteredMovingAverage(double[] data, int windowLength) {
     double[] mean = new double[data.length];
@@ -561,6 +563,7 @@ public abstract class PulseDetectionMetric extends Metric {
   public static class PulseDetectionData {
 
     public final List<List<PulseDetectionPoint>> correlationsWithAmplitude;
+    public final double sensitivity;
 
     /**
      * Pair of doubles, the correlation value and the amplitude at a given point.
@@ -569,12 +572,10 @@ public abstract class PulseDetectionMetric extends Metric {
 
       public final double correlationValue;
       public final double amplitude;
-      public final double rawData; // the actual data coming from the sensor
 
-      public PulseDetectionPoint(double correlationValue, double amplitude, double rawData) {
+      public PulseDetectionPoint(double correlationValue, double amplitude) {
         this.correlationValue = correlationValue;
         this.amplitude = amplitude;
-        this.rawData = rawData;
       }
 
       public String toString() {
@@ -593,13 +594,13 @@ public abstract class PulseDetectionMetric extends Metric {
      * @see PulseDetectionPoint
      * @param correlations Correlated values between trace and step
      * @param amplitudes Amplitudes of the above correlation
-     * @param rawValues Seismic timeseries data
      * @param inclusions Indices in the original trace that passed screening criteria
      * @param sensitivity Sensitivity value of response (for scaling amplitude values)
      * @param startingOffset Index of first nonzero point in the untrimmed correlation arrays
      */
-    public PulseDetectionData(double[] correlations, double[] amplitudes, double[] rawValues,
+    public PulseDetectionData(double[] correlations, double[] amplitudes,
         Collection<Integer> inclusions, double sensitivity, int startingOffset) {
+      this.sensitivity = sensitivity;
       if (inclusions.size() == 0) {
         correlationsWithAmplitude = Collections.unmodifiableList(Collections.emptyList());
         return;
@@ -632,10 +633,9 @@ public abstract class PulseDetectionMetric extends Metric {
             // by the exclusion criteria but had a zero-valued correlation/amplitude
             continue;
           }
-          double rawValue = rawValues[contiguousIndex];
-          double pulse = Math.abs(amplitudes[indexWithOffset]) * sensitivity;
+          double pulse = Math.abs(amplitudes[indexWithOffset]);
           double correlation = Math.abs(correlations[indexWithOffset]);
-          subList.add(new PulseDetectionPoint(correlation, pulse, rawValue));
+          subList.add(new PulseDetectionPoint(correlation, pulse));
         }
         subList = Collections.unmodifiableList(subList);
         if (subList.size() > 0) {

@@ -14,6 +14,8 @@ import org.slf4j.LoggerFactory;
  * Gets the maximum-amplitude pulse over a channel's data based on a user-specified lower bound
  * for coefficient of cross-correlation with a step function. The highest amplitude that passes
  * the backend filtering criteria and is above that coefficient lower-bound is published.
+ * Amplitude is specifically defined as correlation amplitude with a step-function,
+ * rather than the value from the sensor at a given moment.
  * @see PulseDetectionMetric (The backend for pulse enumeration)
  * @see asl.seedscan.metrics.PulseDetectionMetric.PulseDetectionData (Specification for the
  * list of list of contiguous pulse values)
@@ -21,6 +23,11 @@ import org.slf4j.LoggerFactory;
 public class PulseDetectionPeakMetric extends PulseDetectionMetric {
 
   private static final Logger logger = LoggerFactory.getLogger(PulseDetectionPeakMetric.class);
+
+  /**
+   * Conversion factor to return values of amplitude
+   */
+  private static final double METERS_TO_NANOMETERS = 1E9;
 
   private double coefficientThreshold = 0.7;
   private double amplitudeThreshold = 0.0; // can be used to restrict results
@@ -95,13 +102,13 @@ public class PulseDetectionPeakMetric extends PulseDetectionMetric {
       }
 
       double maxPeak = 0;
-      List<List<PulseDetectionPoint>> allData =
-          pulseDetectionResultMap.get(key).correlationsWithAmplitude;
+      PulseDetectionData result = pulseDetectionResultMap.get(key);
+      List<List<PulseDetectionPoint>> allData = result.correlationsWithAmplitude;
       for (List<PulseDetectionPoint> points : allData) {
         for (PulseDetectionPoint point : points) {
           if (point.correlationValue > coefficientThreshold &&
-              point.amplitude > amplitudeThreshold) {
-            maxPeak = Math.max(maxPeak, point.amplitude);
+              point.amplitude  > amplitudeThreshold / result.sensitivity) {
+            maxPeak = Math.max(maxPeak, point.amplitude * METERS_TO_NANOMETERS);
           }
         }
       }
