@@ -3,7 +3,7 @@
     "name": "SeedScan",
     "organization": "U.S. Geological Survey",
     "description": "SeedScan is used to analyze miniSEED data and quantify data quality.",
-    "version": "1.8.5",
+    "version": "1.8.6",
     "status": "Production",
     "permissions": {
       "usageType": "openSource",
