@@ -255,6 +255,11 @@ public class EventComparePWaveOrientation extends Metric {
             getName(), getStation());
         dataMissing = true;
       }
+      if (null == vertData) {
+        logger.error("== {} : {} could not get vertical data; will not compute metric",
+            getName(), getStation());
+        dataMissing = true;
+      }
       if (dataMissing) {
         continue;
       }
