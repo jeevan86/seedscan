@@ -6,6 +6,7 @@ import asl.seedscan.metrics.MetricException;
 import asl.seedscan.scanner.ScanManager;
 import asl.util.LockFile;
 import asl.util.Logging;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -46,6 +47,15 @@ public class SeedScan {
 
     try {
       Global.loadConfig("config.xml");
+      String path = Global.getDataDir();
+      int firstWildcard = path.indexOf('$');
+      if (firstWildcard > 0) {
+        path = path.substring(0, firstWildcard);
+      }
+      File checkExistence = new File(path);
+      if (!checkExistence.exists()) {
+        throw new IOException("Unable to access data path [" + path + "] -- check path exists.");
+      }
 
       lock = new LockFile(Global.getLockfile());
       if (!lock.acquire()) {
