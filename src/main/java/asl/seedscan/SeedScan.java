@@ -49,6 +49,7 @@ public class SeedScan {
       Global.loadConfig("config.xml");
       String path = Global.getDataDir();
       int firstWildcard = path.indexOf('$');
+      int pathLength = path.length();
       if (firstWildcard > 0) {
         path = path.substring(0, firstWildcard);
       }
@@ -59,8 +60,19 @@ public class SeedScan {
         throw new IOException("Unable to access data path [" + path + "] -- check path exists.");
       }
       // path might exist, but what if it has no contents?
-      if (checkExistence.listFiles().length == 0) {
-        throw new IOException("Unable to access data in [" + path + "] -- is folder mounted?");
+      int validSubdirectories = 0;
+      // we'll check for subdirectories if wildcards are part of the data path
+      // (e.g., there are folders like ${NEWORK}_${STATION} holding data)
+      if (pathLength > firstWildcard) {
+        System.out.println(checkExistence.listFiles().length);
+        for (File file : checkExistence.listFiles()) {
+          if (file.isDirectory()) {
+            ++validSubdirectories;
+          }
+        }
+        if (validSubdirectories == 0) {
+          throw new IOException("No valid data within [" + path + "] -- check proper mounting.");
+        }
       }
 
       lock = new LockFile(Global.getLockfile());
