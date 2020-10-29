@@ -53,6 +53,8 @@ public class SeedScan {
         path = path.substring(0, firstWildcard);
       }
       File checkExistence = new File(path);
+      // getCanonicalPath should resolve symlink allowing us to check where it points to
+      checkExistence = new File(checkExistence.getCanonicalPath());
       if (!checkExistence.exists()) {
         throw new IOException("Unable to access data path [" + path + "] -- check path exists.");
       }
