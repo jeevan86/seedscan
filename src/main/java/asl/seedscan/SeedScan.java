@@ -7,7 +7,9 @@ import asl.seedscan.scanner.ScanManager;
 import asl.util.LockFile;
 import asl.util.Logging;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileNotFoundException;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.sql.SQLException;
 import javax.xml.bind.JAXBException;
@@ -49,29 +51,39 @@ public class SeedScan {
       Global.loadConfig("config.xml");
       String path = Global.getDataDir();
       int firstWildcard = path.indexOf('$');
-      int pathLength = path.length();
+      String basePath = path;
       if (firstWildcard > 0) {
-        path = path.substring(0, firstWildcard);
+        basePath = basePath.substring(0, firstWildcard);
       }
-      File checkExistence = new File(path);
+      File checkExistence = new File(basePath);
       // getCanonicalPath should resolve symlink allowing us to check where it points to
       checkExistence = new File(checkExistence.getCanonicalPath());
       if (!checkExistence.exists()) {
-        throw new IOException("Unable to access data path [" + path + "] -- check path exists.");
+        throw new IOException("Unable to access data path [" + basePath + "]: check path exists.");
       }
       // path might exist, but what if it has no contents?
-      int validSubdirectories = 0;
       // we'll check for subdirectories if wildcards are part of the data path
       // (e.g., there are folders like ${NEWORK}_${STATION} holding data)
-      if (pathLength > firstWildcard) {
-        System.out.println(checkExistence.listFiles().length);
-        for (File file : checkExistence.listFiles()) {
-          if (file.isDirectory()) {
-            ++validSubdirectories;
+      // and because only some of them may be pointed to via symlinks we'll try a
+      if (basePath.length() > firstWildcard) {
+        for (String network : Global.getNetworkRestrictions()) {
+          int validSubdirectories = 0;
+          // this probably won't work unless networks have hierarchy over station in path
+          // (i.e., only works if paths are like /msd/IU/ANMO or /msd/IU_ANMO)
+          String pathFilter = path.replace("${NETWORK}", network);
+          final String finalPathFilter = pathFilter.substring(0, pathFilter.indexOf('$'));
+          FileFilter filter = (name) -> name.getPath().startsWith(finalPathFilter);
+          File[] children = checkExistence.listFiles(filter);
+          for (File file : children) {
+            if (file.isDirectory()) {
+              ++validSubdirectories;
+            }
           }
-        }
-        if (validSubdirectories == 0) {
-          throw new IOException("No valid data within [" + path + "] -- check proper mounting.");
+          if (validSubdirectories == 0) {
+            throw new IOException(
+                "No valid data for " + network + " within [" + basePath +
+                    "] -- check proper mounting.");
+          }
         }
       }
 
