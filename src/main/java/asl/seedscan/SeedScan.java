@@ -58,6 +58,10 @@ public class SeedScan {
       if (!checkExistence.exists()) {
         throw new IOException("Unable to access data path [" + path + "] -- check path exists.");
       }
+      // path might exist, but what if it has no contents?
+      if (checkExistence.listFiles().length == 0) {
+        throw new IOException("Unable to access data in [" + path + "] -- is folder mounted?");
+      }
 
       lock = new LockFile(Global.getLockfile());
       if (!lock.acquire()) {
