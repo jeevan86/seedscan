@@ -12,6 +12,7 @@ import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Arrays;
 import javax.xml.bind.JAXBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,19 +66,20 @@ public class SeedScan {
       // we'll check for subdirectories if wildcards are part of the data path
       // (e.g., there are folders like ${NEWORK}_${STATION} holding data)
       // and because only some of them may be pointed to via symlinks we'll try a
-      if (basePath.length() > firstWildcard) {
+      if (path.length() > firstWildcard) {
         for (String network : Global.getNetworkRestrictions()) {
           int validSubdirectories = 0;
           // this probably won't work unless networks have hierarchy over station in path
           // (i.e., only works if paths are like /msd/IU/ANMO or /msd/IU_ANMO)
           String pathFilter = path.replace("${NETWORK}", network);
-          final String finalPathFilter = pathFilter.substring(0, pathFilter.indexOf('$'));
+          final String finalPathFilter;
+          finalPathFilter = pathFilter.contains("$") ?
+              pathFilter.substring(0, pathFilter.indexOf('$')) : pathFilter;
           FileFilter filter = (name) -> name.getPath().startsWith(finalPathFilter);
           File[] children = checkExistence.listFiles(filter);
-          for (File file : children) {
-            if (file.isDirectory()) {
+          System.out.println(Arrays.toString(children));
+          if (children[0].exists() && children[0].isDirectory()) {
               ++validSubdirectories;
-            }
           }
           if (validSubdirectories == 0) {
             throw new IOException(
