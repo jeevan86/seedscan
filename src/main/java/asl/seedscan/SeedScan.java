@@ -50,41 +50,58 @@ public class SeedScan {
 
     try {
       Global.loadConfig("config.xml");
-      String path = Global.getDataDir();
-      int firstWildcard = path.indexOf('$');
-      String basePath = path;
-      if (firstWildcard > 0) {
-        basePath = basePath.substring(0, firstWildcard);
-      }
-      File checkExistence = new File(basePath);
-      // getCanonicalPath should resolve symlink allowing us to check where it points to
-      checkExistence = new File(checkExistence.getCanonicalPath());
-      if (!checkExistence.exists()) {
-        throw new IOException("Unable to access data path [" + basePath + "]: check path exists.");
-      }
-      // path might exist, but what if it has no contents?
-      // we'll check for subdirectories if wildcards are part of the data path
-      // (e.g., there are folders like ${NEWORK}_${STATION} holding data)
-      // and because only some of them may be pointed to via symlinks we'll try a
-      if (path.length() > firstWildcard) {
-        for (String network : Global.getNetworkRestrictions()) {
-          int validSubdirectories = 0;
-          // this probably won't work unless networks have hierarchy over station in path
-          // (i.e., only works if paths are like /msd/IU/ANMO or /msd/IU_ANMO)
-          String pathFilter = path.replace("${NETWORK}", network);
-          final String finalPathFilter;
-          finalPathFilter = pathFilter.contains("$") ?
-              pathFilter.substring(0, pathFilter.indexOf('$')) : pathFilter;
-          FileFilter filter = (name) -> name.getPath().startsWith(finalPathFilter);
-          File[] children = checkExistence.listFiles(filter);
-          System.out.println(Arrays.toString(children));
-          if (children[0].exists() && children[0].isDirectory()) {
-              ++validSubdirectories;
-          }
-          if (validSubdirectories == 0) {
-            throw new IOException(
-                "No valid data for " + network + " within [" + basePath +
-                    "] -- check proper mounting.");
+
+      { // This whole block is to handle the case where our data directory may not be mounted.
+        // Data availability is a station-level defect. We don't want to check everything
+        // against, say, stations listed in the metadata, but we do want to make sure a network
+        // has some station data available, at which point it is a network-level defect.
+        // We expect that there's a top-level 'network' structure we can resolve before station
+        // wildcarding (i.e., "/mount/data/${NETWORK}/${STATION}" or
+        // "/mount/data/${NETWORK}_${STATION}"). Otherwise this may produce false positive results.
+        String path = Global.getDataDir();
+        int firstWildcard = path.indexOf('$');
+        String basePath = path;
+        if (firstWildcard > 0) {
+          basePath = basePath.substring(0, firstWildcard);
+        }
+        File checkExistence = new File(basePath);
+        // getCanonicalPath should resolve symlink allowing us to check where it points to
+        checkExistence = new File(checkExistence.getCanonicalPath());
+        if (!checkExistence.exists()) {
+          throw new IOException(
+              "Unable to access data path [" + basePath + "]: check path exists.");
+        }
+        // path might exist, but what if it has no contents?
+        // we'll check for subdirectories if wildcards are part of the data path
+        // we look at each network independently because they may come from different mount points
+        // (i.e., II might be local while IU is not)
+        if (path.length() > firstWildcard) {
+          for (String network : Global.getNetworkRestrictions()) {
+            boolean hasValidSubdirectories = false;
+            String pathFilter = path.replace("${NETWORK}", network);
+            final String finalPathFilter;
+            finalPathFilter = pathFilter.contains("$") ?
+                pathFilter.substring(0, pathFilter.indexOf('$')) : pathFilter;
+            FileFilter filter = (name) -> name.getPath().startsWith(finalPathFilter);
+            File[] children = checkExistence.listFiles(filter);
+            if (children.length != 0) {
+              // this loop is to ensure that there's at least one subdirectory for the network
+              // with valid data -- so that if we pick up files that aren't directories we don't
+              // close prematurely; we'd like to have limited assumptions about the contents of
+              // the file structure that eventually leads to the seed data we're scanning
+              // and we'd also like to have this check be as efficient as possible
+              for (File child : children) {
+                if (child.exists() && child.isDirectory()) {
+                  hasValidSubdirectories = true;
+                  break;
+                }
+              }
+            }
+            if (!hasValidSubdirectories) {
+              throw new IOException(
+                  "No valid data for " + network + " within [" + basePath +
+                      "] -- check proper mounting.");
+            }
           }
         }
       }
